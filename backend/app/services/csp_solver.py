@@ -10,11 +10,28 @@
 #
 # Day 2: Data model + constraint checkers + objective function
 # Day 3: Full recursive backtracking solver
+#
+# ALGORITHM OVERVIEW:
+# 1. Sort participants by "most constrained first" — those with fewest
+#    valid teams go first. Placing hard-to-fit people early reduces
+#    backtracking later. (This is the MRV heuristic from CSP theory.)
+# 2. For each participant, try every team in order of "least constraining"
+#    — the team whose average skill is furthest from target (needs help most).
+# 3. After each placement, run forward checking — verify every unplaced
+#    participant still has at least one valid team. If not, prune.
+# 4. On full success, score with objective function. Track the best solution
+#    seen across the entire search tree.
+# 5. On dead end, undo placement and try the next team.
+
+
+from itertools import count
 
 import numpy as np
+import time 
 from dataclasses import dataclass, field
-from typing import List, Dict, Optional
+from typing import List, Dict, Optional, Tuple
 from uuid import UUID
+from copy import deepcopy
 
 
 # ── Data Structures ──────────────────────────────────────────────────
@@ -102,10 +119,6 @@ class ConstraintChecker:
 
     @staticmethod
     def check_size_limit(team: TeamSlot, k_max: int) -> bool:
-        """
-        Constraint 1: Team must not exceed maximum size.
-        Returns True if adding one more member is still OK.
-        """
         return team.size() < k_max
 
     @staticmethod
@@ -114,15 +127,11 @@ class ConstraintChecker:
         candidate: ParticipantNode,
         max_per_institution: int = 1
     ) -> bool:
-        """
-        Constraint 2: No more than `max_per_institution` members
-        from the same institution on one team.
-        """
-        institution_count = sum(
+        count = sum(
             1 for m in team.members
             if m.institution == candidate.institution
         )
-        return institution_count < max_per_institution
+        return count < max_per_institution
 
     @staticmethod
     def check_all_constraints(
@@ -131,10 +140,6 @@ class ConstraintChecker:
         k_max: int,
         max_per_institution: int = 1
     ) -> tuple[bool, str]:
-        """
-        Runs all constraints. Returns (is_valid, reason_if_invalid).
-        The solver calls this before every placement decision.
-        """
         if not ConstraintChecker.check_size_limit(team, k_max):
             return False, f"Team {team.id} is full ({team.size()}/{k_max})"
 
@@ -160,12 +165,7 @@ class ObjectiveFunction:
         num_teams: int,
         target_size: int
     ) -> np.ndarray:
-        """
-        μ_d = (k/N) * Σ S_{i,d}
-        The ideal average skill score per dimension if perfectly balanced.
-        """
         all_skills = np.array([p.skill_array for p in participants])
-        # Mean across all participants, scaled by team size ratio
         return (target_size / len(participants)) * all_skills.sum(axis=0)
 
     @staticmethod
@@ -173,20 +173,11 @@ class ObjectiveFunction:
         teams: List[TeamSlot],
         target_averages: np.ndarray
     ) -> float:
-        """
-        Main objective: minimize total skill variance across all teams.
-
-        Formula from doc:
-        min Σ_j Σ_d ( Σ_i x_{i,j} * S_{i,d} - μ_d )²
-
-        Lower = better balanced teams.
-        """
         total_variance = 0.0
         for team in teams:
             if not team.members:
                 continue
             team_avg = team.average_skill_vector()
-            # Squared distance from target averages, summed across all skill dimensions
             variance = np.sum((team_avg - target_averages) ** 2)
             total_variance += variance
         return float(total_variance)
@@ -220,85 +211,234 @@ class ObjectiveFunction:
         }
 
 
-# ── Solver Interface (stub for Day 2 — full solver Day 3) ────────────
+# ── Solver Interface  ────────────
 
 class CSPTeamSolver:
     """
-    Main solver class. Day 2 version exposes the interface and
-    runs a greedy heuristic. Day 3 replaces this with full
-    recursive backtracking + forward checking.
+    Recursive backtracking solver with forward checking and MRV heuristic.
+
+    MRV  = Minimum Remaining Values — place the most constrained
+           participant first (fewest valid teams available to them).
+    FC   = Forward Checking — after each placement, verify every
+           remaining participant still has ≥ 1 valid team. Prune if not.
     """
 
+    TIME_LIMIT_SECONDS = 10
+    
     def __init__(self, formulation: CSPFormulation):
-        self.formulation  = formulation
-        self.checker      = ConstraintChecker()
-        self.objective    = ObjectiveFunction()
+        self.f             = formulation
+        self.checker       = ConstraintChecker()
+        self.objective     = ObjectiveFunction()
+        self._best_teams:  Optional[List[TeamSlot]] = None
+        self._best_score:  float                    = float("inf")
+        self._nodes_visited: int                    = 0
+        self._start_time:  float                    = 0.0
+        self._timed_out:   bool                     = False
 
-    def solve(self) -> tuple[List[TeamSlot], dict]:
-        """
-        Entry point. Returns (teams, evaluation_report).
-        Day 2: greedy placement (fast, good enough for testing)
-        Day 3: replace with backtracking for optimal solution
-        """
-        teams = [
-            TeamSlot(id=i)
-            for i in range(self.formulation.num_teams)
-        ]
-
-        # Sort participants by skill diversity (most specialized first)
-        # Placing "hard to fit" participants first reduces backtracking later
-        sorted_participants = sorted(
-            self.formulation.participants,
-            key=lambda p: np.std(p.skill_array),
-            reverse=True
+        # Pre-compute target averages once — used throughout search
+        self._target_avgs = self.objective.compute_target_averages(
+            self.f.participants,
+            self.f.num_teams,
+            self.f.target_size
         )
-
-        for participant in sorted_participants:
-            placed = self._greedy_place(participant, teams)
-            if not placed:
-                # Fallback: place in smallest team ignoring institution constraint
-                smallest = min(teams, key=lambda t: t.size())
-                smallest.members.append(participant)
-                print(f"⚠️  Constraint relaxed for {participant.name} → Team {smallest.id}")
-
-        target_avgs = self.objective.compute_target_averages(
-            self.formulation.participants,
-            self.formulation.num_teams,
-            self.formulation.target_size
-        )
-        report = self.objective.evaluate_assignment(teams, self.formulation)
-        return teams, report
-
-    def _greedy_place(self, participant: ParticipantNode, teams: List[TeamSlot]) -> bool:
+        
+    #-- Public Entry Point ------------------------------------------------
+    def solve(self) -> Tuple[List[TeamSlot], dict]:
         """
-        Tries to place participant in the best valid team.
-        'Best' = team whose avg skill is furthest from target (needs balancing most).
+        Returns (best_teams_found, evaluation_report).
+        Tries full backtracking first; falls back to greedy if time limit hit.
         """
-        target_avgs = self.objective.compute_target_averages(
-            self.formulation.participants,
-            self.formulation.num_teams,
-            self.formulation.target_size
-        )
+        self._start_time = time.time()
 
-        # Score each team: how much does adding this participant help balance it?
-        candidates = []
-        for team in teams:
-            is_valid, reason = self.checker.check_all_constraints(
-                team, participant,
-                self.formulation.k_max,
-                self.formulation.max_per_institution
-            )
-            if is_valid:
-                # Simulate adding this participant and score the result
-                team.members.append(participant)
-                score = self.objective.skill_variance_score([team], target_avgs)
-                team.members.pop()
-                candidates.append((score, team))
+        # Initial empty teams
+        teams = [TeamSlot(id=i) for i in range(self.f.num_teams)]
 
-        if not candidates:
+        # Sort all participants by MRV (most constrained first)
+        ordered = self._order_by_mrv(self.f.participants, teams)
+
+        print(f"[CSP] Starting backtracking search: "
+              f"{len(self.f.participants)} participants → "
+              f"{self.f.num_teams} teams")
+
+        self._backtrack(ordered, teams, depth=0)
+
+        elapsed = time.time() - self._start_time
+
+        if self._best_teams is None:
+            # Should never happen (greedy fallback ensures a solution exists)
+            print("[CSP] WARNING: backtracking found no solution, using greedy fallback")
+            self._best_teams = self._greedy_fallback(self.f.participants)
+
+        report = self.objective.evaluate_assignment(self._best_teams, self.f)
+        report["nodes_visited"] = self._nodes_visited
+        report["elapsed_seconds"] = round(elapsed, 3)
+        report["timed_out"] = self._timed_out
+        report["algorithm"] = "backtracking" if not self._timed_out else "greedy_fallback"
+
+        print(f"[CSP] Solved in {elapsed:.2f}s | "
+              f"nodes={self._nodes_visited} | "
+              f"variance={report['variance_score']} | "
+              f"quality={report['quality']}")
+
+        return self._best_teams, report
+
+    # ── Core Recursive Backtracking ───────────────────────────────────
+    
+    def _backtrack(
+        self,
+        remaining:  List[ParticipantNode],
+        teams:      List[TeamSlot],
+        depth:      int
+    ) -> bool:
+        if time.time() - self._start_time > self.TIME_LIMIT_SECONDS:
+            self._timed_out = True
             return False
 
-        # Place in the team where variance improves the most
-        best_team = min(candidates, key=lambda x: x[0])[1]
-        best_team.members.append(participant)
+        self._nodes_visited += 1
+
+        if not remaining:
+            if any(t.size() < self.f.k_min for t in teams):
+                return False
+
+            score = self.objective.skill_variance_score(teams, self._target_avgs)
+
+            if score < self._best_score:
+                self._best_score = score
+                self._best_teams = deepcopy(teams)   # snapshot the current state
+                print(f"[CSP]   New best solution at depth {depth}: "
+                      f"variance={score:.4f}")
+
+            return False
+
+        ordered_remaining = self._order_by_mrv(remaining, teams)
+        current           = ordered_remaining[0]
+        rest              = ordered_remaining[1:]
+
+        ordered_teams = self._order_teams_by_lcv(current, teams)
+
+        for team in ordered_teams:
+            valid, reason = self.checker.check_all_constraints(
+                team, current, self.f.k_max, self.f.max_per_institution
+            )
+
+            if not valid:
+                continue  
+
+            team.members.append(current)
+
+            if self._forward_check(rest, teams):
+                self._backtrack(rest, teams, depth + 1)
+
+            team.members.pop()
+
+        return False 
+    
+    # ── Forward Checking ─────────────────────────────────────────────
+    def _forward_check(
+        self,
+        remaining: List[ParticipantNode],
+        teams:     List[TeamSlot]
+    ) -> bool:
+        for participant in remaining:
+            has_valid_team = any(
+                self.checker.check_all_constraints(
+                    team, participant, self.f.k_max, self.f.max_per_institution
+                )[0]
+                for team in teams
+            )
+            if not has_valid_team:
+                return False 
         return True
+
+
+    # ── Heuristics ───────────────────────────────────────────────────
+    def _order_by_mrv(
+        self,
+        participants: List[ParticipantNode],
+        teams:        List[TeamSlot]
+    ) -> List[ParticipantNode]:
+        def valid_team_count(p: ParticipantNode) -> int:
+            return sum(
+                1 for t in teams
+                if self.checker.check_all_constraints(
+                    t, p, self.f.k_max, self.f.max_per_institution
+                )[0]
+            )
+
+        return sorted(participants, key=valid_team_count)
+
+    def _order_teams_by_lcv(
+        self,
+        candidate: ParticipantNode,
+        teams:     List[TeamSlot]
+    ) -> List[TeamSlot]:
+        scored = []
+        for team in teams:
+            valid, _ = self.checker.check_all_constraints(
+                team, candidate, self.f.k_max, self.f.max_per_institution
+            )
+            if not valid:
+                continue
+
+            team.members.append(candidate)
+            score = self.objective.skill_variance_score([team], self._target_avgs)
+            team.members.pop()
+
+            scored.append((score, team))
+
+        scored.sort(key=lambda x: x[0])
+        valid_teams   = [t for _, t in scored]
+        invalid_teams = [t for t in teams if t not in valid_teams]
+        return valid_teams + invalid_teams
+
+    # ── Greedy Fallback  ────────
+    def _greedy_fallback(
+        self,
+        participants: List[ParticipantNode]
+    ) -> List[TeamSlot]:
+        print("[CSP] Running greedy fallback solver")
+        teams = [TeamSlot(id=i) for i in range(self.f.num_teams)]
+        sorted_p = sorted(participants, key=lambda p: np.std(p.skill_array), reverse=True)
+
+        for participant in sorted_p:
+            placed = False
+            for team in sorted(teams, key=lambda t: t.size()):
+                valid, _ = self.checker.check_all_constraints(
+                    team, participant, self.f.k_max, self.f.max_per_institution
+                )
+                if valid:
+                    team.members.append(participant)
+                    placed = True
+                    break
+            if not placed:
+                min(teams, key=lambda t: t.size()).members.append(participant)
+
+        return teams
+
+
+# ── Helper: build formulation from raw dicts (used by Celery task) ───
+def build_formulation_from_dicts(
+    roster:      List[dict],
+    num_teams:   int,
+    target_size: int,
+    k_min:       int,
+    k_max:       int,
+    max_per_institution: int = 1
+) -> CSPFormulation:
+    nodes = [
+        ParticipantNode(
+            id=str(p.get("id", p.get("email"))),
+            name=f"{p['first_name']} {p['last_name']}",
+            institution=p["institution"],
+            skill_vector=p["skill_vector"]
+        )
+        for p in roster
+    ]
+    return CSPFormulation(
+        participants=nodes,
+        num_teams=num_teams,
+        target_size=target_size,
+        k_min=k_min,
+        k_max=k_max,
+        max_per_institution=max_per_institution
+    )
