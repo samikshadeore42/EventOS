@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Registration Confirmed</title>
+  <style>
+    /* Inline styles are required for email clients — Gmail strips <style> tags */
+    body { margin: 0; padding: 0; background-color: #f4f4f5; font-family: -apple-system, Arial, sans-serif; }
+    .wrapper { max-width: 600px; margin: 40px auto; background: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
+    .header { background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%); padding: 40px 32px; text-align: center; }
+    .header h1 { color: #ffffff; margin: 0; font-size: 24px; font-weight: 700; letter-spacing: -0.5px; }
+    .header p { color: #c7d2fe; margin: 8px 0 0; font-size: 14px; }
+    .body { padding: 40px 32px; }
+    .body h2 { color: #111827; font-size: 20px; margin: 0 0 16px; }
+    .body p { color: #6b7280; font-size: 15px; line-height: 1.7; margin: 0 0 16px; }
+    .badge { display: inline-block; background: #ede9fe; color: #5b21b6; padding: 8px 20px; border-radius: 100px; font-size: 13px; font-weight: 600; margin-bottom: 24px; }
+    .next-steps { background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 10px; padding: 24px; margin: 24px 0; }
+    .next-steps h3 { color: #374151; font-size: 15px; margin: 0 0 12px; }
+    .step { display: flex; align-items: flex-start; margin-bottom: 12px; }
+    .step-num { background: #4f46e5; color: white; width: 22px; height: 22px; border-radius: 50%; font-size: 12px; font-weight: 700; display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-right: 12px; margin-top: 1px; }
+    .step-text { color: #6b7280; font-size: 14px; line-height: 1.5; }
+    .footer { background: #f9fafb; border-top: 1px solid #e5e7eb; padding: 24px 32px; text-align: center; }
+    .footer p { color: #9ca3af; font-size: 13px; margin: 0; }
+    .footer a { color: #4f46e5; text-decoration: none; }
+  </style>
+</head>
+<body>
+  <div class="wrapper">
+
+    <div class="header">
+      <h1>EventOS</h1>
+      <p>{{ event_name }}</p>
+    </div>
+
+    <div class="body">
+      <span class="badge">✅ Registration Confirmed</span>
+      <h2>Welcome, {{ participant_name }}!</h2>
+      <p>
+        You have successfully registered for <strong>{{ event_name }}</strong>.
+        We are excited to have you participate. Our team will review your profile
+        and assign you to a balanced team shortly.
+      </p>
+
+      <div class="next-steps">
+        <h3>What happens next?</h3>
+        <div class="step">
+          <div class="step-num">1</div>
+          <div class="step-text">Your skill profile is reviewed by our matching algorithm</div>
+        </div>
+        <div class="step">
+          <div class="step-num">2</div>
+          <div class="step-text">You will receive a team assignment email within 24 hours</div>
+        </div>
+        <div class="step">
+          <div class="step-num">3</div>
+          <div class="step-text">Connect with your team and start preparing!</div>
+        </div>
+      </div>
+
+      <p>
+        If you have any questions, reach out to us at
+        <a href="mailto:{{ support_email }}" style="color:#4f46e5;">{{ support_email }}</a>
+      </p>
+    </div>
+
+    <div class="footer">
+      <p>© 2026 EventOS — {{ event_name }}<br>
+      <a href="#">Unsubscribe</a> · <a href="#">Privacy Policy</a></p>
+    </div>
+
+  </div>
+</body>
+</html>
