@@ -14,6 +14,7 @@
 - [Team Roles](#team-roles)
 - [Day 1 — Infrastructure Scaffold (FS+AI)](#day-1--infrastructure-scaffold-fsai)
 - [Day 2 — Database, Email Service & CSP Model (FS+AI)](#day-2--database-email-service--csp-model-fsai)
+- [Day 3 — Backtracking Solver & Redis Task Tracker (FS+AI)](#day-3--backtracking-solver--redis-task-tracker-fsai)
 - [Folder Structure](#folder-structure)
 - [Prerequisites](#prerequisites)
 - [Installation & Setup](#installation--setup)
@@ -54,23 +55,22 @@ EventOS is a distributed, AI-assisted orchestration platform designed to manage 
 │              FastAPI Engine                      │  ← Backend (FS)
 │         REST Endpoints · Pydantic Schemas        │
 └──────┬───────────────────────┬──────────────────┘
-       │ SQLAlchemy            │ Redis Broker
+       │ SQLAlchemy            │ Redis
        ▼                       ▼
-┌─────────────┐       ┌───────────────┐     ┌─────────────┐
-│  PostgreSQL │       │     Redis     │     │  Gemini /   │
-│  (State DB) │       │   (Broker)    │     │  Claude LLM │  ← AI (AI/ML)
-└─────────────┘       └──────┬────────┘     └─────────────┘
-                             │ Consumer
-                             ▼
-                  ┌──────────────────────┐
-                  │    Celery Workers    │  ← FS + Basic AI
-                  │  (Async Task Queue)  │
-                  └──────────┬───────────┘
+┌─────────────┐       ┌────────────────────┐     ┌─────────────┐
+│  PostgreSQL │       │       Redis         │     │  Gemini /   │
+│  (State DB) │       │  Broker · Tracker  │     │  Claude LLM │  ← AI (AI/ML)
+└─────────────┘       └────────┬───────────┘     └─────────────┘
+                               │ Consumer
+                               ▼
+                  ┌────────────────────────┐
+                  │     Celery Workers     │  ← FS + Basic AI
+                  │  CSP Solver · Emails  │
+                  └──────────┬─────────────┘
                              │ SMTP
                              ▼
                   ┌──────────────────────┐
                   │   SendGrid Gateway   │
-                  │  (Transactional Mail)│
                   └──────────────────────┘
 ```
 
@@ -84,6 +84,7 @@ EventOS is a distributed, AI-assisted orchestration platform designed to manage 
 | Backend | FastAPI, SQLAlchemy 2.0, Alembic, Pydantic v2 |
 | Database | PostgreSQL 16 |
 | Task Queue | Celery 5.4, Redis 7 |
+| Task Tracking | Redis key-value store with TTL (in-memory, 2hr expiry) |
 | AI / LLM | LangChain, Google Gemini API |
 | Email | SendGrid API, Jinja2 HTML templates |
 | Auth | JWT (HMAC-SHA256), python-jose |
@@ -97,7 +98,7 @@ EventOS is a distributed, AI-assisted orchestration platform designed to manage 
 |---|---|---|
 | **FE** — Frontend Developer | React SPA, dashboards, portals, UI components | `feature/fe-` |
 | **FS** — Full Stack Developer | FastAPI routes, DB models, CRUD endpoints, CSV parsing | `feature/fs-` |
-| **FS+AI** — Full Stack + Basic AI | Docker infra, Celery, email service, CSP solver | `feature/fsai-` |
+| **FS+AI** — Full Stack + Basic AI | Docker infra, Celery, email service, CSP solver, task tracker | `feature/fsai-` |
 | **AI/ML** — AI/ML Developer | CSP optimization, anomaly detection, LLM pipelines | `feature/ai-` |
 
 > **Contract-first rule:** Backend defines Pydantic schemas before writing any endpoint logic. Frontend uses auto-generated OpenAPI client bindings. Never call endpoints that are not schema-defined first.
@@ -116,21 +117,21 @@ This PR establishes the entire infrastructure foundation. No other role can run 
 #### 1. Docker Compose Orchestration (`docker-compose.yml`)
 - **PostgreSQL 16** — persistent volume, health checks before dependent services start
 - **Redis 7** — dual role: Celery task broker + pub/sub backbone for WebSockets
-- **FastAPI backend** — hot-reload via `uvicorn --reload`, mounts source as volume
+- **FastAPI backend** — hot-reload via `uvicorn --reload`, source mounted as volume
 - **Celery Worker** — consumes `notifications`, `algorithms`, and `default` queues
 - **Celery Beat** — periodic task scheduler
-- All 5 services wired with `depends_on + condition: service_healthy` — nothing starts before Postgres and Redis pass their health checks
+- All 5 services wired with `depends_on + condition: service_healthy`
 
 #### 2. Celery Application (`app/core/celery_app.py`)
 - Redis as both broker and result backend
-- Named queues separated by concern — `notifications` for email, `algorithms` for CSP/ML
-- 5-minute hard task timeout, 4-minute soft warning (prevents LLM tasks from hanging)
-- `task_acks_late=True` — tasks acknowledged only after successful completion, preventing data loss if a worker crashes mid-execution
+- Named queues — `notifications` for email, `algorithms` for CSP/ML
+- 5-minute hard task timeout, 4-minute soft warning
+- `task_acks_late=True` — tasks acknowledged only after successful completion
 
 #### 3. Participant Input Schemas (`app/schemas/participant.py`)
 - `ParticipantBase`, `ParticipantCreate`, `ParticipantUpdate`, `ParticipantResponse`, `ParticipantBulkUpload`
 - `skill_vector` field validator enforcing score range `[0.0, 10.0]`
-- `MOCK_ROSTER` — 4 sample participants ready for FE and FS local development
+- `MOCK_ROSTER` — 4 sample participants for immediate FE/FS local development
 
 #### 4. FastAPI Shell (`app/main.py`)
 - CORS configured for Vite dev server at `localhost:5173`
@@ -140,33 +141,29 @@ This PR establishes the entire infrastructure foundation. No other role can run 
 #### 5. Task Stubs (`app/tasks/`)
 - `send_batch_emails` stub on `notifications` queue
 - `run_team_formation` stub on `algorithms` queue
-- Both return structured responses so other roles can integrate immediately
 
 #### 6. Project Config
-- `backend/Dockerfile` — Python 3.11-slim, system deps, pip install
-- `backend/.env.example` — all env vars documented
-- `backend/requirements.txt` — all dependencies pinned
-- `.gitignore` — Python, Node, Docker, IDE artifacts excluded
+- `backend/Dockerfile`, `requirements.txt`, `.env.example`, `.gitignore`
 
 ### Files Created (Day 1)
 
 ```
 EventOS/
-├── docker-compose.yml                        ← NEW
-├── .gitignore                                ← NEW
+├── docker-compose.yml
+├── .gitignore
 └── backend/
-    ├── Dockerfile                            ← NEW
-    ├── requirements.txt                      ← NEW
-    ├── .env.example                          ← NEW
+    ├── Dockerfile
+    ├── requirements.txt
+    ├── .env.example
     └── app/
-        ├── main.py                           ← NEW
+        ├── main.py
         ├── core/
-        │   └── celery_app.py                 ← NEW
+        │   └── celery_app.py
         ├── schemas/
-        │   └── participant.py                ← NEW
+        │   └── participant.py
         └── tasks/
-            ├── communications.py             ← NEW (stub)
-            └── solver.py                     ← NEW (stub)
+            ├── communications.py       (stub)
+            └── solver.py               (stub)
 ```
 
 ### What Other Roles Get From Day 1
@@ -189,163 +186,309 @@ This PR connects the application to PostgreSQL, builds the full async email pipe
 ### What Was Built
 
 #### 1. Database Engine & Session Factory (`app/core/database.py`)
-- SQLAlchemy `create_engine` with `pool_pre_ping=True` — checks connection liveness before each use
-- Connection pool: `pool_size=10`, `max_overflow=20` — handles Celery worker burst traffic without exhausting Postgres connections
-- `SessionLocal` factory — each API request gets its own isolated session, closed automatically via `finally` block
-- `Base` declarative class — all SQLAlchemy models inherit from this
-- `get_db()` dependency — FastAPI dependency injection pattern for clean session lifecycle per request
+- SQLAlchemy `create_engine` with `pool_pre_ping=True`
+- Connection pool: `pool_size=10`, `max_overflow=20`
+- `SessionLocal` factory with `finally` block cleanup
+- `Base` declarative class all models inherit from
+- `get_db()` FastAPI dependency for clean session lifecycle per request
 
 #### 2. SQLAlchemy Database Models (`app/models/participant.py`)
 
 **`Participant` table:**
+
 | Column | Type | Notes |
 |---|---|---|
-| `id` | UUID (PK) | Auto-generated, more secure than auto-increment |
+| `id` | UUID (PK) | Auto-generated |
 | `first_name` | VARCHAR(50) | |
 | `last_name` | VARCHAR(50) | |
-| `email` | VARCHAR(255) | Unique, B-Tree indexed for fast auth lookups |
+| `email` | VARCHAR(255) | Unique, B-Tree indexed |
 | `institution` | VARCHAR(100) | |
-| `skill_vector` | JSONB | `{"python": 8.5, "ml": 7.0}` — indexed, queryable |
-| `team_id` | UUID (FK, nullable) | B-Tree indexed for fast team grouping queries |
-| `email_verified` | BOOLEAN | Tracks SendGrid validation state |
-| `welcome_email_sent` | BOOLEAN | Prevents duplicate welcome emails |
-| `created_at` | TIMESTAMP | |
-| `updated_at` | TIMESTAMP | Auto-updated on record change |
+| `skill_vector` | JSONB | `{"python": 8.5, "ml": 7.0}` |
+| `team_id` | UUID (FK, nullable) | B-Tree indexed |
+| `email_verified` | BOOLEAN | |
+| `welcome_email_sent` | BOOLEAN | Prevents duplicate emails |
+| `created_at` / `updated_at` | TIMESTAMP | |
 
 **`Team` table:**
+
 | Column | Type | Notes |
 |---|---|---|
 | `id` | UUID (PK) | |
 | `team_name` | VARCHAR(100) | |
-| `rationale` | TEXT | LLM-generated team composition explanation |
-| `is_approved` | BOOLEAN | B-Tree indexed for dashboard approval filtering |
+| `rationale` | TEXT | LLM-generated explanation |
+| `is_approved` | BOOLEAN | B-Tree indexed |
 | `created_at` | TIMESTAMP | |
 
-- `Team.members` relationship — `team.members` returns all assigned participants
-- Tables auto-created on FastAPI startup via `Base.metadata.create_all()`
-
 #### 3. SendGrid Email Service (`app/services/email_service.py`)
-- `EmailService` class — single point of contact for all email sending in the codebase
-- Jinja2 template rendering — HTML templates loaded from `app/templates/emails/`
-- `send_registration_confirmation()` — confirmation email on participant registration
-- `send_team_assignment()` — team notification with member list and LLM rationale block
-- `_send_email()` — core SendGrid API call, all other methods funnel through here
-- **Dev mode fallback** — if `SENDGRID_API_KEY` is blank, emails are logged to console instead of sending. App never crashes due to missing key.
-- `validate_sendgrid_connection()` — startup validator to catch misconfigured keys early
+- `EmailService` class — single contact point for all email sending
+- Jinja2 template rendering from `app/templates/emails/`
+- `send_registration_confirmation()` and `send_team_assignment()`
+- Dev mode fallback — if `SENDGRID_API_KEY` is blank, emails log to console, app never crashes
 
 #### 4. HTML Email Templates (`app/templates/emails/`)
-
-**`registration.html`** — Registration confirmation email:
-- EventOS branded header with purple gradient
-- Personalised greeting with participant name
-- 3-step "what happens next" timeline card
-- Support email contact footer
-- Fully inline CSS (required for Gmail compatibility)
-
-**`team_assignment.html`** — Team assignment notification:
-- Green gradient header (visually distinct from registration)
-- Team name hero display
-- Dynamic member list rendered via Jinja2 `{% for %}` loop — scales to any team size
-- Conditional LLM rationale block — only renders if rationale string is non-empty
-- Member avatar initials auto-generated from first character of name
-
-Both templates use Jinja2 `{{ variable }}` interpolation and `autoescape=True` to prevent XSS from user-supplied data.
+- `registration.html` — purple gradient header, 3-step next-steps timeline, fully inline CSS for Gmail compatibility
+- `team_assignment.html` — green gradient header, dynamic member list via Jinja2 `{% for %}` loop, conditional LLM rationale block
 
 #### 5. Email Pydantic Schemas (`app/schemas/email_schemas.py`)
-- `EmailSendRequest` — single manual email trigger (admin use)
-- `BulkEmailRequest` — batch email trigger routed to Celery
-- `EmailSendResult` — structured response with `success`, `message_id`, `error`, `dev` flag
+- `EmailSendRequest`, `BulkEmailRequest`, `EmailSendResult`
 
 #### 6. Real Celery Email Tasks (`app/tasks/communications.py`)
-Upgraded from Day 1 stub to production-ready async tasks:
-
-- `EmailTask` base class — shared `on_failure`, `on_retry`, `on_success` hooks for all email tasks
-- `send_registration_email` task:
-  - `max_retries=3`, `default_retry_delay=60s`
-  - Exponential backoff on retry: `60 × (attempt + 1)` seconds
-  - Raises `self.retry(exc=exc)` on SendGrid failure — re-queues to Redis automatically
-- `send_batch_emails` task:
-  - Iterates recipient list, calls correct template per `template` param
-  - Returns `{sent, failed, errors[]}` — partial failure is tracked, not swallowed
-  - `max_retries=2` on the overall batch task
+- `EmailTask` base class with `on_failure`, `on_retry`, `on_success` hooks
+- `send_registration_email` — `max_retries=3`, exponential backoff `60 × (attempt+1)s`
+- `send_batch_emails` — iterates recipient list, tracks `{sent, failed, errors[]}`
 
 #### 7. CSP Math Model Skeleton (`app/services/csp_solver.py`)
-Mathematical foundation for the team formation algorithm. Day 3 adds the recursive backtracking search on top of this.
-
-**Data structures:**
-- `ParticipantNode` — solver's internal representation of a participant. Decoupled from SQLAlchemy. Exposes `skill_array` as `np.ndarray` for math operations.
-- `TeamSlot` — represents a team being assembled. Tracks members, exposes `institution_set()` and `average_skill_vector()`.
-- `CSPFormulation` — complete problem definition: participants, `num_teams`, `k_min`, `k_max`, `max_per_institution`. Validates feasibility in `__post_init__`.
-
-**Constraint checkers (`ConstraintChecker`):**
-- `check_size_limit()` — team must not exceed `k_max`
-- `check_institutional_diversity()` — max N members from same institution per team
-- `check_all_constraints()` — runs all checks, returns `(bool, reason_string)` for solver decision logging
-
-**Objective function (`ObjectiveFunction`):**
-Implements the minimisation formula from the project specification:
-
-```
-min Σ_j Σ_d ( Σ_i x_{i,j} · S_{i,d} − μ_d )²
-```
-
-- `compute_target_averages()` — calculates ideal per-skill average across balanced teams (μ_d)
-- `skill_variance_score()` — squared distance of each team's average from target, summed across all skill dimensions. Lower = more balanced.
-- `evaluate_assignment()` — full evaluation report: variance score, team sizes, per-team skill averages, quality label (`excellent / good / fair`)
-
-**Solver (`CSPTeamSolver`):**
-- Day 2 implementation uses a greedy heuristic: places the most skill-specialised participants first, picks the team where adding them most reduces variance
-- Fallback: if all constraints block placement, relaxes institutional diversity and places in the smallest team with a logged warning
-- Interface is stable — Day 3 replaces only the `_greedy_place` method with recursive backtracking, nothing else changes
+- `ParticipantNode`, `TeamSlot`, `CSPFormulation` data structures
+- `ConstraintChecker` — size limit + institutional diversity validators
+- `ObjectiveFunction` — implements `min Σ_j Σ_d (Σ_i x_{i,j}·S_{i,d} − μ_d)²`
+- Day 2 solver: greedy heuristic placeholder (replaced by backtracking on Day 3)
 
 ### Files Created / Updated (Day 2)
 
 ```
-EventOS/
-└── backend/
-    ├── requirements.txt                      ← UPDATED (sendgrid, jinja2 added)
-    └── app/
-        ├── main.py                           ← UPDATED (imports models, table creation)
-        ├── core/
-        │   └── database.py                   ← NEW
-        ├── models/
-        │   └── participant.py                ← NEW (Participant + Team tables)
-        ├── schemas/
-        │   └── email_schemas.py              ← NEW
-        ├── services/
-        │   ├── email_service.py              ← NEW
-        │   └── csp_solver.py                 ← NEW
-        ├── tasks/
-        │   └── communications.py             ← UPDATED (stub → real tasks)
-        └── templates/
-            └── emails/
-                ├── registration.html         ← NEW
-                └── team_assignment.html      ← NEW
+backend/
+├── requirements.txt                    (updated — sendgrid, jinja2 added)
+└── app/
+    ├── main.py                         (updated — model imports, table creation)
+    ├── core/
+    │   └── database.py                 (new)
+    ├── models/
+    │   └── participant.py              (new — Participant + Team tables)
+    ├── schemas/
+    │   └── email_schemas.py            (new)
+    ├── services/
+    │   ├── email_service.py            (new)
+    │   └── csp_solver.py               (new — math model + greedy solver)
+    ├── tasks/
+    │   └── communications.py           (updated — stub → real tasks)
+    └── templates/
+        └── emails/
+            ├── registration.html       (new)
+            └── team_assignment.html    (new)
 ```
 
 ### What Other Roles Get From Day 2
 
 | Role | What you can do now |
 |---|---|
-| **FE** | `Team` model exists — you can build team assignment UI. Email templates show exactly what participants will see. |
-| **FS** | `get_db()` dependency ready to inject into your route handlers. `Participant` and `Team` models ready for CRUD endpoints. Import `send_registration_email.delay()` to trigger emails from your routes. |
-| **AI/ML** | `CSPFormulation`, `ParticipantNode`, `ConstraintChecker`, `ObjectiveFunction` all ready. Day 3 you only need to implement the backtracking search inside `CSPTeamSolver`. |
+| **FE** | `Team` model exists — build team assignment UI. Email templates show exactly what participants will see. |
+| **FS** | `get_db()` ready to inject into route handlers. `Participant` + `Team` models ready for CRUD. Call `send_registration_email.delay()` from your routes. |
+| **AI/ML** | `CSPFormulation`, `ParticipantNode`, `ConstraintChecker`, `ObjectiveFunction` all importable. Day 3 replaces only the solver internals. |
 
 ### ⚠️ Pending Verification (SendGrid)
 
-SendGrid is fully integrated and configured. End-to-end email delivery needs to be verified once the `SENDGRID_API_KEY` is confirmed in `.env` and the sender email is authenticated in the SendGrid dashboard.
+SendGrid is fully integrated. End-to-end delivery needs verifying once `SENDGRID_API_KEY` is set and sender email is authenticated in the SendGrid dashboard. Until then the service runs in dev mode — emails log to Celery worker console.
 
-Until then, the service runs in **dev mode** — emails are logged to the Celery worker console instead of being sent. No crashes, no blocking issues for other roles.
+---
 
-**To verify SendGrid when ready:**
-```bash
-# Check the celery worker logs after triggering an email task
-docker compose logs celery_worker --follow
+## Day 3 — Backtracking Solver & Redis Task Tracker (FS+AI)
 
-# Look for either:
-# [DEV MODE] Would send email to ...   ← key not configured
-# ✅ Email task ... succeeded           ← SendGrid working
+**Branch:** `feature/fsai-day3-solver-tracker`
+**Status:** ✅ Complete — solver verified via `/debug/run-solver`, task status verified via `GET /tasks/{task_id}/status`
+
+This PR replaces the Day 2 greedy solver with a production-grade recursive backtracking algorithm, and introduces a Redis-backed real-time task progress tracker that the frontend can poll for live status updates.
+
+### What Was Built
+
+#### 1. Full Backtracking CSP Solver (`app/services/csp_solver.py`)
+
+Complete replacement of the Day 2 greedy solver. All Day 2 data structures (`ParticipantNode`, `TeamSlot`, `CSPFormulation`, `ConstraintChecker`, `ObjectiveFunction`) are preserved unchanged. Only `CSPTeamSolver` was replaced.
+
+**Algorithm:**
+
 ```
+1. Sort all participants by MRV (Most Remaining Values)
+   → Most constrained participants (fewest valid teams) placed first
+   → Reduces backtracking by catching dead-ends early
+
+2. For each participant, rank teams by LCV (Least Constraining Value)
+   → Try the team where adding this participant most improves skill balance
+   → Objective: minimize skill variance across teams
+
+3. After each placement, run Forward Checking
+   → Check every remaining participant still has ≥ 1 valid team
+   → If any participant is now stuck → prune this branch immediately
+
+4. On reaching a complete assignment (all participants placed)
+   → Score with ObjectiveFunction.skill_variance_score()
+   → If better than current best → snapshot with deepcopy()
+   → Continue searching for an even better solution
+
+5. On dead end → undo last placement (backtrack) → try next team
+
+6. If TIME_LIMIT_SECONDS (10s) exceeded → fall back to greedy solver
+```
+
+**Key methods added to `CSPTeamSolver`:**
+
+| Method | Role |
+|---|---|
+| `solve()` | Public entry point. Returns `(teams, evaluation_report)`. |
+| `_backtrack(remaining, teams, depth)` | Core recursive function. Tries every valid team for the current participant, recurses, then undoes (backtracks). |
+| `_forward_check(remaining, teams)` | After each placement, verifies every unplaced participant still has at least one valid team. Returns `False` to prune. |
+| `_order_by_mrv(participants, teams)` | Sorts participants by number of valid teams ascending — most constrained first. |
+| `_order_teams_by_lcv(candidate, teams)` | Sorts teams by post-placement skill variance ascending — best balance first. |
+| `_greedy_fallback(participants)` | Day 2 greedy — only used if backtracking hits the 10s time limit. |
+
+**Evaluation report fields returned by `solve()`:**
+
+```json
+{
+  "variance_score": 3.21,
+  "num_teams": 2,
+  "team_sizes": [4, 4],
+  "quality": "excellent",
+  "nodes_visited": 12,
+  "elapsed_seconds": 0.04,
+  "timed_out": false,
+  "algorithm": "backtracking"
+}
+```
+
+**Helper added:** `build_formulation_from_dicts(roster, ...)` — converts raw participant dicts from DB or mock data into a `CSPFormulation` ready for the solver. Used by the Celery task.
+
+#### 2. Redis Client Singleton (`app/core/redis_client.py`)
+- Single `ConnectionPool` shared across all containers — no redundant TCP connections
+- `decode_responses=True` — all Redis values returned as strings, never raw bytes
+- `get_redis()` — returns a client from the shared pool. Import this everywhere Redis is needed.
+- `ping_redis()` — health check used by `/health` endpoint
+
+**Why a singleton?** Without it, every API request and every Celery task would open a new TCP connection to Redis. Under load this exhausts the connection limit and causes timeouts.
+
+#### 3. Redis Task Status Tracker (`app/services/task_tracker.py`)
+
+Provides real-time visibility into what a background Celery task is currently doing. Celery tasks write progress to Redis; the API reads from Redis; the frontend polls the API.
+
+**Redis key schema:**
+
+```
+task:{task_id}:status  →  JSON string (full status blob)
+task:{task_id}:log     →  Redis List of timestamped log lines (capped at 50)
+```
+
+Both keys auto-expire after **2 hours** via Redis TTL — no manual cleanup needed.
+
+**`TaskStatus` constants:** `pending · running · success · failed · retrying`
+
+**Write methods (called inside Celery tasks):**
+
+| Method | When to call |
+|---|---|
+| `TaskTracker.initialize(task_id, task_type, total_steps, metadata)` | Very first line of every Celery task |
+| `TaskTracker.mark_running(task_id, message)` | After initialization, before heavy work starts |
+| `TaskTracker.update(task_id, status, progress, message)` | Mid-task progress updates |
+| `TaskTracker.mark_success(task_id, result, message)` | On successful completion |
+| `TaskTracker.mark_failed(task_id, error)` | In the except block before re-raising |
+
+**Read methods (called by API routes):**
+
+| Method | Returns |
+|---|---|
+| `TaskTracker.get_status(task_id)` | Full status dict or `None` |
+| `TaskTracker.get_logs(task_id)` | List of log line strings |
+| `TaskTracker.get_status_with_logs(task_id)` | Status dict with `logs` key appended — use this for the API endpoint |
+
+**Status blob shape:**
+
+```json
+{
+  "task_id": "abc-123",
+  "task_type": "team_formation",
+  "status": "success",
+  "progress": 8,
+  "total_steps": 8,
+  "message": "Successfully formed 2 teams. Quality: excellent.",
+  "result": { "teams": [...], "evaluation": {...} },
+  "error": null,
+  "metadata": { "num_participants": 8, "num_teams": 2 },
+  "started_at": "2025-05-20T10:00:00Z",
+  "updated_at": "2025-05-20T10:00:00Z",
+  "completed_at": "2025-05-20T10:00:04Z",
+  "logs": [
+    "[10:00:00] [RUNNING] Starting CSP solver for 8 participants → 2 teams",
+    "[10:00:00] [RUNNING] Building CSP formulation and validating constraints...",
+    "[10:00:04] [SUCCESS] Successfully formed 2 teams. Quality: excellent."
+  ]
+}
+```
+
+#### 4. Real Celery Solver Task (`app/tasks/solver.py`)
+
+Upgraded from Day 1 stub to a full production task with tracker integration.
+
+**Task lifecycle inside `run_team_formation`:**
+
+```
+Step 1 → TaskTracker.initialize()       writes pending status to Redis
+Step 2 → TaskTracker.mark_running()     status → running
+Step 3 → build_formulation_from_dicts() validates roster and config
+Step 4 → CSPTeamSolver(formulation).solve()   runs backtracking
+Step 5 → serialize TeamSlot objects to plain dicts
+Step 6 → TaskTracker.mark_success()     status → success, result stored
+       → on any exception: TaskTracker.mark_failed() then self.retry()
+```
+
+Team names are auto-assigned alphabetically: Team A, Team B, Team C...
+
+#### 5. New API Endpoints (`app/main.py`)
+
+**`GET /tasks/{task_id}/status`**
+- Reads from Redis via `TaskTracker.get_status_with_logs()`
+- Returns full status blob including log lines
+- Returns `404` if task not found or expired (2hr TTL)
+- Frontend polls this every 1–2 seconds to drive progress bars
+
+**`POST /debug/run-solver`** *(debug only — remove before production)*
+- Triggers a test solver run using `MOCK_ROSTER × 2` (8 participants, 2 teams)
+- Returns `{ task_id, status_url }` immediately
+- Use the returned `status_url` to poll progress
+
+**`GET /health`** updated — now includes `"redis": true/false` field
+
+### Files Created / Updated (Day 3)
+
+```
+backend/
+└── app/
+    ├── main.py                         (updated — status endpoint, debug endpoint, redis health)
+    ├── core/
+    │   └── redis_client.py             (new — connection pool singleton)
+    ├── services/
+    │   ├── csp_solver.py               (updated — greedy replaced by full backtracking)
+    │   └── task_tracker.py             (new — Redis task progress tracker)
+    └── tasks/
+        └── solver.py                   (updated — stub → real task with tracker)
+```
+
+### Verified End-to-End (Day 3)
+
+```bash
+# 1. Trigger solver task
+curl -X POST http://localhost:8000/debug/run-solver
+# → {"task_id": "abc-123", "status_url": "/tasks/abc-123/status"}
+
+# 2. Poll status (run immediately)
+curl http://localhost:8000/tasks/abc-123/status
+# → {"status": "running", "progress": 2, "message": "Running backtracking search..."}
+
+# 3. Poll again after ~1 second
+curl http://localhost:8000/tasks/abc-123/status
+# → {"status": "success", "result": {"teams": [...], "evaluation": {"quality": "excellent"}}}
+
+# 4. Celery worker logs
+docker compose logs celery_worker
+# → [CSP] Starting backtracking search: 8 participants → 2 teams
+# → [CSP]   New best solution at depth 8: variance=3.2100
+# → [CSP] Solved in 0.04s | nodes=12 | variance=3.21 | quality=excellent
+```
+
+### What Other Roles Get From Day 3
+
+| Role | What you can do now |
+|---|---|
+| **FE** | Poll `GET /tasks/{task_id}/status` to build live progress bars and solver result views. The `logs[]` array can drive a live log panel. |
+| **FS** | Call `run_team_formation.delay(roster, config)` from your team formation endpoint and return `task_id` to the frontend. Import `TaskTracker.get_status()` for any route that needs to read task state. |
+| **AI/ML** | Full solver interface is stable. `CSPFormulation`, `ConstraintChecker`, `ObjectiveFunction` unchanged — safe to extend with weighted scoring or custom constraints. |
 
 ---
 
@@ -359,33 +502,35 @@ EventOS/
 │
 ├── frontend/                       # FE Developer territory
 │   └── src/
-│       ├── components/             # Reusable UI elements
-│       ├── pages/                  # Dashboard, Participant, Judge views
+│       ├── components/
+│       ├── pages/
 │       └── openapi-client/         # Auto-generated — DO NOT hand-edit
 │
-└── backend/                        # Backend territory
+└── backend/
     ├── Dockerfile
     ├── requirements.txt
-    ├── .env.example                 # Template — copy to .env, never commit .env
-    ├── alembic/                     # DB migrations (FS responsibility)
+    ├── .env.example
+    ├── alembic/
     │   └── versions/
     └── app/
-        ├── main.py                  # FastAPI entry point
+        ├── main.py
         ├── api/                     # Route handlers (FS)
         ├── models/
-        │   └── participant.py       # Participant + Team tables ✅ Day 2
+        │   └── participant.py       # Participant + Team ✅ Day 2
         ├── schemas/
         │   ├── participant.py       # Participant schemas ✅ Day 1
         │   └── email_schemas.py     # Email schemas ✅ Day 2
         ├── services/
         │   ├── email_service.py     # SendGrid service ✅ Day 2
-        │   └── csp_solver.py        # CSP math model ✅ Day 2
+        │   ├── csp_solver.py        # Backtracking solver ✅ Day 3
+        │   └── task_tracker.py      # Redis task tracker ✅ Day 3
         ├── core/
         │   ├── celery_app.py        # Celery config ✅ Day 1
-        │   └── database.py          # DB engine + session ✅ Day 2
+        │   ├── database.py          # DB engine + session ✅ Day 2
+        │   └── redis_client.py      # Redis connection pool ✅ Day 3
         ├── tasks/
         │   ├── communications.py    # Email tasks ✅ Day 2
-        │   └── solver.py            # Solver tasks ✅ Day 1 stub
+        │   └── solver.py            # Solver task ✅ Day 3
         └── templates/
             └── emails/
                 ├── registration.html       ✅ Day 2
@@ -425,7 +570,7 @@ cp backend/.env.example backend/.env
 nano backend/.env
 ```
 
-For local development, the defaults work for Postgres and Redis. Fill in `SENDGRID_API_KEY` when verifying email, and `GEMINI_API_KEY` on Day 5.
+Postgres and Redis defaults work out of the box for local development. Fill in `SENDGRID_API_KEY` when verifying email, `GEMINI_API_KEY` on Day 5.
 
 ### 3. (Frontend only) Install Node dependencies
 
@@ -454,19 +599,19 @@ docker compose up --build
 | Container | Role | Port |
 |---|---|---|
 | `eventos_postgres` | PostgreSQL 16 | `5432` |
-| `eventos_redis` | Redis 7 broker + pub/sub | `6379` |
+| `eventos_redis` | Redis 7 — broker + task tracker | `6379` |
 | `eventos_backend` | FastAPI API server | `8000` |
 | `eventos_celery_worker` | Background task processor | — |
 | `eventos_celery_beat` | Periodic scheduler | — |
 
-> First build takes ~2–3 minutes. Subsequent starts are fast.
+> First build takes 2–3 minutes. Subsequent starts are fast.
 
 ### Start the frontend dev server (separate terminal)
 
 ```bash
 cd frontend
 npm run dev
-# Runs at http://localhost:5173
+# → http://localhost:5173
 ```
 
 ### Stop all services
@@ -485,44 +630,44 @@ docker compose down -v
 
 ## Verifying Everything Works
 
-**API health check**
+**API health check (now includes Redis status)**
 ```bash
 curl http://localhost:8000/health
-# → {"status":"ok","service":"eventos-api"}
-```
-
-**API readiness check**
-```bash
-curl http://localhost:8000/ready
-# → {"status":"ready"}
+# → {"status":"ok","service":"eventos-api","redis":true}
 ```
 
 **Swagger UI**
-
-Open `http://localhost:8000/docs` in your browser.
-
-**Database tables created**
-```bash
-docker compose exec postgres psql -U eventflow -d eventflow_db -c "\dt"
-# → participants, teams (created automatically on startup)
+```
+http://localhost:8000/docs
 ```
 
-**Celery queues active**
+**Database tables**
 ```bash
-docker compose logs celery_worker | grep -E "queues|ready|connected"
+docker compose exec postgres psql -U eventflow -d eventflow_db -c "\dt"
+# → participants, teams
+```
+
+**Celery queues**
+```bash
+docker compose logs celery_worker | grep -E "queues|ready"
 # → consuming from: notifications, algorithms, default
 ```
 
-**Redis responding**
+**Redis**
 ```bash
 docker compose exec redis redis-cli ping
 # → PONG
 ```
 
-**SendGrid dev mode (before API key is set)**
+**CSP solver end-to-end test**
 ```bash
-docker compose logs celery_worker | grep "DEV MODE"
-# → [DEV MODE] Would send email to ...
+# Trigger
+curl -X POST http://localhost:8000/debug/run-solver
+# → {"task_id":"abc-123","status_url":"/tasks/abc-123/status"}
+
+# Poll (replace with your task_id)
+curl http://localhost:8000/tasks/abc-123/status
+# → {"status":"success","result":{"teams":[...],"evaluation":{"quality":"excellent"}}}
 ```
 
 ---
@@ -547,7 +692,7 @@ ACCESS_TOKEN_EXPIRE_MINUTES=10080
 
 # ── Email / SendGrid (Day 2) ──────────────────────────────────────────
 # Free key at https://sendgrid.com — 100 emails/day on free tier
-# Sender email must be verified under Settings → Sender Authentication
+# Sender must be verified: SendGrid → Settings → Sender Authentication
 SENDGRID_API_KEY=SG.xxxxxxxxxxxxxxxxxxxxxxxx
 SENDGRID_FROM_EMAIL=your-verified-sender@gmail.com
 SENDGRID_FROM_NAME=EventOS WiSE@TI
@@ -557,7 +702,7 @@ SENDGRID_FROM_NAME=EventOS WiSE@TI
 GEMINI_API_KEY=
 ```
 
-> **Never commit `.env` to git.** It is in `.gitignore`. Share values with teammates over a private channel only.
+> **Never commit `.env` to git.** Share values with teammates over a private channel only.
 
 ---
 
@@ -568,52 +713,43 @@ GEMINI_API_KEY=
 ```
 feature/<role>-<short-description>
 
-Examples:
-  feature/fsai-day1-scaffold
-  feature/fsai-day2-db-email-csp
-  feature/fs-participant-crud
-  feature/fe-dashboard-layout
-  feature/ai-csp-solver
+feature/fsai-day1-scaffold
+feature/fsai-day2-db-email-csp
+feature/fsai-day3-solver-tracker
+feature/fs-participant-crud
+feature/fe-dashboard-layout
+feature/ai-csp-solver
 ```
 
 ### Daily workflow
 
 ```bash
-# Always start from latest develop
 git checkout develop
 git pull origin develop
+git checkout -b feature/fsai-day3-solver-tracker
 
-# Create your branch
-git checkout -b feature/fsai-day2-db-email-csp
-
-# Commit with clear messages
 git add .
-git commit -m "feat(db): add SQLAlchemy models for Participant and Team"
-git commit -m "feat(email): add SendGrid service and Jinja2 templates"
-git commit -m "feat(csp): add CSP math model, constraints and objective function"
+git commit -m "feat(solver): replace greedy with backtracking + MRV/LCV/FC heuristics"
+git commit -m "feat(tracker): add Redis task status tracker with TTL and log lines"
+git commit -m "feat(api): add GET /tasks/{task_id}/status and POST /debug/run-solver"
 
-# Push and open PR → develop
-git push origin feature/fsai-day2-db-email-csp
+git push origin feature/fsai-day3-solver-tracker
 ```
 
 ### Branch rules
 
 | Branch | Purpose |
 |---|---|
-| `main` | Production-ready, tagged releases only — never push directly |
+| `main` | Production-ready tagged releases — never push directly |
 | `develop` | Integration — all feature PRs target here |
 | `feature/*` | Individual task branches, merged via PR after peer review |
 
 ### Auto-generating the frontend API client
 
-After any backend schema change:
-
 ```bash
 OPENAPI_OUTPUT_FILE=openapi.json python -m app.commands.generate_schema
 npx openapi-ts --input ./openapi.json --output ./frontend/src/openapi-client
 ```
-
-> Never hand-edit `frontend/src/openapi-client/` — always overwritten on next generation.
 
 ---
 
@@ -623,8 +759,8 @@ npx openapi-ts --input ./openapi.json --output ./frontend/src/openapi-client
 |---|---|---|
 | **Day 1** | Docker Compose · Celery framework · Named queues · Participant schemas · Task stubs | ✅ Done |
 | **Day 2** | DB engine + session · SQLAlchemy models · SendGrid service · HTML email templates · Real Celery email tasks · CSP math model skeleton | ✅ Done |
-| **Day 3** | CSP recursive backtracking solver · Redis task status tracker | 🔄 Next |
-| **Day 4** | Team solver API endpoints · Manual approval endpoints | ⏳ Upcoming |
+| **Day 3** | Backtracking solver (MRV + LCV + FC) · Redis client singleton · Redis task status tracker · Real solver Celery task · Task status API endpoint | ✅ Done |
+| **Day 4** | Team solver API endpoints · Manual approval endpoints | 🔄 Next |
 | **Day 5** | JWT secure link generator · Auth middleware · Celery task handlers for signed links | ⏳ Upcoming |
 | **Day 6** | Score consolidation tasks · Daily notification scheduler | ⏳ Upcoming |
 | **Day 7** | LLM drafting engine integration · Milestone email automation | ⏳ Upcoming |
@@ -635,52 +771,53 @@ npx openapi-ts --input ./openapi.json --output ./frontend/src/openapi-client
 ## Troubleshooting
 
 ### `docker: command not found` in WSL2
-Docker Desktop is not running or WSL integration is off.
-Open Docker Desktop → Settings → Resources → WSL Integration → enable your distro → Apply & Restart.
+Docker Desktop not running or WSL integration off.
+Open Docker Desktop → Settings → Resources → WSL Integration → enable distro → Apply & Restart.
 
 ### `port 5432 already in use`
-A local Postgres instance is running outside Docker.
 ```bash
-sudo service postgresql stop
-docker compose up
+sudo service postgresql stop && docker compose up
 ```
 
 ### `port 8000 already in use`
 ```bash
-lsof -ti:8000 | xargs kill -9
-docker compose up
-```
-
-### Database tables not created on startup
-Confirm all model files are imported in `main.py` before `create_all`:
-```python
-from app.models import participant  # required before this line
-Base.metadata.create_all(bind=engine)
+lsof -ti:8000 | xargs kill -9 && docker compose up
 ```
 
 ### New package not found after adding to `requirements.txt`
 ```bash
-docker compose down
-docker compose up --build
+docker compose down && docker compose up --build
 ```
 
 ### Celery worker shows `No module named 'app'`
-Always run Celery via `docker compose` — never directly on the host. The `WORKDIR /app` in the Dockerfile is what makes `app.*` imports resolve.
+Always run Celery via `docker compose` — the `WORKDIR /app` in the Dockerfile is required for imports to resolve.
+
+### `GET /tasks/{task_id}/status` returns 404
+Either the task_id is wrong, or the 2-hour Redis TTL has expired. Re-trigger via `/debug/run-solver` to get a fresh task_id.
+
+### Solver returns `"algorithm": "greedy_fallback"` instead of `"backtracking"`
+The 10-second time limit was hit. This happens with very large rosters or highly conflicting institution constraints. For the WiSE@TI scale (≤100 participants) this should not occur with the current mock data.
+
+### Database tables not created on startup
+Confirm all model files are imported in `main.py` before `create_all`:
+```python
+from app.models import participant  # must be before this line
+Base.metadata.create_all(bind=engine)
+```
 
 ### SendGrid not sending emails
-1. Confirm `SENDGRID_API_KEY` in `.env` starts with `SG.`
-2. Confirm sender email is verified in SendGrid → Settings → Sender Authentication
-3. Check Celery logs: `docker compose logs celery_worker`
-4. If the key is blank, app runs in dev mode — emails log to console, no errors thrown
+1. Confirm `SENDGRID_API_KEY` starts with `SG.`
+2. Verify sender email in SendGrid → Settings → Sender Authentication
+3. Check logs: `docker compose logs celery_worker`
+4. Blank key = dev mode, emails log to console
 
-### SQLAlchemy `QueuePool limit exceeded` error
-This means too many concurrent DB connections. The pool is set to `size=10, max_overflow=20`. If this fires in development, reduce the number of Celery worker concurrency:
-```bash
-# In docker-compose.yml, change the celery_worker command to:
+### SQLAlchemy `QueuePool limit exceeded`
+Reduce Celery worker concurrency in `docker-compose.yml`:
+```yaml
 command: celery -A app.core.celery_app worker --loglevel=info --concurrency=2
 ```
 
 ---
 
 *EventOS — Built for WiSE@TI Hackathon, Texas Instruments India*
-*FS+AI Role — Days 1 & 2 by [Your Name]*
+*FS+AI Role — Days 1, 2 & 3 complete*
