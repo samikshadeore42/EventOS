@@ -14,6 +14,7 @@ celery_app = Celery(
     include=[
         "app.tasks.communications",
         "app.tasks.solver",
+        "app.tasks.anomaly",
     ]
 )
 
@@ -33,6 +34,7 @@ celery_app.conf.update(
     task_routes={
         "app.tasks.communications.*": {"queue": "notifications"},
         "app.tasks.solver.*":         {"queue": "algorithms"},
+        "app.tasks.anomaly.*":        {"queue": "algorithms"},
     },
 
     # Retry policy defaults

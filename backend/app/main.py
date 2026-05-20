@@ -7,6 +7,7 @@ from app.core.redis_client import ping_redis
 from app.models import participant  # noqa: F401
 from app.api.solver_routes import router as solver_router
 from app.api.approval_routes import router as approval_router
+from app.api.anomaly_routes import router as anomaly_router
 
 app = FastAPI(
     title="EventOS API",
@@ -25,6 +26,7 @@ app.add_middleware(
 # Register API routers
 app.include_router(solver_router)
 app.include_router(approval_router)
+app.include_router(anomaly_router)
 
 @app.on_event("startup")
 async def startup():
