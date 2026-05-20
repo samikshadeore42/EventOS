@@ -1,7 +1,10 @@
 # File: backend/app/services/score_service.py
 # Two responsibilities:
 #   1. Anomaly detection — flags scorecards that deviate too far from
-#      the panel consensus (implements the math from the spec doc)
+#      the panel consensus. Delegates to the AnomalyDetector module
+#      (services/anomaly_detector.py) so all four detection methods
+#      (z-score, weighted Euclidean divergence, intra-rater consistency,
+#      conflict-of-interest) live in one place.
 #   2. Score consolidation — aggregates all scorecards per team,
 #      computes weighted totals, builds leaderboard data
 import numpy as np
@@ -12,6 +15,7 @@ from fastapi import HTTPException
 from app.models.evaluation import Evaluation, Evaluator
 from app.models.participant import Team
 from app.schemas.evaluation_schemas import TeamScoreSummary
+from app.services.anomaly_detector import AnomalyDetector, build_panel_from_dicts
 
 GRADING_CRITERIA = {
     "technical_depth": 0.35,
@@ -21,6 +25,7 @@ GRADING_CRITERIA = {
 }
 
 ANOMALY_THRESHOLD = 2.0
+
 
 class ScoreService:
     @staticmethod
@@ -70,31 +75,94 @@ class ScoreService:
 
         return evaluation
 
-    # ── Anomaly Detection ─────────────────────────────────────────────
+    # ── Helper: build detector-ready entries from DB rows ─────────────
+
+    @staticmethod
+    def _build_panel_entries(evaluations: list[Evaluation], db: Session) -> list[dict]:
+        """
+        Convert DB Evaluations → entry dicts in the shape the detector expects.
+
+        Batch-loads related Team and Evaluator rows to avoid N+1 queries.
+        Pulls team member institutions for the COI detector; pulls evaluator
+        institution if the field exists on the model (currently it doesn't,
+        so COI detection silently passes through — see class docstring above).
+        """
+        team_ids      = {ev.team_id      for ev in evaluations}
+        evaluator_ids = {ev.evaluator_id for ev in evaluations}
+
+        teams = {
+            t.id: t
+            for t in db.query(Team).filter(Team.id.in_(team_ids)).all()
+        }
+        evaluators = {
+            e.id: e
+            for e in db.query(Evaluator).filter(Evaluator.id.in_(evaluator_ids)).all()
+        }
+
+        entries = []
+        for ev in evaluations:
+            team      = teams.get(ev.team_id)
+            evaluator = evaluators.get(ev.evaluator_id)
+
+            # Team member institutions — used by the COI detector
+            member_institutions = (
+                list({m.institution for m in team.members})
+                if team and team.members else []
+            )
+
+            # Evaluator institution: not currently tracked in the Evaluator
+            # model. Using getattr so this code keeps working unchanged the
+            # moment that field is added — COI detection will then start
+            # firing automatically with no further code changes here.
+            evaluator_institution = (
+                getattr(evaluator, "institution", "") if evaluator else ""
+            )
+
+            evaluator_name = (
+                f"{evaluator.first_name} {evaluator.last_name}"
+                if evaluator else "Unknown Evaluator"
+            )
+
+            entries.append({
+                "judge_id":                 str(ev.evaluator_id),
+                "judge_name":               evaluator_name,
+                "judge_institution":        evaluator_institution,
+                "team_id":                  str(ev.team_id),
+                "team_member_institutions": member_institutions,
+                "scores": {
+                    c: float(ev.scores.get(c, 0.0)) for c in GRADING_CRITERIA.keys()
+                },
+            })
+        return entries
+
+    # ── Anomaly Detection (per-team) ──────────────────────────────────
 
     @staticmethod
     def run_anomaly_detection_for_team(team_id: UUID, db: Session) -> list[dict]:
         """
-        Implements the weighted Euclidean distance anomaly detection
-        formula from the specification document.
+        Per-team anomaly detection. Called after every score submission
+        and every score update.
 
-        Formula:
-          D_{r,j} = sqrt( Σ_c ω_c * (Y_{r,j,c} - Ȳ_{-r,j,c})² )
+        Wraps the AnomalyDetector module — the single source of truth for
+        anomaly logic. Within a single team's panel these detectors are
+        meaningful:
+          - Z-score outliers (per-criterion)
+          - Weighted Euclidean divergence
+          - Conflict-of-interest (inert until Evaluator.institution exists)
 
-        Where:
-          Y_{r,j,c}   = judge r's score for team j on criterion c
-          Ȳ_{-r,j,c}  = mean score from ALL OTHER judges on same criterion
-          ω_c         = weight of criterion c
+        Intra-rater consistency only fires in panel-wide mode (see
+        run_full_panel_anomaly_sweep) — it needs a judge to have rated
+        multiple teams to detect halo/horns or no-differentiation patterns.
 
-        An evaluation is flagged if its z-score > ANOMALY_THRESHOLD.
-
-        Requires at least 3 evaluations to run (doc specification).
-        Returns list of flagged evaluation dicts.
+        Requires at least 3 evaluations for the team (per spec).
+        Returns list of flagged-scorecard dicts. Shape preserved for
+        backwards compatibility with previous callers.
         """
         scorecards = db.query(Evaluation).filter(
             Evaluation.team_id == team_id
         ).all()
 
+        # Reset all flags before re-evaluation
         for sc in scorecards:
             sc.is_flagged    = False
             sc.flag_reason   = None
@@ -104,52 +172,161 @@ class ScoreService:
             db.commit()
             return []
 
-        criteria = list(GRADING_CRITERIA.keys())
-        weights  = np.array([GRADING_CRITERIA[c] for c in criteria])
+        # ── Build the panel and run the detector ──────────────────────
+        entries = ScoreService._build_panel_entries(scorecards, db)
 
-        score_matrix = np.array([
-            [sc.scores.get(c, 0.0) for c in criteria]
-            for sc in scorecards
-        ])
+        panel = build_panel_from_dicts(
+            raw_entries = entries,
+            criteria    = list(GRADING_CRITERIA.keys()),
+            weights     = GRADING_CRITERIA,
+        )
 
-        distances = []
-        for i, sc in enumerate(scorecards):
-            # Consensus = mean of all OTHER evaluators (leave-one-out)
-            peer_indices = [j for j in range(len(scorecards)) if j != i]
-            peer_scores  = score_matrix[peer_indices]
-            consensus    = np.mean(peer_scores, axis=0)
+        detector = AnomalyDetector(
+            panel,
+            z_score_threshold = ANOMALY_THRESHOLD,
+            # Other thresholds use detector defaults tuned for a 1-10 scale
+        )
+        report = detector.detect_all()
 
-            my_scores    = score_matrix[i]
+        # ── Map anomalies back to scorecards ──────────────────────────
+        # An evaluation may be flagged by multiple detectors. Concatenate
+        # explanations with " | " and take the max metric as anomaly_score.
+        scorecard_by_key = {
+            (str(sc.evaluator_id), str(sc.team_id)): sc for sc in scorecards
+        }
 
-            # Weighted Euclidean distance
-            distance = np.sqrt(np.sum(weights * (my_scores - consensus) ** 2))
-            distances.append(distance)
+        aggregated_reasons: dict[tuple, list[str]] = {}
+        max_metric: dict[tuple, float] = {}
 
-        distances = np.array(distances)
-        mean_dist = np.mean(distances)
-        std_dist  = np.std(distances)
+        for anom in report.anomalies:
+            # Judge-level anomalies (team_id=None) don't apply per-team
+            if anom.team_id is None:
+                continue
+            key = (anom.judge_id, anom.team_id)
+            if key not in scorecard_by_key:
+                continue
+            aggregated_reasons.setdefault(key, []).append(anom.explanation)
+            max_metric[key] = max(max_metric.get(key, 0.0), float(anom.metric))
 
+        # ── Write flags back to DB ────────────────────────────────────
         flagged = []
-        for i, sc in enumerate(scorecards):
-            z_score = (distances[i] - mean_dist) / std_dist if std_dist > 0 else 0.0
-            sc.anomaly_score = float(z_score)
+        for key, sc in scorecard_by_key.items():
+            if key not in aggregated_reasons:
+                continue
+            sc.is_flagged    = True
+            sc.flag_reason   = " | ".join(aggregated_reasons[key])
+            sc.anomaly_score = max_metric[key]
 
-            if z_score > ANOMALY_THRESHOLD:
-                sc.is_flagged  = True
-                sc.flag_reason = (
-                    f"Score deviates significantly from panel consensus. "
-                    f"Z-score: {z_score:.2f} (threshold: {ANOMALY_THRESHOLD}). "
-                    f"Distance from consensus: {distances[i]:.3f}."
-                )
-                flagged.append({
-                    "evaluation_id": str(sc.id),
-                    "evaluator_id":  str(sc.evaluator_id),
-                    "z_score":       float(z_score),
-                    "distance":      float(distances[i]),
-                })
+            flagged.append({
+                "evaluation_id": str(sc.id),
+                "evaluator_id":  str(sc.evaluator_id),
+                # Kept for backwards compatibility with previous callers.
+                # Both fields now reflect the maximum metric across whichever
+                # detector(s) flagged this card.
+                "z_score":  max_metric[key],
+                "distance": max_metric[key],
+            })
 
         db.commit()
         return flagged
+
+    # ── Anomaly Detection (panel-wide) ────────────────────────────────
+
+    @staticmethod
+    def run_full_panel_anomaly_sweep(db: Session) -> dict:
+        """
+        Panel-wide anomaly detection across ALL teams' scorecards at once.
+
+        Activates the intra-rater consistency detector — no-differentiation
+        and halo/horns patterns can only be seen across a judge's full
+        scoring history, never within a single team's data.
+
+        Used by the scheduled anomaly sweep (Celery beat, every 30 min).
+        Replaces the previous per-team loop, which couldn't see consistency
+        patterns at all.
+
+        Writes flag updates to each Evaluation row in the database.
+        Returns a summary dict for logging/observability.
+        """
+        all_evals = db.query(Evaluation).all()
+
+        # Reset every scorecard's flag before re-evaluating
+        for sc in all_evals:
+            sc.is_flagged    = False
+            sc.flag_reason   = None
+            sc.anomaly_score = None
+
+        if len(all_evals) < 3:
+            db.commit()
+            return {
+                "evaluations_processed": len(all_evals),
+                "teams_checked":         len({sc.team_id for sc in all_evals}),
+                "total_flagged":         0,
+                "anomaly_breakdown":     {},
+                "message": (
+                    f"Not enough scorecards to run detection "
+                    f"({len(all_evals)} present, need ≥3)."
+                ),
+            }
+
+        entries = ScoreService._build_panel_entries(all_evals, db)
+
+        panel = build_panel_from_dicts(
+            raw_entries = entries,
+            criteria    = list(GRADING_CRITERIA.keys()),
+            weights     = GRADING_CRITERIA,
+        )
+        detector = AnomalyDetector(panel, z_score_threshold=ANOMALY_THRESHOLD)
+        report = detector.detect_all()
+
+        # Helper indices for mapping anomalies → scorecards
+        cards_by_evaluator: dict[str, list[Evaluation]] = {}
+        cards_by_key:       dict[tuple, Evaluation]     = {}
+        for sc in all_evals:
+            cards_by_evaluator.setdefault(str(sc.evaluator_id), []).append(sc)
+            cards_by_key[(str(sc.evaluator_id), str(sc.team_id))] = sc
+
+        aggregated_reasons: dict = {}
+        max_metric:         dict = {}
+
+        for anom in report.anomalies:
+            if anom.team_id is None:
+                # Judge-level: flag every scorecard by that judge
+                for sc in cards_by_evaluator.get(anom.judge_id, []):
+                    aggregated_reasons.setdefault(sc.id, []).append(anom.explanation)
+                    max_metric[sc.id] = max(max_metric.get(sc.id, 0.0), float(anom.metric))
+            else:
+                # Per-team: flag the specific scorecard
+                key = (anom.judge_id, anom.team_id)
+                sc  = cards_by_key.get(key)
+                if sc is None:
+                    continue
+                aggregated_reasons.setdefault(sc.id, []).append(anom.explanation)
+                max_metric[sc.id] = max(max_metric.get(sc.id, 0.0), float(anom.metric))
+
+        flagged_count = 0
+        for sc in all_evals:
+            if sc.id in aggregated_reasons:
+                sc.is_flagged    = True
+                sc.flag_reason   = " | ".join(aggregated_reasons[sc.id])
+                sc.anomaly_score = max_metric[sc.id]
+                flagged_count += 1
+
+        db.commit()
+
+        return {
+            "evaluations_processed": len(all_evals),
+            "teams_checked":         len({sc.team_id for sc in all_evals}),
+            "total_flagged":         flagged_count,
+            "anomaly_breakdown":     report.by_kind,
+            "by_severity":           report.by_severity,
+            "holds_results_release": report.holds_results_release,
+            "message": (
+                f"Panel-wide sweep complete. "
+                f"{flagged_count}/{len(all_evals)} scorecards flagged. "
+                f"Breakdown: {report.by_kind}"
+            ),
+        }
 
     # ── Score Consolidation ───────────────────────────────────────────
 
