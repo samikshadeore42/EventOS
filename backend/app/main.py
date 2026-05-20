@@ -4,9 +4,14 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.core.database import engine, Base
 from app.services.task_tracker import TaskTracker
 from app.core.redis_client import ping_redis
-from app.models import participant  # noqa: F401
+from app.models import participant 
+from app.models import evaluation
 from app.api.solver_routes import router as solver_router
 from app.api.approval_routes import router as approval_router
+from app.api.portal_routes import router as portal_router
+from app.api.evaluation_routes import router as evaluation_router
+
+
 
 app = FastAPI(
     title="EventOS API",
@@ -25,6 +30,8 @@ app.add_middleware(
 # Register API routers
 app.include_router(solver_router)
 app.include_router(approval_router)
+app.include_router(portal_router)
+app.include_router(evaluation_router)
 
 @app.on_event("startup")
 async def startup():
