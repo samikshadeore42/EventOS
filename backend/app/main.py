@@ -5,6 +5,8 @@ from app.core.database import engine, Base
 from app.services.task_tracker import TaskTracker
 from app.core.redis_client import ping_redis
 from app.models import participant  # noqa: F401
+from app.api.solver_routes import router as solver_router
+from app.api.approval_routes import router as approval_router
 
 app = FastAPI(
     title="EventOS API",
@@ -12,14 +14,17 @@ app = FastAPI(
     version="1.0.0",
 )
 
-
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173"],  # Vite dev server
+    allow_origins=["http://localhost:5173"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# Register API routers
+app.include_router(solver_router)
+app.include_router(approval_router)
 
 @app.on_event("startup")
 async def startup():
@@ -32,42 +37,35 @@ async def startup():
 def health_check():
     return {"status": "ok", "service": "EventOS-api", "redis":ping_redis()}
 
-
-@app.get("/ready")
+@app.get("/ready",tags=["System"])
 def readiness_check():
     return {"status": "ready"}
 
-# Task status endpoint
-@app.get("/tasks/{task_id}/status")
+@app.get("/tasks/{task_id}/status", tags=["Tasks"])
 def get_task_status(task_id: str):
     status = TaskTracker.get_status_with_logs(task_id)
     if not status:
         raise HTTPException(
             status_code=404,
-            detail=f"No task found with id '{task_id}'. "
-                   f"It may have expired (2 hour TTL) or never existed."
+            detail=f"Task '{task_id}' not found."
         )
     return status
 
 @app.post("/debug/run-solver")
 def debug_run_solver():
-    """
-    DEBUG ONLY — triggers a test solver run with mock data.
-    Remove before production. Useful for Day 3 verification.
-    """
     from app.tasks.solver import run_team_formation
     from app.schemas.participant import MOCK_ROSTER
 
     # Inline mock data so we don't hit an ImportError
-    MOCK_ROSTER = [
-        {"first_name": "Ada", "last_name": "Lovelace", "institution": "Inst-A", "skill_vector": {"python": 9.0, "ml": 8.0}},
-        {"first_name": "Alan", "last_name": "Turing", "institution": "Inst-B", "skill_vector": {"python": 6.0, "ml": 9.0}},
-        {"first_name": "Grace", "last_name": "Hopper", "institution": "Inst-C", "skill_vector": {"python": 8.0, "ml": 5.0}},
-        {"first_name": "John", "last_name": "von Neumann", "institution": "Inst-D", "skill_vector": {"python": 7.0, "ml": 7.0}}
-    ]
+    # MOCK_ROSTER = [
+    #     {"first_name": "Ada", "last_name": "Lovelace", "institution": "Inst-A", "skill_vector": {"python": 9.0, "ml": 8.0}},
+    #     {"first_name": "Alan", "last_name": "Turing", "institution": "Inst-B", "skill_vector": {"python": 6.0, "ml": 9.0}},
+    #     {"first_name": "Grace", "last_name": "Hopper", "institution": "Inst-C", "skill_vector": {"python": 8.0, "ml": 5.0}},
+    #     {"first_name": "John", "last_name": "von Neumann", "institution": "Inst-D", "skill_vector": {"python": 7.0, "ml": 7.0}}
+    # ]
     
     # Extend mock roster to 8 participants for a valid 2-team test
-    roster = MOCK_ROSTER * 2
+    roster = []
     for i, p in enumerate(roster):
         p = dict(p)
         p["id"]    = f"mock-{i}"
