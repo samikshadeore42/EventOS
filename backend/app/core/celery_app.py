@@ -2,6 +2,7 @@
 import os
 from celery import Celery
 from dotenv import load_dotenv
+from celery.schedules import crontab
 
 load_dotenv()
 
@@ -41,3 +42,24 @@ celery_app.conf.update(
     task_acks_late=True,
     task_reject_on_worker_lost=True,
 )
+
+celery_app.conf.beat_schedule = {
+    # Score consolidation — every hour on the hour
+    "hourly-score-consolidation": {
+        "task":     "app.tasks.scheduler.consolidate_scores",
+        "schedule": crontab(minute=0),
+    },
+
+    # Anomaly sweep — every 30 minutes
+    "anomaly-sweep": {
+        "task":     "app.tasks.scheduler.run_anomaly_sweep",
+        "schedule": crontab(minute="*/30"),
+    },
+
+    # Daily reminder — every day at 9am UTC
+    "daily-eval-reminder": {
+        "task":     "app.tasks.scheduler.send_daily_evaluation_reminder",
+        "schedule": crontab(hour=9, minute=0),
+    },
+}
+
