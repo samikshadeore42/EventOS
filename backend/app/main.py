@@ -11,6 +11,7 @@ from app.api.approval_routes import router as approval_router
 from app.api.anomaly_routes import router as anomaly_router
 from app.api.portal_routes import router as portal_router
 from app.api.evaluation_routes import router as evaluation_router
+from app.api.ai_routes import router as ai_router
 
 
 
@@ -34,6 +35,7 @@ app.include_router(approval_router)
 app.include_router(anomaly_router)
 app.include_router(portal_router)
 app.include_router(evaluation_router)
+app.include_router(ai_router)
 
 @app.on_event("startup")
 async def startup():
