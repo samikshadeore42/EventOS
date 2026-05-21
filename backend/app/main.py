@@ -4,7 +4,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.core.database import engine, Base
 from app.services.task_tracker import TaskTracker
 from app.core.redis_client import ping_redis
-from app.models import participant 
+from app.models import participant
 from app.models import evaluation
 from app.api.solver_routes import router as solver_router
 from app.api.approval_routes import router as approval_router
@@ -44,9 +44,9 @@ async def startup():
 
 @app.get("/health")
 def health_check():
-    return {"status": "ok", "service": "EventOS-api", "redis":ping_redis()}
+    return {"status": "ok", "service": "EventOS-api", "redis": ping_redis()}
 
-@app.get("/ready",tags=["System"])
+@app.get("/ready", tags=["System"])
 def readiness_check():
     return {"status": "ready"}
 
@@ -65,34 +65,26 @@ def debug_run_solver():
     from app.tasks.solver import run_team_formation
     from app.schemas.participant import MOCK_ROSTER
 
-    # Inline mock data so we don't hit an ImportError
-    # MOCK_ROSTER = [
-    #     {"first_name": "Ada", "last_name": "Lovelace", "institution": "Inst-A", "skill_vector": {"python": 9.0, "ml": 8.0}},
-    #     {"first_name": "Alan", "last_name": "Turing", "institution": "Inst-B", "skill_vector": {"python": 6.0, "ml": 9.0}},
-    #     {"first_name": "Grace", "last_name": "Hopper", "institution": "Inst-C", "skill_vector": {"python": 8.0, "ml": 5.0}},
-    #     {"first_name": "John", "last_name": "von Neumann", "institution": "Inst-D", "skill_vector": {"python": 7.0, "ml": 7.0}}
-    # ]
-    
-    # Extend mock roster to 8 participants for a valid 2-team test
     roster = []
     for i, p in enumerate(roster):
         p = dict(p)
-        p["id"]    = f"mock-{i}"
+        p["id"] = f"mock-{i}"
         p["email"] = f"mock{i}@test.com"
         if i >= 4:
             p["first_name"] = f"{p['first_name']} (Clone)"
-        roster[i]  = p
+        roster[i] = p
 
     config = {
-        "num_teams":           2,
-        "target_size":         4,
-        "k_min":               3,
-        "k_max":               5,
+        "num_teams": 2,
+        "target_size": 4,
+        "k_min": 3,
+        "k_max": 5,
         "max_per_institution": 1,
     }
 
     task = run_team_formation.delay(roster, config)
+
     return {
-        "task_id":   task.id,
+        "task_id": task.id,
         "status_url": f"/tasks/{task.id}/status"
     }
