@@ -8,14 +8,11 @@ from app.models import participant
 from app.models import evaluation
 from app.api.solver_routes import router as solver_router
 from app.api.approval_routes import router as approval_router
-<<<<<<< HEAD
 from app.api.anomaly_routes import router as anomaly_router
-=======
 from app.api.portal_routes import router as portal_router
 from app.api.evaluation_routes import router as evaluation_router
 
 
->>>>>>> e35630ee95633f7e1ba0efc87178cf865b7305e5
 
 app = FastAPI(
     title="EventOS API",
@@ -34,12 +31,9 @@ app.add_middleware(
 # Register API routers
 app.include_router(solver_router)
 app.include_router(approval_router)
-<<<<<<< HEAD
 app.include_router(anomaly_router)
-=======
 app.include_router(portal_router)
 app.include_router(evaluation_router)
->>>>>>> e35630ee95633f7e1ba0efc87178cf865b7305e5
 
 @app.on_event("startup")
 async def startup():
