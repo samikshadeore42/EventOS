@@ -29,8 +29,8 @@ class ApprovalService:
     @staticmethod
     def get_pending_teams(db: Session) -> list[Team]:
         """
-        Returns teams that have not been approved yet.
-        'Pending' = is_approved is False AND team has members.
+        Fetches all unapproved teams waiting for administrative validation.
+        Ordered oldest-to-newest to ensure fair triage queues.
         """
         return (
             db.query(Team)
@@ -39,6 +39,28 @@ class ApprovalService:
             .all()
         )
 
+    @staticmethod
+    def get_member_counts_batch(team_ids: list, db: Session) -> dict:
+        """
+        OPTIMIZED: Returns a dictionary mapping {team_id_string: member_count_integer} 
+        for a batch list of targeted team IDs using a single SQL GROUP BY query.
+        """
+        from sqlalchemy import func
+        from app.models.participant import Participant
+        
+        if not team_ids:
+            return {}
+        
+        rows = (
+            db.query(Participant.team_id, func.count(Participant.id).label("cnt"))
+            .filter(Participant.team_id.in_(team_ids))
+            .group_by(Participant.team_id)
+            .all()
+        )
+        
+        return {str(row.team_id): row.cnt for row in rows}
+        
+            
     @staticmethod
     def get_team_by_id(team_id: UUID, db: Session) -> Team:
         """

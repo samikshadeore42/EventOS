@@ -3,12 +3,14 @@
 #   Evaluator — judges assigned to grade teams
 #   Evaluation — a scorecard submitted by one evaluator for one team
 
+from ast import Index
 import uuid
 from datetime import datetime
-from sqlalchemy import String, Boolean, DateTime, ForeignKey, Float, Text
+from sqlalchemy import String, Boolean, DateTime, ForeignKey, Float, Text,Index, UniqueConstraint
 from sqlalchemy.dialects.postgresql import UUID, JSONB
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from app.core.database import Base
+
 
 
 class Evaluator(Base):
@@ -60,6 +62,11 @@ class Evaluation(Base):
             "team_id", "evaluator_id",
             name="uq_evaluation_team_evaluator"
         ),
+        
+        Index("ix_evaluation_team_id", "team_id","is_flagged"),
+        
+        # Anomaly cleanup sweep optimization
+        Index("ix_evaluation_flagged", "is_flagged"),
     )
 
     def __repr__(self):
