@@ -8,6 +8,7 @@ from sqlalchemy import String, Boolean, DateTime, ForeignKey, Text
 from sqlalchemy.dialects.postgresql import UUID, JSONB
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from app.core.database import Base
+from sqlalchemy import Index, UniqueConstraint
 
 
 class Participant(Base):
@@ -46,6 +47,16 @@ class Participant(Base):
         DateTime(timezone=True),
         default=lambda: datetime.now(timezone.utc),
         onupdate=lambda: datetime.now(timezone.utc)
+    )
+    
+    __table_args__ = (
+        Index("ix_participants_team_id","institution", "team_id"),
+        UniqueConstraint("email", name="uq_participant_email"),
+        Index(
+            "ix_participants_skill_vector_gin",
+            "skill_vector",
+            postgresql_using="gin"
+        ),
     )
 
     def __repr__(self):

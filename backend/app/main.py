@@ -10,6 +10,8 @@ from app.api.solver_routes import router as solver_router
 from app.api.approval_routes import router as approval_router
 from app.api.portal_routes import router as portal_router
 from app.api.evaluation_routes import router as evaluation_router
+from app.api.participant_routes import router as participant_router
+from app.api.leaderboard_routes import router as leaderboard_router
 
 
 
@@ -32,13 +34,14 @@ app.include_router(solver_router)
 app.include_router(approval_router)
 app.include_router(portal_router)
 app.include_router(evaluation_router)
+app.include_router(participant_router)
+app.include_router(leaderboard_router)
 
 @app.on_event("startup")
 async def startup():
-    Base.metadata.create_all(bind=engine)
     redis_ok = ping_redis()
-    print("Database tables created / verified succcesfully")
-    print(f"{'✅' if redis_ok else '❌'} Redis connection: {'OK' if redis_ok else 'FAILED'}")
+    print("EventOS API started")
+    print(f"{'OK' if redis_ok else 'FAIL'} Redis: {'Connected' if redis_ok else 'Not Connected'}")
 
 @app.get("/health")
 def health_check():
