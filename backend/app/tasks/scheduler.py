@@ -105,26 +105,20 @@ def send_daily_evaluation_reminder():
 def run_anomaly_sweep():
     """
     Scheduled task: runs every 30 minutes.
-    Re-runs anomaly detection on all teams with 3+ submissions.
-    Catches cases where a late submission changes the consensus
-    and should flag/unflag existing scorecards.
+    Re-runs anomaly detection across the FULL panel of submissions.
+
+    Previously iterated team-by-team, which couldn't see judge-level
+    patterns (no-differentiation, halo/horns) that only emerge when
+    you look across all teams a judge has rated. Now delegates to
+    ScoreService.run_full_panel_anomaly_sweep, which activates the
+    intra-rater consistency detector in addition to z-score, weighted
+    Euclidean divergence, and conflict-of-interest.
     """
     db = SessionLocal()
     try:
-        from app.models.participant import Team
-        from app.models.evaluation import Evaluation
-
-        approved_teams = db.query(Team).filter(Team.is_approved == True).all()  # noqa: E712
-
-        total_flagged = 0
-        for team in approved_teams:
-            count = db.query(Evaluation).filter(Evaluation.team_id == team.id).count()
-            if count >= 3:
-                flagged = ScoreService.run_anomaly_detection_for_team(team.id, db)
-                total_flagged += len(flagged)
-
-        print(f"[SCHEDULER] Anomaly sweep complete. Total flagged: {total_flagged}")
-        return {"teams_checked": len(approved_teams), "total_flagged": total_flagged}
+        result = ScoreService.run_full_panel_anomaly_sweep(db)
+        print(f"[SCHEDULER] {result['message']}")
+        return result
 
     except Exception as e:
         print(f"[SCHEDULER] Anomaly sweep failed: {e}")
