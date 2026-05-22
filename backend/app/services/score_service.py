@@ -7,6 +7,8 @@
 #      conflict-of-interest) live in one place.
 #   2. Score consolidation — aggregates all scorecards per team,
 #      computes weighted totals, builds leaderboard data
+import collections
+
 import numpy as np
 from uuid import UUID
 from sqlalchemy.orm import Session
@@ -342,17 +344,38 @@ class ScoreService:
           - Computes weighted total score
           - Returns leaderboard-ready data
         """
-        approved_teams = db.query(Team).filter(Team.is_approved == True).all()  # noqa: E712
+        from sqlalchemy.orm import joinedload
+        from collections import defaultdict
+        
+        approved_teams = ( db.query(Team).filter(Team.is_approved == True).options(joinedload(Team.members)).all() )
 
+        if not approved_teams:
+            return{
+                "teams_processed":   0,
+                "flagged_count":     0,
+                "leaderboard_ready": 0,
+                "leaderboard":       [],
+                "message": "No approved teams to consolidate."
+            }
+        
+        team_ids = [t.id for t in approved_teams]
+        all_evaluations = (
+            db.query(Evaluation)
+            .filter(Evaluation.team_id.in_(team_ids))
+            .all()
+        )
+        
+        evals_by_team = defaultdict(list)
+        for ev in all_evaluations:
+            evals_by_team[str(ev.team_id)].append(ev)
+            
         leaderboard  = []
         flagged_teams = 0
         criteria     = list(GRADING_CRITERIA.keys())
         weights      = GRADING_CRITERIA
 
         for team in approved_teams:
-            scorecards = db.query(Evaluation).filter(
-                Evaluation.team_id == team.id
-            ).all()
+            scorecards = evals_by_team[str(team.id)]
 
             if not scorecards:
                 continue
@@ -369,7 +392,7 @@ class ScoreService:
                     if not sc.is_flagged   # exclude flagged cards from averages
                 ]
                 avg_scores[criterion] = (
-                    round(np.mean(scores_for_criterion), 2)
+                    round(float(np.mean(scores_for_criterion)), 2)
                     if scores_for_criterion else 0.0
                 )
 
@@ -384,7 +407,7 @@ class ScoreService:
                 team_name=team.team_name,
                 evaluator_count=len(scorecards),
                 average_scores=avg_scores,
-                weighted_total=round(weighted_total, 3),
+                weighted_total=round(float(weighted_total), 3),
                 has_flags=has_flags,
             ))
 
