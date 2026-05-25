@@ -15,6 +15,11 @@ from app.api.evaluation_routes import router as evaluation_router
 from app.api.participant_routes import router as participant_router
 from app.api.leaderboard_routes import router as leaderboard_router
 from app.api.ai_routes import router as ai_router
+from app.api.evaluator_routes import router as evaluator_router
+from app.models import event_config       
+from app.api.event_routes import router as event_router
+from app.models import communication_log  # noqa
+from app.api.comms_routes import router as comms_router
 
 
 
@@ -42,6 +47,9 @@ app.include_router(evaluation_router)
 app.include_router(participant_router)
 app.include_router(leaderboard_router)
 app.include_router(ai_router)
+app.include_router(evaluator_router)
+app.include_router(event_router)
+app.include_router(comms_router)
 
 @app.on_event("startup")
 async def startup():
@@ -73,13 +81,17 @@ def debug_run_solver():
     from app.schemas.participant import MOCK_ROSTER
 
     roster = []
-    for i, p in enumerate(roster):
-        p = dict(p)
-        p["id"] = f"mock-{i}"
-        p["email"] = f"mock{i}@test.com"
-        if i >= 4:
-            p["first_name"] = f"{p['first_name']} (Clone)"
-        roster[i] = p
+    # Iterate over a doubled MOCK_ROSTER to guarantee enough participants for the test
+    for i, p in enumerate(MOCK_ROSTER * 2):
+        entry = dict(p)
+        entry["id"] = f"mock-{i}"
+        entry["email"] = f"mock{i}@test.com"
+        
+        # Append "(Clone)" to the first names of the duplicated batch
+        if i >= len(MOCK_ROSTER):
+            entry["first_name"] = f"{entry['first_name']} (Clone)"
+            
+        roster.append(entry)
 
     config = {
         "num_teams": 2,
