@@ -231,3 +231,36 @@ def get_solver_status(task_id: str):
     if not status:
         raise HTTPException(status_code=404, detail=f"Task '{task_id}' not found.")
     return status
+
+
+@router.post("/commit/{task_id}",
+    summary="Persist solver draft lineups into the teams table (triggers approval queue)")
+def commit_solver_results(task_id: str, db: Session = Depends(get_db)):
+    """
+    Takes a completed solver run and writes the draft teams to the DB.
+    After this, they appear in GET /approvals/pending for committee review.
+    """
+    from app.models.participant import Team, Participant
+    status = TaskTracker.get_status(task_id)
+    if not status or status["status"] != "success":
+        raise HTTPException(status_code=425,
+            detail="Solver task not complete. Check status first.")
+
+    teams_data = status["result"]["teams"]
+    created_teams = []
+    for t in teams_data:
+        team = Team(team_name=t["team_name"], rationale=None, is_approved=False)
+        db.add(team)
+        db.flush()   # get the team.id before committing
+        for member in t["members"]:
+            participant = db.query(Participant).filter(
+                Participant.id == member["id"]
+            ).first()
+            if participant:
+                participant.team_id = team.id
+        created_teams.append({"team_id": str(team.id), "team_name": team.team_name})
+    db.commit()
+    return {
+        "message": f"{len(created_teams)} teams committed to DB. Check /approvals/pending.",
+        "teams":   created_teams
+    }

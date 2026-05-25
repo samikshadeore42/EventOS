@@ -1,0 +1,41 @@
+@import "tailwindcss";
+
+/* ── Base resets ─────────────────────────────────────────────────────────── */
+@layer base {
+  html {
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  }
+  body {
+    background-color: #f9fafb;
+    color: #111827;
+  }
+}
+
+/* ── Range input (used in JudgePortal scoring sliders) ─────────────────── */
+@layer utilities {
+  input[type='range'] {
+    -webkit-appearance: none;
+    appearance: none;
+    height: 0.375rem;
+    border-radius: 9999px;
+    cursor: pointer;
+    outline: none;
+  }
+
+  input[type='range']::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 1.125rem;
+    height: 1.125rem;
+    border-radius: 9999px;
+    background: #ffffff;
+    border: 2.5px solid #6366f1;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.15);
+    transition: border-color 0.15s, transform 0.1s;
+    cursor: pointer;
+  }
+
+  input[type='range']::-webkit-slider-thumb:hover {
+    transform: scale(1.15);
+  }
+}
