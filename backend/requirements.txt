@@ -11,17 +11,18 @@ psycopg2-binary==2.9.9
 sendgrid==6.11.0
 
 # Validation
-pydantic==2.7.1
+pydantic==2.10.6
 pydantic-settings==2.2.1
 email-validator==2.1.1
 
-# Task queue (YOUR core responsibility)
+# Task queue
 celery==5.4.0
 redis==5.0.4
 
-# AI/LLM (Day 5 — just install now)
-langchain==0.2.1
-langchain-google-genai==1.0.6
+# AI/LLM
+langchain==0.3.25
+langchain-core==0.3.59
+langchain-google-genai==2.1.4
 
 # Utilities
 python-jose[cryptography]==3.3.0
