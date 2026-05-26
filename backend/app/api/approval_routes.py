@@ -40,13 +40,17 @@ def get_pending_approvals(db: Session = Depends(get_db)):
     The frontend dashboard polls this to populate the approval queue.
     """
     pending = ApprovalService.get_pending_teams(db)
-
+    
+    team_ids = [t.id for t in pending]
+    
+    counts = ApprovalService.get_member_counts_batch(team_ids, db)
+    
     teams_out = [
         TeamApprovalStatus(
             team_id=t.id,
             team_name=t.team_name,
             is_approved=t.is_approved,
-            member_count=len(ApprovalService.get_team_members(t.id, db)),
+            member_count=counts.get(str(t.id), 0),
             rationale=t.rationale
         )
         for t in pending

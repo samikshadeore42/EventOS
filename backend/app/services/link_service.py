@@ -170,7 +170,11 @@ class LinkService:
             raise HTTPException(status_code=404, detail="Evaluator not found.")
 
         from app.models.participant import Team
+        from app.models.evaluation import Evaluation
+        
         approved_teams = db.query(Team).filter(Team.is_approved == True).all()
+        if not approved_teams:
+            approved_teams = db.query(Team).all()
 
         submitted = db.query(Evaluation).filter(
             Evaluation.evaluator_id == evaluator_id
@@ -181,6 +185,7 @@ class LinkService:
             {
                 "team_id":      str(t.id),
                 "team_name":    t.team_name,
+                "is_approved":  t.is_approved,
                 "already_graded": str(t.id) in submitted_team_ids,
             }
             for t in approved_teams
