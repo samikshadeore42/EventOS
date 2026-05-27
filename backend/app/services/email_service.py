@@ -11,19 +11,42 @@ SENDGRID_API_KEY = os.getenv("SENDGRID_API_KEY")
 FROM_EMAIL = os.getenv("SENDGRID_FROM_EMAIL", "noreply@eventos.com")
 FROM_NAME = os.getenv("SENDGRID_FROM_NAME", "EventOS Operations")
 
+EMAIL_DELIVERY_MODE = os.getenv("EMAIL_DELIVERY_MODE", "mock").lower()
+
 # Initialize Jinja2 environment to load templates from our directory
 env = Environment(loader=FileSystemLoader("app/templates/emails"))
 
 class EmailService:
     @staticmethod
-    def _send_email(to_email: str, subject: str, html_content: str) -> dict:
-        """Core internal method to dispatch via SendGrid and log to DB."""
+    def send_email(
+        to_email: str,
+        subject: str,
+        html_content: str,
+        recipient_name: str = None,
+        template: str = "email",
+        stage: str = "system"
+    ) -> dict:
+        """Core method to dispatch via SendGrid or Mock, and log to DB."""
+        import time
         result = {}
 
-        # 1. Dispatch Email (or Mock it)
-        if not SENDGRID_API_KEY or SENDGRID_API_KEY.startswith("SG.xxx"):
+        is_mock = (EMAIL_DELIVERY_MODE == "mock")
+        if not is_mock and (not SENDGRID_API_KEY or SENDGRID_API_KEY.startswith("SG.your_")):
+            # Fallback to mock if sendgrid is requested but key is missing/invalid
+            is_mock = True
+            print("[EmailService] Warning: SENDGRID_API_KEY missing or invalid. Falling back to MOCK mode.")
+
+        # 1. Dispatch Email
+        if is_mock:
             print(f"[MOCK EMAIL] To: {to_email} | Subject: {subject}")
-            result = {"success": True, "dev": True, "message_id": "mock_id"}
+            result = {
+                "success": True, 
+                "dev": True, 
+                "simulated": True, 
+                "message_id": f"mock_{int(time.time())}",
+                "provider": "mock",
+                "error": None
+            }
         else:
             message = Mail(
                 from_email=(FROM_EMAIL, FROM_NAME),
@@ -35,13 +58,33 @@ class EmailService:
                 sg = SendGridAPIClient(SENDGRID_API_KEY)
                 response = sg.send(message)
                 if response.status_code in [200, 201, 202]:
-                    # Grab message ID from headers if possible
                     msg_id = response.headers.get('X-Message-Id', 'unknown')
-                    result = {"success": True, "message_id": msg_id}
+                    result = {
+                        "success": True, 
+                        "dev": False,
+                        "simulated": False,
+                        "message_id": msg_id,
+                        "provider": "sendgrid",
+                        "error": None
+                    }
                 else:
-                    result = {"success": False, "error": f"Status: {response.status_code}"}
+                    result = {
+                        "success": False, 
+                        "dev": False,
+                        "simulated": False,
+                        "message_id": None,
+                        "provider": "sendgrid",
+                        "error": f"Status: {response.status_code}"
+                    }
             except Exception as e:
-                result = {"success": False, "error": str(e)}
+                result = {
+                    "success": False, 
+                    "dev": False,
+                    "simulated": False,
+                    "message_id": None,
+                    "provider": "sendgrid",
+                    "error": str(e)
+                }
     
         # 2. Log to Database
         try:
@@ -50,10 +93,10 @@ class EmailService:
             db = SessionLocal()
             log = CommunicationLog(
                 recipient_email=to_email,
-                recipient_name=to_email,   # name not available here — override in callers if needed
-                template="email",
+                recipient_name=recipient_name or to_email,
+                template=template,
                 subject=subject,
-                stage="system",
+                stage=stage,
                 success=result.get("success", False),
                 error_message=result.get("error"),
                 message_id=result.get("message_id"),
@@ -63,9 +106,8 @@ class EmailService:
             db.close()
         except Exception as e:
             print(f"Failed to log email communication: {str(e)}")
-            pass  # never let logging block the email result
+            pass
             
-        # 3. Finally, return the outcome
         return result
 
     @staticmethod
@@ -78,7 +120,10 @@ class EmailService:
             support_email="support@eventos.com"
         )
         subject = f"Welcome to {event_name}! Registration Confirmed"
-        return EmailService._send_email(to_email, subject, html_content)
+        return EmailService.send_email(
+            to_email, subject, html_content, 
+            recipient_name=participant_name, template="registration", stage="registration"
+        )
 
     @staticmethod
     def send_team_assignment(to_email: str, participant_name: str, team_name: str, team_members: list, rationale: str, event_name: str) -> dict:
@@ -93,4 +138,35 @@ class EmailService:
             support_email="support@eventos.com"
         )
         subject = f"You have been assigned to {team_name}!"
-        return EmailService._send_email(to_email, subject, html_content)
+        return EmailService.send_email(
+            to_email, subject, html_content,
+            recipient_name=participant_name, template="team_assignment", stage="team_formation"
+        )
+
+    @staticmethod
+    def send_access_link(to_email: str, recipient_name: str, role: str, stage: str, portal_url: str, expires_in: str) -> dict:
+        """Renders and sends a magic access link."""
+        # Check if access_link.html exists, else use a fallback HTML
+        try:
+            template = env.get_template("access_link.html")
+            html_content = template.render(
+                recipient_name=recipient_name,
+                role=role,
+                stage=stage,
+                portal_url=portal_url,
+                expires_in=expires_in,
+                support_email="support@eventos.com"
+            )
+        except Exception:
+            html_content = f"""
+            <h2>Hello {recipient_name},</h2>
+            <p>Here is your magic access link for the {stage} stage as a {role}.</p>
+            <p><a href="{portal_url}">Click here to access your portal</a></p>
+            <p>This link expires in {expires_in}. Do not share it.</p>
+            """
+            
+        subject = f"Your EventOS Access Link ({role.title()})"
+        return EmailService.send_email(
+            to_email, subject, html_content,
+            recipient_name=recipient_name, template="access_link", stage=stage
+        )
