@@ -142,13 +142,14 @@ class LinkService:
             expires_in=link_data["expires_in"],
         )
 
-        # Mark access link sent
-        mentor.access_link_sent = True
-        db.commit()
+        is_success = result.get("success", False)
+        if is_success:
+            mentor.access_link_sent = True
+            db.commit()
 
         return {
             **link_data,
-            "email_sent": result.get("success", False),
+            "email_sent": is_success,
             "simulated": result.get("simulated", False),
             "assigned_teams": team_count,
         }
