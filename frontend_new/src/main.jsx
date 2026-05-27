@@ -10,7 +10,6 @@ import JudgePortal from './views/JudgePortal'
 import PartcipantPortal from './views/ParticipantPortal'
 import MentorPortal from './views/MentorPortal'
 
-console.log("🚨 ALERT: main.jsx is successfully executing!");
 
 const queryClient = new QueryClient({
   defaultOptions: {
