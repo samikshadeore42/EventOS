@@ -173,6 +173,15 @@ def mentor_team_feedback(
     db: Session = Depends(get_db),
 ):
     mentor_id = _get_mentor_id(token)
+    from app.models.mentor import MentorAssignment
+    assignment = db.query(MentorAssignment).filter(
+        MentorAssignment.mentor_id == mentor_id,
+        MentorAssignment.team_id == team_id,
+        MentorAssignment.is_active == True,
+    ).first()
+    if not assignment:
+        raise HTTPException(status_code=403, detail="Mentor is not assigned to this team.")
+
     feedbacks = MentorService.get_feedback_for_team(db, team_id)
     return {"feedback": [MentorFeedbackOut.model_validate(fb).model_dump() for fb in feedbacks]}
 
