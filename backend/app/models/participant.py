@@ -70,7 +70,6 @@ class Team(Base):
     team_name:   Mapped[str]       = mapped_column(String(100), nullable=False)
     rationale:   Mapped[str | None]= mapped_column(Text, nullable=True)  # LLM-generated explanation
     is_approved: Mapped[bool]      = mapped_column(Boolean, default=False, index=True)
-    approval_status: Mapped[str]   = mapped_column(String(20), default="pending", index=True)
     created_at:  Mapped[datetime]  = mapped_column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
 
     # Relationship — lets you do team.members to get all participants

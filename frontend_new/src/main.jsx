@@ -9,6 +9,7 @@ import AdminDashboard from './views/AdminDashboard'
 import JudgePortal from './views/JudgePortal'
 import PartcipantPortal from './views/ParticipantPortal'
 
+console.log("🚨 ALERT: main.jsx is successfully executing!");
 
 const queryClient = new QueryClient({
   defaultOptions: {
