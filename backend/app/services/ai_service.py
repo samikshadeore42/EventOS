@@ -18,7 +18,7 @@ import json
 from typing import Optional, Dict, List
 
 from langchain_google_genai import ChatGoogleGenerativeAI
-from langchain_core.messages import HumanMessage, SystemMessage
+from langchain.schema import HumanMessage, SystemMessage
 
 
 # ── LLM client (lazy singleton) ──────────────────────────────────────
@@ -43,7 +43,7 @@ def _get_llm() -> ChatGoogleGenerativeAI:
         )
 
     _llm_instance = ChatGoogleGenerativeAI(
-        model       = os.getenv("GEMINI_MODEL", "gemini-2.5-flash"),
+        model       = os.getenv("GEMINI_MODEL", "gemini-1.5-flash"),
         temperature = 0.7,
         google_api_key  = api_key,
         max_retries     = 2,
