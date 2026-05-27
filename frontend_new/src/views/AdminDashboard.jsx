@@ -1038,12 +1038,37 @@ function CommunicationsTab() {
   })
 
   const draftMutation = useMutation({
-    mutationFn: () => {
+    mutationFn: async () => {
       let ctx
       try { ctx = JSON.parse(draftContext) } catch { throw new Error('Context is not valid JSON') }
-      return aiApi.draft({ draft_type: draftType, context: ctx, tone: draftTone, max_words: 200 })
+      
+      const stageMap = {
+        'progression_invite': 'progression',
+        'milestone_blast': 'results',
+        'evaluation_summary': 'results'
+      };
+      
+      const res = await aiApi.draftCommunication({
+        stage: stageMap[draftType] || 'progression',
+        recipient_name: ctx.participant_name || ctx.team_name || 'Participant',
+        recipient_role: 'participant',
+        event_name: ctx.event_name || 'WiSE@TI Hackathon',
+        context: ctx
+      });
+      
+      let statusRes;
+      while (true) {
+        statusRes = await solverApi.taskStatus(res.task_id);
+        if (statusRes.status === 'success' || statusRes.status === 'failed') break;
+        await new Promise(r => setTimeout(r, 1500));
+      }
+      
+      if (statusRes.status === 'failed') throw new Error(statusRes.error || 'Draft generation failed');
+      return aiApi.result(res.task_id);
     },
-    onSuccess: (res) => res.draft && setDraft(res.draft),
+    onSuccess: (res) => {
+      if (res && res.subject) setDraft({ subject: res.subject, body_text: res.body });
+    },
   })
 
   const DRAFT_TYPES = [
