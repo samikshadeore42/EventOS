@@ -227,20 +227,22 @@ export const commsApi = {
     api.get('/communications', { params }),
 }
 
-// ── AI / LLM drafting ─────────────────────────────────────────────────────
+// ── AI Generation ──────────────────────────────────────────────────────────
 export const aiApi = {
-  // draft_type: 'progression_invite' | 'milestone_blast' | 'evaluation_summary'
-  draft: (body) =>
-    api.post('/llm/draft', body),
+  draftCommunication: (body) =>
+    api.post('/ai/communication', body),
 
   teamRationale: (body) =>
-    api.post('/llm/team-rationale', body),
+    api.post('/ai/team-rationale', body),
 
-  bulkRationale: () =>
-    api.post('/llm/team-rationale/bulk'),
+  rubric: (body) =>
+    api.post('/ai/rubric', body),
 
-  health: () =>
-    api.get('/llm/health'),
+  explainAnomaly: (body) =>
+    api.post('/ai/explain-anomaly', body),
+
+  result: (taskId) =>
+    api.get(`/ai/result/${taskId}`),
 }
 
 // ── System ─────────────────────────────────────────────────────────────────
