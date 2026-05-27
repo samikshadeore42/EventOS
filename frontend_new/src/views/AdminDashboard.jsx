@@ -1251,7 +1251,7 @@ function MentorOpsTab() {
     onSuccess: () => qc.invalidateQueries({ queryKey: ['mentors'] }),
   })
   const assignMutation = useMutation({
-    mutationFn: () => mentorApi.assign({ mentor_id: assignForm.mentor_id, team_id: assignForm.team_id }),
+    mutationFn: (vars) => mentorApi.assign(vars || { mentor_id: assignForm.mentor_id, team_id: assignForm.team_id }),
     onSuccess: () => { qc.invalidateQueries({ queryKey: ['mentor-assignments'] }); qc.invalidateQueries({ queryKey: ['mentor-ops-summary'] }); qc.invalidateQueries({ queryKey: ['mentor-risk-teams'] }); qc.invalidateQueries({ queryKey: ['mentor-suggestions'] }); setShowAssignForm(false) },
   })
   const unassignMutation = useMutation({
@@ -1290,10 +1290,10 @@ function MentorOpsTab() {
     <div>
       {/* Ops summary cards */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-        {[{ label: 'Active Mentors', value: ops.active_mentors, icon: UserCheck, colour: 'indigo' },
-          { label: 'Assignments', value: ops.total_assignments, icon: GitBranch, colour: 'teal' },
-          { label: 'Teams No Mentor', value: ops.teams_without_mentor, icon: AlertTriangle, colour: ops.teams_without_mentor > 0 ? 'amber' : 'teal' },
-          { label: 'Low Progress', value: ops.low_progress_teams, icon: BarChart2, colour: ops.low_progress_teams > 0 ? 'red' : 'teal' },
+        {[{ label: 'Teams without mentor', value: ops.teams_without_mentor, icon: AlertTriangle, colour: ops.teams_without_mentor > 0 ? 'amber' : 'teal' },
+          { label: 'Teams without meeting', value: ops.teams_without_meeting, icon: Calendar, colour: ops.teams_without_meeting > 0 ? 'amber' : 'teal' },
+          { label: 'Missing daily update', value: ops.teams_missing_daily_update, icon: MessageSquare, colour: ops.teams_missing_daily_update > 0 ? 'red' : 'teal' },
+          { label: 'Low progress teams', value: ops.low_progress_teams, icon: BarChart2, colour: ops.low_progress_teams > 0 ? 'red' : 'teal' },
         ].map(({ label, value, icon: Icon, colour }) => (
           <div key={label} className="bg-white rounded-xl border border-gray-200 p-4">
             <div className="flex items-center gap-2 mb-1"><Icon size={14} className="text-gray-400" /><p className="text-xs font-medium text-gray-500 uppercase tracking-wide">{label}</p></div>
@@ -1430,7 +1430,7 @@ function MentorOpsTab() {
       {/* Suggestions */}
       {suggestions.length > 0 && (
         <div className="mb-8">
-          <h2 className="text-base font-semibold text-gray-900 mb-4 flex items-center gap-2"><Wand2 size={16} className="text-indigo-500" /> AI Suggestions</h2>
+          <h2 className="text-base font-semibold text-gray-900 mb-4 flex items-center gap-2"><Wand2 size={16} className="text-indigo-500" /> Skill-Gap Mentor Suggestions</h2>
           <div className="space-y-3">
             {suggestions.map(s => (
               <div key={String(s.team_id)} className="bg-white rounded-xl border border-gray-200 p-4">
@@ -1438,9 +1438,16 @@ function MentorOpsTab() {
                 <p className="text-xs text-gray-500 mb-2">{s.reason}</p>
                 {s.suggested_mentors?.map(c => (
                   <div key={String(c.mentor_id)} className="flex items-center gap-2 text-xs text-gray-600 mb-1">
-                    <span className="font-medium">{c.mentor_name}</span>
+                    <span className="font-medium flex-1">{c.mentor_name}</span>
                     <Badge colour="indigo">load: {c.current_load}</Badge>
                     <Badge colour="teal">score: {c.match_score}</Badge>
+                    <button
+                      onClick={() => assignMutation.mutate({ mentor_id: c.mentor_id, team_id: s.team_id })}
+                      disabled={assignMutation.isPending}
+                      className="ml-2 text-xs px-2 py-1 rounded bg-teal-50 text-teal-600 hover:bg-teal-100 border border-teal-200 disabled:opacity-50"
+                    >
+                      {assignMutation.isPending ? 'Assigning...' : 'Assign'}
+                    </button>
                   </div>
                 ))}
               </div>
