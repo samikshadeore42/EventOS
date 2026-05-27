@@ -3,11 +3,13 @@
 #   1. Generating secure portal URLs for participants and evaluators
 #   2. Resolving portal access (decode token → load the right view)
 
+
 import os
 from datetime import timedelta
 from uuid import UUID
 from sqlalchemy.orm import Session
 from fastapi import HTTPException
+
 
 from app.core.security import create_access_token, decode_access_token, get_token_subject
 from app.models.participant import Participant, Team
@@ -18,8 +20,11 @@ from app.schemas.portal_schemas import (
     TeamMemberPortalView,
 )
 
+
 # BASE_URL = os.getenv("BASE_URL", "http://localhost:8000")
 FRONTEND_URL = os.getenv("FRONTEND_URL", "http://localhost:5173")
+
+
 
 
 class LinkService:
@@ -44,6 +49,7 @@ class LinkService:
             "expires_in": f"{expires_days} days",
         }
 
+
     @staticmethod
     def generate_evaluator_link(
         evaluator_id: str,
@@ -65,6 +71,7 @@ class LinkService:
             "expires_in": f"{expires_days} days",
         }
 
+
     @staticmethod
     def generate_all_participant_links(
         db: Session,
@@ -80,12 +87,13 @@ class LinkService:
             for p in participants
         ]
 
+
     @staticmethod
     def generate_all_evaluator_links(
         db: Session,
         stage: str = "evaluation"
     ) -> list[dict]:
-        evaluators = db.query(Evaluator).filter(Evaluator.is_active == True).all() 
+        evaluators = db.query(Evaluator).filter(Evaluator.is_active == True).all()
         return [
             {
                 **LinkService.generate_evaluator_link(str(e.id), stage),
@@ -95,6 +103,7 @@ class LinkService:
             for e in evaluators
         ]
 
+
     @classmethod
     def resolve_portal_access(cls, token: str, db: Session) -> dict:
         payload = decode_access_token(token)
@@ -102,12 +111,14 @@ class LinkService:
         subject = get_token_subject(payload)
         stage   = payload.get("stage", "unknown")
 
+
         if role == "participant":
             return cls._load_participant_view(subject, stage, db)
         elif role == "evaluator":
             return cls._load_evaluator_view(subject, stage, db)
         else:
             raise HTTPException(status_code=400, detail=f"Unknown token role: {role}")
+
 
     @staticmethod
     def _load_participant_view(
@@ -119,8 +130,10 @@ class LinkService:
             Participant.id == participant_id
         ).first()
 
+
         if not participant:
             raise HTTPException(status_code=404, detail="Participant not found.")
+
 
         team      = None
         teammates = []
@@ -129,7 +142,7 @@ class LinkService:
             if team:
                 all_members = db.query(Participant).filter(
                     Participant.team_id == team.id,
-                    Participant.id != participant.id   
+                    Participant.id != participant.id  
                 ).all()
                 teammates = [
                     TeamMemberPortalView(
@@ -138,6 +151,7 @@ class LinkService:
                     )
                     for m in all_members
                 ]
+
 
         return ParticipantPortalResponse(
             participant_id = str(participant.id),
@@ -157,6 +171,7 @@ class LinkService:
             ]
         ).model_dump()
 
+
     @staticmethod
     def _load_evaluator_view(
         evaluator_id: str,
@@ -167,20 +182,24 @@ class LinkService:
             Evaluator.id == evaluator_id
         ).first()
 
+
         if not evaluator:
             raise HTTPException(status_code=404, detail="Evaluator not found.")
 
+
         from app.models.participant import Team
         from app.models.evaluation import Evaluation
-        
+       
         approved_teams = db.query(Team).filter(Team.is_approved == True).all()
         if not approved_teams:
             approved_teams = db.query(Team).all()
+
 
         submitted = db.query(Evaluation).filter(
             Evaluation.evaluator_id == evaluator_id
         ).all()
         submitted_team_ids = {str(e.team_id) for e in submitted}
+
 
         teams_data = [
             {
@@ -191,6 +210,7 @@ class LinkService:
             }
             for t in approved_teams
         ]
+
 
         return EvaluatorPortalResponse(
             evaluator_id    = str(evaluator.id),
