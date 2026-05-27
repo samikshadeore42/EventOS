@@ -219,3 +219,9 @@ e4d3456 feat: add mentor operations data models
     * AI Suggestions renamed to Skill-Gap Mentor Suggestions.
     * Quick "Assign" button implemented for suggestion candidates.
 *   **Code Quality:** Replaced obsolete `/llm` route paths with `/ai` in docs and integration tests. Removed stray `console.log` from `main.jsx`. Added `backend/tests/test_mentor_ops.py` for comprehensive backend test coverage.
+
+### Phase 1 Fixes Restored
+*   **Approval Status:** Restored the `approval_status` field on the `Team` model, updating `approval_routes.py` and `approval_service.py` to seamlessly track teams moving from "pending" to "approved" or "rejected".
+*   **Team Rationales:** Reinstated team formation rationale generation in `solver_routes.py`. If a rationale is absent, a deterministic fallback ensures `rationale=None` is never encountered.
+*   **CSP Target Average Calculation:** Repaired the mathematically flawed target variance algorithm in `csp_solver.py` to calculate the direct mean of all given `participants`, aligning the objective score with logical bounds.
+*   **Validation Success:** Backend schemas re-compiled cleanly, test cases adapted for `meeting_url` fields, database schemas verified (`413caf585032`), and no anomalies surfaced under strict static checking.
