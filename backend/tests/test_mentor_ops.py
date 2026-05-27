@@ -57,7 +57,7 @@ class TestMentorOps:
         mentor = MentorService.create_mentor(db_session, MentorCreate(first_name="A", last_name="B", email="session@ti.com", organization="TI", expertise_areas=[]))
         MentorService.assign_mentor_to_team(db_session, MentorAssignmentCreate(mentor_id=mentor.id, team_id=approved_team.id))
         
-        session_data = MentorSessionCreate(team_id=approved_team.id, title="Sync", scheduled_at=datetime.now(timezone.utc), duration_minutes=30)
+        session_data = MentorSessionCreate(team_id=approved_team.id, title="Sync", scheduled_at=datetime.now(timezone.utc), duration_minutes=30, meeting_url="https://meet.google.com/test")
         session = MentorService.create_session(db_session, mentor.id, session_data)
         assert session.id is not None
 
@@ -95,7 +95,7 @@ class TestMentorOps:
     def test_risk_score_missing_daily_update(self, db_session, approved_team):
         mentor = MentorService.create_mentor(db_session, MentorCreate(first_name="A", last_name="B", email="risk@ti.com", organization="TI", expertise_areas=[]))
         MentorService.assign_mentor_to_team(db_session, MentorAssignmentCreate(mentor_id=mentor.id, team_id=approved_team.id))
-        MentorService.create_session(db_session, mentor.id, MentorSessionCreate(team_id=approved_team.id, title="Sync", scheduled_at=datetime.now(timezone.utc) + timedelta(days=1), duration_minutes=30))
+        MentorService.create_session(db_session, mentor.id, MentorSessionCreate(team_id=approved_team.id, title="Sync", scheduled_at=datetime.now(timezone.utc) + timedelta(days=1), duration_minutes=30, meeting_url="https://meet.google.com/test"))
         
         risk = MentorOpsService.calculate_team_risk_score(db_session, approved_team.id)
         assert risk.risk_score >= 25
