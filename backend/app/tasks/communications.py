@@ -74,7 +74,7 @@ def send_batch_emails(self, recipient_list: list, template: str, event_name: str
     Celery task: send emails to multiple participants at once.
     recipient_list = [{"email": "x@y.com", "name": "Priya", ...}, ...]
     """
-    results = {"sent": 0, "failed": 0, "errors": []}
+    results = {"sent": 0, "failed": 0, "simulated": 0, "errors": []}
 
     for recipient in recipient_list:
         try:
@@ -97,7 +97,10 @@ def send_batch_emails(self, recipient_list: list, template: str, event_name: str
                 result = {"success": False, "error": f"Unknown template: {template}"}
 
             if result["success"]:
-                results["sent"] += 1
+                if result.get("simulated"):
+                    results["simulated"] += 1
+                else:
+                    results["sent"] += 1
             else:
                 results["failed"] += 1
                 results["errors"].append({"email": recipient["email"], "error": result.get("error")})
@@ -119,34 +122,27 @@ def send_batch_emails(self, recipient_list: list, template: str, event_name: str
     default_retry_delay=120,
 )
 def send_access_links(self, links: list, role: str, stage: str):
-    sg = SendGridAPIClient(os.environ.get('SENDGRID_API_KEY'))
-    sender_email = os.environ.get('SENDGRID_FROM_EMAIL', 'eventos862404@gmail.com')
-    results = {"sent": 0, "failed": 0, "errors": []}
+    results = {"sent": 0, "failed": 0, "simulated": 0, "errors": []}
 
     for link in links:
         try:
-            message={
-                "personalizations": [
-                    {
-                        "to": [{"email": link["email"], "name": link["name"]}],
-                        "dynamic_template_data": {
-                            "first_name": link["name"].split(" ")[0],
-                            "team_name": link.get("team_name", "Your Assigned Team"),
-                            "magic_link": link["portal_url"]
-                        }
-                    }
-                ],
-                "from":{"email": sender_email, "name":"EventOS@TI"},
-                "template_id": "d-c486747eb35f4ed0acb2e1fb8dbc09f8"
-            }
+            result = EmailService.send_access_link(
+                to_email=link["email"],
+                recipient_name=link["name"],
+                role=role,
+                stage=stage,
+                portal_url=link["portal_url"],
+                expires_in="48 hours"
+            )
 
-            response = sg.client.mail.send.post(request_body=message)
-
-            if response.status_code in [200,201,202]:
-                results["sent"]+=1
+            if result["success"]:
+                if result.get("simulated"):
+                    results["simulated"] += 1
+                else:
+                    results["sent"] += 1
             else:
-                results["failed"]+=1
-                results["errors"].append({"email":link["email"], "error":str(e)})
+                results["failed"] += 1
+                results["errors"].append({"email": link["email"], "error": result.get("error")})
 
         except Exception as e:
             results["failed"] += 1
