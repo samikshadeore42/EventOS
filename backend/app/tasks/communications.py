@@ -12,7 +12,10 @@
 #
 # The API never waits for email to send. This keeps it fast.
 
+from email import message
+import os
 from celery import Task
+from sendgrid import SendGridAPIClient
 from app.core.celery_app import celery_app
 from app.services.email_service import EmailService
 
@@ -116,37 +119,34 @@ def send_batch_emails(self, recipient_list: list, template: str, event_name: str
     default_retry_delay=120,
 )
 def send_access_links(self, links: list, role: str, stage: str):
+    sg = SendGridAPIClient(os.environ.get('SENDGRID_API_KEY'))
+    sender_email = os.environ.get('SENDGRID_FROM_EMAIL', 'eventos862404@gmail.com')
     results = {"sent": 0, "failed": 0, "errors": []}
 
     for link in links:
         try:
-            html_content = f"""
-            <!DOCTYPE html><html><body style="font-family:Arial,sans-serif;max-width:600px;margin:40px auto;padding:24px">
-            <h2 style="color:#4f46e5">EventOS — Your Access Link</h2>
-            <p>Hello {link['name']},</p>
-            <p>Your personalized portal for the <strong>WiSE@TI Hackathon</strong> ({stage} stage) is ready.</p>
-            <p style="margin:24px 0">
-              <a href="{link['portal_url']}"
-                 style="background:#4f46e5;color:#fff;padding:12px 24px;text-decoration:none;border-radius:8px;font-weight:600">
-                Open My Portal →
-              </a>
-            </p>
-            <p style="color:#6b7280;font-size:13px">This link expires in 7 days. Do not share it.</p>
-            </body></html>
-            """
+            message={
+                "personalizations": [
+                    {
+                        "to": [{"email": link["email"], "name": link["name"]}],
+                        "dynamic_template_data": {
+                            "first_name": link["name"].split(" ")[0],
+                            "team_name": link.get("team_name", "Your Assigned Team"),
+                            "magic_link": link["portal_url"]
+                        }
+                    }
+                ],
+                "from":{"email": sender_email, "name":"EventOS@TI"},
+                "template_id": "d-c486747eb35f4ed0acb2e1fb8dbc09f8"
+            }
 
-            result = EmailService.send_registration_confirmation.__func__  
-            result = EmailService._send_email(
-                to_email=link["email"],
-                subject=f"🔗 Your EventOS Access Link — WiSE@TI ({stage})",
-                html_content=html_content
-            )
+            response = sg.client.mail.send.post(request_body=message)
 
-            if result["success"]:
-                results["sent"] += 1
+            if response.status_code in [200,201,202]:
+                results["sent"]+=1
             else:
-                results["failed"] += 1
-                results["errors"].append({"email": link["email"], "error": result.get("error")})
+                results["failed"]+=1
+                results["errors"].append({"email":link["email"], "error":str(e)})
 
         except Exception as e:
             results["failed"] += 1

@@ -249,19 +249,7 @@ def commit_solver_results(task_id: str, db: Session = Depends(get_db)):
     teams_data = status["result"]["teams"]
     created_teams = []
     for t in teams_data:
-        skills_set = set()
-        for member in t.get("members", []):
-            skills_set.update(member.get("skill_vector", {}).keys())
-        skills_str = ", ".join(sorted(skills_set)) if skills_set else "various skills"
-        fallback_rationale = f"This team was formed to balance skill coverage across {skills_str} while respecting configured team size and institution constraints."
-        
-        rationale = t.get("rationale") or fallback_rationale
-        team = Team(
-            team_name=t["team_name"], 
-            rationale=rationale, 
-            is_approved=False,
-            approval_status="pending"
-        )
+        team = Team(team_name=t["team_name"], rationale=None, is_approved=False)
         db.add(team)
         db.flush()   # get the team.id before committing
         for member in t["members"]:

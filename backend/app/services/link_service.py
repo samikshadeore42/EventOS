@@ -18,8 +18,8 @@ from app.schemas.portal_schemas import (
     TeamMemberPortalView,
 )
 
-BASE_URL = os.getenv("BASE_URL", "http://localhost:8000")
-FRONTEND_BASE_URL = os.getenv("FRONTEND_BASE_URL", "http://localhost:5173")
+# BASE_URL = os.getenv("BASE_URL", "http://localhost:8000")
+FRONTEND_URL = os.getenv("FRONTEND_URL", "http://localhost:5173")
 
 
 class LinkService:
@@ -35,7 +35,7 @@ class LinkService:
             stage=stage,
             expires_in=timedelta(days=expires_days)
         )
-        portal_url = f"{FRONTEND_BASE_URL}/participant?token={token}"
+        portal_url = f"{FRONTEND_URL}/participant/access?token={token}"
         return {
             "entity_id":  participant_id,
             "role":       "participant",
@@ -56,7 +56,7 @@ class LinkService:
             stage=stage,
             expires_in=timedelta(days=expires_days)
         )
-        portal_url = f"{FRONTEND_BASE_URL}/judge?token={token}"
+        portal_url = f"{FRONTEND_URL}/judge/access?token={token}"
         return {
             "entity_id":  evaluator_id,
             "role":       "evaluator",

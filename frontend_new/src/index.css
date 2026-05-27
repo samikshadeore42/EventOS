@@ -1,58 +1,23 @@
-@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap');
 @import "tailwindcss";
 
+/* ── Base resets ─────────────────────────────────────────────────────────── */
 @layer base {
   html {
-    font-family: 'Outfit', system-ui, -apple-system, sans-serif;
-    background-color: #050505;
-    color: #e2e8f0;
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
   }
-  
   body {
-    background-color: #050505;
-    background-image: 
-      radial-gradient(at 0% 0%, rgba(99, 102, 241, 0.15) 0px, transparent 50%),
-      radial-gradient(at 100% 0%, rgba(168, 85, 247, 0.15) 0px, transparent 50%),
-      radial-gradient(at 100% 100%, rgba(14, 165, 233, 0.15) 0px, transparent 50%),
-      radial-gradient(at 0% 100%, rgba(236, 72, 153, 0.15) 0px, transparent 50%);
-    background-attachment: fixed;
-    min-height: 100vh;
-    color: #f8fafc;
+    background-color: #f9fafb;
+    color: #111827;
   }
 }
 
+/* ── Range input (used in JudgePortal scoring sliders) ─────────────────── */
 @layer utilities {
-  .glass-panel {
-    @apply bg-black/40 backdrop-blur-2xl border border-white/10 shadow-[0_4px_30px_rgba(0,0,0,0.5)];
-  }
-  
-  .glass-card {
-    @apply bg-black/30 backdrop-blur-xl border border-white/5 hover:bg-black/50 hover:border-white/20 hover:shadow-[0_0_20px_rgba(99,102,241,0.25)] transition-all duration-300;
-  }
-
-  .glow-text {
-    @apply text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 via-purple-400 to-pink-400 drop-shadow-[0_0_12px_rgba(168,85,247,0.4)];
-  }
-
-  .glow-border {
-    @apply relative;
-  }
-  
-  .glow-border::before {
-    content: "";
-    @apply absolute inset-0 -z-10 p-[1px] rounded-[inherit] bg-gradient-to-r from-indigo-500/50 via-purple-500/50 to-pink-500/50 opacity-0 transition-opacity duration-300;
-  }
-
-  .glow-border:hover::before {
-    @apply opacity-100;
-  }
-  
   input[type='range'] {
     -webkit-appearance: none;
     appearance: none;
     height: 0.375rem;
     border-radius: 9999px;
-    background: rgba(255,255,255,0.1);
     cursor: pointer;
     outline: none;
   }
@@ -60,19 +25,17 @@
   input[type='range']::-webkit-slider-thumb {
     -webkit-appearance: none;
     appearance: none;
-    width: 1.25rem;
-    height: 1.25rem;
+    width: 1.125rem;
+    height: 1.125rem;
     border-radius: 9999px;
-    background: #000;
-    border: 2px solid #a855f7;
-    box-shadow: 0 0 12px rgba(168, 85, 247, 0.6);
-    transition: all 0.2s;
+    background: #ffffff;
+    border: 2.5px solid #6366f1;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.15);
+    transition: border-color 0.15s, transform 0.1s;
     cursor: pointer;
   }
 
   input[type='range']::-webkit-slider-thumb:hover {
     transform: scale(1.15);
-    box-shadow: 0 0 20px rgba(168, 85, 247, 0.9);
-    background: #a855f7;
   }
 }
