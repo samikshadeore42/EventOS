@@ -70,6 +70,7 @@ def debug_generate_test_link(
     stage: str = Query(default="evaluation")
 ):
     import uuid
+    import os
     token = create_access_token(
         subject=str(uuid.uuid4()),
         role=role,
@@ -78,6 +79,6 @@ def debug_generate_test_link(
     )
     return {
         "token":      token,
-        "portal_url": f"http://localhost:8000/portal/access?token={token}",
+        "portal_url": f"{os.getenv('FRONTEND_BASE_URL', 'http://localhost:5173')}/{'judge' if role == 'evaluator' else 'participant'}?token={token}",
         "note":       "This is a debug token with a random UUID subject. Portal will return 404 since the entity doesn't exist in DB."
     }
