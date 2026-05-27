@@ -42,6 +42,7 @@ class TeamApprovalStatus(BaseModel):
     team_id:      UUID
     team_name:    str
     is_approved:  bool
+    approval_status: str = "pending"
     member_count: int
     rationale:    Optional[str] = None
 
@@ -52,6 +53,7 @@ class ApprovalResponse(BaseModel):
     team_name:   str
     decision:    ApprovalDecision
     is_approved: bool
+    approval_status: str
     message:     str
     emails_queued: bool = False   # True if team assignment emails were enqueued
 
