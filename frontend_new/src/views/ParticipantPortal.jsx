@@ -7,8 +7,9 @@ import { useQuery } from '@tanstack/react-query'
 import {
   CheckCircle, Clock, Circle, Users, AlertTriangle,
   Loader2, ChevronDown, ChevronUp, CalendarDays, Mail,
+  UserCheck, Video, ClipboardList, MessageSquare,
 } from 'lucide-react'
-import { portalApi } from '../services/api'
+import { portalApi, mentorApi } from '../services/api'
 import { useAuth } from '../context/AuthContext'
 
 // ── Helpers ────────────────────────────────────────────────────────────────
@@ -218,10 +219,128 @@ function AwaitingCard() {
   )
 }
 
-// ── Key dates card (static for MVP — can be driven by event config later) ──
+// ── Mentor info section ────────────────────────────────────────────────────
+
+function MentorInfoSection({ mentorData }) {
+  if (!mentorData) return null
+
+  const hasMentor = !!mentorData.mentor_name
+
+  return (
+    <div className="mb-6 space-y-4">
+      {/* Your Mentor card */}
+      <div className="bg-white rounded-2xl border border-gray-200 p-5">
+        <div className="flex items-center gap-2 mb-4">
+          <UserCheck size={16} className="text-teal-500" />
+          <h3 className="text-sm font-semibold text-gray-800">Your Mentor</h3>
+        </div>
+        {hasMentor ? (
+          <div className="flex items-center gap-4">
+            <div className="w-12 h-12 rounded-full bg-teal-100 text-teal-700 flex items-center justify-center font-bold text-sm shrink-0">
+              {initials(mentorData.mentor_name)}
+            </div>
+            <div>
+              <p className="text-sm font-semibold text-gray-900">{mentorData.mentor_name}</p>
+              {mentorData.organization && (
+                <p className="text-xs text-gray-400">{mentorData.organization}</p>
+              )}
+              {mentorData.email && (
+                <p className="text-xs text-gray-400">{mentorData.email}</p>
+              )}
+              {mentorData.expertise_areas?.length > 0 && (
+                <div className="flex gap-1 mt-1 flex-wrap">
+                  {mentorData.expertise_areas.map(a => (
+                    <span key={a} className="text-xs bg-teal-50 text-teal-700 px-2 py-0.5 rounded-full border border-teal-100">{a}</span>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        ) : (
+          <div className="text-center py-4">
+            <UserCheck size={24} className="text-gray-200 mx-auto mb-2" />
+            <p className="text-sm text-gray-400">No mentor assigned yet. Please check again later.</p>
+          </div>
+        )}
+      </div>
+
+      {/* Next meeting */}
+      <div className="bg-white rounded-2xl border border-gray-200 p-5">
+        <div className="flex items-center gap-2 mb-4">
+          <Video size={16} className="text-indigo-500" />
+          <h3 className="text-sm font-semibold text-gray-800">Next Mentor Meeting</h3>
+        </div>
+        {mentorData.next_meeting ? (
+          <div className="bg-indigo-50 rounded-xl p-4">
+            <p className="text-sm font-medium text-indigo-800">{mentorData.next_meeting.title}</p>
+            <p className="text-xs text-indigo-600 mt-1">
+              {new Date(mentorData.next_meeting.scheduled_at).toLocaleString()} · {mentorData.next_meeting.duration_minutes}min
+            </p>
+            {mentorData.next_meeting.agenda && (
+              <p className="text-xs text-indigo-600 mt-1">Agenda: {mentorData.next_meeting.agenda}</p>
+            )}
+            {mentorData.next_meeting.meeting_url && (
+              <a href={mentorData.next_meeting.meeting_url} target="_blank" rel="noreferrer"
+                className="inline-flex items-center gap-1 mt-2 text-xs text-white bg-indigo-600 px-3 py-1.5 rounded-lg hover:bg-indigo-700 transition-colors">
+                <Video size={12} /> Join Meeting
+              </a>
+            )}
+          </div>
+        ) : (
+          <div className="text-center py-4">
+            <CalendarDays size={24} className="text-gray-200 mx-auto mb-2" />
+            <p className="text-sm text-gray-400">No mentor meeting scheduled yet.</p>
+          </div>
+        )}
+      </div>
+
+      {/* Visible feedback */}
+      {mentorData.visible_feedback?.length > 0 && (
+        <div className="bg-white rounded-2xl border border-gray-200 p-5">
+          <div className="flex items-center gap-2 mb-4">
+            <MessageSquare size={16} className="text-teal-500" />
+            <h3 className="text-sm font-semibold text-gray-800">Mentor Feedback</h3>
+          </div>
+          <div className="space-y-3">
+            {mentorData.visible_feedback.slice(0, 3).map((fb, i) => (
+              <div key={fb.id || i} className="bg-gray-50 rounded-xl p-3 border border-gray-100">
+                <p className="text-sm text-gray-700 leading-relaxed">{fb.feedback_text}</p>
+                {fb.progress_score != null && (
+                  <p className="text-xs text-gray-400 mt-1">Progress: {fb.progress_score}/10</p>
+                )}
+                <p className="text-xs text-gray-300 mt-1">
+                  {fb.created_at ? new Date(fb.created_at).toLocaleDateString() : ''}
+                </p>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Action items */}
+      {mentorData.action_items?.length > 0 && (
+        <div className="bg-white rounded-2xl border border-gray-200 p-5">
+          <div className="flex items-center gap-2 mb-4">
+            <ClipboardList size={16} className="text-amber-500" />
+            <h3 className="text-sm font-semibold text-gray-800">Action Items</h3>
+          </div>
+          <ul className="space-y-2">
+            {mentorData.action_items.map((item, i) => (
+              <li key={i} className="flex items-start gap-2">
+                <Circle size={8} className="text-amber-400 mt-1.5 shrink-0" />
+                <span className="text-sm text-gray-700">{item}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+    </div>
+  )
+}
+
+// ── Key dates card ─────────────────────────────────────────────────────────
 
 function KeyDatesCard({ stage }) {
-  // Static placeholder dates for demo — extend to pull from event config
   const dates = [
     { label: 'Roster confirmed',    date: 'Day 1',  done: true },
     { label: 'Team assignments',    date: 'Day 2',  done: stage !== 'registration' },
@@ -322,6 +441,14 @@ export default function ParticipantPortal() {
     staleTime: 5 * 60 * 1000,
   })
 
+  // Fetch mentor info for participants
+  const { data: mentorData } = useQuery({
+    queryKey: ['participant-mentor-info'],
+    queryFn: mentorApi.participantInfo,
+    enabled: !!urlToken && data?.participant_id != null,
+    staleTime: 60 * 1000,
+  })
+
   // ── Guards ─────────────────────────────────────────────────────────────
 
   if (!urlToken) {
@@ -420,6 +547,9 @@ export default function ParticipantPortal() {
             />
           : <AwaitingCard />
         }
+
+        {/* Mentor info (only when team is assigned) */}
+        {team_assigned && <MentorInfoSection mentorData={mentorData} />}
 
         {/* Key dates */}
         <KeyDatesCard stage={stage} />

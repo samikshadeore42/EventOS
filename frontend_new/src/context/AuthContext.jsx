@@ -78,7 +78,7 @@ export function AuthProvider({ children }) {
   const role           = payload?.role  ?? 'admin'
   const userId         = payload?.sub   ?? null
   const activeStage    = payload?.stage ?? null
-  const isPortalUser   = role === 'evaluator' || role === 'participant'
+  const isPortalUser   = role === 'evaluator' || role === 'participant' || role === 'mentor'
   const authenticated  = !!(token && payload && !isExpired(payload))
 
   return (

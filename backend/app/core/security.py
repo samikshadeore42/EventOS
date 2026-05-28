@@ -16,6 +16,7 @@ ALGORITHM  = os.getenv("ALGORITHM", "HS256")
 class TokenRole:
     PARTICIPANT = "participant"
     EVALUATOR   = "evaluator"
+    MENTOR      = "mentor"
     ADMIN       = "admin"
 
 

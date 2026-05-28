@@ -8,8 +8,8 @@ import { AuthProvider, useAuth } from './context/AuthContext'
 import AdminDashboard from './views/AdminDashboard' 
 import JudgePortal from './views/JudgePortal'
 import PartcipantPortal from './views/ParticipantPortal'
+import MentorPortal from './views/MentorPortal'
 
-console.log("🚨 ALERT: main.jsx is successfully executing!");
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -37,6 +37,7 @@ function App() {
           <Routes>
             <Route path="/judge" element={<JudgePortal />} />
             <Route path="/participant" element={<PartcipantPortal />} />
+            <Route path="/mentor" element={<MentorPortal />} />
             
             <Route path="/admin" element={
                 <ProtectedAdminRoute>

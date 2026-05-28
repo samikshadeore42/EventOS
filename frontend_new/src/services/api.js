@@ -30,7 +30,9 @@ api.interceptors.request.use(
     // Also inject as query param for the two portal-facing endpoint groups
     const needsQueryToken =
       config.url?.includes('/portal/access') ||
-      config.url?.includes('/evaluations')
+      config.url?.includes('/evaluations') ||
+      config.url?.includes('/mentor-portal/') ||
+      config.url?.includes('/participant-mentor-info')
 
     if (needsQueryToken) {
       config.params = { ...config.params, token }
@@ -241,6 +243,43 @@ export const aiApi = {
 
   health: () =>
     api.get('/ai/health'),
+}
+
+// ── Mentor Operations ─────────────────────────────────────────────────────
+export const mentorApi = {
+  // Mentor management (admin)
+  list:    ()        => api.get('/mentors'),
+  create:  (data)    => api.post('/mentors', data),
+  update:  (id, data)=> api.patch(`/mentors/${id}`, data),
+  remove:  (id)      => api.delete(`/mentors/${id}`),
+  sendLink:(id)      => api.post(`/mentors/${id}/send-access-link`),
+
+  // Assignments (admin)
+  assignments:      ()   => api.get('/mentor-assignments'),
+  assign:           (data)=> api.post('/mentor-assignments', data),
+  unassign:         (id) => api.delete(`/mentor-assignments/${id}`),
+  teamMentor:       (teamId) => api.get(`/mentor-assignments/team/${teamId}`),
+
+  // Ops dashboard (admin)
+  opsSummary:            () => api.get('/mentor-ops/summary'),
+  riskTeams:             () => api.get('/mentor-ops/risk-teams'),
+  teamsWithoutMentor:    () => api.get('/mentor-ops/teams-without-mentor'),
+  teamsWithoutMeeting:   () => api.get('/mentor-ops/teams-without-meeting'),
+  missingDailyUpdates:   () => api.get('/mentor-ops/missing-daily-updates'),
+  assignmentSuggestions: () => api.get('/mentor-ops/assignment-suggestions'),
+  sendDailyReminders:    () => api.post('/mentor-ops/reminders/daily'),
+  generateSummary: (teamId)=> api.post('/mentor-ops/ai-summary', { team_id: teamId }),
+
+  // Mentor portal (token-auth)
+  me:             () => api.get('/mentor-portal/me'),
+  myTeams:        () => api.get('/mentor-portal/teams'),
+  createSession:  (data) => api.post('/mentor-portal/sessions', data),
+  updateSession:  (id, data) => api.patch(`/mentor-portal/sessions/${id}`, data),
+  submitFeedback: (data) => api.post('/mentor-portal/feedback', data),
+  teamFeedback:   (teamId) => api.get(`/mentor-portal/feedback/team/${teamId}`),
+
+  // Participant-safe mentor info
+  participantInfo: () => api.get('/participant-mentor-info'),
 }
 
 // ── System ─────────────────────────────────────────────────────────────────

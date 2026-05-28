@@ -165,8 +165,10 @@ class ObjectiveFunction:
         num_teams: int,
         target_size: int
     ) -> np.ndarray:
+        if not participants:
+            return np.array([])
         all_skills = np.array([p.skill_array for p in participants])
-        return (target_size / len(participants)) * all_skills.sum(axis=0)
+        return all_skills.mean(axis=0)
 
     @staticmethod
     def skill_variance_score(

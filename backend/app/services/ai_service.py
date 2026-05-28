@@ -162,6 +162,27 @@ be alarmist — these flags often have innocent explanations. Reference judges a
 teams by name when provided. Output plain text only — no markdown.\
 """
 
+MENTOR_SUMMARY_SYSTEM = """\
+You are a hackathon operations assistant summarising a team's mentor-guided
+progress for the committee.
+
+Given the team's latest mentor feedback, progress score, blockers, action items,
+and risk indicators, produce a concise operational summary.
+
+Return ONLY valid JSON in this exact shape:
+{
+  "summary": "2-3 sentence overview of the team's current status.",
+  "recommended_focus": "What the team should prioritise next (1 sentence).",
+  "committee_note": "One sentence note for the committee on whether intervention is needed.",
+  "tone": "stable | watchlist | urgent"
+}
+
+Rules:
+- Be factual and specific to the data provided.
+- 'stable' = on track; 'watchlist' = minor concerns; 'urgent' = needs attention.
+- Do not assign mentors or change risk scores.
+- AI only summarises, it does not make decisions.\
+"""
 
 # ── Service class ────────────────────────────────────────────────────
 
@@ -370,3 +391,43 @@ class AIService:
         )
 
         return _call_llm(ANOMALY_EXPLANATION_SYSTEM, user_prompt)
+
+    # ── 5. Mentor summary ────────────────────────────────────────────
+
+    @staticmethod
+    def generate_mentor_summary(payload: dict) -> dict:
+        """
+        Produces a committee-facing summary of a team's mentor-guided progress.
+        Input payload keys: team_name, mentor_name, latest_progress_score,
+        latest_feedback, blockers, action_items, risk_score, risk_level, risk_reasons.
+
+        Returns: {summary, recommended_focus, committee_note, tone}
+        """
+        details = (
+            f"Team name:           {payload.get('team_name', 'Unknown')}\n"
+            f"Mentor:              {payload.get('mentor_name', 'Unassigned')}\n"
+            f"Progress score:      {payload.get('latest_progress_score', 'N/A')}\n"
+            f"Risk score:          {payload.get('risk_score', 'N/A')} ({payload.get('risk_level', 'unknown')})\n"
+            f"Risk reasons:        {', '.join(payload.get('risk_reasons', []))}\n"
+            f"Latest feedback:     {payload.get('latest_feedback', 'None')}\n"
+            f"Blockers:            {payload.get('blockers', 'None')}\n"
+            f"Action items:        {', '.join(payload.get('action_items', []))}\n"
+        )
+
+        user_prompt = (
+            f"Here is a team's current mentor-tracked status:\n\n{details}\n"
+            f"Produce the committee summary JSON now."
+        )
+
+        raw = _call_llm(MENTOR_SUMMARY_SYSTEM, user_prompt)
+        parsed = _extract_json(raw)
+
+        # Validate expected keys
+        for key in ("summary", "recommended_focus", "committee_note", "tone"):
+            if key not in parsed:
+                parsed[key] = ""
+
+        if parsed["tone"] not in ("stable", "watchlist", "urgent"):
+            parsed["tone"] = "stable"
+
+        return parsed

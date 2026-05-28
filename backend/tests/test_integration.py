@@ -434,7 +434,7 @@ class TestLLMDrafting:
     """
 
     def test_progression_invite_returns_draft(self, client):
-        r = client.post("/llm/draft", json={
+        r = client.post("/ai/draft", json={
             "draft_type": "progression_invite",
             "context": {
                 "participant_name": "Priya Sharma",
@@ -452,7 +452,7 @@ class TestLLMDrafting:
         assert len(data["draft"]["body_text"]) > 10
 
     def test_milestone_blast_returns_draft(self, client):
-        r = client.post("/llm/draft", json={
+        r = client.post("/ai/draft", json={
             "draft_type": "milestone_blast",
             "context": {
                 "milestone_name": "Team Assignments Published",
@@ -466,7 +466,7 @@ class TestLLMDrafting:
         assert r.json()["success"] is True
 
     def test_evaluation_summary_returns_draft(self, client):
-        r = client.post("/llm/draft", json={
+        r = client.post("/ai/draft", json={
             "draft_type": "evaluation_summary",
             "context": {
                 "team_name": "Team Beta",
@@ -483,7 +483,7 @@ class TestLLMDrafting:
         assert r.json()["success"] is True
 
     def test_invalid_draft_type_returns_422(self, client):
-        r = client.post("/llm/draft", json={
+        r = client.post("/ai/draft", json={
             "draft_type": "nonexistent_type",
             "context": {},
             "tone": "professional",
@@ -492,7 +492,7 @@ class TestLLMDrafting:
         assert r.status_code == 422
 
     def test_team_rationale_generation(self, client):
-        r = client.post("/llm/team-rationale", json={
+        r = client.post("/ai/team-rationale", json={
             "team_id": str(uuid.uuid4()),
             "team_name": "Team Gamma",
             "members": [
@@ -509,12 +509,12 @@ class TestLLMDrafting:
         assert len(data["rationale"]) > 20
 
     def test_llm_health_endpoint(self, client):
-        r = client.get("/llm/health")
+        r = client.get("/ai/health")
         assert r.status_code == 200
         assert "llm_available" in r.json()
 
     def test_bulk_draft_returns_results(self, client):
-        r = client.post("/llm/draft/bulk", json={
+        r = client.post("/ai/draft/bulk", json={
             "draft_type": "progression_invite",
             "recipients": [
                 {"participant_name": "Alice", "team_name": "Team A",

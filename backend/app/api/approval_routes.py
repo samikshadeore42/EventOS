@@ -50,6 +50,7 @@ def get_pending_approvals(db: Session = Depends(get_db)):
             team_id=t.id,
             team_name=t.team_name,
             is_approved=t.is_approved,
+            approval_status=t.approval_status,
             member_count=counts.get(str(t.id), 0),
             rationale=t.rationale
         )
@@ -82,6 +83,7 @@ def get_all_teams(db: Session = Depends(get_db)):
                 "team_id":     str(t.id),
                 "team_name":   t.team_name,
                 "is_approved": t.is_approved,
+                "approval_status": t.approval_status,
                 "rationale":   t.rationale,
                 "created_at":  t.created_at.isoformat() if t.created_at else None,
                 "member_count": len(ApprovalService.get_team_members(t.id, db))
@@ -109,6 +111,7 @@ def get_team_detail(team_id: UUID, db: Session = Depends(get_db)):
         "team_id":     str(team.id),
         "team_name":   team.team_name,
         "is_approved": team.is_approved,
+        "approval_status": team.approval_status,
         "rationale":   team.rationale,
         "created_at":  team.created_at.isoformat() if team.created_at else None,
         "members": [
@@ -164,6 +167,7 @@ def process_approval(
         team_name=team.team_name,
         decision=result["decision"],
         is_approved=team.is_approved,
+        approval_status=team.approval_status,
         message=result["message"],
         emails_queued=result["emails_queued"]
     )

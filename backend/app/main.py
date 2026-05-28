@@ -20,6 +20,8 @@ from app.models import event_config
 from app.api.event_routes import router as event_router
 from app.models import communication_log  # noqa
 from app.api.comms_routes import router as comms_router
+from app.models import mentor  # noqa
+from app.api.mentor_routes import router as mentor_router
 
 
 
@@ -50,6 +52,7 @@ app.include_router(ai_router)
 app.include_router(evaluator_router)
 app.include_router(event_router)
 app.include_router(comms_router)
+app.include_router(mentor_router)
 
 @app.on_event("startup")
 async def startup():

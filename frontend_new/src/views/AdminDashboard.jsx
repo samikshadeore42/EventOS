@@ -10,7 +10,7 @@ import {
   Play, Loader2, Check, X, AlertTriangle,
   ChevronDown, ChevronRight, RefreshCw, Wand2,
   Send, Copy, Trash2, Plus, Eye, Shield,
-  BarChart2, FileText,
+  BarChart2, FileText, Target, Calendar, MessageSquare,
 } from 'lucide-react'
 import PipelineStepper from '../components/PipelineStepper'
 import {
@@ -22,6 +22,7 @@ import {
   commsApi,
   aiApi,
   eventApi,
+  mentorApi,
 } from '../services/api'
 
 // ── Shared micro-components ────────────────────────────────────────────────
@@ -1220,6 +1221,312 @@ function CommunicationsTab() {
   )
 }
 
+// ── TAB 8: MENTOR OPS ──────────────────────────────────────────────────────
+function MentorOpsTab() {
+  const qc = useQueryClient()
+  const [showForm, setShowForm] = useState(false)
+  const [form, setForm] = useState({ first_name: '', last_name: '', email: '', organization: '', expertise_areas: '' })
+  const [assignForm, setAssignForm] = useState({ mentor_id: '', team_id: '' })
+  const [showAssignForm, setShowAssignForm] = useState(false)
+  const [aiTeamId, setAiTeamId] = useState('')
+  const [aiResult, setAiResult] = useState(null)
+
+  const { data, isLoading } = useQuery({ queryKey: ['mentors'], queryFn: mentorApi.list })
+  const { data: opsData } = useQuery({ queryKey: ['mentor-ops-summary'], queryFn: mentorApi.opsSummary, refetchInterval: 30_000 })
+  const { data: riskData } = useQuery({ queryKey: ['mentor-risk-teams'], queryFn: mentorApi.riskTeams, refetchInterval: 30_000 })
+  const { data: assignData } = useQuery({ queryKey: ['mentor-assignments'], queryFn: mentorApi.assignments })
+  const { data: suggestData } = useQuery({ queryKey: ['mentor-suggestions'], queryFn: mentorApi.assignmentSuggestions, refetchInterval: 60_000 })
+  const { data: teamsData } = useQuery({ queryKey: ['approvals-all'], queryFn: approvalsApi.all })
+
+  const createMutation = useMutation({
+    mutationFn: () => mentorApi.create({ ...form, expertise_areas: form.expertise_areas.split(',').map(s => s.trim()).filter(Boolean) }),
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ['mentors'] }); setShowForm(false); setForm({ first_name: '', last_name: '', email: '', organization: '', expertise_areas: '' }) },
+  })
+  const deleteMutation = useMutation({
+    mutationFn: (id) => mentorApi.remove(id),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['mentors'] }),
+  })
+  const sendLinkMutation = useMutation({
+    mutationFn: (id) => mentorApi.sendLink(id),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['mentors'] }),
+  })
+  const assignMutation = useMutation({
+    mutationFn: (vars) => mentorApi.assign(vars || { mentor_id: assignForm.mentor_id, team_id: assignForm.team_id }),
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ['mentor-assignments'] }); qc.invalidateQueries({ queryKey: ['mentor-ops-summary'] }); qc.invalidateQueries({ queryKey: ['mentor-risk-teams'] }); qc.invalidateQueries({ queryKey: ['mentor-suggestions'] }); setShowAssignForm(false) },
+  })
+  const unassignMutation = useMutation({
+    mutationFn: (id) => mentorApi.unassign(id),
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ['mentor-assignments'] }); qc.invalidateQueries({ queryKey: ['mentor-ops-summary'] }) },
+  })
+  const reminderMutation = useMutation({
+    mutationFn: mentorApi.sendDailyReminders,
+  })
+  const aiMutation = useMutation({
+    mutationFn: (teamId) => mentorApi.generateSummary(teamId),
+    onSuccess: (data) => setAiResult(data),
+  })
+
+  const mentors = data?.mentors ?? []
+  const ops = opsData ?? {}
+  const riskTeams = riskData?.teams ?? []
+  const assignments = assignData?.assignments ?? []
+  const suggestions = suggestData?.suggestions ?? []
+  const allTeams = teamsData?.teams ?? []
+
+  const fieldFor = (key, label, type, placeholder) => (
+    <div>
+      <label className="block text-xs font-medium text-gray-500 mb-1">{label}</label>
+      <input type={type} value={form[key]} onChange={e => setForm(f => ({...f, [key]: e.target.value}))}
+        placeholder={placeholder} className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300" />
+    </div>
+  )
+
+  const riskBadge = (level) => {
+    const cls = { low: 'bg-green-100 text-green-700', medium: 'bg-amber-100 text-amber-700', high: 'bg-red-100 text-red-700', critical: 'bg-red-200 text-red-800' }[level] ?? 'bg-gray-100 text-gray-600'
+    return <span className={`inline-flex items-center text-xs font-medium px-2 py-0.5 rounded-full ${cls}`}>{level}</span>
+  }
+
+  return (
+    <div>
+      {/* Ops summary cards */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+        {[{ label: 'Teams without mentor', value: ops.teams_without_mentor, icon: AlertTriangle, colour: ops.teams_without_mentor > 0 ? 'amber' : 'teal' },
+          { label: 'Teams without meeting', value: ops.teams_without_meeting, icon: Calendar, colour: ops.teams_without_meeting > 0 ? 'amber' : 'teal' },
+          { label: 'Missing daily update', value: ops.teams_missing_daily_update, icon: MessageSquare, colour: ops.teams_missing_daily_update > 0 ? 'red' : 'teal' },
+          { label: 'Low progress teams', value: ops.low_progress_teams, icon: BarChart2, colour: ops.low_progress_teams > 0 ? 'red' : 'teal' },
+        ].map(({ label, value, icon: Icon, colour }) => (
+          <div key={label} className="bg-white rounded-xl border border-gray-200 p-4">
+            <div className="flex items-center gap-2 mb-1"><Icon size={14} className="text-gray-400" /><p className="text-xs font-medium text-gray-500 uppercase tracking-wide">{label}</p></div>
+            <p className={`text-2xl font-bold px-2 py-0.5 rounded inline-block bg-${colour}-50 text-${colour}-700`}>{value ?? '—'}</p>
+          </div>
+        ))}
+      </div>
+
+      {/* Mentors list */}
+      <div className="flex items-center justify-between mb-5">
+        <h2 className="text-base font-semibold text-gray-900">Mentors</h2>
+        <button onClick={() => setShowForm(s => !s)} className="flex items-center gap-1.5 text-sm px-3 py-1.5 rounded-lg bg-indigo-600 text-white hover:bg-indigo-700">
+          <Plus size={14} /> Add Mentor
+        </button>
+      </div>
+
+      {showForm && (
+        <div className="bg-white rounded-xl border border-gray-200 p-5 mb-5">
+          <p className="text-sm font-semibold text-gray-700 mb-4">New Mentor</p>
+          <div className="grid grid-cols-2 gap-3 mb-3">
+            {fieldFor('first_name', 'First name', 'text', 'Dr. Priya')}
+            {fieldFor('last_name', 'Last name', 'text', 'Kumar')}
+            {fieldFor('email', 'Email', 'email', 'priya@ti.com')}
+            {fieldFor('organization', 'Organization', 'text', 'Texas Instruments')}
+          </div>
+          <div className="mb-3">{fieldFor('expertise_areas', 'Expertise (comma-separated)', 'text', 'embedded systems, signal processing')}</div>
+          <div className="flex gap-2 justify-end">
+            <button onClick={() => setShowForm(false)} className="text-sm px-3 py-1.5 rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50">Cancel</button>
+            <button onClick={() => createMutation.mutate()} disabled={createMutation.isPending || !form.email}
+              className="flex items-center gap-1.5 text-sm px-4 py-1.5 rounded-lg bg-indigo-600 text-white hover:bg-indigo-700 disabled:opacity-50">
+              {createMutation.isPending ? <Loader2 size={14} className="animate-spin" /> : <Check size={14} />} Save
+            </button>
+          </div>
+          {createMutation.isError && <p className="mt-2 text-xs text-red-500">{createMutation.error?.message}</p>}
+        </div>
+      )}
+
+      {isLoading
+        ? Array.from({ length: 3 }).map((_, i) => <div key={i} className="h-14 bg-gray-100 rounded-xl animate-pulse mb-3" />)
+        : (
+          <div className="bg-white rounded-xl border border-gray-200 overflow-hidden mb-8">
+            {(!mentors.length)
+              ? <div className="text-center py-12 text-gray-400 text-sm">No mentors registered yet.</div>
+              : mentors.map(m => (
+                <div key={m.id} className="flex items-center gap-4 px-4 py-3 border-b border-gray-100 last:border-0 hover:bg-gray-50">
+                  <div className="w-9 h-9 rounded-full bg-teal-50 text-teal-700 font-semibold text-sm flex items-center justify-center shrink-0">{m.first_name[0]}</div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium text-gray-900">{m.first_name} {m.last_name}</p>
+                    <p className="text-xs text-gray-400">{m.email}{m.organization ? ` · ${m.organization}` : ''}</p>
+                    {m.expertise_areas?.length > 0 && (
+                      <div className="flex gap-1 mt-1 flex-wrap">
+                        {m.expertise_areas.map(a => <Badge key={a} colour="gray">{a}</Badge>)}
+                      </div>
+                    )}
+                  </div>
+                  <div className="flex items-center gap-2 shrink-0">
+                    <Badge colour="indigo">{m.assigned_team_count} teams</Badge>
+                    <Badge colour={m.is_active ? 'teal' : 'red'}>{m.is_active ? 'Active' : 'Inactive'}</Badge>
+                    {m.access_link_sent && <Badge colour="green"><Check size={10} /> Link sent</Badge>}
+                  </div>
+                  <div className="flex gap-2 shrink-0">
+                    <button onClick={() => sendLinkMutation.mutate(m.id)} disabled={sendLinkMutation.isPending}
+                      title="Send access link" className="flex items-center gap-1 text-xs px-2.5 py-1.5 rounded-lg border border-indigo-200 text-indigo-600 hover:bg-indigo-50 disabled:opacity-50">
+                      {sendLinkMutation.isPending ? <Loader2 size={12} className="animate-spin" /> : <Send size={12} />} Link
+                    </button>
+                    <button onClick={() => { if (window.confirm('Deactivate this mentor?')) deleteMutation.mutate(m.id) }}
+                      className="p-1.5 text-gray-300 hover:text-red-500 rounded transition-colors"><Trash2 size={14} /></button>
+                  </div>
+                </div>
+              ))
+            }
+          </div>
+        )
+      }
+
+      {/* Assignments */}
+      <div className="flex items-center justify-between mb-4">
+        <h2 className="text-base font-semibold text-gray-900">Assignments</h2>
+        <button onClick={() => setShowAssignForm(s => !s)} className="flex items-center gap-1.5 text-sm px-3 py-1.5 rounded-lg bg-teal-600 text-white hover:bg-teal-700">
+          <Plus size={14} /> Assign
+        </button>
+      </div>
+
+      {showAssignForm && (
+        <div className="bg-white rounded-xl border border-gray-200 p-5 mb-5">
+          <p className="text-sm font-semibold text-gray-700 mb-4">Assign Mentor to Team</p>
+          <div className="grid grid-cols-2 gap-3 mb-3">
+            <div>
+              <label className="block text-xs font-medium text-gray-500 mb-1">Mentor</label>
+              <select value={assignForm.mentor_id} onChange={e => setAssignForm(f => ({...f, mentor_id: e.target.value}))}
+                className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none">
+                <option value="">-- select mentor --</option>
+                {mentors.filter(m => m.is_active).map(m => <option key={m.id} value={m.id}>{m.first_name} {m.last_name}</option>)}
+              </select>
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-gray-500 mb-1">Team</label>
+              <select value={assignForm.team_id} onChange={e => setAssignForm(f => ({...f, team_id: e.target.value}))}
+                className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none">
+                <option value="">-- select team --</option>
+                {allTeams.filter(t => t.is_approved).map(t => <option key={t.id} value={t.id}>{t.team_name}</option>)}
+              </select>
+            </div>
+          </div>
+          <div className="flex gap-2 justify-end">
+            <button onClick={() => setShowAssignForm(false)} className="text-sm px-3 py-1.5 rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50">Cancel</button>
+            <button onClick={() => assignMutation.mutate()} disabled={assignMutation.isPending || !assignForm.mentor_id || !assignForm.team_id}
+              className="flex items-center gap-1.5 text-sm px-4 py-1.5 rounded-lg bg-teal-600 text-white hover:bg-teal-700 disabled:opacity-50">
+              {assignMutation.isPending ? <Loader2 size={14} className="animate-spin" /> : <Check size={14} />} Assign
+            </button>
+          </div>
+          {assignMutation.isError && <p className="mt-2 text-xs text-red-500">{assignMutation.error?.message}</p>}
+        </div>
+      )}
+
+      {assignments.length > 0 && (
+        <div className="bg-white rounded-xl border border-gray-200 overflow-hidden mb-8">
+          {assignments.map(a => (
+            <div key={a.id} className="flex items-center gap-4 px-4 py-3 border-b border-gray-100 last:border-0 hover:bg-gray-50">
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-medium text-gray-900">{a.mentor_name} → {a.team_name}</p>
+                <p className="text-xs text-gray-400">Stage: {a.stage}</p>
+              </div>
+              <Badge colour={a.is_active ? 'teal' : 'gray'}>{a.is_active ? 'Active' : 'Inactive'}</Badge>
+              {a.is_active && (
+                <button onClick={() => { if (window.confirm('Unassign?')) unassignMutation.mutate(a.id) }}
+                  className="text-xs px-2 py-1 rounded border border-red-200 text-red-600 hover:bg-red-50">Unassign</button>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Suggestions */}
+      {suggestions.length > 0 && (
+        <div className="mb-8">
+          <h2 className="text-base font-semibold text-gray-900 mb-4 flex items-center gap-2"><Wand2 size={16} className="text-indigo-500" /> Skill-Gap Mentor Suggestions</h2>
+          <div className="space-y-3">
+            {suggestions.map(s => (
+              <div key={String(s.team_id)} className="bg-white rounded-xl border border-gray-200 p-4">
+                <p className="text-sm font-semibold text-gray-900 mb-1">{s.team_name}</p>
+                <p className="text-xs text-gray-500 mb-2">{s.reason}</p>
+                {s.suggested_mentors?.map(c => (
+                  <div key={String(c.mentor_id)} className="flex items-center gap-2 text-xs text-gray-600 mb-1">
+                    <span className="font-medium flex-1">{c.mentor_name}</span>
+                    <Badge colour="indigo">load: {c.current_load}</Badge>
+                    <Badge colour="teal">score: {c.match_score}</Badge>
+                    <button
+                      onClick={() => assignMutation.mutate({ mentor_id: c.mentor_id, team_id: s.team_id })}
+                      disabled={assignMutation.isPending}
+                      className="ml-2 text-xs px-2 py-1 rounded bg-teal-50 text-teal-600 hover:bg-teal-100 border border-teal-200 disabled:opacity-50"
+                    >
+                      {assignMutation.isPending ? 'Assigning...' : 'Assign'}
+                    </button>
+                  </div>
+                ))}
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Risk table */}
+      {riskTeams.length > 0 && (
+        <div className="mb-8">
+          <h2 className="text-base font-semibold text-gray-900 mb-4 flex items-center gap-2"><Shield size={16} className="text-red-500" /> Risk Scores</h2>
+          <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+            <div className="grid grid-cols-12 bg-gray-50 border-b border-gray-200 px-4 py-3 text-xs font-medium text-gray-500 uppercase tracking-wide">
+              <div className="col-span-3">Team</div>
+              <div className="col-span-2">Mentor</div>
+              <div className="col-span-1">Score</div>
+              <div className="col-span-1">Level</div>
+              <div className="col-span-1">Progress</div>
+              <div className="col-span-4">Reasons</div>
+            </div>
+            {riskTeams.map(t => (
+              <div key={String(t.team_id)} className="grid grid-cols-12 items-center px-4 py-3 border-b border-gray-100 text-sm last:border-0">
+                <div className="col-span-3 font-medium text-gray-900 truncate">{t.team_name}</div>
+                <div className="col-span-2 text-gray-500 truncate">{t.mentor_name ?? '—'}</div>
+                <div className="col-span-1 font-bold text-gray-700">{t.risk_score}</div>
+                <div className="col-span-1">{riskBadge(t.risk_level)}</div>
+                <div className="col-span-1 text-gray-600">{t.latest_progress_score?.toFixed(1) ?? '—'}</div>
+                <div className="col-span-4 text-xs text-gray-400">{t.reasons?.join(', ') || '—'}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Actions row */}
+      <div className="flex items-center gap-3 mb-8">
+        <button onClick={() => reminderMutation.mutate()} disabled={reminderMutation.isPending}
+          className="flex items-center gap-1.5 text-sm px-4 py-2 rounded-lg bg-amber-500 text-white hover:bg-amber-600 disabled:opacity-50">
+          {reminderMutation.isPending ? <Loader2 size={14} className="animate-spin" /> : <Mail size={14} />} Send Daily Reminders
+        </button>
+        {reminderMutation.isSuccess && (
+          <p className="text-xs text-teal-600">Reminders sent: {reminderMutation.data?.sent ?? 0}, simulated: {reminderMutation.data?.simulated ?? 0}</p>
+        )}
+      </div>
+
+      {/* AI Summary */}
+      <div className="mb-6">
+        <h2 className="text-base font-semibold text-gray-900 mb-4 flex items-center gap-2"><Wand2 size={16} className="text-violet-500" /> AI Team Summary</h2>
+        <div className="flex gap-2 items-end mb-4">
+          <div className="flex-1">
+            <select value={aiTeamId} onChange={e => setAiTeamId(e.target.value)}
+              className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none">
+              <option value="">-- select team --</option>
+              {allTeams.filter(t => t.is_approved).map(t => <option key={t.id} value={t.id}>{t.team_name}</option>)}
+            </select>
+          </div>
+          <button onClick={() => aiMutation.mutate(aiTeamId)} disabled={aiMutation.isPending || !aiTeamId}
+            className="flex items-center gap-1.5 text-sm px-4 py-2 rounded-lg bg-violet-600 text-white hover:bg-violet-700 disabled:opacity-50">
+            {aiMutation.isPending ? <Loader2 size={14} className="animate-spin" /> : <Wand2 size={14} />} Generate
+          </button>
+        </div>
+        {aiResult && (
+          <div className="bg-white rounded-xl border border-gray-200 p-5">
+            <div className="flex items-center gap-2 mb-3">
+              <p className="text-sm font-semibold text-gray-900">{aiResult.team_name}</p>
+              <Badge colour={aiResult.tone === 'urgent' ? 'red' : aiResult.tone === 'watchlist' ? 'amber' : 'teal'}>{aiResult.tone}</Badge>
+            </div>
+            <p className="text-sm text-gray-700 leading-relaxed mb-2">{aiResult.summary}</p>
+            {aiResult.recommended_focus && <p className="text-xs text-indigo-600 mb-1"><strong>Focus:</strong> {aiResult.recommended_focus}</p>}
+            {aiResult.committee_note && <p className="text-xs text-gray-400"><strong>Committee note:</strong> {aiResult.committee_note}</p>}
+          </div>
+        )}
+        {aiMutation.isError && <p className="text-xs text-red-500 mt-2">{aiMutation.error?.message}</p>}
+      </div>
+    </div>
+  )
+}
+
 // ── MAIN DASHBOARD ─────────────────────────────────────────────────────────
 const TABS = [
   { key: 'overview',        label: 'Overview',       Icon: LayoutDashboard },
@@ -1229,6 +1536,7 @@ const TABS = [
   { key: 'evaluators',      label: 'Evaluators',     Icon: UserCheck },
   { key: 'leaderboard',     label: 'Leaderboard',    Icon: Trophy },
   { key: 'communications',  label: 'Communications', Icon: Mail },
+  { key: 'mentorops',       label: 'Mentor Ops',     Icon: Target },
 ]
 
 export default function AdminDashboard() {
@@ -1242,6 +1550,7 @@ export default function AdminDashboard() {
     evaluators:     <EvaluatorsTab />,
     leaderboard:    <LeaderboardTab />,
     communications: <CommunicationsTab />,
+    mentorops:      <MentorOpsTab />,
   }
 
   return (
