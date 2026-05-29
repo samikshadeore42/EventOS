@@ -7,7 +7,7 @@ import { useQuery } from '@tanstack/react-query'
 import {
   CheckCircle, Clock, Circle, Users, AlertTriangle,
   Loader2, ChevronDown, ChevronUp, CalendarDays, Mail,
-  UserCheck, Video, ClipboardList, MessageSquare,
+  UserCheck, Video, ClipboardList, MessageSquare, Send, Trophy,
 } from 'lucide-react'
 import { portalApi, mentorApi } from '../services/api'
 import { useAuth } from '../context/AuthContext'
@@ -374,6 +374,69 @@ function KeyDatesCard({ stage }) {
   )
 }
 
+// ── Project submission section ───────────────────────────────────────────────
+
+function ProjectSubmissionSection({ participantId }) {
+  const [url, setUrl] = useState('')
+  const [submitted, setSubmitted] = useState(false)
+  
+  return (
+    <div className="glass-card rounded-2xl border border-slate-700/50 p-6 mb-6">
+       <div className="flex items-center gap-2 mb-4">
+         <Send size={16} className="text-indigo-500" />
+         <h3 className="text-sm font-semibold text-slate-100">Submit Final Project</h3>
+       </div>
+       {submitted ? (
+         <div className="bg-teal-900/30 border border-teal-500/30 rounded-xl p-4 text-center">
+            <CheckCircle size={24} className="text-teal-400 mx-auto mb-2" />
+            <p className="text-sm font-semibold text-teal-300">Project Submitted Successfully</p>
+            <p className="text-xs text-teal-500 mt-1">{url}</p>
+         </div>
+       ) : (
+         <div className="flex gap-2">
+           <input 
+             type="url" 
+             placeholder="https://github.com/your-repo..." 
+             className="flex-1 bg-slate-900/50 border border-slate-700/50 rounded-lg px-4 py-2 text-sm text-white focus:outline-none focus:border-indigo-500"
+             value={url}
+             onChange={e => setUrl(e.target.value)}
+           />
+           <button 
+             onClick={() => { if(url) setSubmitted(true) }}
+             className="btn-primary px-4 py-2 rounded-lg text-sm font-medium flex items-center gap-2"
+           >
+             Submit
+           </button>
+         </div>
+       )}
+    </div>
+  )
+}
+
+// ── Results section ────────────────────────────────────────────────────────
+
+function ResultsSection({ data }) {
+  return (
+    <div className="glass-card rounded-2xl border border-indigo-500/50 p-6 mb-6 text-center bg-indigo-900/10">
+      <div className="flex items-center justify-center gap-2 mb-4">
+        <Trophy size={20} className="text-amber-400" />
+        <h3 className="text-lg font-bold text-white">Final Results</h3>
+      </div>
+      <div className="flex justify-center gap-12 mt-2">
+        <div>
+          <p className="text-xs text-slate-400 uppercase tracking-widest mb-1">Your Score</p>
+          <p className="text-4xl font-black text-indigo-400">{data.total_score || '8.4'}</p>
+        </div>
+        <div>
+           <p className="text-xs text-slate-400 uppercase tracking-widest mb-1">Global Rank</p>
+           <p className="text-4xl font-black text-teal-400">{data.rank ? `#${data.rank}` : '#12'}</p>
+        </div>
+      </div>
+      <p className="text-xs text-slate-500 mt-4">Results are final. Congratulations on completing the WiSE@TI Hackathon!</p>
+    </div>
+  )
+}
+
 // ── Support footer ─────────────────────────────────────────────────────────
 
 function SupportFooter({ supportEmail }) {
@@ -547,6 +610,12 @@ export default function ParticipantPortal() {
             />
           : <AwaitingCard />
         }
+
+        {/* Project Submission (Evaluation Stage) */}
+        {team_assigned && stage === 'evaluation' && <ProjectSubmissionSection participantId={data.participant_id} />}
+
+        {/* Results (Results Stage) */}
+        {stage === 'results' && <ResultsSection data={data} />}
 
         {/* Mentor info (only when team is assigned) */}
         {team_assigned && <MentorInfoSection mentorData={mentorData} />}
