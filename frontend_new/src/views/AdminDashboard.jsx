@@ -1275,14 +1275,14 @@ function MentorOpsTab() {
 
   const fieldFor = (key, label, type, placeholder) => (
     <div>
-      <label className="block text-xs font-medium text-gray-500 mb-1">{label}</label>
+      <label className="block text-xs font-medium text-slate-400 mb-1">{label}</label>
       <input type={type} value={form[key]} onChange={e => setForm(f => ({...f, [key]: e.target.value}))}
-        placeholder={placeholder} className="w-full border border-gray-200 bg-white text-gray-900 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300" />
+        placeholder={placeholder} className="w-full border border-slate-700/50 bg-slate-900/50 text-white rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300" />
     </div>
   )
 
   const riskBadge = (level) => {
-    const cls = { low: 'bg-green-100 text-green-700', medium: 'bg-amber-100 text-amber-700', high: 'bg-red-100 text-red-700', critical: 'bg-red-200 text-red-800' }[level] ?? 'bg-gray-100 text-gray-600'
+    const cls = { low: 'bg-green-900/30 text-green-400 border border-green-500/30', medium: 'bg-amber-900/30 text-amber-400 border border-amber-500/30', high: 'bg-red-900/30 text-red-400 border border-red-500/30', critical: 'bg-red-900/50 text-red-300 border border-red-500/50 font-bold' }[level] ?? 'bg-slate-700/50 text-slate-300'
     return <span className={`inline-flex items-center text-xs font-medium px-2 py-0.5 rounded-full ${cls}`}>{level}</span>
   }
 
@@ -1295,24 +1295,24 @@ function MentorOpsTab() {
           { label: 'Missing daily update', value: ops.teams_missing_daily_update, icon: MessageSquare, colour: ops.teams_missing_daily_update > 0 ? 'red' : 'teal' },
           { label: 'Low progress teams', value: ops.low_progress_teams, icon: BarChart2, colour: ops.low_progress_teams > 0 ? 'red' : 'teal' },
         ].map(({ label, value, icon: Icon, colour }) => (
-          <div key={label} className="bg-white rounded-xl border border-gray-200 p-4">
-            <div className="flex items-center gap-2 mb-1"><Icon size={14} className="text-gray-400" /><p className="text-xs font-medium text-gray-500 uppercase tracking-wide">{label}</p></div>
-            <p className={`text-2xl font-bold px-2 py-0.5 rounded inline-block bg-${colour}-50 text-${colour}-700`}>{value ?? '—'}</p>
+          <div key={label} className="glass-card rounded-xl border border-slate-700/50 p-4">
+            <div className="flex items-center gap-2 mb-1"><Icon size={14} className="text-slate-500" /><p className="text-xs font-medium text-slate-400 uppercase tracking-wide">{label}</p></div>
+            <p className={`text-2xl font-bold px-2 py-0.5 rounded inline-block bg-${colour}-900/30 text-${colour}-400 border border-${colour}-500/30`}>{value ?? '—'}</p>
           </div>
         ))}
       </div>
 
       {/* Mentors list */}
       <div className="flex items-center justify-between mb-5">
-        <h2 className="text-base font-semibold text-gray-900">Mentors</h2>
-        <button onClick={() => setShowForm(s => !s)} className="flex items-center gap-1.5 text-sm px-3 py-1.5 rounded-lg bg-indigo-600 text-white hover:bg-indigo-700">
+        <h2 className="text-base font-semibold text-white">Mentors</h2>
+        <button onClick={() => setShowForm(s => !s)} className="flex items-center gap-1.5 text-sm px-3 py-1.5 rounded-lg btn-primary">
           <Plus size={14} /> Add Mentor
         </button>
       </div>
 
       {showForm && (
-        <div className="bg-white rounded-xl border border-gray-200 p-5 mb-5">
-          <p className="text-sm font-semibold text-gray-700 mb-4">New Mentor</p>
+        <div className="glass-card rounded-xl border border-slate-700/50 p-5 mb-5">
+          <p className="text-sm font-semibold text-slate-200 mb-4">New Mentor</p>
           <div className="grid grid-cols-2 gap-3 mb-3">
             {fieldFor('first_name', 'First name', 'text', 'Dr. Priya')}
             {fieldFor('last_name', 'Last name', 'text', 'Kumar')}
@@ -1321,9 +1321,9 @@ function MentorOpsTab() {
           </div>
           <div className="mb-3">{fieldFor('expertise_areas', 'Expertise (comma-separated)', 'text', 'embedded systems, signal processing')}</div>
           <div className="flex gap-2 justify-end">
-            <button onClick={() => setShowForm(false)} className="text-sm px-3 py-1.5 rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50">Cancel</button>
+            <button onClick={() => setShowForm(false)} className="text-sm px-3 py-1.5 rounded-lg border border-slate-700/50 text-slate-300 hover:bg-slate-800/40">Cancel</button>
             <button onClick={() => createMutation.mutate()} disabled={createMutation.isPending || !form.email}
-              className="flex items-center gap-1.5 text-sm px-4 py-1.5 rounded-lg bg-indigo-600 text-white hover:bg-indigo-700 disabled:opacity-50">
+              className="flex items-center gap-1.5 text-sm px-4 py-1.5 rounded-lg btn-primary disabled:opacity-50">
               {createMutation.isPending ? <Loader2 size={14} className="animate-spin" /> : <Check size={14} />} Save
             </button>
           </div>
@@ -1332,17 +1332,17 @@ function MentorOpsTab() {
       )}
 
       {isLoading
-        ? Array.from({ length: 3 }).map((_, i) => <div key={i} className="h-14 bg-gray-100 rounded-xl animate-pulse mb-3" />)
+        ? Array.from({ length: 3 }).map((_, i) => <div key={i} className="h-14 bg-slate-700/50 rounded-xl animate-pulse mb-3" />)
         : (
-          <div className="bg-white rounded-xl border border-gray-200 overflow-hidden mb-8">
+          <div className="glass-card rounded-xl border border-slate-700/50 overflow-hidden mb-8">
             {(!mentors.length)
-              ? <div className="text-center py-12 text-gray-400 text-sm">No mentors registered yet.</div>
+              ? <div className="text-center py-12 text-slate-500 text-sm">No mentors registered yet.</div>
               : mentors.map(m => (
-                <div key={m.id} className="flex items-center gap-4 px-4 py-3 border-b border-gray-100 last:border-0 hover:bg-gray-50">
-                  <div className="w-9 h-9 rounded-full bg-teal-50 text-teal-700 font-semibold text-sm flex items-center justify-center shrink-0">{m.first_name[0]}</div>
+                <div key={m.id} className="flex items-center gap-4 px-4 py-3 border-b border-slate-700/30 last:border-0 hover:bg-slate-800/40">
+                  <div className="w-9 h-9 rounded-full bg-teal-900/30 text-teal-300 border border-teal-500/30 font-semibold text-sm flex items-center justify-center shrink-0">{m.first_name[0]}</div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-gray-900">{m.first_name} {m.last_name}</p>
-                    <p className="text-xs text-gray-400">{m.email}{m.organization ? ` · ${m.organization}` : ''}</p>
+                    <p className="text-sm font-medium text-white">{m.first_name} {m.last_name}</p>
+                    <p className="text-xs text-slate-500">{m.email}{m.organization ? ` · ${m.organization}` : ''}</p>
                     {m.expertise_areas?.length > 0 && (
                       <div className="flex gap-1 mt-1 flex-wrap">
                         {m.expertise_areas.map(a => <Badge key={a} colour="gray">{a}</Badge>)}
@@ -1356,11 +1356,11 @@ function MentorOpsTab() {
                   </div>
                   <div className="flex gap-2 shrink-0">
                     <button onClick={() => sendLinkMutation.mutate(m.id)} disabled={sendLinkMutation.isPending}
-                      title="Send access link" className="flex items-center gap-1 text-xs px-2.5 py-1.5 rounded-lg border border-indigo-200 text-indigo-600 hover:bg-indigo-50 disabled:opacity-50">
+                      title="Send access link" className="flex items-center gap-1 text-xs px-2.5 py-1.5 rounded-lg border border-indigo-500/30 text-indigo-400 hover:bg-indigo-900/30 disabled:opacity-50">
                       {sendLinkMutation.isPending ? <Loader2 size={12} className="animate-spin" /> : <Send size={12} />} Link
                     </button>
                     <button onClick={() => { if (window.confirm('Deactivate this mentor?')) deleteMutation.mutate(m.id) }}
-                      className="p-1.5 text-gray-300 hover:text-red-500 rounded transition-colors"><Trash2 size={14} /></button>
+                      className="p-1.5 text-slate-600 hover:text-red-500 rounded transition-colors"><Trash2 size={14} /></button>
                   </div>
                 </div>
               ))
@@ -1371,37 +1371,37 @@ function MentorOpsTab() {
 
       {/* Assignments */}
       <div className="flex items-center justify-between mb-4">
-        <h2 className="text-base font-semibold text-gray-900">Assignments</h2>
-        <button onClick={() => setShowAssignForm(s => !s)} className="flex items-center gap-1.5 text-sm px-3 py-1.5 rounded-lg bg-teal-600 text-white hover:bg-teal-700">
+        <h2 className="text-base font-semibold text-white">Assignments</h2>
+        <button onClick={() => setShowAssignForm(s => !s)} className="flex items-center gap-1.5 text-sm px-3 py-1.5 rounded-lg btn-secondary">
           <Plus size={14} /> Assign
         </button>
       </div>
 
       {showAssignForm && (
-        <div className="bg-white rounded-xl border border-gray-200 p-5 mb-5">
-          <p className="text-sm font-semibold text-gray-700 mb-4">Assign Mentor to Team</p>
+        <div className="glass-card rounded-xl border border-slate-700/50 p-5 mb-5">
+          <p className="text-sm font-semibold text-slate-200 mb-4">Assign Mentor to Team</p>
           <div className="grid grid-cols-2 gap-3 mb-3">
             <div>
-              <label className="block text-xs font-medium text-gray-500 mb-1">Mentor</label>
+              <label className="block text-xs font-medium text-slate-400 mb-1">Mentor</label>
               <select value={assignForm.mentor_id} onChange={e => setAssignForm(f => ({...f, mentor_id: e.target.value}))}
-                className="w-full border border-gray-200 bg-white text-gray-900 rounded-lg px-3 py-2 text-sm focus:outline-none">
+                className="w-full border border-slate-700/50 bg-slate-900/50 text-white rounded-lg px-3 py-2 text-sm focus:outline-none">
                 <option value="">-- select mentor --</option>
                 {mentors.filter(m => m.is_active).map(m => <option key={m.id} value={m.id}>{m.first_name} {m.last_name}</option>)}
               </select>
             </div>
             <div>
-              <label className="block text-xs font-medium text-gray-500 mb-1">Team</label>
+              <label className="block text-xs font-medium text-slate-400 mb-1">Team</label>
               <select value={assignForm.team_id} onChange={e => setAssignForm(f => ({...f, team_id: e.target.value}))}
-                className="w-full border border-gray-200 bg-white text-gray-900 rounded-lg px-3 py-2 text-sm focus:outline-none">
+                className="w-full border border-slate-700/50 bg-slate-900/50 text-white rounded-lg px-3 py-2 text-sm focus:outline-none">
                 <option value="">-- select team --</option>
                 {allTeams.filter(t => t.is_approved).map(t => <option key={t.id} value={t.id}>{t.team_name}</option>)}
               </select>
             </div>
           </div>
           <div className="flex gap-2 justify-end">
-            <button onClick={() => setShowAssignForm(false)} className="text-sm px-3 py-1.5 rounded-lg border border-gray-200 text-gray-600 hover:bg-gray-50">Cancel</button>
+            <button onClick={() => setShowAssignForm(false)} className="text-sm px-3 py-1.5 rounded-lg border border-slate-700/50 text-slate-300 hover:bg-slate-800/40">Cancel</button>
             <button onClick={() => assignMutation.mutate()} disabled={assignMutation.isPending || !assignForm.mentor_id || !assignForm.team_id}
-              className="flex items-center gap-1.5 text-sm px-4 py-1.5 rounded-lg bg-teal-600 text-white hover:bg-teal-700 disabled:opacity-50">
+              className="flex items-center gap-1.5 text-sm px-4 py-1.5 rounded-lg btn-secondary disabled:opacity-50">
               {assignMutation.isPending ? <Loader2 size={14} className="animate-spin" /> : <Check size={14} />} Assign
             </button>
           </div>
@@ -1410,17 +1410,17 @@ function MentorOpsTab() {
       )}
 
       {assignments.length > 0 && (
-        <div className="bg-white rounded-xl border border-gray-200 overflow-hidden mb-8">
+        <div className="glass-card rounded-xl border border-slate-700/50 overflow-hidden mb-8">
           {assignments.map(a => (
-            <div key={a.id} className="flex items-center gap-4 px-4 py-3 border-b border-gray-100 last:border-0 hover:bg-gray-50">
+            <div key={a.id} className="flex items-center gap-4 px-4 py-3 border-b border-slate-700/30 last:border-0 hover:bg-slate-800/40">
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium text-gray-900">{a.mentor_name} → {a.team_name}</p>
-                <p className="text-xs text-gray-400">Stage: {a.stage}</p>
+                <p className="text-sm font-medium text-white">{a.mentor_name} → {a.team_name}</p>
+                <p className="text-xs text-slate-500">Stage: {a.stage}</p>
               </div>
               <Badge colour={a.is_active ? 'teal' : 'gray'}>{a.is_active ? 'Active' : 'Inactive'}</Badge>
               {a.is_active && (
                 <button onClick={() => { if (window.confirm('Unassign?')) unassignMutation.mutate(a.id) }}
-                  className="text-xs px-2 py-1 rounded border border-red-200 text-red-600 hover:bg-red-50">Unassign</button>
+                  className="text-xs px-2 py-1 rounded border border-red-500/30 text-red-400 hover:bg-red-900/30">Unassign</button>
               )}
             </div>
           ))}
@@ -1430,21 +1430,21 @@ function MentorOpsTab() {
       {/* Suggestions */}
       {suggestions.length > 0 && (
         <div className="mb-8">
-          <h2 className="text-base font-semibold text-gray-900 mb-4 flex items-center gap-2"><Wand2 size={16} className="text-indigo-500" /> Skill-Gap Mentor Suggestions</h2>
+          <h2 className="text-base font-semibold text-white mb-4 flex items-center gap-2"><Wand2 size={16} className="text-indigo-500" /> Skill-Gap Mentor Suggestions</h2>
           <div className="space-y-3">
             {suggestions.map(s => (
-              <div key={String(s.team_id)} className="bg-white rounded-xl border border-gray-200 p-4">
-                <p className="text-sm font-semibold text-gray-900 mb-1">{s.team_name}</p>
-                <p className="text-xs text-gray-500 mb-2">{s.reason}</p>
+              <div key={String(s.team_id)} className="glass-card rounded-xl border border-slate-700/50 p-4">
+                <p className="text-sm font-semibold text-white mb-1">{s.team_name}</p>
+                <p className="text-xs text-slate-400 mb-2">{s.reason}</p>
                 {s.suggested_mentors?.map(c => (
-                  <div key={String(c.mentor_id)} className="flex items-center gap-2 text-xs text-gray-600 mb-1">
+                  <div key={String(c.mentor_id)} className="flex items-center gap-2 text-xs text-slate-300 mb-1">
                     <span className="font-medium flex-1">{c.mentor_name}</span>
                     <Badge colour="indigo">load: {c.current_load}</Badge>
                     <Badge colour="teal">score: {c.match_score}</Badge>
                     <button
                       onClick={() => assignMutation.mutate({ mentor_id: c.mentor_id, team_id: s.team_id })}
                       disabled={assignMutation.isPending}
-                      className="ml-2 text-xs px-2 py-1 rounded bg-teal-50 text-teal-600 hover:bg-teal-100 border border-teal-200 disabled:opacity-50"
+                      className="ml-2 text-xs px-2 py-1 rounded bg-teal-900/30 text-teal-400 hover:bg-teal-900/50 border border-teal-500/30 disabled:opacity-50"
                     >
                       {assignMutation.isPending ? 'Assigning...' : 'Assign'}
                     </button>
@@ -1459,9 +1459,9 @@ function MentorOpsTab() {
       {/* Risk table */}
       {riskTeams.length > 0 && (
         <div className="mb-8">
-          <h2 className="text-base font-semibold text-gray-900 mb-4 flex items-center gap-2"><Shield size={16} className="text-red-500" /> Risk Scores</h2>
-          <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
-            <div className="grid grid-cols-12 bg-gray-50 border-b border-gray-200 px-4 py-3 text-xs font-medium text-gray-500 uppercase tracking-wide">
+          <h2 className="text-base font-semibold text-white mb-4 flex items-center gap-2"><Shield size={16} className="text-red-500" /> Risk Scores</h2>
+          <div className="glass-card rounded-xl border border-slate-700/50 overflow-hidden">
+            <div className="grid grid-cols-12 bg-slate-800/40 border-b border-slate-700/50 px-4 py-3 text-xs font-medium text-slate-400 uppercase tracking-wide">
               <div className="col-span-3">Team</div>
               <div className="col-span-2">Mentor</div>
               <div className="col-span-1">Score</div>
@@ -1470,13 +1470,13 @@ function MentorOpsTab() {
               <div className="col-span-4">Reasons</div>
             </div>
             {riskTeams.map(t => (
-              <div key={String(t.team_id)} className="grid grid-cols-12 items-center px-4 py-3 border-b border-gray-100 text-sm last:border-0">
-                <div className="col-span-3 font-medium text-gray-900 truncate">{t.team_name}</div>
-                <div className="col-span-2 text-gray-500 truncate">{t.mentor_name ?? '—'}</div>
-                <div className="col-span-1 font-bold text-gray-700">{t.risk_score}</div>
+              <div key={String(t.team_id)} className="grid grid-cols-12 items-center px-4 py-3 border-b border-slate-700/30 text-sm last:border-0">
+                <div className="col-span-3 font-medium text-white truncate">{t.team_name}</div>
+                <div className="col-span-2 text-slate-400 truncate">{t.mentor_name ?? '—'}</div>
+                <div className="col-span-1 font-bold text-slate-200">{t.risk_score}</div>
                 <div className="col-span-1">{riskBadge(t.risk_level)}</div>
-                <div className="col-span-1 text-gray-600">{t.latest_progress_score?.toFixed(1) ?? '—'}</div>
-                <div className="col-span-4 text-xs text-gray-400">{t.reasons?.join(', ') || '—'}</div>
+                <div className="col-span-1 text-slate-300">{t.latest_progress_score?.toFixed(1) ?? '—'}</div>
+                <div className="col-span-4 text-xs text-slate-500">{t.reasons?.join(', ') || '—'}</div>
               </div>
             ))}
           </div>
@@ -1486,7 +1486,7 @@ function MentorOpsTab() {
       {/* Actions row */}
       <div className="flex items-center gap-3 mb-8">
         <button onClick={() => reminderMutation.mutate()} disabled={reminderMutation.isPending}
-          className="flex items-center gap-1.5 text-sm px-4 py-2 rounded-lg bg-amber-500 text-white hover:bg-amber-600 disabled:opacity-50">
+          className="flex items-center gap-1.5 text-sm px-4 py-2 rounded-lg btn-secondary text-amber-400 disabled:opacity-50">
           {reminderMutation.isPending ? <Loader2 size={14} className="animate-spin" /> : <Mail size={14} />} Send Daily Reminders
         </button>
         {reminderMutation.isSuccess && (
@@ -1496,29 +1496,29 @@ function MentorOpsTab() {
 
       {/* AI Summary */}
       <div className="mb-6">
-        <h2 className="text-base font-semibold text-gray-900 mb-4 flex items-center gap-2"><Wand2 size={16} className="text-violet-500" /> AI Team Summary</h2>
+        <h2 className="text-base font-semibold text-white mb-4 flex items-center gap-2"><Wand2 size={16} className="text-violet-500" /> AI Team Summary</h2>
         <div className="flex gap-2 items-end mb-4">
           <div className="flex-1">
             <select value={aiTeamId} onChange={e => setAiTeamId(e.target.value)}
-              className="w-full border border-gray-200 bg-white text-gray-900 rounded-lg px-3 py-2 text-sm focus:outline-none">
+              className="w-full border border-slate-700/50 bg-slate-900/50 text-white rounded-lg px-3 py-2 text-sm focus:outline-none">
               <option value="">-- select team --</option>
               {allTeams.filter(t => t.is_approved).map(t => <option key={t.id} value={t.id}>{t.team_name}</option>)}
             </select>
           </div>
           <button onClick={() => aiMutation.mutate(aiTeamId)} disabled={aiMutation.isPending || !aiTeamId}
-            className="flex items-center gap-1.5 text-sm px-4 py-2 rounded-lg bg-violet-600 text-white hover:bg-violet-700 disabled:opacity-50">
+            className="flex items-center gap-1.5 text-sm px-4 py-2 rounded-lg btn-primary disabled:opacity-50">
             {aiMutation.isPending ? <Loader2 size={14} className="animate-spin" /> : <Wand2 size={14} />} Generate
           </button>
         </div>
         {aiResult && (
-          <div className="bg-white rounded-xl border border-gray-200 p-5">
+          <div className="glass-card rounded-xl border border-slate-700/50 p-5">
             <div className="flex items-center gap-2 mb-3">
-              <p className="text-sm font-semibold text-gray-900">{aiResult.team_name}</p>
+              <p className="text-sm font-semibold text-white">{aiResult.team_name}</p>
               <Badge colour={aiResult.tone === 'urgent' ? 'red' : aiResult.tone === 'watchlist' ? 'amber' : 'teal'}>{aiResult.tone}</Badge>
             </div>
-            <p className="text-sm text-gray-700 leading-relaxed mb-2">{aiResult.summary}</p>
+            <p className="text-sm text-slate-200 leading-relaxed mb-2">{aiResult.summary}</p>
             {aiResult.recommended_focus && <p className="text-xs text-indigo-600 mb-1"><strong>Focus:</strong> {aiResult.recommended_focus}</p>}
-            {aiResult.committee_note && <p className="text-xs text-gray-400"><strong>Committee note:</strong> {aiResult.committee_note}</p>}
+            {aiResult.committee_note && <p className="text-xs text-slate-500"><strong>Committee note:</strong> {aiResult.committee_note}</p>}
           </div>
         )}
         {aiMutation.isError && <p className="text-xs text-red-500 mt-2">{aiMutation.error?.message}</p>}
