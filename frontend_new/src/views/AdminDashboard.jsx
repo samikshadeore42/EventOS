@@ -10,7 +10,7 @@ import {
   Play, Loader2, Check, X, AlertTriangle,
   ChevronDown, ChevronRight, RefreshCw, Wand2,
   Send, Copy, Trash2, Plus, Eye, Shield,
-  BarChart2, FileText, Target, Calendar, MessageSquare,
+  BarChart2, FileText, Target, Calendar, MessageSquare, Activity,
 } from 'lucide-react'
 import PipelineStepper from '../components/PipelineStepper'
 import {
@@ -1277,7 +1277,7 @@ function MentorOpsTab() {
     <div>
       <label className="block text-xs font-medium text-gray-500 mb-1">{label}</label>
       <input type={type} value={form[key]} onChange={e => setForm(f => ({...f, [key]: e.target.value}))}
-        placeholder={placeholder} className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300" />
+        placeholder={placeholder} className="w-full border border-gray-200 bg-white text-gray-900 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300" />
     </div>
   )
 
@@ -1384,7 +1384,7 @@ function MentorOpsTab() {
             <div>
               <label className="block text-xs font-medium text-gray-500 mb-1">Mentor</label>
               <select value={assignForm.mentor_id} onChange={e => setAssignForm(f => ({...f, mentor_id: e.target.value}))}
-                className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none">
+                className="w-full border border-gray-200 bg-white text-gray-900 rounded-lg px-3 py-2 text-sm focus:outline-none">
                 <option value="">-- select mentor --</option>
                 {mentors.filter(m => m.is_active).map(m => <option key={m.id} value={m.id}>{m.first_name} {m.last_name}</option>)}
               </select>
@@ -1392,7 +1392,7 @@ function MentorOpsTab() {
             <div>
               <label className="block text-xs font-medium text-gray-500 mb-1">Team</label>
               <select value={assignForm.team_id} onChange={e => setAssignForm(f => ({...f, team_id: e.target.value}))}
-                className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none">
+                className="w-full border border-gray-200 bg-white text-gray-900 rounded-lg px-3 py-2 text-sm focus:outline-none">
                 <option value="">-- select team --</option>
                 {allTeams.filter(t => t.is_approved).map(t => <option key={t.id} value={t.id}>{t.team_name}</option>)}
               </select>
@@ -1500,7 +1500,7 @@ function MentorOpsTab() {
         <div className="flex gap-2 items-end mb-4">
           <div className="flex-1">
             <select value={aiTeamId} onChange={e => setAiTeamId(e.target.value)}
-              className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none">
+              className="w-full border border-gray-200 bg-white text-gray-900 rounded-lg px-3 py-2 text-sm focus:outline-none">
               <option value="">-- select team --</option>
               {allTeams.filter(t => t.is_approved).map(t => <option key={t.id} value={t.id}>{t.team_name}</option>)}
             </select>
@@ -1527,6 +1527,17 @@ function MentorOpsTab() {
   )
 }
 
+// ── TAB 9: ANOMALY SCANNER ──────────────────────────────────────────────────
+function AnomalyTab() {
+  return (
+    <div className="text-center py-16 text-gray-300">
+      <Activity size={36} className="mx-auto mb-3 opacity-50 text-indigo-400" />
+      <p className="text-sm text-slate-400 font-medium">Anomaly Detector Scanner</p>
+      <p className="text-xs text-slate-500 mt-1">This module will connect to the AI Anomaly Detector APIs to monitor flagged scorecards.</p>
+    </div>
+  )
+}
+
 // ── MAIN DASHBOARD ─────────────────────────────────────────────────────────
 const TABS = [
   { key: 'overview',        label: 'Overview',       Icon: LayoutDashboard },
@@ -1537,6 +1548,7 @@ const TABS = [
   { key: 'leaderboard',     label: 'Leaderboard',    Icon: Trophy },
   { key: 'communications',  label: 'Communications', Icon: Mail },
   { key: 'mentorops',       label: 'Mentor Ops',     Icon: Target },
+  { key: 'anomaly',         label: 'Anomaly Scanner',Icon: Activity },
 ]
 
 export default function AdminDashboard() {
@@ -1551,6 +1563,7 @@ export default function AdminDashboard() {
     leaderboard:    <LeaderboardTab />,
     communications: <CommunicationsTab />,
     mentorops:      <MentorOpsTab />,
+    anomaly:        <AnomalyTab />,
   }
 
   return (
