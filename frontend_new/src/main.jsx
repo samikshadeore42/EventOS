@@ -9,6 +9,7 @@ import AdminDashboard from './views/AdminDashboard'
 import JudgePortal from './views/JudgePortal'
 import PartcipantPortal from './views/ParticipantPortal'
 import MentorPortal from './views/MentorPortal'
+import LandingPage from './views/LandingPage'
 
 
 const queryClient = new QueryClient({
@@ -45,7 +46,7 @@ function App() {
                 </ProtectedAdminRoute>
             } />
 
-            <Route path="/" element={<Navigate to="/admin" replace />} />
+            <Route path="/" element={<LandingPage />} />
           </Routes>
         </BrowserRouter>
       </AuthProvider>
