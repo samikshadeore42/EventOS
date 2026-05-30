@@ -50,7 +50,7 @@ class Participant(Base):
     )
     
     __table_args__ = (
-        Index("ix_participants_team_id","institution", "team_id"),
+        Index("ix_participants_inst_team_id","institution", "team_id"),
         UniqueConstraint("email", name="uq_participant_email"),
         Index(
             "ix_participants_skill_vector_gin",
