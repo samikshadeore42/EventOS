@@ -110,6 +110,7 @@ function CriterionSlider({ criterion, value, onChange }) {
 function ScoringForm({ team, token, onSubmitted, alreadySubmitted }) {
   const [scores, setScores]         = useState(DEFAULT_SCORES)
   const [confirming, setConfirming] = useState(false)
+  const [isEditing, setIsEditing]   = useState(false)
 
   const total   = useMemo(() => weightedTotal(scores), [scores])
   const quality = useMemo(() => qualityLabel(total), [total])
@@ -127,12 +128,18 @@ function ScoringForm({ team, token, onSubmitted, alreadySubmitted }) {
     setScores((s) => ({ ...s, [key]: val }))
   }
 
-  if (alreadySubmitted) {
+  if (alreadySubmitted && !isEditing) {
     return (
       <div className="flex flex-col items-center justify-center h-full py-20 text-center">
         <CheckCircle size={48} className="text-teal-500 mb-4" />
         <h3 className="text-lg font-semibold text-slate-100 mb-1">Scorecard submitted</h3>
-        <p className="text-sm text-slate-500">Your evaluation for <strong>{team.team_name}</strong> has been recorded.</p>
+        <p className="text-sm text-slate-500 mb-6">Your evaluation for <strong>{team.team_name}</strong> has been recorded.</p>
+        <button 
+          onClick={() => setIsEditing(true)}
+          className="flex items-center gap-2 px-5 py-2.5 rounded-xl border border-indigo-500/30 text-indigo-300 hover:bg-indigo-900/30 transition-colors text-sm font-medium"
+        >
+          Edit Evaluation
+        </button>
       </div>
     )
   }
@@ -204,7 +211,7 @@ function ScoringForm({ team, token, onSubmitted, alreadySubmitted }) {
             </div>
           </div>
           <p className="text-xs text-indigo-400 mb-3">
-            Once submitted, your scores are locked. You can request a correction from the committee if needed.
+            You can still edit your scores after submission until the final evaluation deadline closes.
           </p>
           <div className="flex gap-2">
             <button

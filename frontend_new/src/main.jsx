@@ -9,6 +9,9 @@ import AdminDashboard from './views/AdminDashboard'
 import JudgePortal from './views/JudgePortal'
 import PartcipantPortal from './views/ParticipantPortal'
 import MentorPortal from './views/MentorPortal'
+import LandingPage from './views/LandingPage'
+import AdminLogin from './views/AdminLogin'
+import AdminSignup from './views/AdminSignup'
 
 
 const queryClient = new QueryClient({
@@ -22,9 +25,9 @@ const queryClient = new QueryClient({
 })
 
 function ProtectedAdminRoute({ children }) {
-    const { role, isLoading } = useAuth();
-    if (isLoading) return <div className="p-10 text-gray-500">Loading Auth Context...</div>;
-    if (role && role !== 'admin') return <Navigate to={`/${role}`} replace />;
+    const { role } = useAuth();
+    if (!role) return <Navigate to="/admin/login" replace />;
+    if (role !== 'admin') return <Navigate to={`/${role}`} replace />;
     return children;
 }
 
@@ -44,8 +47,10 @@ function App() {
                     <AdminDashboard />
                 </ProtectedAdminRoute>
             } />
+            <Route path="/admin/login" element={<AdminLogin />} />
+            <Route path="/admin/signup" element={<AdminSignup />} />
 
-            <Route path="/" element={<Navigate to="/admin" replace />} />
+            <Route path="/" element={<LandingPage />} />
           </Routes>
         </BrowserRouter>
       </AuthProvider>
