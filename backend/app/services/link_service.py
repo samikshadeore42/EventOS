@@ -40,7 +40,7 @@ class LinkService:
             stage=stage,
             expires_in=timedelta(days=expires_days)
         )
-        portal_url = f"{FRONTEND_URL}/participant/access?token={token}"
+        portal_url = f"{FRONTEND_URL}/participant?token={token}"
         return {
             "entity_id":  participant_id,
             "role":       "participant",
@@ -62,7 +62,7 @@ class LinkService:
             stage=stage,
             expires_in=timedelta(days=expires_days)
         )
-        portal_url = f"{FRONTEND_URL}/judge/access?token={token}"
+        portal_url = f"{FRONTEND_URL}/judge?token={token}"
         return {
             "entity_id":  evaluator_id,
             "role":       "evaluator",

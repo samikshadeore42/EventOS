@@ -13,6 +13,7 @@ import {
   BarChart2, FileText,
 } from 'lucide-react'
 import PipelineStepper from '../components/PipelineStepper'
+import api from '../services/api';
 import {
   participantsApi,
   solverApi,
@@ -1037,14 +1038,45 @@ function CommunicationsTab() {
     refetchInterval: 20_000,
   })
 
+  const [iTaskId, setAiTaskId] = useState(null)
+
   const draftMutation = useMutation({
     mutationFn: () => {
       let ctx
-      try { ctx = JSON.parse(draftContext) } catch { throw new Error('Context is not valid JSON') }
-      return aiApi.draft({ draft_type: draftType, context: ctx, tone: draftTone, max_words: 200 })
+      try { ctx=JSON.parse(draftContext) } catch { throw new Error('Context is not valid JSON')}
+      return aiApi.draft({
+        stage: draftType,
+        recipient_name: ctx.participant_name ?? ctx.team_name ?? 'Participant',
+        recipient_role: draftType.includes('eval') ? 'judge' : 'participant',
+        event_name: ctx.event_name ?? 'WiSE@TI Hackathon',
+        context: ctx,
+      })
     },
-    onSuccess: (res) => res.draft && setDraft(res.draft),
-  })
+    onSuccess: (res)=> {
+      if (res.task_id) setAiTaskId(res.task_id)
+    },
+  });
+
+  const { data: aiTaskStatus} = useQuery({
+    queryKey: ['ai-task', aiTaskId],
+    queryFn: () => solverApi.taskStatus(aiTaskId),
+    enabled: !!aiTaskId,
+    refetchInterval: (data)=>{
+      if(!data || data?.status === 'success' || data?.status === 'failed') return false
+      return 1500
+    },
+  });
+
+  const { data:aiResult} = useQuery({
+    queryKey: ['ai-result', aiTaskId],
+    queryFn: () => api.get(`/ai/result/${aiTaskId}`).then(res=>res.data),
+    enabled: aiTaskStatus?.status === 'success' && !!aiTaskId,
+  });
+
+  draft = aiResult ? {
+    subject: aiResult.subject,
+    body_text: aiResult.body,
+  }:null
 
   const DRAFT_TYPES = [
     { value: 'progression_invite',  label: 'Progression Invite' },
@@ -1167,11 +1199,11 @@ function CommunicationsTab() {
 
             <button
               onClick={() => draftMutation.mutate()}
-              disabled={draftMutation.isPending}
+              disabled={draftMutation.isPending || aiTaskStatus?.status === 'pending' || aiTaskStatus?.status === 'running'}
               className="w-full flex items-center justify-center gap-2 text-sm px-4 py-2.5 rounded-lg bg-indigo-600 text-white hover:bg-indigo-700 disabled:opacity-50"
             >
-              {draftMutation.isPending ? <Loader2 size={14} className="animate-spin" /> : <Wand2 size={14} />}
-              {draftMutation.isPending ? 'Generating…' : 'Generate Draft'}
+              {draftMutation.isPending || aiTaskStatus?.status === 'pending' || aiTaskStatus?.status === 'running' ? <Loader2 size={14} className="animate-spin" /> : <Wand2 size={14} />}
+              {draftMutation.isPending || aiTaskStatus?.status === 'pending' || aiTaskStatus?.status === 'running' ? 'Generating…' : 'Generate Draft'}
             </button>
             {draftMutation.isError && <p className="text-xs text-red-500">{draftMutation.error?.message}</p>}
           </div>
