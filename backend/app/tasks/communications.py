@@ -12,7 +12,10 @@
 #
 # The API never waits for email to send. This keeps it fast.
 
+from email import message
+import os
 from celery import Task
+from sendgrid import SendGridAPIClient
 from app.core.celery_app import celery_app
 from app.services.email_service import EmailService
 
@@ -71,7 +74,7 @@ def send_batch_emails(self, recipient_list: list, template: str, event_name: str
     Celery task: send emails to multiple participants at once.
     recipient_list = [{"email": "x@y.com", "name": "Priya", ...}, ...]
     """
-    results = {"sent": 0, "failed": 0, "errors": []}
+    results = {"sent": 0, "failed": 0, "simulated": 0, "errors": []}
 
     for recipient in recipient_list:
         try:
@@ -94,7 +97,10 @@ def send_batch_emails(self, recipient_list: list, template: str, event_name: str
                 result = {"success": False, "error": f"Unknown template: {template}"}
 
             if result["success"]:
-                results["sent"] += 1
+                if result.get("simulated"):
+                    results["simulated"] += 1
+                else:
+                    results["sent"] += 1
             else:
                 results["failed"] += 1
                 results["errors"].append({"email": recipient["email"], "error": result.get("error")})
@@ -116,34 +122,24 @@ def send_batch_emails(self, recipient_list: list, template: str, event_name: str
     default_retry_delay=120,
 )
 def send_access_links(self, links: list, role: str, stage: str):
-    results = {"sent": 0, "failed": 0, "errors": []}
+    results = {"sent": 0, "failed": 0, "simulated": 0, "errors": []}
 
     for link in links:
         try:
-            html_content = f"""
-            <!DOCTYPE html><html><body style="font-family:Arial,sans-serif;max-width:600px;margin:40px auto;padding:24px">
-            <h2 style="color:#4f46e5">EventOS — Your Access Link</h2>
-            <p>Hello {link['name']},</p>
-            <p>Your personalized portal for the <strong>WiSE@TI Hackathon</strong> ({stage} stage) is ready.</p>
-            <p style="margin:24px 0">
-              <a href="{link['portal_url']}"
-                 style="background:#4f46e5;color:#fff;padding:12px 24px;text-decoration:none;border-radius:8px;font-weight:600">
-                Open My Portal →
-              </a>
-            </p>
-            <p style="color:#6b7280;font-size:13px">This link expires in 7 days. Do not share it.</p>
-            </body></html>
-            """
-
-            result = EmailService.send_registration_confirmation.__func__  
-            result = EmailService._send_email(
+            result = EmailService.send_access_link(
                 to_email=link["email"],
-                subject=f"🔗 Your EventOS Access Link — WiSE@TI ({stage})",
-                html_content=html_content
+                recipient_name=link["name"],
+                role=role,
+                stage=stage,
+                portal_url=link["portal_url"],
+                expires_in="48 hours"
             )
 
             if result["success"]:
-                results["sent"] += 1
+                if result.get("simulated"):
+                    results["simulated"] += 1
+                else:
+                    results["sent"] += 1
             else:
                 results["failed"] += 1
                 results["errors"].append({"email": link["email"], "error": result.get("error")})

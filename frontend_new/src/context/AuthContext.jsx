@@ -74,11 +74,10 @@ export function AuthProvider({ children }) {
   }, [])
 
   // Derived values every consumer needs
-  // No token in storage → treat as committee admin (MVP assumption)
-  const role           = payload?.role  ?? 'admin'
+  const role           = payload?.role  ?? null
   const userId         = payload?.sub   ?? null
   const activeStage    = payload?.stage ?? null
-  const isPortalUser   = role === 'evaluator' || role === 'participant'
+  const isPortalUser   = role === 'evaluator' || role === 'participant' || role === 'mentor'
   const authenticated  = !!(token && payload && !isExpired(payload))
 
   return (

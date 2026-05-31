@@ -34,7 +34,7 @@ class ApprovalService:
         """
         return (
             db.query(Team)
-            .filter(Team.is_approved == False)   # noqa: E712
+            .filter(Team.approval_status == "pending")
             .order_by(Team.created_at)
             .all()
         )
@@ -112,6 +112,7 @@ class ApprovalService:
 
         if decision == ApprovalDecision.APPROVE:
             team.is_approved = True
+            team.approval_status = "approved"
             db.commit()
             db.refresh(team)
 
@@ -149,6 +150,7 @@ class ApprovalService:
 
         else:  # REJECT
             team.is_approved = False
+            team.approval_status = "rejected"
             if notes:
                 # Store rejection reason in rationale field for admin reference
                 team.rationale = f"[REJECTED] {notes}"
@@ -193,6 +195,7 @@ class ApprovalService:
 
             if decision == ApprovalDecision.APPROVE:
                 team.is_approved = True
+                team.approval_status = "approved"
                 approved_count += 1
 
                 for m in members:
@@ -208,6 +211,7 @@ class ApprovalService:
                     })
             else:
                 team.is_approved = False
+                team.approval_status = "rejected"
                 if notes:
                     team.rationale = f"[BULK REJECTED] {notes}"
                 rejected_count += 1
