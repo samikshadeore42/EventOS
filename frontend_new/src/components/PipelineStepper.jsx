@@ -132,8 +132,13 @@ export default function PipelineStepper({ showAdvanceButton = false, className =
   })
 
   const advanceMutation = useMutation({
-    mutationFn: () => eventApi.advanceStage(),
-    onSuccess:  () => qc.invalidateQueries({ queryKey: ['event-config'] }),
+    mutationFn: () => eventStateApi.next(),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['event-state'] }),
+  })
+
+  const previousMutation = useMutation({
+    mutationFn: () => eventStateApi.previous(),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['event-state'] }),
   })
 
   if (isLoading) return <SkeletonStepper />
@@ -155,8 +160,7 @@ export default function PipelineStepper({ showAdvanceButton = false, className =
     if (currentIndex === -1) currentIndex = 0
   }
 
-  const isAtLast = currentIndex >= (data?.total_stages ?? 4) - 1
-
+  // isAtLast is unused since we removed the check for showAdvanceButton
   return (
     <div className={`glass-card border border-slate-700/50 rounded-xl p-5 ${className}`}>
       {/* Header row */}
@@ -178,18 +182,32 @@ export default function PipelineStepper({ showAdvanceButton = false, className =
           </p>
         </div>
 
-        {showAdvanceButton && !isAtLast && (
-          <button
-            onClick={() => advanceMutation.mutate()}
-            disabled={advanceMutation.isPending}
-            className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg btn-primary text-white hover:bg-indigo-700 disabled:opacity-50 transition-colors shrink-0 ml-4"
-          >
-            {advanceMutation.isPending
-              ? <Loader2 size={12} className="animate-spin" />
-              : <ChevronRight size={12} />
-            }
-            {advanceMutation.isPending ? 'Advancing…' : 'Advance Stage'}
-          </button>
+        {showAdvanceButton && (
+          <div className="flex gap-2 shrink-0 ml-4">
+            <button
+              onClick={() => {
+                previousMutation.mutate(undefined, {
+                  onError: (err) => alert(err.message)
+                })
+              }}
+              disabled={previousMutation.isPending}
+              className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg border border-slate-600 text-slate-300 hover:bg-slate-800 disabled:opacity-50 transition-colors"
+            >
+              Previous
+            </button>
+            <button
+              onClick={() => {
+                advanceMutation.mutate(undefined, {
+                  onError: (err) => alert(err.message)
+                })
+              }}
+              disabled={advanceMutation.isPending}
+              className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg btn-primary text-white hover:bg-indigo-700 disabled:opacity-50 transition-colors"
+            >
+              {advanceMutation.isPending ? <Loader2 size={12} className="animate-spin" /> : <ChevronRight size={12} />}
+              {advanceMutation.isPending ? 'Advancing…' : 'Advance Stage'}
+            </button>
+          </div>
         )}
       </div>
 
@@ -216,9 +234,9 @@ export default function PipelineStepper({ showAdvanceButton = false, className =
       </div>
 
       {/* Mutation error */}
-      {advanceMutation.isError && (
+      {(advanceMutation.isError || previousMutation.isError) && (
         <p className="mt-3 text-xs text-red-500">
-          {advanceMutation.error?.message ?? 'Failed to advance stage.'}
+          {advanceMutation.error?.message || previousMutation.error?.message || 'Failed to change stage.'}
         </p>
       )}
     </div>

@@ -3,6 +3,8 @@ from app.models.mentor import MentorFeedback, MentorSession, MentorAssignment, M
 from app.models.evaluation import Evaluation, Evaluator
 from app.models.communication_log import CommunicationLog
 from app.models.participant import Participant, Team
+from app.models.event_state import EventState
+from app.models.event_config import EventConfig
 
 def get_demo_status(db: Session):
     return {
@@ -43,6 +45,20 @@ def reset_demo_data(db: Session, preserve_admins: bool = True):
         # 10. mentors
         deleted_counts["mentors"] = db.query(Mentor).delete()
         
+        # 11. reset event stage to registration
+        state = db.query(EventState).first()
+        if state:
+            state.current_stage = "registration"
+        
+        config = db.query(EventConfig).first()
+        if config:
+            config.current_stage_index = 0
+            config.current_stage = "registration"
+            # Keep pipeline if needed, or just let frontend handle it
+            if config.pipeline:
+                for idx, step in enumerate(config.pipeline):
+                    step["status"] = "active" if idx == 0 else "pending"
+
         db.commit()
         return deleted_counts
     except Exception as e:

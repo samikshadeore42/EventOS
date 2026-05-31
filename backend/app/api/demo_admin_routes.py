@@ -3,7 +3,6 @@ from sqlalchemy.orm import Session
 from app.core.database import get_db
 from app.services.demo_admin_service import get_demo_status, reset_demo_data
 from pydantic import BaseModel
-from app.api.auth.deps import get_current_admin
 
 # NOTE: This is for local/demo/admin use only. Do not expose destructive reset controls publicly.
 router = APIRouter(prefix="/demo-admin", tags=["Demo Admin"])

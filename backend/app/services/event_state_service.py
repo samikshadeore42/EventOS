@@ -28,7 +28,8 @@ def next_stage(db: Session):
         state.current_stage = STAGES[idx + 1]
         db.commit()
         db.refresh(state)
-    return state
+        return state
+    raise ValueError("Already at final stage.")
 
 def previous_stage(db: Session):
     state = get_event_state(db)
@@ -37,7 +38,8 @@ def previous_stage(db: Session):
         state.current_stage = STAGES[idx - 1]
         db.commit()
         db.refresh(state)
-    return state
+        return state
+    raise ValueError("Already at first stage.")
 
 def reset_stage(db: Session):
     return set_stage(db, "registration")

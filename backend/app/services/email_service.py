@@ -192,37 +192,20 @@ class EmailService:
                 return {"success": False, "error": str(e)}
         
         else:
-            api_key = os.environ.get('SENDGRID_API_KEY')
-            if not api_key or api_key == "SIMULATE":
-                print(f"🛑 SIMULATED EMAIL to {to_email}: {portal_url}")
-                return {"success": True, "simulated": True}
-
             try:
-                sg = SendGridAPIClient(api_key)
-                sender_email = os.environ.get('SENDGRID_FROM_EMAIL', 'eventos862404@gmail.com')
+                template = env.get_template("participant_link.html")
+                html_content = template.render(
+                    participant_name=first_name,
+                    portal_url=portal_url,
+                    expires_in=expires_in,
+                    event_name="EventOS Hackathon"
+                )
+                subject = "Your EventOS Participant Portal Access"
                 
-                message = {
-                    "personalizations": [
-                        {
-                            "to": [{"email": to_email, "name": recipient_name}],
-                            "dynamic_template_data": {
-                                "first_name": first_name,
-                                "team_name": "Your Assigned Team", 
-                                "magic_link": portal_url
-                            }
-                        }
-                    ],
-                    "from": {"email": sender_email, "name": "EventOS@TI"},
-                    "template_id": "d-c486747eb35f4ed0acb2e1fb8dbc09f8" 
-                }
-                
-                response = sg.client.mail.send.post(request_body=message)
-                
-                if response.status_code in [200, 201, 202]:
-                    return {"success": True, "simulated": False}
-                else:
-                    return {"success": False, "error": str(response.body)}
-                    
+                return EmailService.send_email(
+                    to_email, subject, html_content,
+                    recipient_name=recipient_name, template="participant_link", stage=stage
+                )
             except Exception as e:
+                print(f"Failed to render participant template: {e}")
                 return {"success": False, "error": str(e)}
-        

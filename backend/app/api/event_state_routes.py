@@ -26,13 +26,19 @@ def set_stage_endpoint(req: SetStageRequest, db: Session = Depends(get_db)):
 
 @router.post("/next")
 def next_stage_endpoint(db: Session = Depends(get_db)):
-    state = next_stage(db)
-    return {"current_stage": state.current_stage}
+    try:
+        state = next_stage(db)
+        return {"current_stage": state.current_stage}
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
 
 @router.post("/previous")
 def previous_stage_endpoint(db: Session = Depends(get_db)):
-    state = previous_stage(db)
-    return {"current_stage": state.current_stage}
+    try:
+        state = previous_stage(db)
+        return {"current_stage": state.current_stage}
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
 
 @router.post("/reset")
 def reset_stage_endpoint(db: Session = Depends(get_db)):

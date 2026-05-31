@@ -56,6 +56,7 @@ def generate_and_dispatch_links(
         "role":         role,
         "stage":        stage,
         "emails_queued": send_emails and len(links) > 0,
+        "message":      "Email dispatch queued." if (send_emails and len(links) > 0) else "Generated links but dispatch skipped.",
         "preview":      links[:2] if links else [],   # show first 2 for debug
     }
 

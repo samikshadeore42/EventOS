@@ -185,7 +185,13 @@ function ParticipantsTab() {
   const sendLinksMutation = useMutation({
     mutationFn: () => portalApi.generateLinks('participant', 'team_formation', true),
     onSuccess: (res) => {
-      alert(`Generated ${res.generated_count || 0} links for ${res.role || 'participant'} (Queued: ${res.emails_queued}).\nLinks queued. Check Communications tab and worker logs for delivery status.`);
+      if (res.generated === 0) {
+         alert("No participants found. Upload roster before dispatching links.");
+      } else if (res.emails_queued) {
+         alert(`Generated ${res.generated} participant links. Email dispatch queued. Check Communications tab and worker logs.`);
+      } else {
+         alert(res.message || "Generated links but dispatch skipped.");
+      }
     },
     onError: (error) => alert(`Error: ${error.message}`)
   });
@@ -319,7 +325,7 @@ function ParticipantsTab() {
               sendLinksMutation.mutate();
             }
           }}
-          disabled={sendLinksMutation.isPending}
+          disabled={sendLinksMutation.isPending || (data?.items?.length || 0) === 0}
           className="flex items-center gap-1.5 text-sm px-4 py-2 rounded-lg bg-indigo-600 text-white hover:bg-indigo-700 disabled:opacity-50 shadow-md whitespace-nowrap"
         >
           {sendLinksMutation.isPending ? <Loader2 size={16} className="animate-spin" /> : <Send size={16} />}
@@ -583,7 +589,11 @@ function TeamsTab() {
           </div>
 
           {commitMutation.isError && (
-            <p className="mb-3 text-xs text-red-500">{commitMutation.error?.message}</p>
+            <p className="mb-3 text-xs text-red-500">
+              {commitMutation.error?.message?.includes('already exist')
+                ? 'Teams already exist. Use Demo Controls → Reset Demo Data before forming new teams again.'
+                : commitMutation.error?.message}
+            </p>
           )}
 
           <div className="grid md:grid-cols-2 xl:grid-cols-3 gap-4">
@@ -1478,7 +1488,7 @@ function MentorOpsTab() {
               <select value={assignForm.team_id} onChange={e => setAssignForm(f => ({...f, team_id: e.target.value}))}
                 className="w-full border border-slate-700/50 bg-slate-900/50 text-white rounded-lg px-3 py-2 text-sm focus:outline-none">
                 <option value="">-- select team --</option>
-                {allTeams.filter(t => t.is_approved).map(t => <option key={getTeamId(t)} value={getTeamId(t)}>{getTeamName(t)}</option>)}
+                {allTeams.filter(t => t.is_approved && getTeamId(t)).map(t => <option key={getTeamId(t)} value={getTeamId(t)}>{getTeamName(t)}</option>)}
               </select>
             </div>
           </div>
@@ -1574,10 +1584,21 @@ function MentorOpsTab() {
           {reminderMutation.isPending ? <Loader2 size={14} className="animate-spin" /> : <Mail size={14} />} Send Daily Reminders
         </button>
         {reminderMutation.isSuccess && (
-          <p className="text-xs text-teal-600">
-            {reminderMutation.data?.message}
-            {reminderMutation.data?.queued > 0 && ` (queued: ${reminderMutation.data?.queued}, sent: ${reminderMutation.data?.sent}, simulated: ${reminderMutation.data?.simulated}, failed: ${reminderMutation.data?.failed})`}
-          </p>
+          <div className="text-xs text-teal-500">
+            {reminderMutation.data?.queued === 0 ? (
+              <p>No reminders sent. There are no assigned mentors missing today’s update.</p>
+            ) : (
+              <>
+                <p className="font-semibold">{reminderMutation.data?.message}</p>
+                <ul className="mt-1 space-y-0.5 text-[10px] text-slate-400">
+                  <li>• queued: {reminderMutation.data?.queued} (total processed)</li>
+                  <li>• sent: {reminderMutation.data?.sent} (real SendGrid email sent)</li>
+                  <li>• simulated: {reminderMutation.data?.simulated} (mock-mode email logged)</li>
+                  <li>• failed: {reminderMutation.data?.failed} (failed delivery)</li>
+                </ul>
+              </>
+            )}
+          </div>
         )}
       </div>
 
@@ -1589,7 +1610,7 @@ function MentorOpsTab() {
             <select value={aiTeamId} onChange={e => setAiTeamId(e.target.value)}
               className="w-full border border-slate-700/50 bg-slate-900/50 text-white rounded-lg px-3 py-2 text-sm focus:outline-none">
               <option value="">-- select team --</option>
-              {allTeams.filter(t => t.is_approved).map(t => <option key={getTeamId(t)} value={getTeamId(t)}>{getTeamName(t)}</option>)}
+              {allTeams.filter(t => t.is_approved && getTeamId(t)).map(t => <option key={getTeamId(t)} value={getTeamId(t)}>{getTeamName(t)}</option>)}
             </select>
           </div>
           <button onClick={() => aiMutation.mutate(aiTeamId)} disabled={aiMutation.isPending || !aiTeamId}
