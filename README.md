@@ -35,7 +35,7 @@ The platform replaces fragmented manual workflows (spreadsheets, email chains, m
 │                     API Gateway Layer                             │
 │         FastAPI · Pydantic v2 · SQLAlchemy 2.0                   │
 │  /participants  /solver  /approvals  /portal  /evaluations        │
-│  /leaderboard   /llm     /tasks      /health                     │
+│  /leaderboard   /ai     /tasks      /health                     │
 └──────┬───────────────────────────┬───────────────────────────────┘
        │ SQLAlchemy ORM            │ Redis Enqueue
        ▼                           ▼
@@ -158,7 +158,7 @@ EventOS/
         │   ├── portal_routes.py        # /portal — JWT access + link dispatch
         │   ├── evaluation_routes.py    # /evaluations — score submission + flags
         │   ├── leaderboard_routes.py   # /leaderboard — rankings + anomaly overrides
-        │   └── llm_routes.py           # /llm — draft generation + rationales
+        │   └── ai_routes.py           # /ai — draft generation + rationales
         │
         ├── tasks/
         │   ├── communications.py   # Email Celery tasks (registration, batch, links)
@@ -238,11 +238,11 @@ EventOS/
 ### LLM Drafting Engine
 | Method | Endpoint | Description |
 |---|---|---|
-| `POST` | `/llm/draft` | Generate single email draft (never auto-sent) |
-| `POST` | `/llm/draft/bulk` | Generate drafts for multiple recipients |
-| `POST` | `/llm/team-rationale` | Generate + save team formation rationale |
-| `POST` | `/llm/team-rationale/bulk` | Generate rationales for all teams |
-| `GET` | `/llm/health` | LLM API connectivity check |
+| `POST` | `/ai/draft` | Generate single email draft (never auto-sent) |
+| `POST` | `/ai/draft/bulk` | Generate drafts for multiple recipients |
+| `POST` | `/ai/team-rationale` | Generate + save team formation rationale |
+| `POST` | `/ai/team-rationale/bulk` | Generate rationales for all teams |
+| `GET` | `/ai/health` | LLM API connectivity check |
 
 ---
 
@@ -414,7 +414,7 @@ curl -X POST "http://localhost:8000/portal/generate-links?role=participant&stage
 ### Generate LLM email draft
 
 ```bash
-curl -X POST http://localhost:8000/llm/draft \
+curl -X POST http://localhost:8000/ai/draft \
   -H "Content-Type: application/json" \
   -d '{
     "draft_type": "progression_invite",

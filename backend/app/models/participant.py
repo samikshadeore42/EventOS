@@ -50,7 +50,7 @@ class Participant(Base):
     )
     
     __table_args__ = (
-        Index("ix_participants_team_id","institution", "team_id"),
+        Index("ix_participants_inst_team_id","institution", "team_id"),
         UniqueConstraint("email", name="uq_participant_email"),
         Index(
             "ix_participants_skill_vector_gin",
@@ -70,10 +70,11 @@ class Team(Base):
     team_name:   Mapped[str]       = mapped_column(String(100), nullable=False)
     rationale:   Mapped[str | None]= mapped_column(Text, nullable=True)  # LLM-generated explanation
     is_approved: Mapped[bool]      = mapped_column(Boolean, default=False, index=True)
+    approval_status: Mapped[str]   = mapped_column(String(20), default="pending", nullable=False, server_default="pending", index=True)
     created_at:  Mapped[datetime]  = mapped_column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
 
     # Relationship — lets you do team.members to get all participants
     members: Mapped[list["Participant"]] = relationship("Participant", backref="team")
 
     def __repr__(self):
-        return f"<Team {self.team_name} | approved={self.is_approved}>"
+        return f"<Team {self.team_name} | status={self.approval_status} | approved={self.is_approved}>"

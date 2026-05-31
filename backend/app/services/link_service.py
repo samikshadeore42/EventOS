@@ -3,17 +3,16 @@
 #   1. Generating secure portal URLs for participants and evaluators
 #   2. Resolving portal access (decode token → load the right view)
 
-
 import os
 from datetime import timedelta
 from uuid import UUID
 from sqlalchemy.orm import Session
 from fastapi import HTTPException
 
-
 from app.core.security import create_access_token, decode_access_token, get_token_subject
 from app.models.participant import Participant, Team
 from app.models.evaluation import Evaluator, Evaluation
+from app.models.mentor import Mentor, MentorAssignment
 from app.schemas.portal_schemas import (
     ParticipantPortalResponse,
     EvaluatorPortalResponse,
@@ -23,8 +22,6 @@ from app.schemas.portal_schemas import (
 
 # BASE_URL = os.getenv("BASE_URL", "http://localhost:8000")
 FRONTEND_URL = os.getenv("FRONTEND_URL", "http://localhost:5173")
-
-
 
 
 class LinkService:
@@ -49,7 +46,6 @@ class LinkService:
             "expires_in": f"{expires_days} days",
         }
 
-
     @staticmethod
     def generate_evaluator_link(
         evaluator_id: str,
@@ -71,7 +67,6 @@ class LinkService:
             "expires_in": f"{expires_days} days",
         }
 
-
     @staticmethod
     def generate_all_participant_links(
         db: Session,
@@ -86,7 +81,6 @@ class LinkService:
             }
             for p in participants
         ]
-
 
     @staticmethod
     def generate_all_evaluator_links(
@@ -103,6 +97,79 @@ class LinkService:
             for e in evaluators
         ]
 
+    @staticmethod
+    def generate_mentor_link(
+        mentor_id: str,
+        stage:        str = "mentoring",
+        expires_days: int = 7
+    ) -> dict:
+        token      = create_access_token(
+            subject=mentor_id,
+            role="mentor",
+            stage=stage,
+            expires_in=timedelta(days=expires_days)
+        )
+        portal_url = f"{FRONTEND_URL}/mentor?token={token}"
+        return {
+            "entity_id":  mentor_id,
+            "role":       "mentor",
+            "token":      token,
+            "portal_url": portal_url,
+            "expires_in": f"{expires_days} days",
+        }
+
+    @staticmethod
+    def send_mentor_access_link(mentor_id: str, db: Session) -> dict:
+        """Generate + email a magic link to a mentor using the existing email system."""
+        from app.services.email_service import EmailService
+
+        mentor = db.query(Mentor).filter(Mentor.id == mentor_id).first()
+        if not mentor:
+            raise HTTPException(status_code=404, detail="Mentor not found.")
+
+        # Count assigned teams
+        team_count = db.query(MentorAssignment).filter(
+            MentorAssignment.mentor_id == mentor.id,
+            MentorAssignment.is_active == True,
+        ).count()
+
+        link_data = LinkService.generate_mentor_link(str(mentor.id))
+
+        result = EmailService.send_access_link(
+            to_email=mentor.email,
+            recipient_name=f"{mentor.first_name} {mentor.last_name}",
+            role="Mentor",
+            stage="mentoring",
+            portal_url=link_data["portal_url"],
+            expires_in=link_data["expires_in"],
+        )
+
+        is_success = result.get("success", False)
+        if is_success:
+            mentor.access_link_sent = True
+            db.commit()
+
+        return {
+            **link_data,
+            "email_sent": is_success,
+            "simulated": result.get("simulated", False),
+            "assigned_teams": team_count,
+        }
+
+    @staticmethod
+    def generate_all_mentor_links(
+        db: Session,
+        stage: str = "mentoring"
+    ) -> list[dict]:
+        mentors = db.query(Mentor).filter(Mentor.is_active == True).all()
+        return [
+            {
+                **LinkService.generate_mentor_link(str(m.id), stage),
+                "email": m.email,
+                "name":  f"{m.first_name} {m.last_name}",
+            }
+            for m in mentors
+        ]
 
     @classmethod
     def resolve_portal_access(cls, token: str, db: Session) -> dict:
@@ -111,14 +178,14 @@ class LinkService:
         subject = get_token_subject(payload)
         stage   = payload.get("stage", "unknown")
 
-
         if role == "participant":
             return cls._load_participant_view(subject, stage, db)
         elif role == "evaluator":
             return cls._load_evaluator_view(subject, stage, db)
+        elif role == "mentor":
+            return cls._load_mentor_view(subject, stage, db)
         else:
             raise HTTPException(status_code=400, detail=f"Unknown token role: {role}")
-
 
     @staticmethod
     def _load_participant_view(
@@ -130,10 +197,8 @@ class LinkService:
             Participant.id == participant_id
         ).first()
 
-
         if not participant:
             raise HTTPException(status_code=404, detail="Participant not found.")
-
 
         team      = None
         teammates = []
@@ -142,7 +207,7 @@ class LinkService:
             if team:
                 all_members = db.query(Participant).filter(
                     Participant.team_id == team.id,
-                    Participant.id != participant.id  
+                    Participant.id != participant.id   
                 ).all()
                 teammates = [
                     TeamMemberPortalView(
@@ -151,7 +216,6 @@ class LinkService:
                     )
                     for m in all_members
                 ]
-
 
         return ParticipantPortalResponse(
             participant_id = str(participant.id),
@@ -171,7 +235,6 @@ class LinkService:
             ]
         ).model_dump()
 
-
     @staticmethod
     def _load_evaluator_view(
         evaluator_id: str,
@@ -182,24 +245,20 @@ class LinkService:
             Evaluator.id == evaluator_id
         ).first()
 
-
         if not evaluator:
             raise HTTPException(status_code=404, detail="Evaluator not found.")
 
-
         from app.models.participant import Team
         from app.models.evaluation import Evaluation
-       
+        
         approved_teams = db.query(Team).filter(Team.is_approved == True).all()
         if not approved_teams:
             approved_teams = db.query(Team).all()
-
 
         submitted = db.query(Evaluation).filter(
             Evaluation.evaluator_id == evaluator_id
         ).all()
         submitted_team_ids = {str(e.team_id) for e in submitted}
-
 
         teams_data = [
             {
@@ -210,7 +269,6 @@ class LinkService:
             }
             for t in approved_teams
         ]
-
 
         return EvaluatorPortalResponse(
             evaluator_id    = str(evaluator.id),
@@ -227,3 +285,21 @@ class LinkService:
             submitted_count = len(submitted_team_ids),
             total_assigned  = len(approved_teams),
         ).model_dump()
+
+    @staticmethod
+    def _load_mentor_view(
+        mentor_id: str,
+        stage:     str,
+        db:        Session
+    ) -> dict:
+        mentor = db.query(Mentor).filter(Mentor.id == mentor_id).first()
+        if not mentor:
+            raise HTTPException(status_code=404, detail="Mentor not found.")
+
+        from app.services.mentor_service import MentorService
+        portal_me = MentorService.get_mentor_portal_me(db, mentor.id)
+
+        return {
+            "role": "mentor",
+            **portal_me.model_dump(),
+        }

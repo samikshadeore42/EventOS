@@ -18,6 +18,12 @@ dist/
 # Docker
 postgres_data/
 
+# Runtime
+celerybeat-schedule
+backend/celerybeat-schedule
+*.db
+backend/test.db
+
 # IDE
 .vscode/
 .idea/

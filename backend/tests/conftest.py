@@ -32,7 +32,7 @@ app.dependency_overrides[get_db] = override_get_db
 def setup_test_database():
     """Create all tables once per test session, drop after."""
     # Import all models so SQLAlchemy registers them
-    from app.models import participant, evaluation  # noqa: F401
+    from app.models import participant, evaluation, mentor  # noqa: F401
     Base.metadata.create_all(bind=engine)
     yield
     Base.metadata.drop_all(bind=engine)

@@ -249,7 +249,17 @@ def commit_solver_results(task_id: str, db: Session = Depends(get_db)):
     teams_data = status["result"]["teams"]
     created_teams = []
     for t in teams_data:
-        team = Team(team_name=t["team_name"], rationale=None, is_approved=False)
+        fallback_rationale = "This team combines strengths in Python, frontend, AI/ML, and design while respecting team size and institution constraints."
+        rationale = t.get("rationale", fallback_rationale)
+        if not rationale:
+            rationale = fallback_rationale
+
+        team = Team(
+            team_name=t["team_name"],
+            rationale=rationale,
+            is_approved=False,
+            approval_status="pending"
+        )
         db.add(team)
         db.flush()   # get the team.id before committing
         for member in t["members"]:
