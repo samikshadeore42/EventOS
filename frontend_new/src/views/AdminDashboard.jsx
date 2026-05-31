@@ -327,7 +327,7 @@ function ParticipantsTab() {
               sendLinksMutation.mutate();
             }
           }}
-          disabled={sendLinksMutation.isPending || (data?.items?.length || 0) === 0}
+          disabled={sendLinksMutation.isPending || !summary?.total_participants}
           className="flex items-center gap-1.5 text-sm px-4 py-2 rounded-lg bg-indigo-600 text-white hover:bg-indigo-700 disabled:opacity-50 shadow-md whitespace-nowrap"
         >
           {sendLinksMutation.isPending ? <Loader2 size={16} className="animate-spin" /> : <Send size={16} />}
@@ -918,15 +918,15 @@ function EvaluatorsTab() {
                     <div className="flex gap-2 shrink-0">
                       <button
                         onClick={() => sendLinkMutation.mutate(ev.id)}
-                        disabled={sendLinkMutation.isPending || ev.access_link_sent}
-                        title="Send access link"
+                        disabled={sendLinkMutation.isPending}
+                        title={ev.access_link_sent ? "Send access link again" : "Send access link"}
                         className="flex items-center gap-1 text-xs px-2.5 py-1.5 rounded-lg border border-indigo-200 text-indigo-400 hover:bg-indigo-900/30 disabled:opacity-50"
                       >
                         {sendLinkMutation.isPending
                           ? <Loader2 size={12} className="animate-spin" />
                           : <Send size={12} />
                         }
-                        Send Link
+                        {ev.access_link_sent ? "Resend Link" : "Send Link"}
                       </button>
                       <button
                         onClick={() => { if (window.confirm('Remove this evaluator?')) deleteMutation.mutate(ev.id) }}
@@ -1468,8 +1468,8 @@ function MentorOpsTab() {
                   <div className="flex gap-2 shrink-0 items-center">
                     {m.assigned_team_count > 0 ? (
                       <button onClick={() => sendLinkMutation.mutate(m.id)} disabled={sendLinkMutation.isPending}
-                        title="Send access link" className="flex items-center gap-1 text-xs px-2.5 py-1.5 rounded-lg border border-indigo-500/30 text-indigo-400 hover:bg-indigo-900/30 disabled:opacity-50">
-                        {sendLinkMutation.isPending ? <Loader2 size={12} className="animate-spin" /> : <Send size={12} />} Link
+                        title={m.access_link_sent ? "Send access link again" : "Send access link"} className="flex items-center gap-1 text-xs px-2.5 py-1.5 rounded-lg border border-indigo-500/30 text-indigo-400 hover:bg-indigo-900/30 disabled:opacity-50">
+                        {sendLinkMutation.isPending ? <Loader2 size={12} className="animate-spin" /> : <Send size={12} />} {m.access_link_sent ? "Resend Link" : "Send Link"}
                       </button>
                     ) : (
                       <span className="text-[10px] text-amber-500/70 mr-1 italic">Assign to a team first</span>
