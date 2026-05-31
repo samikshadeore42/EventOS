@@ -24,7 +24,13 @@ def reset_endpoint(req: ResetRequest, db: Session = Depends(get_db)): #, admin=D
             detail="Type RESET_DEMO_DATA to confirm demo reset."
         )
     
-    deleted_counts = reset_demo_data(db, preserve_admins=req.preserve_admins)
+    try:
+        deleted_counts = reset_demo_data(db, preserve_admins=req.preserve_admins)
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Demo reset failed: {str(e)}"
+        )
     
     return {
         "success": True,

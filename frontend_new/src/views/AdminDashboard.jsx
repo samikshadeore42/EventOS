@@ -537,8 +537,8 @@ function TeamsTab() {
           <div className="w-full bg-slate-700/50 rounded-full h-2 mb-3">
             <div
               className={`h-2 rounded-full transition-all duration-500 ${
-                taskStatus.status === 'success' ? 'bg-teal-900/300' :
-                taskStatus.status === 'failed'  ? 'bg-red-900/300'  : 'bg-indigo-900/300'
+                taskStatus.status === 'success' ? 'bg-teal-900/30' :
+                taskStatus.status === 'failed'  ? 'bg-red-900/30'  : 'bg-indigo-900/30'
               }`}
               style={{ width: `${progress}%` }}
             />
@@ -1805,7 +1805,16 @@ function DemoControlsTab() {
       refetchStatus()
       qc.invalidateQueries()
     },
-    onError: (err) => alert('Error: ' + err.message)
+    onError: (err) => alert('Error: ' + (err.response?.data?.detail || err.message))
+  })
+
+  const resetStageMutation = useMutation({
+    mutationFn: () => eventStateApi.reset(),
+    onSuccess: () => {
+      refetchState()
+      qc.invalidateQueries()
+    },
+    onError: (err) => alert('Error: ' + (err.response?.data?.detail || err.message))
   })
 
   const stageMutation = useMutation({
@@ -1813,7 +1822,8 @@ function DemoControlsTab() {
     onSuccess: () => {
       refetchState()
       qc.invalidateQueries()
-    }
+    },
+    onError: (err) => alert('Error: ' + (err.response?.data?.detail || err.message))
   })
   
   const stepMutation = useMutation({
@@ -1821,7 +1831,8 @@ function DemoControlsTab() {
     onSuccess: () => {
       refetchState()
       qc.invalidateQueries()
-    }
+    },
+    onError: (err) => alert('Error: ' + (err.response?.data?.detail || err.message))
   })
 
   return (
@@ -1878,7 +1889,9 @@ function DemoControlsTab() {
             <div className="flex gap-2">
               <button onClick={() => stepMutation.mutate('prev')} className="px-4 py-2 bg-slate-700 hover:bg-slate-600 text-white text-sm rounded-lg transition-colors">Previous</button>
               <button onClick={() => stepMutation.mutate('next')} className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-sm rounded-lg transition-colors">Next</button>
-              <button onClick={() => eventStateApi.reset()} className="px-4 py-2 border border-slate-600 text-slate-300 hover:bg-slate-800 text-sm rounded-lg transition-colors ml-2">Reset to Registration</button>
+              <button onClick={() => resetStageMutation.mutate()} disabled={resetStageMutation.isPending} className="px-4 py-2 border border-slate-600 text-slate-300 hover:bg-slate-800 text-sm rounded-lg transition-colors ml-2 disabled:opacity-50">
+                {resetStageMutation.isPending ? 'Resetting...' : 'Reset to Registration'}
+              </button>
             </div>
           </div>
           
@@ -1941,7 +1954,7 @@ export default function AdminDashboard() {
         </div>
         <div className="flex items-center gap-3 text-xs text-slate-500">
           <span className="flex items-center gap-1">
-            <span className="w-2 h-2 rounded-full bg-teal-900/300 inline-block animate-pulse" />
+            <span className="w-2 h-2 rounded-full bg-teal-900/30 inline-block animate-pulse" />
             System Online
           </span>
         </div>

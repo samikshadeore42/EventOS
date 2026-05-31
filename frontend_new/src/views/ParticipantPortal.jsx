@@ -44,7 +44,7 @@ function PortalHeader({ name, email, eventName, stage }) {
       <p className="text-sm text-slate-500">{email}</p>
       {stage && (
         <div className="inline-flex items-center gap-1.5 mt-3 px-3 py-1 rounded-full bg-indigo-900/30 border border-indigo-100 text-xs font-medium text-indigo-300">
-          <span className="w-1.5 h-1.5 rounded-full bg-indigo-900/300 animate-pulse" />
+          <span className="w-1.5 h-1.5 rounded-full bg-indigo-900/30 animate-pulse" />
           Current stage: {STAGE_LABELS[stage] ?? stage}
         </div>
       )}
@@ -75,7 +75,7 @@ function EventTimeline({ timeline }) {
               <div key={index} className="flex items-start gap-4 relative">
                 {/* Node */}
                 <div className={`relative z-10 w-8 h-8 rounded-full border-2 flex items-center justify-center shrink-0 ${
-                  isCompleted ? 'bg-teal-900/300  border-teal-500'   :
+                  isCompleted ? 'bg-teal-900/30  border-teal-500'   :
                   isActive    ? 'btn-primary border-indigo-600' :
                                 'glass-card      border-slate-700/50'
                 }`}>
@@ -97,7 +97,7 @@ function EventTimeline({ timeline }) {
                       {phase.phase}
                     </p>
                     {isActive && (
-                      <span className="text-xs font-medium text-white bg-indigo-900/300 px-2 py-0.5 rounded-full">
+                      <span className="text-xs font-medium text-white bg-indigo-900/30 px-2 py-0.5 rounded-full">
                         In progress
                       </span>
                     )}

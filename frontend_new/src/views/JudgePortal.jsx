@@ -254,7 +254,7 @@ function TeamQueueSidebar({ teams, selectedId, submittedIds, onSelect, evaluator
           </div>
           <div className="w-full bg-slate-700/50 rounded-full h-1.5">
             <div
-              className="bg-teal-900/300 h-1.5 rounded-full transition-all"
+              className="bg-teal-900/30 h-1.5 rounded-full transition-all"
               style={{ width: `${teams.length ? (submittedIds.length / teams.length) * 100 : 0}%` }}
             />
           </div>
