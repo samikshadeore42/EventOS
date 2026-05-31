@@ -12,6 +12,7 @@ FROM_EMAIL = os.getenv("SENDGRID_FROM_EMAIL", "noreply@eventos.com")
 FROM_NAME = os.getenv("SENDGRID_FROM_NAME", "EventOS Operations")
 
 EMAIL_DELIVERY_MODE = os.getenv("EMAIL_DELIVERY_MODE", "mock").lower()
+EMAIL_SENDGRID_FALLBACK_TO_MOCK = os.getenv("EMAIL_SENDGRID_FALLBACK_TO_MOCK", "false").lower() == "true"
 
 # Initialize Jinja2 environment to load templates from our directory
 env = Environment(loader=FileSystemLoader("app/templates/emails"))
@@ -58,7 +59,12 @@ class EmailService:
                 sg = SendGridAPIClient(SENDGRID_API_KEY)
                 response = sg.send(message)
                 if response.status_code in [200, 201, 202]:
-                    msg_id = response.headers.get('X-Message-Id', 'unknown')
+                    msg_id = 'unknown'
+                    if hasattr(response, 'headers') and 'X-Message-Id' in response.headers:
+                        msg_id = response.headers['X-Message-Id']
+                    elif isinstance(response.headers, dict):
+                        msg_id = response.headers.get('X-Message-Id', 'unknown')
+                        
                     result = {
                         "success": True, 
                         "dev": False,
@@ -68,23 +74,43 @@ class EmailService:
                         "error": None
                     }
                 else:
+                    raise Exception(f"SendGrid HTTP {response.status_code}: {getattr(response, 'body', 'No body')}")
+            except Exception as e:
+                def _format_sendgrid_error(exc):
+                    status = getattr(exc, "status_code", getattr(exc, "code", None))
+                    body = getattr(exc, "body", getattr(exc, "read", lambda: None)())
+                    
+                    if hasattr(exc, "status_code") or hasattr(exc, "body"):
+                        if not body:
+                            return f"SendGrid HTTP {status or 'Error'}: {str(exc)}"
+                        try:
+                            body_str = body.decode('utf-8') if isinstance(body, bytes) else str(body)
+                            return f"SendGrid HTTP {status or 'Error'}: {body_str}"
+                        except Exception:
+                            return f"SendGrid HTTP {status or 'Error'}: <Unreadable Body>"
+                    return str(exc)
+
+                error_msg = _format_sendgrid_error(e)
+                
+                if EMAIL_SENDGRID_FALLBACK_TO_MOCK:
+                    result = {
+                        "success": True, 
+                        "dev": False,
+                        "simulated": True,
+                        "message_id": f"mock_fallback_{int(time.time())}",
+                        "provider": "mock_fallback",
+                        "error": None,
+                        "provider_error": error_msg
+                    }
+                else:
                     result = {
                         "success": False, 
                         "dev": False,
                         "simulated": False,
                         "message_id": None,
                         "provider": "sendgrid",
-                        "error": f"Status: {response.status_code}"
+                        "error": error_msg
                     }
-            except Exception as e:
-                result = {
-                    "success": False, 
-                    "dev": False,
-                    "simulated": False,
-                    "message_id": None,
-                    "provider": "sendgrid",
-                    "error": str(e)
-                }
     
         # 2. Log to Database
         try:
@@ -98,7 +124,7 @@ class EmailService:
                 subject=subject,
                 stage=stage,
                 success=result.get("success", False),
-                error_message=result.get("error"),
+                error_message=result.get("provider_error") or result.get("error"),
                 message_id=result.get("message_id"),
             )
             db.add(log)

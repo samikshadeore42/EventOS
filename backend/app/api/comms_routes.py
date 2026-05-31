@@ -49,18 +49,23 @@ def get_communication_log(
 @router.get("/diagnostics", summary="Get email delivery diagnostics")
 def get_email_diagnostics():
     mode = os.getenv("EMAIL_DELIVERY_MODE", "mock").lower()
-    api_key = os.getenv("SENDGRID_API_KEY")
+    api_key = os.getenv("SENDGRID_API_KEY") or ""
     from_email = os.getenv("SENDGRID_FROM_EMAIL")
     frontend_base = os.getenv("FRONTEND_BASE_URL")
     frontend_url = os.getenv("FRONTEND_URL")
     
-    sendgrid_configured = bool(api_key and not api_key.startswith("SG.your_"))
+    key_present = bool(api_key)
+    looks_real = key_present and not api_key.startswith("SG.your_")
+    key_prefix = api_key[:7] + "..." if key_present else None
+    
     redis_url = os.getenv("REDIS_URL")
     
     notes = []
     
-    if mode == "sendgrid" and not sendgrid_configured:
-        notes.append("Warning: EMAIL_DELIVERY_MODE is 'sendgrid' but SENDGRID_API_KEY is missing or invalid.")
+    if mode == "sendgrid" and not key_present:
+        notes.append("Warning: EMAIL_DELIVERY_MODE is 'sendgrid' but SENDGRID_API_KEY is missing.")
+    elif mode == "sendgrid" and not looks_real:
+        notes.append("Warning: EMAIL_DELIVERY_MODE is 'sendgrid' but SENDGRID_API_KEY looks like a placeholder.")
     
     if mode == "sendgrid" and not from_email:
         notes.append("Warning: SENDGRID_FROM_EMAIL is missing.")
@@ -76,13 +81,18 @@ def get_email_diagnostics():
     if not redis_url:
         notes.append("Warning: REDIS_URL is not set. Background tasks (like bulk dispatch) may fail.")
         
+    notes.append("If SendGrid returns 403, verify API key has Mail Send permission and SENDGRID_FROM_EMAIL is a verified sender identity.")
+        
     return {
         "email_delivery_mode": mode,
-        "sendgrid_configured": sendgrid_configured,
+        "sendgrid_api_key_present": key_present,
+        "sendgrid_api_key_looks_real": looks_real,
+        "sendgrid_key_prefix": key_prefix,
         "from_email": from_email,
         "from_name": os.getenv("SENDGRID_FROM_NAME"),
-        "redis_url_present": bool(redis_url),
         "frontend_base_url": frontend_base or frontend_url or "http://localhost:5173",
+        "redis_url_present": bool(redis_url),
+        "backend_env_loaded": True,
         "notes": notes
     }
 
@@ -108,3 +118,47 @@ def test_email(req: TestEmailRequest):
     )
     
     return result
+
+class PreflightRequest(BaseModel):
+    to_email: str | None = None
+    recipient_name: str | None = None
+
+@router.post("/preflight-sendgrid", summary="Preflight check for SendGrid configuration")
+def preflight_sendgrid(req: PreflightRequest):
+    mode = os.getenv("EMAIL_DELIVERY_MODE", "mock").lower()
+    from_email = os.getenv("SENDGRID_FROM_EMAIL")
+    
+    if not req.to_email:
+        return {
+            "success": True,
+            "provider": mode,
+            "message_id": "preflight_only",
+            "from_email": from_email,
+            "mode": mode
+        }
+        
+    html_content = "<p>Preflight test email</p>"
+    result = EmailService.send_email(
+        to_email=req.to_email,
+        subject="EventOS Preflight Test",
+        html_content=html_content,
+        recipient_name=req.recipient_name or "Test",
+        template="test_email",
+        stage="system"
+    )
+    
+    if result.get("success"):
+        return {
+            "success": True,
+            "provider": result.get("provider", mode),
+            "message_id": result.get("message_id"),
+            "from_email": from_email,
+            "mode": mode
+        }
+    else:
+        return {
+            "success": False,
+            "provider": result.get("provider", mode),
+            "error": result.get("error", result.get("provider_error", "Unknown error")),
+            "hint": "Check API key Mail Send permission and verified sender identity."
+        }

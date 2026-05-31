@@ -159,6 +159,8 @@ class LinkService:
             mentor.access_link_sent = True
             db.commit()
         else:
+            mentor.access_link_sent = False
+            db.commit()
             raise HTTPException(
                 status_code=502,
                 detail=f"Email delivery failed: {result.get('error', 'Unknown error')}"

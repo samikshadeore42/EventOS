@@ -193,6 +193,7 @@ function ParticipantsTab() {
          alert(res.message || "Generated links but dispatch skipped.");
       }
       setTimeout(() => qc.invalidateQueries({ queryKey: ['comms-log'] }), 3000)
+      setTimeout(() => qc.invalidateQueries({ queryKey: ['comms-log'] }), 8000)
     },
     onError: (error) => alert(`Error: ${error.message}`)
   });
