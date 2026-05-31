@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Your Mentor Portal Access</title>
+  <style>
+    body { margin: 0; padding: 0; background-color: #f8fafc; font-family: -apple-system, Arial, sans-serif; }
+    .wrapper { max-width: 600px; margin: 40px auto; background: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.05); border: 1px solid #e2e8f0; }
+    .header { background: #064e3b; padding: 40px 32px; text-align: center; } /* Dark Emerald Green */
+    .header h1 { color: #ffffff; margin: 0; font-size: 24px; font-weight: 700; letter-spacing: 0.5px; }
+    .header p { color: #a7f3d0; margin: 8px 0 0; font-size: 13px; text-transform: uppercase; letter-spacing: 1px;}
+    .body { padding: 40px 32px; text-align: center; }
+    .body h2 { color: #0f172a; font-size: 22px; margin: 0 0 16px; }
+    .body p { color: #475569; font-size: 16px; line-height: 1.6; margin: 0 0 32px; }
+    .btn { display: inline-block; background: #10b981; color: #ffffff; text-decoration: none; padding: 14px 28px; font-size: 16px; font-weight: 600; border-radius: 8px; box-shadow: 0 4px 6px rgba(16, 185, 129, 0.25); }
+    .security-note { margin-top: 32px; padding: 16px; background: #f1f5f9; border-radius: 8px; font-size: 13px; color: #64748b; text-align: left;}
+    .footer { background: #f8fafc; border-top: 1px solid #e2e8f0; padding: 24px 32px; text-align: center; }
+    .footer p { color: #94a3b8; font-size: 12px; margin: 0; }
+  </style>
+</head>
+<body>
+  <div class="wrapper">
+    <div class="header">
+      <h1>{{ event_name }}</h1>
+      <p>Official Mentorship Panel</p>
+    </div>
+    <div class="body">
+      <h2>Welcome, {{ mentor_name }}</h2>
+      <p>Thank you for volunteering to guide our teams. Your secure Mentor Dashboard has been generated. You can now log in to view your assigned teams, schedule meetings, and submit feedback.</p>
+      
+      <a href="{{ portal_url }}" class="btn">Access Mentor Portal</a>
+      
+      <div class="security-note">
+        <strong>Security Notice:</strong> This magic link is cryptographically tied to your identity and expires in {{ expires_in }}. Do not forward this email to anyone.
+      </div>
+    </div>
+    <div class="footer">
+      <p>© 2026 EventOS Intelligent Orchestration<br>Powered by WiSE@TI</p>
+    </div>
+  </div>
+</body>
+</html>

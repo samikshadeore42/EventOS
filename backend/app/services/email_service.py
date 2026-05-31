@@ -149,39 +149,80 @@ class EmailService:
         import os
         from sendgrid import SendGridAPIClient
         
-        # 1. Preserve Teammate's Simulation Feature
-        api_key = os.environ.get('SENDGRID_API_KEY')
-        if not api_key or api_key == "SIMULATE":
-            print(f"🛑 SIMULATED EMAIL to {to_email}: {portal_url}")
-            return {"success": True, "simulated": True}
-
-        # 2. Fire the actual SendGrid Dynamic Template!
-        try:
-            sg = SendGridAPIClient(api_key)
-            sender_email = os.environ.get('SENDGRID_FROM_EMAIL', 'eventos862404@gmail.com')
-            
-            message = {
-                "personalizations": [
-                    {
-                        "to": [{"email": to_email, "name": recipient_name}],
-                        "dynamic_template_data": {
-                            "first_name": recipient_name.split(" ")[0],
-                            "team_name": "Your Assigned Team", 
-                            "magic_link": portal_url
-                        }
-                    }
-                ],
-                "from": {"email": sender_email, "name": "EventOS@TI"},
-                # Your exact Template ID
-                "template_id": "d-c486747eb35f4ed0acb2e1fb8dbc09f8" 
-            }
-            
-            response = sg.client.mail.send.post(request_body=message)
-            
-            if response.status_code in [200, 201, 202]:
-                return {"success": True, "simulated": False}
-            else:
-                return {"success": False, "error": str(response.body)}
+        role_lower = role.lower()
+        first_name = recipient_name.split(" ")[0]
+        
+        if role_lower in ["judge", "evaluator"]:
+            try:
+                template = env.get_template("evaluator_link.html")
+                html_content = template.render(
+                    evaluator_name=first_name,
+                    portal_url=portal_url,
+                    expires_in=expires_in,
+                    event_name="EventOS Hackathon"
+                )
+                subject = "Your EventOS Judge Portal Access"
                 
-        except Exception as e:
-            return {"success": False, "error": str(e)}
+                return EmailService.send_email(
+                    to_email,subject,html_content,
+                    recipient_name=recipient_name, template="evaluator_link", stage=stage 
+                )
+            
+            except Exception as e:
+                print(f"Failed to render evaluator template: {e}")
+                return {"success": False, "error": str(e)}
+
+        elif role_lower == "mentor":
+            try:
+                template = env.get_template("mentor_link.html")
+                html_content = template.render(
+                    mentor_name=first_name,
+                    portal_url=portal_url,
+                    expires_in=expires_in,
+                    event_name="WiSE@TI Hackathon"
+                )
+                subject = "Your WiSE@TI Mentor Portal Access"
+                
+                return EmailService.send_email(
+                    to_email, subject, html_content,
+                    recipient_name=recipient_name, template="mentor_link", stage=stage
+                )
+            except Exception as e:
+                print(f"Failed to render mentor template: {e}")
+                return {"success": False, "error": str(e)}
+        
+        else:
+            api_key = os.environ.get('SENDGRID_API_KEY')
+            if not api_key or api_key == "SIMULATE":
+                print(f"🛑 SIMULATED EMAIL to {to_email}: {portal_url}")
+                return {"success": True, "simulated": True}
+
+            try:
+                sg = SendGridAPIClient(api_key)
+                sender_email = os.environ.get('SENDGRID_FROM_EMAIL', 'eventos862404@gmail.com')
+                
+                message = {
+                    "personalizations": [
+                        {
+                            "to": [{"email": to_email, "name": recipient_name}],
+                            "dynamic_template_data": {
+                                "first_name": first_name,
+                                "team_name": "Your Assigned Team", 
+                                "magic_link": portal_url
+                            }
+                        }
+                    ],
+                    "from": {"email": sender_email, "name": "EventOS@TI"},
+                    "template_id": "d-c486747eb35f4ed0acb2e1fb8dbc09f8" 
+                }
+                
+                response = sg.client.mail.send.post(request_body=message)
+                
+                if response.status_code in [200, 201, 202]:
+                    return {"success": True, "simulated": False}
+                else:
+                    return {"success": False, "error": str(response.body)}
+                    
+            except Exception as e:
+                return {"success": False, "error": str(e)}
+        
