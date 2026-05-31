@@ -231,7 +231,6 @@ export const commsApi = {
 
 // ── AI / LLM drafting ─────────────────────────────────────────────────────
 export const aiApi = {
-  // draft_type: 'progression_invite' | 'milestone_blast' | 'evaluation_summary'
   draft: (body) =>
     api.post('/ai/communication', body),
 
@@ -240,6 +239,16 @@ export const aiApi = {
 
   bulkRationale: () =>
     api.post('/ai/team-rationale/bulk'),
+
+  // ADD THESE TWO:
+  explainAnomaly: (body) =>
+    api.post('/ai/explain-anomaly', body),
+
+  getResult: (taskId) =>
+    api.get(`/ai/result/${taskId}`),
+
+  rubric: (body) =>
+    api.post('/ai/rubric', body),
 
   health: () =>
     api.get('/ai/health'),

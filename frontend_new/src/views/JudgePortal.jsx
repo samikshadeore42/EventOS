@@ -4,9 +4,9 @@ import { useState, useEffect, useMemo } from 'react'
 import { useQuery, useMutation } from '@tanstack/react-query'
 import {
   ClipboardList, CheckCircle, Loader2, AlertTriangle,
-  ChevronRight, Send, RotateCcw, LogOut, Star,
+  ChevronRight, Send, RotateCcw, LogOut, Star, Wand2,
 } from 'lucide-react'
-import { portalApi, evaluationsApi } from '../services/api'
+import { portalApi, evaluationsApi, aiApi, solverApi } from '../services/api'
 import { useAuth } from '../context/AuthContext'
 import { tokenStorage } from '../services/api'
 
@@ -320,6 +320,37 @@ export default function JudgePortal() {
   const [selectedTeam, setSelectedTeam]   = useState(null)
   const [submittedIds, setSubmittedIds]   = useState([])
 
+  const [rubric, setRubric]           = useState(null)
+  const [rubricLoading, setRubricLoading] = useState(false)
+
+  useEffect(() => {
+    if (!selectedTeam) { setRubric(null); return }
+    setRubric(null)
+    setRubricLoading(true)
+    const criteriaWeights = Object.fromEntries(
+      CRITERIA.map(c => [c.label, c.weight])
+    )
+    aiApi.rubric({
+      challenge_area: 'WiSE@TI Hackathon Project',
+      criteria: criteriaWeights,
+      event_name: 'WiSE@TI Hackathon',
+    })
+      .then(async (res) => {
+        for (let i = 0; i < 20; i++) {
+          await new Promise(r => setTimeout(r, 2500))
+          const s = await solverApi.taskStatus(res.task_id)
+          if (s.status === 'success') {
+            setRubric(s.result)
+            setRubricLoading(false)
+            return
+          }
+          if (s.status === 'failed') break
+        }
+        setRubricLoading(false)
+      })
+      .catch(() => setRubricLoading(false))
+  }, [selectedTeam?.team_id])
+
   // Extract token from URL on mount (AuthContext also does this globally,
   // but we grab it here directly for the query so it runs immediately)
   const urlToken = useMemo(() => {
@@ -472,6 +503,39 @@ export default function JudgePortal() {
                       </div>
                     ))}
                   </div>
+
+                  {/* AI Rubric */}
+                  {selectedTeam && (
+                    <div className="mt-4 pt-4 border-t border-slate-700/30">
+                      <p className="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-3 flex items-center gap-1.5">
+                        <Wand2 size={12} /> AI Scoring Guide
+                      </p>
+                      {rubricLoading ? (
+                        <div className="flex items-center gap-2 text-xs text-slate-400">
+                          <Loader2 size={11} className="animate-spin" /> Generating rubric…
+                        </div>
+                      ) : rubric?.criteria?.length > 0 ? (
+                        <div className="space-y-3">
+                          {rubric.criteria.map((c, i) => (
+                            <div key={i} className="bg-slate-800/30 rounded-lg p-3">
+                              <p className="text-xs font-semibold text-indigo-300 mb-1">{c.name}</p>
+                              <p className="text-xs text-slate-400 mb-2">{c.description}</p>
+                              {c.scoring_guide && (
+                                <div className="space-y-1">
+                                  {Object.entries(c.scoring_guide).map(([band, desc]) => (
+                                    <div key={band} className="flex gap-2 text-xs">
+                                      <span className="text-teal-400 font-mono shrink-0 w-10">{band}</span>
+                                      <span className="text-slate-400">{desc}</span>
+                                    </div>
+                                  ))}
+                                </div>
+                              )}
+                            </div>
+                          ))}
+                        </div>
+                      ) : null}
+                    </div>
+                  )}
                 </div>
               )}
             </div>
