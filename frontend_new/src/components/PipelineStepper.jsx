@@ -2,7 +2,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import {
   CheckCircle,
-  Circle,
   Loader2,
   Users,
   GitBranch,
@@ -11,7 +10,7 @@ import {
   ChevronRight,
   RefreshCw,
 } from 'lucide-react'
-import { eventApi } from '../services/api'
+import { eventApi, eventStateApi } from '../services/api'
 
 // Each stage has a fixed icon; status decides the colour ring
 const STAGE_META = [
@@ -125,6 +124,13 @@ export default function PipelineStepper({ showAdvanceButton = false, className =
     refetchInterval: 30_000,
   })
 
+  const { data: eventState } = useQuery({
+    queryKey: ['event-state'],
+    queryFn: eventStateApi.get,
+    retry: false,
+    refetchInterval: 30_000,
+  })
+
   const advanceMutation = useMutation({
     mutationFn: () => eventApi.advanceStage(),
     onSuccess:  () => qc.invalidateQueries({ queryKey: ['event-config'] }),
@@ -140,8 +146,16 @@ export default function PipelineStepper({ showAdvanceButton = false, className =
     )
   }
 
-  const currentIndex = data?.current_stage_index ?? 0
-  const isAtLast     = currentIndex >= (data?.total_stages ?? 4) - 1
+  let currentIndex = data?.current_stage_index ?? 0
+  let currentStageName = data?.current_stage ?? 'registration'
+  
+  if (eventState && eventState.current_stage) {
+    currentStageName = eventState.current_stage
+    currentIndex = STAGE_META.findIndex(s => s.key === currentStageName)
+    if (currentIndex === -1) currentIndex = 0
+  }
+
+  const isAtLast = currentIndex >= (data?.total_stages ?? 4) - 1
 
   return (
     <div className={`glass-card border border-slate-700/50 rounded-xl p-5 ${className}`}>
@@ -159,7 +173,7 @@ export default function PipelineStepper({ showAdvanceButton = false, className =
           <p className="text-xs text-slate-500 mt-0.5">
             Stage {currentIndex + 1} of {data?.total_stages ?? 4} —{' '}
             <span className="text-indigo-400 font-medium capitalize">
-              {(data?.current_stage ?? 'registration').replace('_', ' ')}
+              {currentStageName.replace('_', ' ')}
             </span>
           </p>
         </div>
@@ -182,8 +196,14 @@ export default function PipelineStepper({ showAdvanceButton = false, className =
       {/* Stage track */}
       <div className="flex items-start">
         {STAGE_META.map((meta, index) => {
-          const stageEntry = data?.pipeline?.[index]
-          const status     = stageEntry?.status ?? 'pending'
+          let status = 'pending'
+          if (eventState && eventState.current_stage) {
+             if (index < currentIndex) status = 'completed'
+             else if (index === currentIndex) status = 'active'
+          } else {
+             const stageEntry = data?.pipeline?.[index]
+             status = stageEntry?.status ?? 'pending'
+          }
           return (
             <StageNode
               key={meta.key}

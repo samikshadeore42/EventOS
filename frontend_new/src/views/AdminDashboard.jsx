@@ -8,9 +8,9 @@ import {
   LayoutDashboard, Users, GitBranch, CheckSquare,
   UserCheck, Trophy, Mail, Upload, Download,
   Play, Loader2, Check, X, AlertTriangle,
-  ChevronDown, ChevronRight, RefreshCw, Wand2,
-  Send, Copy, Trash2, Plus, Eye, Shield,
-  BarChart2, FileText, Target, Calendar, MessageSquare, Activity,
+  ChevronDown, ChevronRight, Wand2,
+  BarChart2, MessageSquare, Activity, Target, Calendar,
+  Send, Copy, Trash2, Plus, Shield,
 } from 'lucide-react'
 import PipelineStepper from '../components/PipelineStepper'
 import {
@@ -21,9 +21,10 @@ import {
   leaderboardApi,
   commsApi,
   aiApi,
-  eventApi,
   mentorApi,
   portalApi,
+  demoAdminApi,
+  eventStateApi,
 } from '../services/api'
 
 // ── Shared micro-components ────────────────────────────────────────────────
@@ -1760,6 +1761,125 @@ function AnomalyTab() {
   )
 }
 
+// ── TAB: DEMO CONTROLS ───────────────────────────────────────────────────
+function DemoControlsTab() {
+  const qc = useQueryClient()
+  const [confirmText, setConfirmText] = useState('')
+
+  const { data: status, refetch: refetchStatus } = useQuery({
+    queryKey: ['demo-admin-status'],
+    queryFn: demoAdminApi.status,
+  })
+
+  const { data: eventState, refetch: refetchState } = useQuery({
+    queryKey: ['event-state'],
+    queryFn: eventStateApi.get,
+  })
+
+  const resetMutation = useMutation({
+    mutationFn: () => demoAdminApi.reset(confirmText),
+    onSuccess: (res) => {
+      alert(res.message + '\\n\\nDeleted:\\n' + JSON.stringify(res.deleted, null, 2))
+      setConfirmText('')
+      refetchStatus()
+      qc.invalidateQueries()
+    },
+    onError: (err) => alert('Error: ' + err.message)
+  })
+
+  const stageMutation = useMutation({
+    mutationFn: (stage) => eventStateApi.setStage(stage),
+    onSuccess: () => {
+      refetchState()
+      qc.invalidateQueries()
+    }
+  })
+  
+  const stepMutation = useMutation({
+    mutationFn: (dir) => dir === 'next' ? eventStateApi.next() : eventStateApi.previous(),
+    onSuccess: () => {
+      refetchState()
+      qc.invalidateQueries()
+    }
+  })
+
+  return (
+    <div>
+      <div className="mb-8">
+        <h2 className="text-lg font-semibold text-white mb-4">Demo Controls</h2>
+        
+        <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-6">
+          <StatCard label="Participants" value={status?.participants} colour="indigo" />
+          <StatCard label="Teams" value={status?.teams} colour="teal" />
+          <StatCard label="Evaluations" value={status?.evaluations} colour="amber" />
+          <StatCard label="Mentors" value={status?.mentors} colour="indigo" />
+          <StatCard label="Mentor Assignments" value={status?.mentor_assignments} colour="teal" />
+          <StatCard label="Comms Logs" value={status?.communication_logs} colour="amber" />
+        </div>
+
+        <div className="glass-card rounded-xl border border-red-500/50 p-6 bg-red-900/10 mb-8">
+          <h3 className="text-base font-bold text-red-400 flex items-center gap-2 mb-2">
+            <AlertTriangle size={18} /> Reset Demo Data
+          </h3>
+          <p className="text-sm text-slate-400 mb-4">
+            This clears participants, teams, evaluations, mentor assignments, feedback, sessions, and communication logs so you can restart the demo with the same CSV. Admin accounts are preserved.
+          </p>
+          <div className="flex gap-3 items-center">
+            <input
+              type="text"
+              value={confirmText}
+              onChange={e => setConfirmText(e.target.value)}
+              placeholder="Type RESET_DEMO_DATA"
+              className="bg-slate-900/50 border border-red-500/30 text-white rounded-lg px-4 py-2 text-sm focus:outline-none focus:border-red-500 w-64"
+            />
+            <button
+              onClick={() => resetMutation.mutate()}
+              disabled={confirmText !== 'RESET_DEMO_DATA' || resetMutation.isPending}
+              className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white text-sm font-medium rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+            >
+              {resetMutation.isPending ? <Loader2 size={16} className="animate-spin" /> : <Trash2 size={16} />}
+              Reset Data
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <h2 className="text-lg font-semibold text-white mb-4">Stage Controls</h2>
+        <div className="glass-card rounded-xl border border-slate-700/50 p-6">
+          <div className="flex items-center justify-between mb-6">
+            <div>
+              <p className="text-sm font-medium text-slate-400">Current Stage</p>
+              <p className="text-xl font-bold text-indigo-400 uppercase tracking-wide mt-1">
+                {eventState?.current_stage?.replace('_', ' ') || 'loading...'}
+              </p>
+            </div>
+            <div className="flex gap-2">
+              <button onClick={() => stepMutation.mutate('prev')} className="px-4 py-2 bg-slate-700 hover:bg-slate-600 text-white text-sm rounded-lg transition-colors">Previous</button>
+              <button onClick={() => stepMutation.mutate('next')} className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-sm rounded-lg transition-colors">Next</button>
+              <button onClick={() => eventStateApi.reset()} className="px-4 py-2 border border-slate-600 text-slate-300 hover:bg-slate-800 text-sm rounded-lg transition-colors ml-2">Reset to Registration</button>
+            </div>
+          </div>
+          
+          <div>
+            <label className="block text-xs font-medium text-slate-400 mb-2">Jump directly to stage:</label>
+            <select 
+              value={eventState?.current_stage || ''}
+              onChange={e => stageMutation.mutate(e.target.value)}
+              className="w-full md:w-64 bg-slate-900/50 text-white border border-slate-700/50 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300"
+            >
+              <option value="registration">Registration</option>
+              <option value="team_formation">Team Formation</option>
+              <option value="evaluation">Evaluation</option>
+              <option value="results">Results</option>
+            </select>
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 // ── MAIN DASHBOARD ─────────────────────────────────────────────────────────
 const TABS = [
   { key: 'overview',        label: 'Overview',       Icon: LayoutDashboard },
@@ -1771,6 +1891,7 @@ const TABS = [
   { key: 'communications',  label: 'Communications', Icon: Mail },
   { key: 'mentorops',       label: 'Mentor Ops',     Icon: Target },
   { key: 'anomaly',         label: 'Anomaly Scanner',Icon: Activity },
+  { key: 'democontrols',    label: 'Demo Controls',  Icon: AlertTriangle },
 ]
 
 export default function AdminDashboard() {
@@ -1786,6 +1907,7 @@ export default function AdminDashboard() {
     communications: <CommunicationsTab />,
     mentorops:      <MentorOpsTab />,
     anomaly:        <AnomalyTab />,
+    democontrols:   <DemoControlsTab />,
   }
 
   return (
