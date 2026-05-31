@@ -179,6 +179,30 @@ function ParticipantsTab() {
     onSuccess:  () => qc.invalidateQueries({ queryKey: ['participants'] }),
   })
 
+  // NEW: Mutation for sending bulk magic links via Celery worker
+  const sendLinksMutation = useMutation({
+    mutationFn: async () => {
+      // Adjust token retrieval based on your auth setup, if required
+      const adminToken = localStorage.getItem('adminToken') || localStorage.getItem('access_token') || '';
+      
+      const response = await fetch('http://localhost:8000/portal/generate-links?role=participant', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(adminToken ? { 'Authorization': `Bearer ${adminToken}` } : {})
+        },
+        // body: JSON.stringify({ role: "participant" })
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to dispatch links');
+      }
+      return response.json();
+    },
+    onSuccess: () => alert('Success! Magic links are being dispatched by the background worker.'),
+    onError: (error) => alert(`Error: ${error.message}`)
+  });
+
   function handleFile(file) {
     if (!file || !file.name.endsWith('.csv')) {
       alert('Please select a .csv file.')
@@ -281,23 +305,39 @@ function ParticipantsTab() {
         )}
       </div>
 
-      {/* Filter bar */}
-      <div className="flex gap-3 mb-4">
-        <input
-          value={search}
-          onChange={(e) => { setSearch(e.target.value); setPage(1) }}
-          placeholder="Search by name or email…"
-          className="flex-1 text-sm border border-slate-700/50 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-300"
-        />
-        <select
-          value={teamFilter}
-          onChange={(e) => { setTeamFilter(e.target.value); setPage(1) }}
-          className="text-sm border border-slate-700/50 rounded-lg px-3 py-2 focus:outline-none"
+      {/* Filter bar & Action Buttons */}
+      <div className="flex flex-col sm:flex-row gap-3 mb-4 justify-between items-center">
+        <div className="flex gap-3 w-full sm:w-auto">
+          <input
+            value={search}
+            onChange={(e) => { setSearch(e.target.value); setPage(1) }}
+            placeholder="Search by name or email…"
+            className="flex-1 sm:w-64 text-sm border border-slate-700/50 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-300"
+          />
+          <select
+            value={teamFilter}
+            onChange={(e) => { setTeamFilter(e.target.value); setPage(1) }}
+            className="text-sm border border-slate-700/50 rounded-lg px-3 py-2 focus:outline-none bg-slate-900"
+          >
+            <option value="">All</option>
+            <option value="false">Unassigned</option>
+            <option value="true">Assigned</option>
+          </select>
+        </div>
+        
+        {/* Bulk Send Button */}
+        <button
+          onClick={() => {
+            if (window.confirm('Send magic login links to ALL registered participants?')) {
+              sendLinksMutation.mutate();
+            }
+          }}
+          disabled={sendLinksMutation.isPending}
+          className="flex items-center gap-1.5 text-sm px-4 py-2 rounded-lg bg-indigo-600 text-white hover:bg-indigo-700 disabled:opacity-50 shadow-md whitespace-nowrap"
         >
-          <option value="">All</option>
-          <option value="false">Unassigned</option>
-          <option value="true">Assigned</option>
-        </select>
+          {sendLinksMutation.isPending ? <Loader2 size={16} className="animate-spin" /> : <Send size={16} />}
+          {sendLinksMutation.isPending ? 'Dispatching...' : 'Dispatch Magic Links'}
+        </button>
       </div>
 
       {/* Participants table */}
