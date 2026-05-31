@@ -522,8 +522,8 @@ export default function ParticipantPortal() {
           <AlertTriangle size={40} className="text-amber-400 mx-auto mb-4" />
           <h2 className="text-lg font-bold text-slate-200 mb-1">No access token</h2>
           <p className="text-sm text-slate-500">
-            Please use the secure link sent to your email.
-            It looks like <code className="text-xs bg-slate-700/50 px-1 py-0.5 rounded">/portal?token=…</code>
+            Please use the secure participant link sent to your email.
+            It looks like <code className="text-xs bg-slate-700/50 px-1 py-0.5 rounded">/participant?token=…</code>
           </p>
         </div>
       </div>

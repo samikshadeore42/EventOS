@@ -235,6 +235,9 @@ export const aiApi = {
   draft: (body) =>
     api.post('/ai/communication', body),
 
+  draftResult: (taskId) =>
+    api.get(`/ai/result/${taskId}`),
+
   teamRationale: (body) =>
     api.post('/ai/team-rationale', body),
 

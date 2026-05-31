@@ -348,7 +348,7 @@ export default function JudgePortal() {
         icon={AlertTriangle}
         iconClass="text-amber-400"
         title="No access token"
-        message="Please use the secure link sent to your email. It looks like /judge?token=..."
+        message="Please use the secure judge link sent to your email. It looks like /judge?token=..."
       />
     )
   }

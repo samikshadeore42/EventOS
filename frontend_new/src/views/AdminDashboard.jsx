@@ -23,6 +23,7 @@ import {
   aiApi,
   eventApi,
   mentorApi,
+  portalApi,
 } from '../services/api'
 
 // ── Shared micro-components ────────────────────────────────────────────────
@@ -76,7 +77,7 @@ function OverviewTab() {
       {/* Stats row */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
         <StatCard label="Participants"      value={summary?.total_participants} colour="indigo" sub="registered" />
-        <StatCard label="Unassigned"        value={summary?.unassigned}        colour="amber"  sub="need team assignment" />
+        <StatCard label="Unassigned Participants"        value={summary?.unassigned}        colour="amber"  sub="not yet in a team" />
         <StatCard label="Pending Approvals" value={pending?.total_pending}     colour="amber"  sub="teams awaiting review" />
         <StatCard label="Anomaly Flags"     value={anomalies?.total_flagged}   colour="red"    sub="scorecards on hold" />
       </div>
@@ -181,25 +182,10 @@ function ParticipantsTab() {
 
   // NEW: Mutation for sending bulk magic links via Celery worker
   const sendLinksMutation = useMutation({
-    mutationFn: async () => {
-      // Adjust token retrieval based on your auth setup, if required
-      const adminToken = localStorage.getItem('adminToken') || localStorage.getItem('access_token') || '';
-      
-      const response = await fetch('http://localhost:8000/portal/generate-links?role=participant', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          ...(adminToken ? { 'Authorization': `Bearer ${adminToken}` } : {})
-        },
-        // body: JSON.stringify({ role: "participant" })
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to dispatch links');
-      }
-      return response.json();
+    mutationFn: () => portalApi.generateLinks('participant', 'team_formation', true),
+    onSuccess: (res) => {
+      alert(`Generated ${res.generated_count || 0} links for ${res.role || 'participant'} (Queued: ${res.emails_queued}).\nLinks queued. Check Communications tab and worker logs for delivery status.`);
     },
-    onSuccess: () => alert('Success! Magic links are being dispatched by the background worker.'),
     onError: (error) => alert(`Error: ${error.message}`)
   });
 
@@ -227,7 +213,7 @@ function ParticipantsTab() {
         <div className="grid grid-cols-3 gap-4 mb-6">
           <StatCard label="Total"      value={summary.total_participants} colour="indigo" />
           <StatCard label="Assigned"   value={summary.assigned_to_team}  colour="teal" />
-          <StatCard label="Unassigned" value={summary.unassigned}        colour="amber" />
+          <StatCard label="Unassigned Participants" value={summary.unassigned}        colour="amber" sub="not yet in a team" />
         </div>
       )}
 
@@ -859,6 +845,9 @@ function EvaluatorsTab() {
           <Plus size={14} /> Add Evaluator
         </button>
       </div>
+      <p className="text-xs text-slate-400 mb-6 italic">
+        Evaluators receive secure magic links and score approved teams in the Judge Portal. Submitted scorecards update the leaderboard and anomaly scanner.
+      </p>
 
       {/* Add form */}
       {showForm && (
@@ -1079,12 +1068,52 @@ function CommunicationsTab() {
   })
 
   const draftMutation = useMutation({
-    mutationFn: () => {
+    mutationFn: async () => {
       let ctx
       try { ctx = JSON.parse(draftContext) } catch { throw new Error('Context is not valid JSON') }
-      return aiApi.draft({ draft_type: draftType, context: ctx, tone: draftTone, max_words: 200 })
+
+      const payloadMap = {
+        progression_invite: { stage: "progression", recipient_role: "participant" },
+        milestone_blast: { stage: "deadline_reminder", recipient_role: "participant" },
+        evaluation_summary: { stage: "results", recipient_role: "judge" }
+      };
+      const pInfo = payloadMap[draftType];
+
+      const res = await aiApi.draft({
+        stage: pInfo.stage,
+        recipient_role: pInfo.recipient_role,
+        recipient_name: ctx.participant_name || ctx.judge_name || 'Participant',
+        event_name: ctx.event_name || 'WiSE@TI Hackathon',
+        context: ctx,
+        tone: draftTone
+      });
+
+      if (!res.task_id) {
+        if (res.draft || res.body) return res;
+        throw new Error("No task ID returned from backend.");
+      }
+
+      for (let i = 0; i < 20; i++) {
+        await new Promise(r => setTimeout(r, 1000));
+        const statusRes = await solverApi.taskStatus(res.task_id);
+        if (statusRes.status === 'success') {
+          return await aiApi.draftResult(res.task_id);
+        }
+        if (statusRes.status === 'failed') {
+          throw new Error("AI draft generation failed.");
+        }
+      }
+      throw new Error("AI draft timed out. Please try again.");
     },
-    onSuccess: (res) => res.draft && setDraft(res.draft),
+    onSuccess: (res) => {
+      const resultDraft = res.draft || res.body || res;
+      if (resultDraft) {
+        setDraft({
+          subject: resultDraft.subject || 'Draft',
+          body_text: resultDraft.body_text || resultDraft.body || JSON.stringify(resultDraft)
+        })
+      }
+    },
   })
 
   const DRAFT_TYPES = [
@@ -1271,6 +1300,9 @@ function MentorOpsTab() {
   const [aiTeamId, setAiTeamId] = useState('')
   const [aiResult, setAiResult] = useState(null)
 
+  const getTeamId = (team) => team?.team_id || team?.id
+  const getTeamName = (team) => team?.team_name || team?.name || "Unnamed Team"
+
   const { data, isLoading } = useQuery({ queryKey: ['mentors'], queryFn: mentorApi.list })
   const { data: opsData } = useQuery({ queryKey: ['mentor-ops-summary'], queryFn: mentorApi.opsSummary, refetchInterval: 30_000 })
   const { data: riskData } = useQuery({ queryKey: ['mentor-risk-teams'], queryFn: mentorApi.riskTeams, refetchInterval: 30_000 })
@@ -1291,7 +1323,14 @@ function MentorOpsTab() {
     onSuccess: () => qc.invalidateQueries({ queryKey: ['mentors'] }),
   })
   const assignMutation = useMutation({
-    mutationFn: (vars) => mentorApi.assign(vars || { mentor_id: assignForm.mentor_id, team_id: assignForm.team_id }),
+    mutationFn: (vars) => {
+      const payload = vars || { mentor_id: assignForm.mentor_id, team_id: assignForm.team_id };
+      if (!payload.mentor_id || !payload.team_id) throw new Error("Mentor and Team must be selected.");
+      if (!/^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/.test(payload.team_id)) {
+        throw new Error("Invalid team selection. Please refresh teams and try again.");
+      }
+      return mentorApi.assign(payload);
+    },
     onSuccess: () => { qc.invalidateQueries({ queryKey: ['mentor-assignments'] }); qc.invalidateQueries({ queryKey: ['mentor-ops-summary'] }); qc.invalidateQueries({ queryKey: ['mentor-risk-teams'] }); qc.invalidateQueries({ queryKey: ['mentor-suggestions'] }); setShowAssignForm(false) },
   })
   const unassignMutation = useMutation({
@@ -1394,11 +1433,15 @@ function MentorOpsTab() {
                     <Badge colour={m.is_active ? 'teal' : 'red'}>{m.is_active ? 'Active' : 'Inactive'}</Badge>
                     {m.access_link_sent && <Badge colour="green"><Check size={10} /> Link sent</Badge>}
                   </div>
-                  <div className="flex gap-2 shrink-0">
-                    <button onClick={() => sendLinkMutation.mutate(m.id)} disabled={sendLinkMutation.isPending}
-                      title="Send access link" className="flex items-center gap-1 text-xs px-2.5 py-1.5 rounded-lg border border-indigo-500/30 text-indigo-400 hover:bg-indigo-900/30 disabled:opacity-50">
-                      {sendLinkMutation.isPending ? <Loader2 size={12} className="animate-spin" /> : <Send size={12} />} Link
-                    </button>
+                  <div className="flex gap-2 shrink-0 items-center">
+                    {m.assigned_team_count > 0 ? (
+                      <button onClick={() => sendLinkMutation.mutate(m.id)} disabled={sendLinkMutation.isPending}
+                        title="Send access link" className="flex items-center gap-1 text-xs px-2.5 py-1.5 rounded-lg border border-indigo-500/30 text-indigo-400 hover:bg-indigo-900/30 disabled:opacity-50">
+                        {sendLinkMutation.isPending ? <Loader2 size={12} className="animate-spin" /> : <Send size={12} />} Link
+                      </button>
+                    ) : (
+                      <span className="text-[10px] text-amber-500/70 mr-1 italic">Assign to a team first</span>
+                    )}
                     <button onClick={() => { if (window.confirm('Deactivate this mentor?')) deleteMutation.mutate(m.id) }}
                       className="p-1.5 text-slate-600 hover:text-red-500 rounded transition-colors"><Trash2 size={14} /></button>
                   </div>
@@ -1434,7 +1477,7 @@ function MentorOpsTab() {
               <select value={assignForm.team_id} onChange={e => setAssignForm(f => ({...f, team_id: e.target.value}))}
                 className="w-full border border-slate-700/50 bg-slate-900/50 text-white rounded-lg px-3 py-2 text-sm focus:outline-none">
                 <option value="">-- select team --</option>
-                {allTeams.filter(t => t.is_approved).map(t => <option key={t.id} value={t.id}>{t.team_name}</option>)}
+                {allTeams.filter(t => t.is_approved).map(t => <option key={getTeamId(t)} value={getTeamId(t)}>{getTeamName(t)}</option>)}
               </select>
             </div>
           </div>
@@ -1482,7 +1525,7 @@ function MentorOpsTab() {
                     <Badge colour="indigo">load: {c.current_load}</Badge>
                     <Badge colour="teal">score: {c.match_score}</Badge>
                     <button
-                      onClick={() => assignMutation.mutate({ mentor_id: c.mentor_id, team_id: s.team_id })}
+                      onClick={() => assignMutation.mutate({ mentor_id: c.mentor_id, team_id: getTeamId(s) })}
                       disabled={assignMutation.isPending}
                       className="ml-2 text-xs px-2 py-1 rounded bg-teal-900/30 text-teal-400 hover:bg-teal-900/50 border border-teal-500/30 disabled:opacity-50"
                     >
@@ -1530,7 +1573,10 @@ function MentorOpsTab() {
           {reminderMutation.isPending ? <Loader2 size={14} className="animate-spin" /> : <Mail size={14} />} Send Daily Reminders
         </button>
         {reminderMutation.isSuccess && (
-          <p className="text-xs text-teal-600">Reminders sent: {reminderMutation.data?.sent ?? 0}, simulated: {reminderMutation.data?.simulated ?? 0}</p>
+          <p className="text-xs text-teal-600">
+            {reminderMutation.data?.message}
+            {reminderMutation.data?.queued > 0 && ` (queued: ${reminderMutation.data?.queued}, sent: ${reminderMutation.data?.sent}, simulated: ${reminderMutation.data?.simulated}, failed: ${reminderMutation.data?.failed})`}
+          </p>
         )}
       </div>
 
@@ -1542,7 +1588,7 @@ function MentorOpsTab() {
             <select value={aiTeamId} onChange={e => setAiTeamId(e.target.value)}
               className="w-full border border-slate-700/50 bg-slate-900/50 text-white rounded-lg px-3 py-2 text-sm focus:outline-none">
               <option value="">-- select team --</option>
-              {allTeams.filter(t => t.is_approved).map(t => <option key={t.id} value={t.id}>{t.team_name}</option>)}
+              {allTeams.filter(t => t.is_approved).map(t => <option key={getTeamId(t)} value={getTeamId(t)}>{getTeamName(t)}</option>)}
             </select>
           </div>
           <button onClick={() => aiMutation.mutate(aiTeamId)} disabled={aiMutation.isPending || !aiTeamId}
