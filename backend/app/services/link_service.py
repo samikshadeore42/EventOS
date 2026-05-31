@@ -19,7 +19,9 @@ from app.schemas.portal_schemas import (
     TeamMemberPortalView,
 )
 
-FRONTEND_BASE_URL = os.getenv("FRONTEND_BASE_URL", "http://localhost:5173")
+
+# BASE_URL = os.getenv("BASE_URL", "http://localhost:8000")
+FRONTEND_URL = os.getenv("FRONTEND_URL", "http://localhost:5173")
 
 
 class LinkService:
@@ -35,7 +37,7 @@ class LinkService:
             stage=stage,
             expires_in=timedelta(days=expires_days)
         )
-        portal_url = f"{FRONTEND_BASE_URL}/participant?token={token}"
+        portal_url = f"{FRONTEND_URL}/participant?token={token}"
         return {
             "entity_id":  participant_id,
             "role":       "participant",
@@ -56,7 +58,7 @@ class LinkService:
             stage=stage,
             expires_in=timedelta(days=expires_days)
         )
-        portal_url = f"{FRONTEND_BASE_URL}/judge?token={token}"
+        portal_url = f"{FRONTEND_URL}/judge?token={token}"
         return {
             "entity_id":  evaluator_id,
             "role":       "evaluator",
@@ -85,7 +87,7 @@ class LinkService:
         db: Session,
         stage: str = "evaluation"
     ) -> list[dict]:
-        evaluators = db.query(Evaluator).filter(Evaluator.is_active == True).all() 
+        evaluators = db.query(Evaluator).filter(Evaluator.is_active == True).all()
         return [
             {
                 **LinkService.generate_evaluator_link(str(e.id), stage),
@@ -107,7 +109,7 @@ class LinkService:
             stage=stage,
             expires_in=timedelta(days=expires_days)
         )
-        portal_url = f"{FRONTEND_BASE_URL}/mentor?token={token}"
+        portal_url = f"{FRONTEND_URL}/mentor?token={token}"
         return {
             "entity_id":  mentor_id,
             "role":       "mentor",

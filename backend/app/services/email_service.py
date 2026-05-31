@@ -143,30 +143,45 @@ class EmailService:
             recipient_name=participant_name, template="team_assignment", stage="team_formation"
         )
 
-    @staticmethod
+   @staticmethod
     def send_access_link(to_email: str, recipient_name: str, role: str, stage: str, portal_url: str, expires_in: str) -> dict:
-        """Renders and sends a magic access link."""
-        # Check if access_link.html exists, else use a fallback HTML
+        """Sends a magic access link using the custom SendGrid Dynamic Template."""
+        import os
+        from sendgrid import SendGridAPIClient
+        
+        # 1. Preserve Teammate's Simulation Feature
+        api_key = os.environ.get('SENDGRID_API_KEY')
+        if not api_key or api_key == "SIMULATE":
+            print(f"🛑 SIMULATED EMAIL to {to_email}: {portal_url}")
+            return {"success": True, "simulated": True}
+
+        # 2. Fire the actual SendGrid Dynamic Template!
         try:
-            template = env.get_template("access_link.html")
-            html_content = template.render(
-                recipient_name=recipient_name,
-                role=role,
-                stage=stage,
-                portal_url=portal_url,
-                expires_in=expires_in,
-                support_email="support@eventos.com"
-            )
-        except Exception:
-            html_content = f"""
-            <h2>Hello {recipient_name},</h2>
-            <p>Here is your magic access link for the {stage} stage as a {role}.</p>
-            <p><a href="{portal_url}">Click here to access your portal</a></p>
-            <p>This link expires in {expires_in}. Do not share it.</p>
-            """
+            sg = SendGridAPIClient(api_key)
+            sender_email = os.environ.get('SENDGRID_FROM_EMAIL', 'eventos862404@gmail.com')
             
-        subject = f"Your EventOS Access Link ({role.title()})"
-        return EmailService.send_email(
-            to_email, subject, html_content,
-            recipient_name=recipient_name, template="access_link", stage=stage
-        )
+            message = {
+                "personalizations": [
+                    {
+                        "to": [{"email": to_email, "name": recipient_name}],
+                        "dynamic_template_data": {
+                            "first_name": recipient_name.split(" ")[0],
+                            "team_name": "Your Assigned Team", 
+                            "magic_link": portal_url
+                        }
+                    }
+                ],
+                "from": {"email": sender_email, "name": "EventOS@TI"},
+                # Your exact Template ID
+                "template_id": "d-c486747eb35f4ed0acb2e1fb8dbc09f8" 
+            }
+            
+            response = sg.client.mail.send.post(request_body=message)
+            
+            if response.status_code in [200, 201, 202]:
+                return {"success": True, "simulated": False}
+            else:
+                return {"success": False, "error": str(response.body)}
+                
+        except Exception as e:
+            return {"success": False, "error": str(e)}
