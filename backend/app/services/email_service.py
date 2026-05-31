@@ -143,7 +143,7 @@ class EmailService:
             recipient_name=participant_name, template="team_assignment", stage="team_formation"
         )
 
-   @staticmethod
+    @staticmethod
     def send_access_link(to_email: str, recipient_name: str, role: str, stage: str, portal_url: str, expires_in: str) -> dict:
         """Sends a magic access link using the custom SendGrid Dynamic Template."""
         import os
