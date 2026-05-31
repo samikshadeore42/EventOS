@@ -133,6 +133,12 @@ class LinkService:
             MentorAssignment.is_active == True,
         ).count()
 
+        if team_count == 0:
+            raise HTTPException(
+                status_code=422,
+                detail="Assign this mentor to at least one team before sending a portal link."
+            )
+
         link_data = LinkService.generate_mentor_link(str(mentor.id))
 
         result = EmailService.send_access_link(
