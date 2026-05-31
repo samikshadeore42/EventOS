@@ -4,6 +4,7 @@ from sqlalchemy.orm import Session
 from app.core.database import get_db
 from app.models.communication_log import CommunicationLog
 from pydantic import BaseModel
+import os
 from app.services.email_service import EmailService
 
 router = APIRouter(prefix="/communications", tags=["Communication Log"])
@@ -43,6 +44,46 @@ def get_communication_log(
             }
             for l in logs
         ]
+    }
+
+@router.get("/diagnostics", summary="Get email delivery diagnostics")
+def get_email_diagnostics():
+    mode = os.getenv("EMAIL_DELIVERY_MODE", "mock").lower()
+    api_key = os.getenv("SENDGRID_API_KEY")
+    from_email = os.getenv("SENDGRID_FROM_EMAIL")
+    frontend_base = os.getenv("FRONTEND_BASE_URL")
+    frontend_url = os.getenv("FRONTEND_URL")
+    
+    sendgrid_configured = bool(api_key and not api_key.startswith("SG.your_"))
+    redis_url = os.getenv("REDIS_URL")
+    
+    notes = []
+    
+    if mode == "sendgrid" and not sendgrid_configured:
+        notes.append("Warning: EMAIL_DELIVERY_MODE is 'sendgrid' but SENDGRID_API_KEY is missing or invalid.")
+    
+    if mode == "sendgrid" and not from_email:
+        notes.append("Warning: SENDGRID_FROM_EMAIL is missing.")
+        
+    if mode == "mock":
+        notes.append("Note: Running in 'mock' mode. Emails are simulated and will only appear in the Communication Log, not sent externally.")
+        
+    if frontend_base and frontend_url and frontend_base != frontend_url:
+        notes.append(f"Warning: FRONTEND_BASE_URL ({frontend_base}) and FRONTEND_URL ({frontend_url}) mismatch. FRONTEND_BASE_URL will be preferred.")
+    elif not frontend_base and not frontend_url:
+        notes.append("Warning: Neither FRONTEND_BASE_URL nor FRONTEND_URL is set. Magic links will default to http://localhost:5173.")
+        
+    if not redis_url:
+        notes.append("Warning: REDIS_URL is not set. Background tasks (like bulk dispatch) may fail.")
+        
+    return {
+        "email_delivery_mode": mode,
+        "sendgrid_configured": sendgrid_configured,
+        "from_email": from_email,
+        "from_name": os.getenv("SENDGRID_FROM_NAME"),
+        "redis_url_present": bool(redis_url),
+        "frontend_base_url": frontend_base or frontend_url or "http://localhost:5173",
+        "notes": notes
     }
 
 class TestEmailRequest(BaseModel):

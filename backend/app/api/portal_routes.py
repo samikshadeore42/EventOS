@@ -42,21 +42,34 @@ def generate_and_dispatch_links(
 
     if role == "participant":
         links = LinkService.generate_all_participant_links(db, stage)
+        if not links:
+            return {
+                "generated": 0,
+                "emails_queued": False,
+                "message": "No participants found. Upload roster before dispatching links."
+            }
     elif role == "evaluator":
         links = LinkService.generate_all_evaluator_links(db, stage)
     else:
         from fastapi import HTTPException
         raise HTTPException(status_code=400, detail="role must be 'participant' or 'evaluator'")
 
+    task_id = None
     if send_emails and links:
-        send_access_links.delay(links=links, role=role, stage=stage)
+        task = send_access_links.delay(links=links, role=role, stage=stage)
+        task_id = task.id
+
+    message = "Generated links but dispatch skipped."
+    if send_emails and links:
+        message = f"{len(links)} links generated and email dispatch queued. Check Communications tab for delivery status."
 
     return {
         "generated":    len(links),
         "role":         role,
         "stage":        stage,
-        "emails_queued": send_emails and len(links) > 0,
-        "message":      "Email dispatch queued." if (send_emails and len(links) > 0) else "Generated links but dispatch skipped.",
+        "emails_queued": bool(send_emails and links),
+        "task_id":      task_id,
+        "message":      message,
         "preview":      links[:2] if links else [],   # show first 2 for debug
     }
 

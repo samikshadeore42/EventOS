@@ -21,7 +21,11 @@ from app.schemas.portal_schemas import (
 
 
 # BASE_URL = os.getenv("BASE_URL", "http://localhost:8000")
-FRONTEND_URL = os.getenv("FRONTEND_URL", "http://localhost:5173")
+FRONTEND_URL = (
+    os.getenv("FRONTEND_BASE_URL")
+    or os.getenv("FRONTEND_URL")
+    or "http://localhost:5173"
+)
 
 
 class LinkService:
@@ -154,12 +158,19 @@ class LinkService:
         if is_success:
             mentor.access_link_sent = True
             db.commit()
+        else:
+            raise HTTPException(
+                status_code=502,
+                detail=f"Email delivery failed: {result.get('error', 'Unknown error')}"
+            )
 
         return {
             **link_data,
-            "email_sent": is_success,
+            "email_sent": True,
             "simulated": result.get("simulated", False),
             "assigned_teams": team_count,
+            "provider": result.get("provider"),
+            "message_id": result.get("message_id")
         }
 
     @staticmethod

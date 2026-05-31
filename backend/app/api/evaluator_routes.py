@@ -109,17 +109,31 @@ def send_evaluator_link(
         raise HTTPException(status_code=404, detail="Evaluator not found.")
 
     link_data = LinkService.generate_evaluator_link(str(evaluator_id), stage)
-    link_data["email"] = e.email
-    link_data["name"]  = f"{e.first_name} {e.last_name}"
-
-    from app.tasks.communications import send_access_links
-    send_access_links.delay(links=[link_data], role="evaluator", stage=stage)
-
-    e.access_link_sent = True
-    db.commit()
+    
+    from app.services.email_service import EmailService
+    result = EmailService.send_access_link(
+        to_email=e.email,
+        recipient_name=f"{e.first_name} {e.last_name}",
+        role="evaluator",
+        stage=stage,
+        portal_url=link_data["portal_url"],
+        expires_in=link_data["expires_in"]
+    )
+    
+    if result.get("success", False):
+        e.access_link_sent = True
+        db.commit()
+    else:
+        raise HTTPException(
+            status_code=502,
+            detail=f"Email delivery failed: {result.get('error', 'Unknown error')}"
+        )
 
     return {
-        "message":    f"Access link dispatched to {e.email}.",
-        "portal_url": link_data["portal_url"],
-        "expires_in": link_data["expires_in"],
+        "message": f"Access link sent to {e.email}.",
+        "email_sent": True,
+        "simulated": result.get("simulated", False),
+        "provider": result.get("provider"),
+        "message_id": result.get("message_id"),
+        "portal_url": link_data["portal_url"]
     }

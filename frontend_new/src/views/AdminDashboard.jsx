@@ -192,6 +192,7 @@ function ParticipantsTab() {
       } else {
          alert(res.message || "Generated links but dispatch skipped.");
       }
+      setTimeout(() => qc.invalidateQueries({ queryKey: ['comms-log'] }), 3000)
     },
     onError: (error) => alert(`Error: ${error.message}`)
   });
@@ -806,7 +807,6 @@ function EvaluatorsTab() {
   const qc = useQueryClient()
   const [showForm, setShowForm] = useState(false)
   const [form, setForm] = useState({ first_name: '', last_name: '', email: '', expertise_areas: '' })
-  const [linkSent, setLinkSent] = useState({})
 
   const { data, isLoading } = useQuery({ queryKey: ['evaluators'], queryFn: evaluatorsApi.list })
 
@@ -824,7 +824,11 @@ function EvaluatorsTab() {
 
   const sendLinkMutation = useMutation({
     mutationFn: (id) => evaluatorsApi.sendLink(id),
-    onSuccess: (_, id) => setLinkSent((s) => ({ ...s, [id]: true })),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['evaluators'] })
+      qc.invalidateQueries({ queryKey: ['comms-log'] })
+    },
+    onError: (error) => alert(`Error: ${error.response?.data?.detail || error.message}`)
   })
 
   const deleteMutation = useMutation({
@@ -913,7 +917,7 @@ function EvaluatorsTab() {
                     <div className="flex gap-2 shrink-0">
                       <button
                         onClick={() => sendLinkMutation.mutate(ev.id)}
-                        disabled={sendLinkMutation.isPending || linkSent[ev.id]}
+                        disabled={sendLinkMutation.isPending || ev.access_link_sent}
                         title="Send access link"
                         className="flex items-center gap-1 text-xs px-2.5 py-1.5 rounded-lg border border-indigo-200 text-indigo-400 hover:bg-indigo-900/30 disabled:opacity-50"
                       >
@@ -1162,6 +1166,9 @@ function CommunicationsTab() {
             </select>
           </div>
         </div>
+        <div className="px-4 py-2 bg-slate-800/30 border-b border-slate-700/30 text-[11px] text-slate-400">
+          <span className="font-medium">Note:</span> Queued means the background worker accepted the job. Sent/Failed is recorded after provider response.
+        </div>
 
         {isLoading
           ? <div className="p-4 space-y-2">{Array.from({length:5}).map((_,i)=><div key={i} className="h-8 bg-slate-700/50 rounded animate-pulse" />)}</div>
@@ -1184,7 +1191,16 @@ function CommunicationsTab() {
                       <td className="px-4 py-2.5"><Badge colour="gray">{log.template}</Badge></td>
                       <td className="px-4 py-2.5 text-slate-400 text-xs capitalize">{log.stage}</td>
                       <td className="px-4 py-2.5">
-                        <Badge colour={log.success ? 'green' : 'red'}>{log.success ? 'Sent' : 'Failed'}</Badge>
+                        <div className="flex flex-col gap-1">
+                          <div>
+                            <Badge colour={log.success ? 'green' : 'red'}>{log.success ? 'Sent' : 'Failed'}</Badge>
+                          </div>
+                          {!log.success && (
+                            <span className="text-[10px] text-red-400 leading-tight max-w-[200px] block truncate" title={log.error_message || "No provider error captured. Check Celery worker logs."}>
+                              {log.error_message || "No provider error captured. Check Celery worker logs."}
+                            </span>
+                          )}
+                        </div>
                       </td>
                       <td className="px-4 py-2.5 text-xs text-slate-500">
                         {new Date(log.sent_at).toLocaleString()}
@@ -1331,7 +1347,11 @@ function MentorOpsTab() {
   })
   const sendLinkMutation = useMutation({
     mutationFn: (id) => mentorApi.sendLink(id),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['mentors'] }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['mentors'] })
+      qc.invalidateQueries({ queryKey: ['comms-log'] })
+    },
+    onError: (error) => alert(`Error: ${error.response?.data?.detail || error.message}`)
   })
   const assignMutation = useMutation({
     mutationFn: (vars) => {
