@@ -504,59 +504,60 @@ export default function JudgePortal() {
                     ))}
                   </div>
 
-                  {/* AI Rubric */}
-                  {selectedTeam && (
-                    <div className="mt-4 pt-4 border-t border-slate-700/30">
-                      <p className="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-3 flex items-center gap-1.5">
-                        <Wand2 size={12} /> AI Scoring Guide
-                      </p>
-                      {rubricLoading ? (
-                        <div className="flex items-center gap-2 text-xs text-slate-400">
-                          <Loader2 size={11} className="animate-spin" /> Generating rubric…
-                        </div>
-                      ) : rubric?.criteria?.length > 0 ? (
-                        <div className="space-y-3">
-                          {rubric.criteria.map((c, i) => (
-                            <div key={i} className="bg-slate-800/30 rounded-lg p-3">
-                              <p className="text-xs font-semibold text-indigo-300 mb-1">{c.name}</p>
-                              <p className="text-xs text-slate-400 mb-2">{c.description}</p>
-                              {c.scoring_guide && (
-                                <div className="space-y-1">
-                                  {Object.entries(c.scoring_guide).map(([band, desc]) => (
-                                    <div key={band} className="flex gap-2 text-xs">
-                                      <span className="text-teal-400 font-mono shrink-0 w-10">{band}</span>
-                                      <span className="text-slate-400">{desc}</span>
-                                    </div>
-                                  ))}
-                                </div>
-                              )}
-                            </div>
-                          ))}
-                        </div>
-                      ) : null}
-                    </div>
-                  )}
                 </div>
               )}
             </div>
           )}
 
-          {/* Scoring form */}
-          {selectedTeam && (
-            <ScoringForm
-              key={selectedTeam.team_id}
-              team={selectedTeam}
-              token={urlToken}
-              onSubmitted={handleSubmitted}
-              alreadySubmitted={
-                submittedIds.includes(selectedTeam.team_id) ||
-                selectedTeam.already_graded
-              }
-            />
-          )}
+          {/* AI Rubric — shows above scoring form when team is selected */}
+            {selectedTeam && (
+              <div className="mb-4 glass-card rounded-xl border border-slate-700/50 p-5">
+                <p className="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-3 flex items-center gap-1.5">
+                  <Wand2 size={12} /> AI Scoring Guide
+                </p>
+                {rubricLoading ? (
+                  <div className="flex items-center gap-2 text-xs text-slate-400">
+                    <Loader2 size={11} className="animate-spin" /> Generating rubric…
+                  </div>
+                ) : rubric?.criteria?.length > 0 ? (
+                  <div className="space-y-3">
+                    {rubric.criteria.map((c, i) => (
+                      <div key={i} className="bg-slate-800/30 rounded-lg p-3">
+                        <p className="text-xs font-semibold text-indigo-300 mb-1">{c.name}</p>
+                        <p className="text-xs text-slate-400 mb-2">{c.description}</p>
+                        {c.scoring_guide && (
+                          <div className="space-y-1">
+                            {Object.entries(c.scoring_guide).map(([band, desc]) => (
+                              <div key={band} className="flex gap-2 text-xs">
+                                <span className="text-teal-400 font-mono shrink-0 w-10">{band}</span>
+                                <span className="text-slate-400">{String(desc)}</span>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                ) : null}
+              </div>
+            )}
 
-        </div>
-      </main>
-    </div>
-  )
-}
+            {/* Scoring form */}
+            {selectedTeam && (
+              <ScoringForm
+                key={selectedTeam.team_id}
+                team={selectedTeam}
+                token={urlToken}
+                onSubmitted={handleSubmitted}
+                alreadySubmitted={
+                  submittedIds.includes(selectedTeam.team_id) ||
+                  selectedTeam.already_graded
+                }
+              />
+            )}
+
+                    </div>
+                  </main>
+                </div>
+              )
+            }
