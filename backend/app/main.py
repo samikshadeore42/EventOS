@@ -25,6 +25,7 @@ from app.api.mentor_routes import router as mentor_router
 from app.api.admin_routes import router as admin_router
 from app.api.demo_admin_routes import router as demo_admin_router
 from app.api.event_state_routes import router as event_state_router
+from app.api.submission_routes import router as submission_router
 
 app = FastAPI(
     title="EventOS API",
@@ -57,6 +58,7 @@ app.include_router(mentor_router)
 app.include_router(admin_router)
 app.include_router(demo_admin_router)
 app.include_router(event_state_router)
+app.include_router(submission_router)
 
 @app.on_event("startup")
 async def startup():
