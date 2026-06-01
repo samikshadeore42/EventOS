@@ -8,7 +8,6 @@ import {
   CheckCircle, Clock, Circle, Users, AlertTriangle,
   ChevronDown, ChevronUp, CalendarDays,
   UserCheck, Video, ClipboardList, MessageSquare, Send, Trophy,
-  UploadCloud, FileArchive
 } from 'lucide-react'
 import { portalApi, mentorApi, submissionsApi } from '../services/api'
 import { useAuth } from '../context/AuthContext'
