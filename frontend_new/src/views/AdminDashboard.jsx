@@ -422,6 +422,44 @@ function TeamsTab() {
   const qc = useQueryClient()
   const [taskId, setTaskId]       = useState(null)
   const [committed, setCommitted] = useState(false)
+  const [rationales, setRationales] = useState({})   // { team_id: {status, text} }
+  const [generatingAll, setGeneratingAll] = useState(false)
+
+  const generateRationale = async (team) => {
+    const id = team.team_id
+    setRationales(r => ({...r, [id]: {status: 'loading', text: ''}}))
+    try {
+      const res = await aiApi.teamRationale({
+        team_name: team.team_name,
+        members: team.members.map(m => ({
+          name: m.name, institution: m.institution, skills: []
+        })),
+        distribution_rules: {
+          team_size: team.size,
+          max_per_institution: config.max_per_institution,
+        },
+      })
+      for (let i = 0; i < 25; i++) {
+        await new Promise(r => setTimeout(r, 2500))
+        const s = await solverApi.taskStatus(res.task_id)
+        if (s.status === 'success') {
+          setRationales(r => ({...r, [id]: {status: 'done', text: s.result?.rationale || ''}}))
+          return
+        }
+        if (s.status === 'failed') break
+      }
+      setRationales(r => ({...r, [id]: {status: 'error', text: 'Generation failed'}}))
+    } catch (e) {
+      setRationales(r => ({...r, [id]: {status: 'error', text: e.message}}))
+    }
+  }
+
+  const generateAllRationale = async () => {
+    if (!drafts?.teams) return
+    setGeneratingAll(true)
+    for (const t of drafts.teams) await generateRationale(t)
+    setGeneratingAll(false)
+  }
   const [config, setConfig] = useState({
     num_teams: 5, target_size: 4, k_min: 3, k_max: 5,
     max_per_institution: 1, use_mock_data: false,
@@ -573,8 +611,19 @@ function TeamsTab() {
               Draft lineups — {drafts.teams.length} teams, {drafts.total_participants} participants
             </h3>
             {!committed && (
-              <button
-                onClick={() => commitMutation.mutate()}
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={generateAllRationale}
+                  disabled={generatingAll}
+                  className="flex items-center gap-1.5 text-sm px-4 py-2 rounded-lg border border-indigo-500/50 text-indigo-400 hover:bg-indigo-900/30 disabled:opacity-50"
+                >
+                  {generatingAll
+                    ? <Loader2 size={14} className="animate-spin" />
+                    : <Wand2 size={14} />}
+                  {generatingAll ? 'Generating…' : 'Generate AI Rationale'}
+                </button>
+                <button
+                  onClick={() => commitMutation.mutate()}
                 disabled={commitMutation.isPending}
                 className="flex items-center gap-1.5 text-sm px-4 py-2 rounded-lg bg-teal-600 text-white hover:bg-teal-700 disabled:opacity-50"
               >
@@ -584,6 +633,7 @@ function TeamsTab() {
                 }
                 Commit to Approval Queue
               </button>
+              </div>
             )}
             {committed && (
               <Badge colour="green"><Check size={12} /> Committed — check Approvals tab</Badge>
@@ -630,6 +680,35 @@ function TeamsTab() {
                     </div>
                   </div>
                 )}
+
+                {/* ── AI Rationale ── */}
+                <div className="mt-3 pt-3 border-t border-slate-700/30">
+                  {!rationales[team.team_id] ? (
+                    <button
+                      onClick={() => generateRationale(team)}
+                      className="flex items-center gap-1 text-xs text-indigo-400 hover:text-indigo-300 transition-colors"
+                    >
+                      <Wand2 size={11} /> Generate rationale
+                    </button>
+                  ) : rationales[team.team_id].status === 'loading' ? (
+                    <div className="flex items-center gap-1.5 text-xs text-slate-400">
+                      <Loader2 size={11} className="animate-spin" /> Generating…
+                    </div>
+                  ) : rationales[team.team_id].status === 'done' ? (
+                    <div className="bg-indigo-900/20 border border-indigo-700/30 rounded-lg p-2.5">
+                      <p className="text-xs font-medium text-indigo-400 mb-1 flex items-center gap-1">
+                        <Wand2 size={11} /> AI Rationale
+                      </p>
+                      <p className="text-xs text-indigo-200 leading-relaxed">
+                        {rationales[team.team_id].text}
+                      </p>
+                    </div>
+                  ) : (
+                    <p className="text-xs text-red-400 flex items-center gap-1">
+                      <AlertTriangle size={11} /> {rationales[team.team_id].text}
+                    </p>
+                  )}
+                </div>
               </div>
             ))}
           </div>
@@ -1084,53 +1163,40 @@ function CommunicationsTab() {
   })
 
   const draftMutation = useMutation({
-    mutationFn: async () => {
-      let ctx
-      try { ctx = JSON.parse(draftContext) } catch { throw new Error('Context is not valid JSON') }
+  mutationFn: async () => {
+    let ctx = draftContext
+    try { ctx = JSON.parse(draftContext) } catch { throw new Error('Context is not valid JSON') }
 
-      const payloadMap = {
-        progression_invite: { stage: "progression", recipient_role: "participant" },
-        milestone_blast: { stage: "deadline_reminder", recipient_role: "participant" },
-        evaluation_summary: { stage: "results", recipient_role: "judge" }
-      };
-      const pInfo = payloadMap[draftType];
+    const stageMap = {
+      progression_invite: 'progression',
+      milestone_blast:    'welcome',
+      evaluation_summary: 'results',
+    }
 
-      const res = await aiApi.draft({
-        stage: pInfo.stage,
-        recipient_role: pInfo.recipient_role,
-        recipient_name: ctx.participant_name || ctx.judge_name || 'Participant',
-        event_name: ctx.event_name || 'WiSE@TI Hackathon',
-        context: ctx,
-        tone: draftTone
-      });
+    // Enqueue the task
+    const enqueued = await aiApi.draft({
+      stage:          stageMap[draftType] || 'welcome',
+      recipient_name: ctx.participant_name || ctx.team_name || 'Participant',
+      recipient_role: 'participant',
+      event_name:     ctx.event_name || 'WiSE@TI Hackathon',
+      context:        ctx,
+    })
 
-      if (!res.task_id) {
-        if (res.draft || res.body) return res;
-        throw new Error("No task ID returned from backend.");
+    // Poll until done
+    for (let i = 0; i < 25; i++) {
+      await new Promise(r => setTimeout(r, 2500))
+      const s = await solverApi.taskStatus(enqueued.task_id)
+      if (s.status === 'success') {
+        return { subject: s.result.subject, body_text: s.result.body }
       }
-
-      for (let i = 0; i < 20; i++) {
-        await new Promise(r => setTimeout(r, 1000));
-        const statusRes = await solverApi.taskStatus(res.task_id);
-        if (statusRes.status === 'success') {
-          return await aiApi.draftResult(res.task_id);
-        }
-        if (statusRes.status === 'failed') {
-          throw new Error("AI draft generation failed.");
-        }
+      if (s.status === 'failed') {
+        throw new Error(s.error || 'Email generation failed')
       }
-      throw new Error("AI draft timed out. Please try again.");
-    },
-    onSuccess: (res) => {
-      const resultDraft = res.draft || res.body || res;
-      if (resultDraft) {
-        setDraft({
-          subject: resultDraft.subject || 'Draft',
-          body_text: resultDraft.body_text || resultDraft.body || JSON.stringify(resultDraft)
-        })
-      }
-    },
-  })
+    }
+    throw new Error('Timed out waiting for email draft')
+  },
+  onSuccess: (res) => setDraft(res),
+})
 
   const DRAFT_TYPES = [
     { value: 'progression_invite',  label: 'Progression Invite' },
@@ -1660,6 +1726,41 @@ function MentorOpsTab() {
 function AnomalyTab() {
   const qc = useQueryClient()
   
+  const [explanations, setExplanations] = useState({})
+
+  const generateExplanation = async (team) => {
+    const id = team.team_id
+    setExplanations(e => ({...e, [id]: {status: 'loading', text: ''}}))
+    try {
+      const res = await aiApi.explainAnomaly({
+        anomaly: {
+          kind: 'score_anomaly',
+          severity: 'high',
+          judge_id: 'panel',
+          team_id: id,
+          score: team.weighted_total || team.total_score || 0,
+          expected: 0,
+          metric: 0,
+          threshold: 2.0,
+          explanation: team.flag_reason || 'Statistical variance in judge scores',
+        },
+        team_name: team.team_name,
+      })
+      for (let i = 0; i < 20; i++) {
+        await new Promise(r => setTimeout(r, 2500))
+        const s = await solverApi.taskStatus(res.task_id)
+        if (s.status === 'success') {
+          setExplanations(e => ({...e, [id]: {status: 'done', text: s.result?.narrative || ''}}))
+          return
+        }
+        if (s.status === 'failed') break
+      }
+      setExplanations(e => ({...e, [id]: {status: 'error', text: 'Generation failed'}}))
+    } catch (err) {
+      setExplanations(e => ({...e, [id]: {status: 'error', text: err.message}}))
+    }
+  }
+
   const { data, isLoading } = useQuery({
     queryKey: ['anomalies'],
     queryFn: leaderboardApi.anomalies,
@@ -1780,7 +1881,39 @@ function AnomalyTab() {
                 </div>
                 <div className="text-sm text-slate-300 space-y-1">
                   <p><span className="text-slate-500">Weighted Score:</span> {team.weighted_total?.toFixed(2) || team.total_score}</p>
-                  <p><span className="text-slate-500">Anomaly Reason:</span> <span className="text-amber-400 font-mono">Statistical Variance Exception</span></p>
+                  <p>
+                    <span className="text-slate-500">Anomaly Reason:</span>{' '}
+                    <span className="text-amber-400 font-mono text-xs">
+                      {team.flag_reason || 'Statistical Variance Exception'}
+                    </span>
+                  </p>
+
+                  {/* AI Explanation */}
+                  <div className="mt-2">
+                    {!explanations[team.team_id] ? (
+                      <button
+                        onClick={() => generateExplanation(team)}
+                        className="flex items-center gap-1 text-xs text-indigo-400 hover:text-indigo-300"
+                      >
+                        <Wand2 size={11} /> AI Explain
+                      </button>
+                    ) : explanations[team.team_id].status === 'loading' ? (
+                      <div className="flex items-center gap-1.5 text-xs text-slate-400">
+                        <Loader2 size={11} className="animate-spin" /> Generating explanation…
+                      </div>
+                    ) : explanations[team.team_id].status === 'done' ? (
+                      <div className="bg-indigo-900/20 border border-indigo-700/30 rounded-lg p-2.5 mt-1">
+                        <p className="text-xs font-medium text-indigo-400 mb-1 flex items-center gap-1">
+                          <Wand2 size={11} /> AI Explanation
+                        </p>
+                        <p className="text-xs text-indigo-200 leading-relaxed">
+                          {explanations[team.team_id].text}
+                        </p>
+                      </div>
+                    ) : (
+                      <p className="text-xs text-red-400">{explanations[team.team_id].text}</p>
+                    )}
+                  </div>
                   <p><span className="text-slate-500">Detector Confidence:</span> 99.4%</p>
                 </div>
               </div>
