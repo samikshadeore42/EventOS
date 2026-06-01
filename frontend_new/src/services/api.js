@@ -234,6 +234,9 @@ export const aiApi = {
   draft: (body) =>
     api.post('/ai/communication', body),
 
+  draftResult: (taskId) =>
+    api.get(`/ai/result/${taskId}`),
+
   teamRationale: (body) =>
     api.post('/ai/team-rationale', body),
 
@@ -252,6 +255,33 @@ export const aiApi = {
 
   health: () =>
     api.get('/ai/health'),
+}
+
+// ── Demo Admin Controls ───────────────────────────────────────────────────
+export const demoAdminApi = {
+  status: () =>
+    api.get('/demo-admin/status'),
+
+  reset: (confirm, preserveAdmins = true) =>
+    api.post('/demo-admin/reset', { confirm, preserve_admins: preserveAdmins }),
+}
+
+// ── Event State (Hackathon stage) ─────────────────────────────────────────
+export const eventStateApi = {
+  get: () =>
+    api.get('/event-state'),
+
+  setStage: (stage) =>
+    api.post('/event-state/set', { stage }),
+
+  next: () =>
+    api.post('/event-state/next'),
+
+  previous: () =>
+    api.post('/event-state/previous'),
+
+  reset: () =>
+    api.post('/event-state/reset'),
 }
 
 // ── Mentor Operations ─────────────────────────────────────────────────────

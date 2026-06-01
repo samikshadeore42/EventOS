@@ -254,7 +254,7 @@ function TeamQueueSidebar({ teams, selectedId, submittedIds, onSelect, evaluator
           </div>
           <div className="w-full bg-slate-700/50 rounded-full h-1.5">
             <div
-              className="bg-teal-900/300 h-1.5 rounded-full transition-all"
+              className="bg-teal-900/30 h-1.5 rounded-full transition-all"
               style={{ width: `${teams.length ? (submittedIds.length / teams.length) * 100 : 0}%` }}
             />
           </div>
@@ -379,7 +379,7 @@ export default function JudgePortal() {
         icon={AlertTriangle}
         iconClass="text-amber-400"
         title="No access token"
-        message="Please use the secure link sent to your email. It looks like /judge?token=..."
+        message="Please use the secure judge link sent to your email. It looks like /judge?token=..."
       />
     )
   }

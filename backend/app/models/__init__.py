@@ -8,5 +8,7 @@ from app.models import mentor  # noqa
 from app.models.mentor import Mentor, MentorAssignment, MentorSession, MentorFeedback
 from app.models import admin # noqa
 from app.models.admin import Employee, Admin
+from app.models import event_state
+from app.models.event_state import EventState
 
-__all__ = ["Participant", "Team", "Mentor", "MentorAssignment", "MentorSession", "MentorFeedback", "Employee", "Admin"]
+__all__ = ["Participant", "Team", "Mentor", "MentorAssignment", "MentorSession", "MentorFeedback", "Employee", "Admin", "EventState"]

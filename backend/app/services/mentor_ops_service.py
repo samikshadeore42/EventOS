@@ -380,6 +380,11 @@ class MentorOpsService:
             else:
                 result.failed += 1
 
+        if result.queued == 0:
+            result.message = "No reminders sent. There are no assigned mentors missing today's update."
+        else:
+            result.message = "Daily mentor reminders processed."
+            
         result.affected_teams = affected_teams
         return result
 

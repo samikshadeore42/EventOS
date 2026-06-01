@@ -2,7 +2,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import {
   CheckCircle,
-  Circle,
   Loader2,
   Users,
   GitBranch,
@@ -11,7 +10,7 @@ import {
   ChevronRight,
   RefreshCw,
 } from 'lucide-react'
-import { eventApi } from '../services/api'
+import { eventApi, eventStateApi } from '../services/api'
 
 // Each stage has a fixed icon; status decides the colour ring
 const STAGE_META = [
@@ -125,9 +124,21 @@ export default function PipelineStepper({ showAdvanceButton = false, className =
     refetchInterval: 30_000,
   })
 
+  const { data: eventState } = useQuery({
+    queryKey: ['event-state'],
+    queryFn: eventStateApi.get,
+    retry: false,
+    refetchInterval: 30_000,
+  })
+
   const advanceMutation = useMutation({
-    mutationFn: () => eventApi.advanceStage(),
-    onSuccess:  () => qc.invalidateQueries({ queryKey: ['event-config'] }),
+    mutationFn: () => eventStateApi.next(),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['event-state'] }),
+  })
+
+  const previousMutation = useMutation({
+    mutationFn: () => eventStateApi.previous(),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['event-state'] }),
   })
 
   if (isLoading) return <SkeletonStepper />
@@ -140,9 +151,16 @@ export default function PipelineStepper({ showAdvanceButton = false, className =
     )
   }
 
-  const currentIndex = data?.current_stage_index ?? 0
-  const isAtLast     = currentIndex >= (data?.total_stages ?? 4) - 1
+  let currentIndex = data?.current_stage_index ?? 0
+  let currentStageName = data?.current_stage ?? 'registration'
+  
+  if (eventState && eventState.current_stage) {
+    currentStageName = eventState.current_stage
+    currentIndex = STAGE_META.findIndex(s => s.key === currentStageName)
+    if (currentIndex === -1) currentIndex = 0
+  }
 
+  // isAtLast is unused since we removed the check for showAdvanceButton
   return (
     <div className={`glass-card border border-slate-700/50 rounded-xl p-5 ${className}`}>
       {/* Header row */}
@@ -159,31 +177,51 @@ export default function PipelineStepper({ showAdvanceButton = false, className =
           <p className="text-xs text-slate-500 mt-0.5">
             Stage {currentIndex + 1} of {data?.total_stages ?? 4} —{' '}
             <span className="text-indigo-400 font-medium capitalize">
-              {(data?.current_stage ?? 'registration').replace('_', ' ')}
+              {currentStageName.replace('_', ' ')}
             </span>
           </p>
         </div>
 
-        {showAdvanceButton && !isAtLast && (
-          <button
-            onClick={() => advanceMutation.mutate()}
-            disabled={advanceMutation.isPending}
-            className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg btn-primary text-white hover:bg-indigo-700 disabled:opacity-50 transition-colors shrink-0 ml-4"
-          >
-            {advanceMutation.isPending
-              ? <Loader2 size={12} className="animate-spin" />
-              : <ChevronRight size={12} />
-            }
-            {advanceMutation.isPending ? 'Advancing…' : 'Advance Stage'}
-          </button>
+        {showAdvanceButton && (
+          <div className="flex gap-2 shrink-0 ml-4">
+            <button
+              onClick={() => {
+                previousMutation.mutate(undefined, {
+                  onError: (err) => alert(err.message)
+                })
+              }}
+              disabled={previousMutation.isPending}
+              className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg border border-slate-600 text-slate-300 hover:bg-slate-800 disabled:opacity-50 transition-colors"
+            >
+              Previous
+            </button>
+            <button
+              onClick={() => {
+                advanceMutation.mutate(undefined, {
+                  onError: (err) => alert(err.message)
+                })
+              }}
+              disabled={advanceMutation.isPending}
+              className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg btn-primary text-white hover:bg-indigo-700 disabled:opacity-50 transition-colors"
+            >
+              {advanceMutation.isPending ? <Loader2 size={12} className="animate-spin" /> : <ChevronRight size={12} />}
+              {advanceMutation.isPending ? 'Advancing…' : 'Advance Stage'}
+            </button>
+          </div>
         )}
       </div>
 
       {/* Stage track */}
       <div className="flex items-start">
         {STAGE_META.map((meta, index) => {
-          const stageEntry = data?.pipeline?.[index]
-          const status     = stageEntry?.status ?? 'pending'
+          let status = 'pending'
+          if (eventState && eventState.current_stage) {
+             if (index < currentIndex) status = 'completed'
+             else if (index === currentIndex) status = 'active'
+          } else {
+             const stageEntry = data?.pipeline?.[index]
+             status = stageEntry?.status ?? 'pending'
+          }
           return (
             <StageNode
               key={meta.key}
@@ -196,9 +234,9 @@ export default function PipelineStepper({ showAdvanceButton = false, className =
       </div>
 
       {/* Mutation error */}
-      {advanceMutation.isError && (
+      {(advanceMutation.isError || previousMutation.isError) && (
         <p className="mt-3 text-xs text-red-500">
-          {advanceMutation.error?.message ?? 'Failed to advance stage.'}
+          {advanceMutation.error?.message || previousMutation.error?.message || 'Failed to change stage.'}
         </p>
       )}
     </div>
