@@ -3,14 +3,14 @@
 // Flow: extract token → GET /portal/access → render personalised journey.
 
 import { useState, useEffect, useMemo } from 'react'
-import { useQuery } from '@tanstack/react-query'
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import {
   CheckCircle, Clock, Circle, Users, AlertTriangle,
   ChevronDown, ChevronUp, CalendarDays,
   UserCheck, Video, ClipboardList, MessageSquare, Send, Trophy,
-  
+  UploadCloud, FileArchive
 } from 'lucide-react'
-import { portalApi, mentorApi } from '../services/api'
+import { portalApi, mentorApi, submissionsApi } from '../services/api'
 import { useAuth } from '../context/AuthContext'
 
 // ── Helpers ────────────────────────────────────────────────────────────────
@@ -377,39 +377,98 @@ function KeyDatesCard({ stage }) {
 
 // ── Project submission section ───────────────────────────────────────────────
 
-function ProjectSubmissionSection() {
-  const [url, setUrl] = useState('')
-  const [submitted, setSubmitted] = useState(false)
+function ProjectSubmissionSection({ teamAssigned, projectSubmission }) {
+  const [file, setFile] = useState(null)
+  const [errorMsg, setErrorMsg] = useState('')
+  const queryClient = useQueryClient()
+
+  const uploadMutation = useMutation({
+    mutationFn: (f) => submissionsApi.participantUpload(f),
+    onSuccess: () => {
+      setFile(null)
+      setErrorMsg('')
+      queryClient.invalidateQueries(['portal-access'])
+    },
+    onError: (err) => {
+      setErrorMsg(err.message || 'Upload failed')
+    }
+  })
+
+  const handleFileChange = (e) => {
+    const selected = e.target.files[0]
+    if (!selected) return
+    if (!selected.name.toLowerCase().endsWith('.zip')) {
+      setErrorMsg('Please upload a .zip file.')
+      setFile(null)
+      return
+    }
+    setErrorMsg('')
+    setFile(selected)
+  }
+
+  const handleUpload = () => {
+    if (!file) return
+    uploadMutation.mutate(file)
+  }
+
+  if (!teamAssigned) {
+    return (
+      <div className="glass-card rounded-2xl border border-slate-700/50 p-6 mb-6 opacity-50">
+         <div className="flex items-center gap-2 mb-4">
+           <Send size={16} className="text-indigo-500" />
+           <h3 className="text-sm font-semibold text-slate-100">Submit Project</h3>
+         </div>
+         <p className="text-sm text-slate-400 text-center py-4">Project submission unlocks after team assignment.</p>
+      </div>
+    )
+  }
   
   return (
     <div className="glass-card rounded-2xl border border-slate-700/50 p-6 mb-6">
        <div className="flex items-center gap-2 mb-4">
          <Send size={16} className="text-indigo-500" />
-         <h3 className="text-sm font-semibold text-slate-100">Submit Final Project</h3>
+         <h3 className="text-sm font-semibold text-slate-100">Submit Project</h3>
        </div>
-       {submitted ? (
-         <div className="bg-teal-900/30 border border-teal-500/30 rounded-xl p-4 text-center">
+       {projectSubmission ? (
+         <div className="bg-teal-900/30 border border-teal-500/30 rounded-xl p-4 text-center mb-4">
             <CheckCircle size={24} className="text-teal-400 mx-auto mb-2" />
-            <p className="text-sm font-semibold text-teal-300">Project Submitted Successfully</p>
-            <p className="text-xs text-teal-500 mt-1">{url}</p>
+            <p className="text-sm font-semibold text-teal-300">Project submitted successfully</p>
+            <div className="text-xs text-teal-500 mt-2 space-y-1">
+              <p>File: {projectSubmission.original_filename}</p>
+              <p>Size: {(projectSubmission.file_size_bytes / 1024 / 1024).toFixed(2)} MB</p>
+              <p>Updated: {new Date(projectSubmission.updated_at || projectSubmission.created_at).toLocaleString()}</p>
+            </div>
          </div>
-       ) : (
-         <div className="flex gap-2">
+       ) : null}
+
+       <div className="space-y-3">
+         {projectSubmission && (
+           <p className="text-xs text-slate-400">Want to update your submission? Upload a new ZIP below.</p>
+         )}
+         <div className="flex flex-col gap-2">
            <input 
-             type="url" 
-             placeholder="https://github.com/your-repo..." 
-             className="flex-1 bg-slate-900/50 border border-slate-700/50 rounded-lg px-4 py-2 text-sm text-white focus:outline-none focus:border-indigo-500"
-             value={url}
-             onChange={e => setUrl(e.target.value)}
+             type="file" 
+             accept=".zip"
+             onChange={handleFileChange}
+             className="block w-full text-sm text-slate-300
+               file:mr-4 file:py-2 file:px-4
+               file:rounded-full file:border-0
+               file:text-sm file:font-semibold
+               file:bg-indigo-900/50 file:text-indigo-300
+               hover:file:bg-indigo-900/70 cursor-pointer"
            />
+           {errorMsg && (
+             <p className="text-xs text-red-400">{errorMsg}</p>
+           )}
            <button 
-             onClick={() => { if(url) setSubmitted(true) }}
-             className="btn-primary px-4 py-2 rounded-lg text-sm font-medium flex items-center gap-2"
+             onClick={handleUpload}
+             disabled={!file || uploadMutation.isPending}
+             className="btn-primary px-4 py-2 rounded-lg text-sm font-medium flex items-center justify-center gap-2 disabled:opacity-50 mt-2"
            >
-             Submit
+             {uploadMutation.isPending ? 'Uploading...' : (projectSubmission ? 'Replace ZIP' : 'Upload ZIP')}
            </button>
          </div>
-       )}
+       </div>
     </div>
   )
 }
@@ -614,7 +673,7 @@ export default function ParticipantPortal() {
         }
 
         {/* Project Submission (Evaluation Stage) */}
-        {team_assigned && stage === 'evaluation' && <ProjectSubmissionSection />}
+        {stage === 'evaluation' && <ProjectSubmissionSection teamAssigned={team_assigned} projectSubmission={data.project_submission} />}
 
         {/* Results (Results Stage) */}
         {stage === 'results' && <ResultsSection data={data} />}
