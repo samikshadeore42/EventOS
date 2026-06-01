@@ -6,7 +6,7 @@ import { useState, useEffect, useMemo } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import {
   CheckCircle, Clock, Circle, Users, AlertTriangle,
-  Loader2, ChevronDown, ChevronUp, CalendarDays, Mail,
+  ChevronDown, ChevronUp, CalendarDays,
   UserCheck, Video, ClipboardList, MessageSquare, Send, Trophy,
   
 } from 'lucide-react'
@@ -377,7 +377,7 @@ function KeyDatesCard({ stage }) {
 
 // ── Project submission section ───────────────────────────────────────────────
 
-function ProjectSubmissionSection({ participantId }) {
+function ProjectSubmissionSection() {
   const [url, setUrl] = useState('')
   const [submitted, setSubmitted] = useState(false)
   
@@ -502,7 +502,8 @@ export default function ParticipantPortal() {
     queryFn:   () => portalApi.access(urlToken),
     enabled:   !!urlToken,
     retry:     false,
-    staleTime: 5 * 60 * 1000,
+    staleTime: 0,
+    refetchInterval: 15000,
   })
 
   // Fetch mentor info for participants
@@ -613,7 +614,7 @@ export default function ParticipantPortal() {
         }
 
         {/* Project Submission (Evaluation Stage) */}
-        {team_assigned && stage === 'evaluation' && <ProjectSubmissionSection participantId={data.participant_id} />}
+        {team_assigned && stage === 'evaluation' && <ProjectSubmissionSection />}
 
         {/* Results (Results Stage) */}
         {stage === 'results' && <ResultsSection data={data} />}
