@@ -32,7 +32,8 @@ api.interceptors.request.use(
       config.url?.includes('/portal/access') ||
       config.url?.includes('/evaluations') ||
       config.url?.includes('/mentor-portal/') ||
-      config.url?.includes('/participant-mentor-info')
+      config.url?.includes('/participant-mentor-info') ||
+      config.url?.includes('/submissions')
 
     if (needsQueryToken) {
       config.params = { ...config.params, token }
@@ -319,6 +320,26 @@ export const mentorApi = {
 
   // Participant-safe mentor info
   participantInfo: () => api.get('/participant-mentor-info'),
+}
+
+// ── Submissions ────────────────────────────────────────────────────────────
+export const submissionsApi = {
+  participantGet: () =>
+    api.get('/submissions/participant/project'),
+
+  participantUpload: (file) => {
+    const form = new FormData()
+    form.append('file', file)
+    return api.post('/submissions/participant/project', form, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    })
+  },
+
+  teamSubmission: (teamId) =>
+    api.get(`/submissions/team/${teamId}`),
+
+  teamDownloadUrl: (teamId) =>
+    `${BASE_URL}/submissions/team/${teamId}/download?token=${encodeURIComponent(tokenStorage.get() || '')}`,
 }
 
 // ── System ─────────────────────────────────────────────────────────────────
