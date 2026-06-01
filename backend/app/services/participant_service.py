@@ -167,6 +167,18 @@ class ParticipantService:
         db.refresh(p)
         return p
 
+    @staticmethod
+    def confirm_progression(
+        participant_id: uuid.UUID,
+        confirmed:      bool,
+        db:             Session
+    )-> Participant:
+        p=ParticipantService.get_by_id(participant_id, db)
+        p.progression_confirmed = confirmed
+        db.commit()
+        db.refresh(p)
+        return p
+    
     # ── Delete ────────────────────────────────────────────────────────
 
     @staticmethod

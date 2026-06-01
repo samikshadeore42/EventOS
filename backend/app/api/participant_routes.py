@@ -17,6 +17,7 @@ from app.schemas.participant_crud_schemas import (
     ParticipantSortField,
     CSVUploadResponse,
     RosterSummary,
+    ProgressionConfirmRequest,
 )
 
 router = APIRouter(prefix="/participants", tags=["Participants"])
@@ -210,3 +211,17 @@ def delete_participant(
     db:             Session = Depends(get_db),
 ):
     return ParticipantService.delete(participant_id, db)
+
+
+@router.post(
+    "/{participant_id}/confirm-progression",
+    response_model=ParticipantResponse,
+    summary="Confirm or decline progression invitation for qualifying teams",
+)
+def confirm_progression(
+    participant_id: uuid.UUID,
+    body:           ProgressionConfirmRequest,
+    db:             Session = Depends(get_db),
+):
+    p = ParticipantService.confirm_progression(participant_id, body.confirmed, db)
+    return ParticipantResponse.model_validate(p)

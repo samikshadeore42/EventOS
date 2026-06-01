@@ -342,7 +342,7 @@ function ParticipantsTab() {
         <table className="w-full text-sm">
           <thead>
             <tr className="bg-slate-800/40 border-b border-slate-700/50 text-left">
-              {['Name', 'Institution', 'Skills (avg)', 'Team', ''].map((h) => (
+              {['Name', 'Institution', 'Skills (avg)', 'Team', 'Invitation Status', ''].map((h) => (
                 <th key={h} className="px-4 py-3 text-xs font-medium text-slate-400 uppercase tracking-wide">{h}</th>
               ))}
             </tr>
@@ -382,6 +382,11 @@ function ParticipantsTab() {
                           ? <Badge colour="teal">{p.team_name}</Badge>
                           : <span className="text-xs text-slate-500">Unassigned</span>
                         }
+                      </td>
+                      <td className="px-4 py-3">
+                        {p.progression_confirmed === true && <Badge colour="green">Confirmed</Badge>}
+                        {p.progression_confirmed === false && <Badge colour="red">Declined</Badge>}
+                        {p.progression_confirmed === null && <Badge colour="amber">No Response</Badge>}
                       </td>
                       <td className="px-4 py-3 text-right">
                         <button

@@ -3,12 +3,12 @@
 // Flow: extract token → GET /portal/access → render personalised journey.
 
 import { useState, useEffect, useMemo } from 'react'
-import { useQuery } from '@tanstack/react-query'
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import {
   CheckCircle, Clock, Circle, Users, AlertTriangle,
   ChevronDown, ChevronUp, CalendarDays,
   UserCheck, Video, ClipboardList, MessageSquare, Send, Trophy,
-  
+  Check, X
 } from 'lucide-react'
 import { portalApi, mentorApi } from '../services/api'
 import { useAuth } from '../context/AuthContext'
@@ -483,8 +483,82 @@ function PortalSkeleton() {
   )
 }
 
-// ── Main ParticipantPortal ────────────────────────────────────────────────
+// ── Progression Invitation Action Card ───────────────────────────────────────
+// ── Progression Invitation Action Card ───────────────────────────────────────
+function ProgressionInvitationSection({ participantId, currentStatus }) {
+  const queryClient = useQueryClient()
 
+  const mutation = useMutation({
+    mutationFn: async (confirmed) => {
+      const response = await fetch(`http://localhost:8000/participants/${participantId}/confirm-progression`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ confirmed })
+      });
+      if (!response.ok) throw new Error('Failed to update status');
+      return response.json();
+    },
+    onSuccess: () => {
+      // Refresh backend data in the background
+      queryClient.invalidateQueries({ queryKey: ['portal-access'] })
+    },
+    onError: () => alert('Something went wrong. Please check your network connection.')
+  })
+
+  // OPTIMISTIC UI: Show success instantly if mutation succeeded OR if currentStatus is already true
+  if (currentStatus === true || (mutation.isSuccess && mutation.variables === true)) {
+    return (
+      <div className="bg-emerald-950/40 border border-emerald-500/30 rounded-2xl p-5 text-center mb-6 shadow-lg shadow-emerald-900/20">
+        <p className="text-sm font-semibold text-emerald-400 flex items-center justify-center gap-1.5">
+          <Check size={18} /> Your attendance for the Grand Finale is locked in! See you there.
+        </p>
+      </div>
+    )
+  }
+
+  // OPTIMISTIC UI: Show declined instantly
+  if (currentStatus === false || (mutation.isSuccess && mutation.variables === false)) {
+    return (
+      <div className="bg-slate-900/60 border border-slate-700/50 rounded-2xl p-5 text-center mb-6">
+        <p className="text-sm font-medium text-slate-400 flex items-center justify-center gap-1.5">
+          <X size={18} /> You have declined the grand finale progression slot.
+        </p>
+      </div>
+    )
+  }
+
+  return (
+    <div className="glass-card rounded-2xl border border-indigo-500/40 p-6 mb-6 shadow-xl bg-gradient-to-r from-indigo-950/40 to-slate-900/40">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+        <div className="min-w-0">
+          <h3 className="text-base font-bold text-white flex items-center gap-2">
+            🎉 Final Round Invitation!
+          </h3>
+          <p className="text-xs text-slate-400 mt-1 leading-relaxed">
+            Your team has qualified for the Grand Finale round. Please confirm your availability now.
+          </p>
+        </div>
+        <div className="flex gap-2 w-full sm:w-auto shrink-0">
+          <button
+            disabled={mutation.isPending}
+            onClick={() => mutation.mutate(true)}
+            className="flex-1 sm:flex-none text-xs bg-emerald-600 hover:bg-emerald-500 text-white font-semibold px-4 py-2.5 rounded-xl transition-all disabled:opacity-50 flex items-center justify-center gap-2"
+          >
+            {mutation.isPending && mutation.variables === true ? 'Saving...' : 'Accept Invite'}
+          </button>
+          <button
+            disabled={mutation.isPending}
+            onClick={() => mutation.mutate(false)}
+            className="flex-1 sm:flex-none text-xs border border-slate-700 hover:bg-slate-800 text-slate-300 font-medium px-4 py-2.5 rounded-xl transition-all disabled:opacity-50 flex items-center justify-center gap-2"
+          >
+            {mutation.isPending && mutation.variables === false ? '...' : 'Decline'}
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}
+// ── Main ParticipantPortal ────────────────────────────────────────────────
 export default function ParticipantPortal() {
   const { token, setToken } = useAuth()
 
@@ -571,6 +645,7 @@ export default function ParticipantPortal() {
   // ── Resolved participant data ──────────────────────────────────────────
 
   const {
+    participant_id,
     name           = 'Participant',
     email          = '',
     stage          = 'registration',
@@ -579,6 +654,7 @@ export default function ParticipantPortal() {
     team_rationale,
     teammates      = [],
     timeline       = [],
+    progression_confirmed = null,
   } = data ?? {}
 
   const supportEmail = import.meta.env.VITE_SUPPORT_EMAIL || 'events@ti.com'
@@ -599,6 +675,13 @@ export default function ParticipantPortal() {
           eventName="WiSE@TI Hackathon"
           stage={stage}
         />
+
+        {participant_id && (stage === 'evaluation' || stage === 'results') && (
+          <ProgressionInvitationSection
+            participantId={participant_id}
+            currentStatus={progression_confirmed}
+          />
+        )}
 
         {/* Timeline */}
         <EventTimeline timeline={timeline} />

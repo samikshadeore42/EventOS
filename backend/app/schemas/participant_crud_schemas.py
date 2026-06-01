@@ -86,6 +86,7 @@ class ParticipantResponse(BaseModel):
     team_name:           Optional[str]    = None
     email_verified:      bool
     welcome_email_sent:  bool
+    progression_confirmed: Optional[bool] = None
     created_at:          datetime
 
     model_config = {"from_attributes": True}
@@ -146,3 +147,7 @@ class RosterSummary(BaseModel):
     institution_counts:   Dict[str, int]
     skill_summary:        List[SkillSummary]
     csv_template_url:     str
+
+
+class ProgressionConfirmRequest(BaseModel):
+    confirmed: bool
