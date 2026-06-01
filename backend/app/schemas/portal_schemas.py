@@ -20,6 +20,7 @@ class ParticipantPortalResponse(BaseModel):
     team_rationale:   Optional[str]         = None
     teammates:        List[TeamMemberPortalView] = []
     timeline:         List[dict]            = []
+    project_submission: Optional[dict]      = None
 
 
 class EvaluatorPortalResponse(BaseModel):
