@@ -5,6 +5,9 @@ from app.models.communication_log import CommunicationLog
 from app.models.participant import Participant, Team
 from app.models.event_state import EventState
 from app.models.event_config import EventConfig
+from app.models.project_submission import ProjectSubmission
+import os
+import shutil
 
 def get_demo_status(db: Session):
     return {
@@ -34,6 +37,15 @@ def reset_demo_data(db: Session, preserve_admins: bool = True):
         
         # 6. communication logs
         deleted_counts["communication_logs"] = db.query(CommunicationLog).delete(synchronize_session=False)
+        
+        # 6.5 project submissions
+        deleted_counts["project_submissions"] = db.query(ProjectSubmission).delete(synchronize_session=False)
+        upload_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "uploads", "project_submissions"))
+        if os.path.exists(upload_dir):
+            try:
+                shutil.rmtree(upload_dir)
+            except Exception:
+                pass
         
         # 7. participants
         deleted_counts["participants"] = db.query(Participant).delete(synchronize_session=False)
