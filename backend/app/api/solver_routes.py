@@ -246,6 +246,14 @@ def commit_solver_results(task_id: str, db: Session = Depends(get_db)):
         raise HTTPException(status_code=425,
             detail="Solver task not complete. Check status first.")
 
+    existing_teams = db.query(Team).filter(Team.approval_status.in_(["pending", "approved", "rejected"])).first()
+    existing_assigned_participants = db.query(Participant).filter(Participant.team_id.isnot(None)).first()
+    if existing_teams or existing_assigned_participants:
+        raise HTTPException(
+            status_code=409,
+            detail="Teams already exist for this roster. Clear previous teams before committing a new formation."
+        )
+
     teams_data = status["result"]["teams"]
     created_teams = []
     for t in teams_data:

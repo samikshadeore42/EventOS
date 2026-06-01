@@ -78,6 +78,16 @@ def deactivate_mentor(mentor_id: UUID, db: Session = Depends(get_db)):
     summary="Send magic access link to mentor via existing email system",
 )
 def send_mentor_access_link(mentor_id: UUID, db: Session = Depends(get_db)):
+    from app.models.mentor import MentorAssignment
+    assignment_count = db.query(MentorAssignment).filter(
+        MentorAssignment.mentor_id == mentor_id,
+        MentorAssignment.is_active == True
+    ).count()
+    if assignment_count == 0:
+        raise HTTPException(
+            status_code=422,
+            detail="Assign this mentor to at least one team before sending a portal link."
+        )
     return LinkService.send_mentor_access_link(str(mentor_id), db)
 
 

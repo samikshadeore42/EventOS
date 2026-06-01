@@ -231,9 +231,11 @@ export const commsApi = {
 
 // ── AI / LLM drafting ─────────────────────────────────────────────────────
 export const aiApi = {
-  // draft_type: 'progression_invite' | 'milestone_blast' | 'evaluation_summary'
   draft: (body) =>
     api.post('/ai/communication', body),
+
+  draftResult: (taskId) =>
+    api.get(`/ai/result/${taskId}`),
 
   teamRationale: (body) =>
     api.post('/ai/team-rationale', body),
@@ -241,8 +243,45 @@ export const aiApi = {
   bulkRationale: () =>
     api.post('/ai/team-rationale/bulk'),
 
+  // ADD THESE TWO:
+  explainAnomaly: (body) =>
+    api.post('/ai/explain-anomaly', body),
+
+  getResult: (taskId) =>
+    api.get(`/ai/result/${taskId}`),
+
+  rubric: (body) =>
+    api.post('/ai/rubric', body),
+
   health: () =>
     api.get('/ai/health'),
+}
+
+// ── Demo Admin Controls ───────────────────────────────────────────────────
+export const demoAdminApi = {
+  status: () =>
+    api.get('/demo-admin/status'),
+
+  reset: (confirm, preserveAdmins = true) =>
+    api.post('/demo-admin/reset', { confirm, preserve_admins: preserveAdmins }),
+}
+
+// ── Event State (Hackathon stage) ─────────────────────────────────────────
+export const eventStateApi = {
+  get: () =>
+    api.get('/event-state'),
+
+  setStage: (stage) =>
+    api.post('/event-state/set', { stage }),
+
+  next: () =>
+    api.post('/event-state/next'),
+
+  previous: () =>
+    api.post('/event-state/previous'),
+
+  reset: () =>
+    api.post('/event-state/reset'),
 }
 
 // ── Mentor Operations ─────────────────────────────────────────────────────

@@ -122,7 +122,7 @@ def send_batch_emails(self, recipient_list: list, template: str, event_name: str
     default_retry_delay=120,
 )
 def send_access_links(self, links: list, role: str, stage: str):
-    results = {"sent": 0, "failed": 0, "simulated": 0, "errors": []}
+    results = {"queued": len(links), "sent": 0, "failed": 0, "simulated": 0, "errors": []}
 
     for link in links:
         try:

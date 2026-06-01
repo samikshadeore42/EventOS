@@ -8,9 +8,9 @@ import {
   LayoutDashboard, Users, GitBranch, CheckSquare,
   UserCheck, Trophy, Mail, Upload, Download,
   Play, Loader2, Check, X, AlertTriangle,
-  ChevronDown, ChevronRight, RefreshCw, Wand2,
-  Send, Copy, Trash2, Plus, Eye, Shield,
-  BarChart2, FileText, Target, Calendar, MessageSquare, Activity,
+  ChevronDown, ChevronRight, Wand2,
+  BarChart2, MessageSquare, Activity, Target, Calendar,
+  Send, Copy, Trash2, Plus, Shield,
 } from 'lucide-react'
 import PipelineStepper from '../components/PipelineStepper'
 import {
@@ -21,8 +21,10 @@ import {
   leaderboardApi,
   commsApi,
   aiApi,
-  eventApi,
   mentorApi,
+  portalApi,
+  demoAdminApi,
+  eventStateApi,
 } from '../services/api'
 
 // ── Shared micro-components ────────────────────────────────────────────────
@@ -76,7 +78,7 @@ function OverviewTab() {
       {/* Stats row */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
         <StatCard label="Participants"      value={summary?.total_participants} colour="indigo" sub="registered" />
-        <StatCard label="Unassigned"        value={summary?.unassigned}        colour="amber"  sub="need team assignment" />
+        <StatCard label="Unassigned Participants"        value={summary?.unassigned}        colour="amber"  sub="not yet in a team" />
         <StatCard label="Pending Approvals" value={pending?.total_pending}     colour="amber"  sub="teams awaiting review" />
         <StatCard label="Anomaly Flags"     value={anomalies?.total_flagged}   colour="red"    sub="scorecards on hold" />
       </div>
@@ -181,25 +183,18 @@ function ParticipantsTab() {
 
   // NEW: Mutation for sending bulk magic links via Celery worker
   const sendLinksMutation = useMutation({
-    mutationFn: async () => {
-      // Adjust token retrieval based on your auth setup, if required
-      const adminToken = localStorage.getItem('adminToken') || localStorage.getItem('access_token') || '';
-      
-      const response = await fetch('http://localhost:8000/portal/generate-links?role=participant', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          ...(adminToken ? { 'Authorization': `Bearer ${adminToken}` } : {})
-        },
-        // body: JSON.stringify({ role: "participant" })
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to dispatch links');
+    mutationFn: () => portalApi.generateLinks('participant', 'team_formation', true),
+    onSuccess: (res) => {
+      if (res.generated === 0) {
+         alert("No participants found. Upload roster before dispatching links.");
+      } else if (res.emails_queued) {
+         alert(`Generated ${res.generated} participant links. Email dispatch queued. Check Communications tab and worker logs.`);
+      } else {
+         alert(res.message || "Generated links but dispatch skipped.");
       }
-      return response.json();
+      setTimeout(() => qc.invalidateQueries({ queryKey: ['comms-log'] }), 3000)
+      setTimeout(() => qc.invalidateQueries({ queryKey: ['comms-log'] }), 8000)
     },
-    onSuccess: () => alert('Success! Magic links are being dispatched by the background worker.'),
     onError: (error) => alert(`Error: ${error.message}`)
   });
 
@@ -227,7 +222,7 @@ function ParticipantsTab() {
         <div className="grid grid-cols-3 gap-4 mb-6">
           <StatCard label="Total"      value={summary.total_participants} colour="indigo" />
           <StatCard label="Assigned"   value={summary.assigned_to_team}  colour="teal" />
-          <StatCard label="Unassigned" value={summary.unassigned}        colour="amber" />
+          <StatCard label="Unassigned Participants" value={summary.unassigned}        colour="amber" sub="not yet in a team" />
         </div>
       )}
 
@@ -332,7 +327,7 @@ function ParticipantsTab() {
               sendLinksMutation.mutate();
             }
           }}
-          disabled={sendLinksMutation.isPending}
+          disabled={sendLinksMutation.isPending || !summary?.total_participants}
           className="flex items-center gap-1.5 text-sm px-4 py-2 rounded-lg bg-indigo-600 text-white hover:bg-indigo-700 disabled:opacity-50 shadow-md whitespace-nowrap"
         >
           {sendLinksMutation.isPending ? <Loader2 size={16} className="animate-spin" /> : <Send size={16} />}
@@ -427,6 +422,44 @@ function TeamsTab() {
   const qc = useQueryClient()
   const [taskId, setTaskId]       = useState(null)
   const [committed, setCommitted] = useState(false)
+  const [rationales, setRationales] = useState({})   // { team_id: {status, text} }
+  const [generatingAll, setGeneratingAll] = useState(false)
+
+  const generateRationale = async (team) => {
+    const id = team.team_id
+    setRationales(r => ({...r, [id]: {status: 'loading', text: ''}}))
+    try {
+      const res = await aiApi.teamRationale({
+        team_name: team.team_name,
+        members: team.members.map(m => ({
+          name: m.name, institution: m.institution, skills: []
+        })),
+        distribution_rules: {
+          team_size: team.size,
+          max_per_institution: config.max_per_institution,
+        },
+      })
+      for (let i = 0; i < 25; i++) {
+        await new Promise(r => setTimeout(r, 2500))
+        const s = await solverApi.taskStatus(res.task_id)
+        if (s.status === 'success') {
+          setRationales(r => ({...r, [id]: {status: 'done', text: s.result?.rationale || ''}}))
+          return
+        }
+        if (s.status === 'failed') break
+      }
+      setRationales(r => ({...r, [id]: {status: 'error', text: 'Generation failed'}}))
+    } catch (e) {
+      setRationales(r => ({...r, [id]: {status: 'error', text: e.message}}))
+    }
+  }
+
+  const generateAllRationale = async () => {
+    if (!drafts?.teams) return
+    setGeneratingAll(true)
+    for (const t of drafts.teams) await generateRationale(t)
+    setGeneratingAll(false)
+  }
   const [config, setConfig] = useState({
     num_teams: 5, target_size: 4, k_min: 3, k_max: 5,
     max_per_institution: 1, use_mock_data: false,
@@ -544,8 +577,8 @@ function TeamsTab() {
           <div className="w-full bg-slate-700/50 rounded-full h-2 mb-3">
             <div
               className={`h-2 rounded-full transition-all duration-500 ${
-                taskStatus.status === 'success' ? 'bg-teal-900/300' :
-                taskStatus.status === 'failed'  ? 'bg-red-900/300'  : 'bg-indigo-900/300'
+                taskStatus.status === 'success' ? 'bg-teal-900/30' :
+                taskStatus.status === 'failed'  ? 'bg-red-900/30'  : 'bg-indigo-900/30'
               }`}
               style={{ width: `${progress}%` }}
             />
@@ -578,8 +611,19 @@ function TeamsTab() {
               Draft lineups — {drafts.teams.length} teams, {drafts.total_participants} participants
             </h3>
             {!committed && (
-              <button
-                onClick={() => commitMutation.mutate()}
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={generateAllRationale}
+                  disabled={generatingAll}
+                  className="flex items-center gap-1.5 text-sm px-4 py-2 rounded-lg border border-indigo-500/50 text-indigo-400 hover:bg-indigo-900/30 disabled:opacity-50"
+                >
+                  {generatingAll
+                    ? <Loader2 size={14} className="animate-spin" />
+                    : <Wand2 size={14} />}
+                  {generatingAll ? 'Generating…' : 'Generate AI Rationale'}
+                </button>
+                <button
+                  onClick={() => commitMutation.mutate()}
                 disabled={commitMutation.isPending}
                 className="flex items-center gap-1.5 text-sm px-4 py-2 rounded-lg bg-teal-600 text-white hover:bg-teal-700 disabled:opacity-50"
               >
@@ -589,6 +633,7 @@ function TeamsTab() {
                 }
                 Commit to Approval Queue
               </button>
+              </div>
             )}
             {committed && (
               <Badge colour="green"><Check size={12} /> Committed — check Approvals tab</Badge>
@@ -596,7 +641,11 @@ function TeamsTab() {
           </div>
 
           {commitMutation.isError && (
-            <p className="mb-3 text-xs text-red-500">{commitMutation.error?.message}</p>
+            <p className="mb-3 text-xs text-red-500">
+              {commitMutation.error?.message?.includes('already exist')
+                ? 'Teams already exist. Use Demo Controls → Reset Demo Data before forming new teams again.'
+                : commitMutation.error?.message}
+            </p>
           )}
 
           <div className="grid md:grid-cols-2 xl:grid-cols-3 gap-4">
@@ -631,6 +680,35 @@ function TeamsTab() {
                     </div>
                   </div>
                 )}
+
+                {/* ── AI Rationale ── */}
+                <div className="mt-3 pt-3 border-t border-slate-700/30">
+                  {!rationales[team.team_id] ? (
+                    <button
+                      onClick={() => generateRationale(team)}
+                      className="flex items-center gap-1 text-xs text-indigo-400 hover:text-indigo-300 transition-colors"
+                    >
+                      <Wand2 size={11} /> Generate rationale
+                    </button>
+                  ) : rationales[team.team_id].status === 'loading' ? (
+                    <div className="flex items-center gap-1.5 text-xs text-slate-400">
+                      <Loader2 size={11} className="animate-spin" /> Generating…
+                    </div>
+                  ) : rationales[team.team_id].status === 'done' ? (
+                    <div className="bg-indigo-900/20 border border-indigo-700/30 rounded-lg p-2.5">
+                      <p className="text-xs font-medium text-indigo-400 mb-1 flex items-center gap-1">
+                        <Wand2 size={11} /> AI Rationale
+                      </p>
+                      <p className="text-xs text-indigo-200 leading-relaxed">
+                        {rationales[team.team_id].text}
+                      </p>
+                    </div>
+                  ) : (
+                    <p className="text-xs text-red-400 flex items-center gap-1">
+                      <AlertTriangle size={11} /> {rationales[team.team_id].text}
+                    </p>
+                  )}
+                </div>
               </div>
             ))}
           </div>
@@ -809,7 +887,6 @@ function EvaluatorsTab() {
   const qc = useQueryClient()
   const [showForm, setShowForm] = useState(false)
   const [form, setForm] = useState({ first_name: '', last_name: '', email: '', expertise_areas: '' })
-  const [linkSent, setLinkSent] = useState({})
 
   const { data, isLoading } = useQuery({ queryKey: ['evaluators'], queryFn: evaluatorsApi.list })
 
@@ -827,7 +904,11 @@ function EvaluatorsTab() {
 
   const sendLinkMutation = useMutation({
     mutationFn: (id) => evaluatorsApi.sendLink(id),
-    onSuccess: (_, id) => setLinkSent((s) => ({ ...s, [id]: true })),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['evaluators'] })
+      qc.invalidateQueries({ queryKey: ['comms-log'] })
+    },
+    onError: (error) => alert(`Error: ${error.response?.data?.detail || error.message}`)
   })
 
   const deleteMutation = useMutation({
@@ -859,6 +940,9 @@ function EvaluatorsTab() {
           <Plus size={14} /> Add Evaluator
         </button>
       </div>
+      <p className="text-xs text-slate-400 mb-6 italic">
+        Evaluators receive secure magic links and score approved teams in the Judge Portal. Submitted scorecards update the leaderboard and anomaly scanner.
+      </p>
 
       {/* Add form */}
       {showForm && (
@@ -913,15 +997,15 @@ function EvaluatorsTab() {
                     <div className="flex gap-2 shrink-0">
                       <button
                         onClick={() => sendLinkMutation.mutate(ev.id)}
-                        disabled={sendLinkMutation.isPending || linkSent[ev.id]}
-                        title="Send access link"
+                        disabled={sendLinkMutation.isPending}
+                        title={ev.access_link_sent ? "Send access link again" : "Send access link"}
                         className="flex items-center gap-1 text-xs px-2.5 py-1.5 rounded-lg border border-indigo-200 text-indigo-400 hover:bg-indigo-900/30 disabled:opacity-50"
                       >
                         {sendLinkMutation.isPending
                           ? <Loader2 size={12} className="animate-spin" />
                           : <Send size={12} />
                         }
-                        Send Link
+                        {ev.access_link_sent ? "Resend Link" : "Send Link"}
                       </button>
                       <button
                         onClick={() => { if (window.confirm('Remove this evaluator?')) deleteMutation.mutate(ev.id) }}
@@ -1079,13 +1163,40 @@ function CommunicationsTab() {
   })
 
   const draftMutation = useMutation({
-    mutationFn: () => {
-      let ctx
-      try { ctx = JSON.parse(draftContext) } catch { throw new Error('Context is not valid JSON') }
-      return aiApi.draft({ draft_type: draftType, context: ctx, tone: draftTone, max_words: 200 })
-    },
-    onSuccess: (res) => res.draft && setDraft(res.draft),
-  })
+  mutationFn: async () => {
+    let ctx = draftContext
+    try { ctx = JSON.parse(draftContext) } catch { throw new Error('Context is not valid JSON') }
+
+    const stageMap = {
+      progression_invite: 'progression',
+      milestone_blast:    'welcome',
+      evaluation_summary: 'results',
+    }
+
+    // Enqueue the task
+    const enqueued = await aiApi.draft({
+      stage:          stageMap[draftType] || 'welcome',
+      recipient_name: ctx.participant_name || ctx.team_name || 'Participant',
+      recipient_role: 'participant',
+      event_name:     ctx.event_name || 'WiSE@TI Hackathon',
+      context:        ctx,
+    })
+
+    // Poll until done
+    for (let i = 0; i < 25; i++) {
+      await new Promise(r => setTimeout(r, 2500))
+      const s = await solverApi.taskStatus(enqueued.task_id)
+      if (s.status === 'success') {
+        return { subject: s.result.subject, body_text: s.result.body }
+      }
+      if (s.status === 'failed') {
+        throw new Error(s.error || 'Email generation failed')
+      }
+    }
+    throw new Error('Timed out waiting for email draft')
+  },
+  onSuccess: (res) => setDraft(res),
+})
 
   const DRAFT_TYPES = [
     { value: 'progression_invite',  label: 'Progression Invite' },
@@ -1122,6 +1233,9 @@ function CommunicationsTab() {
             </select>
           </div>
         </div>
+        <div className="px-4 py-2 bg-slate-800/30 border-b border-slate-700/30 text-[11px] text-slate-400">
+          <span className="font-medium">Note:</span> Queued means the background worker accepted the job. Sent/Failed is recorded after provider response.
+        </div>
 
         {isLoading
           ? <div className="p-4 space-y-2">{Array.from({length:5}).map((_,i)=><div key={i} className="h-8 bg-slate-700/50 rounded animate-pulse" />)}</div>
@@ -1144,7 +1258,16 @@ function CommunicationsTab() {
                       <td className="px-4 py-2.5"><Badge colour="gray">{log.template}</Badge></td>
                       <td className="px-4 py-2.5 text-slate-400 text-xs capitalize">{log.stage}</td>
                       <td className="px-4 py-2.5">
-                        <Badge colour={log.success ? 'green' : 'red'}>{log.success ? 'Sent' : 'Failed'}</Badge>
+                        <div className="flex flex-col gap-1">
+                          <div>
+                            <Badge colour={log.success ? 'green' : 'red'}>{log.success ? 'Sent' : 'Failed'}</Badge>
+                          </div>
+                          {!log.success && (
+                            <span className="text-[10px] text-red-400 leading-tight max-w-[200px] block truncate" title={log.error_message || "No provider error captured. Check Celery worker logs."}>
+                              {log.error_message || "No provider error captured. Check Celery worker logs."}
+                            </span>
+                          )}
+                        </div>
                       </td>
                       <td className="px-4 py-2.5 text-xs text-slate-500">
                         {new Date(log.sent_at).toLocaleString()}
@@ -1271,6 +1394,9 @@ function MentorOpsTab() {
   const [aiTeamId, setAiTeamId] = useState('')
   const [aiResult, setAiResult] = useState(null)
 
+  const getTeamId = (team) => team?.team_id || team?.id
+  const getTeamName = (team) => team?.team_name || team?.name || "Unnamed Team"
+
   const { data, isLoading } = useQuery({ queryKey: ['mentors'], queryFn: mentorApi.list })
   const { data: opsData } = useQuery({ queryKey: ['mentor-ops-summary'], queryFn: mentorApi.opsSummary, refetchInterval: 30_000 })
   const { data: riskData } = useQuery({ queryKey: ['mentor-risk-teams'], queryFn: mentorApi.riskTeams, refetchInterval: 30_000 })
@@ -1288,10 +1414,21 @@ function MentorOpsTab() {
   })
   const sendLinkMutation = useMutation({
     mutationFn: (id) => mentorApi.sendLink(id),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['mentors'] }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['mentors'] })
+      qc.invalidateQueries({ queryKey: ['comms-log'] })
+    },
+    onError: (error) => alert(`Error: ${error.response?.data?.detail || error.message}`)
   })
   const assignMutation = useMutation({
-    mutationFn: (vars) => mentorApi.assign(vars || { mentor_id: assignForm.mentor_id, team_id: assignForm.team_id }),
+    mutationFn: (vars) => {
+      const payload = vars || { mentor_id: assignForm.mentor_id, team_id: assignForm.team_id };
+      if (!payload.mentor_id || !payload.team_id) throw new Error("Mentor and Team must be selected.");
+      if (!/^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/.test(payload.team_id)) {
+        throw new Error("Invalid team selection. Please refresh teams and try again.");
+      }
+      return mentorApi.assign(payload);
+    },
     onSuccess: () => { qc.invalidateQueries({ queryKey: ['mentor-assignments'] }); qc.invalidateQueries({ queryKey: ['mentor-ops-summary'] }); qc.invalidateQueries({ queryKey: ['mentor-risk-teams'] }); qc.invalidateQueries({ queryKey: ['mentor-suggestions'] }); setShowAssignForm(false) },
   })
   const unassignMutation = useMutation({
@@ -1394,11 +1531,15 @@ function MentorOpsTab() {
                     <Badge colour={m.is_active ? 'teal' : 'red'}>{m.is_active ? 'Active' : 'Inactive'}</Badge>
                     {m.access_link_sent && <Badge colour="green"><Check size={10} /> Link sent</Badge>}
                   </div>
-                  <div className="flex gap-2 shrink-0">
-                    <button onClick={() => sendLinkMutation.mutate(m.id)} disabled={sendLinkMutation.isPending}
-                      title="Send access link" className="flex items-center gap-1 text-xs px-2.5 py-1.5 rounded-lg border border-indigo-500/30 text-indigo-400 hover:bg-indigo-900/30 disabled:opacity-50">
-                      {sendLinkMutation.isPending ? <Loader2 size={12} className="animate-spin" /> : <Send size={12} />} Link
-                    </button>
+                  <div className="flex gap-2 shrink-0 items-center">
+                    {m.assigned_team_count > 0 ? (
+                      <button onClick={() => sendLinkMutation.mutate(m.id)} disabled={sendLinkMutation.isPending}
+                        title={m.access_link_sent ? "Send access link again" : "Send access link"} className="flex items-center gap-1 text-xs px-2.5 py-1.5 rounded-lg border border-indigo-500/30 text-indigo-400 hover:bg-indigo-900/30 disabled:opacity-50">
+                        {sendLinkMutation.isPending ? <Loader2 size={12} className="animate-spin" /> : <Send size={12} />} {m.access_link_sent ? "Resend Link" : "Send Link"}
+                      </button>
+                    ) : (
+                      <span className="text-[10px] text-amber-500/70 mr-1 italic">Assign to a team first</span>
+                    )}
                     <button onClick={() => { if (window.confirm('Deactivate this mentor?')) deleteMutation.mutate(m.id) }}
                       className="p-1.5 text-slate-600 hover:text-red-500 rounded transition-colors"><Trash2 size={14} /></button>
                   </div>
@@ -1434,7 +1575,7 @@ function MentorOpsTab() {
               <select value={assignForm.team_id} onChange={e => setAssignForm(f => ({...f, team_id: e.target.value}))}
                 className="w-full border border-slate-700/50 bg-slate-900/50 text-white rounded-lg px-3 py-2 text-sm focus:outline-none">
                 <option value="">-- select team --</option>
-                {allTeams.filter(t => t.is_approved).map(t => <option key={t.id} value={t.id}>{t.team_name}</option>)}
+                {allTeams.filter(t => t.is_approved && getTeamId(t)).map(t => <option key={getTeamId(t)} value={getTeamId(t)}>{getTeamName(t)}</option>)}
               </select>
             </div>
           </div>
@@ -1482,7 +1623,7 @@ function MentorOpsTab() {
                     <Badge colour="indigo">load: {c.current_load}</Badge>
                     <Badge colour="teal">score: {c.match_score}</Badge>
                     <button
-                      onClick={() => assignMutation.mutate({ mentor_id: c.mentor_id, team_id: s.team_id })}
+                      onClick={() => assignMutation.mutate({ mentor_id: c.mentor_id, team_id: getTeamId(s) })}
                       disabled={assignMutation.isPending}
                       className="ml-2 text-xs px-2 py-1 rounded bg-teal-900/30 text-teal-400 hover:bg-teal-900/50 border border-teal-500/30 disabled:opacity-50"
                     >
@@ -1530,7 +1671,21 @@ function MentorOpsTab() {
           {reminderMutation.isPending ? <Loader2 size={14} className="animate-spin" /> : <Mail size={14} />} Send Daily Reminders
         </button>
         {reminderMutation.isSuccess && (
-          <p className="text-xs text-teal-600">Reminders sent: {reminderMutation.data?.sent ?? 0}, simulated: {reminderMutation.data?.simulated ?? 0}</p>
+          <div className="text-xs text-teal-500">
+            {reminderMutation.data?.queued === 0 ? (
+              <p>No reminders sent. There are no assigned mentors missing today’s update.</p>
+            ) : (
+              <>
+                <p className="font-semibold">{reminderMutation.data?.message}</p>
+                <ul className="mt-1 space-y-0.5 text-[10px] text-slate-400">
+                  <li>• queued: {reminderMutation.data?.queued} (total processed)</li>
+                  <li>• sent: {reminderMutation.data?.sent} (real SendGrid email sent)</li>
+                  <li>• simulated: {reminderMutation.data?.simulated} (mock-mode email logged)</li>
+                  <li>• failed: {reminderMutation.data?.failed} (failed delivery)</li>
+                </ul>
+              </>
+            )}
+          </div>
         )}
       </div>
 
@@ -1542,7 +1697,7 @@ function MentorOpsTab() {
             <select value={aiTeamId} onChange={e => setAiTeamId(e.target.value)}
               className="w-full border border-slate-700/50 bg-slate-900/50 text-white rounded-lg px-3 py-2 text-sm focus:outline-none">
               <option value="">-- select team --</option>
-              {allTeams.filter(t => t.is_approved).map(t => <option key={t.id} value={t.id}>{t.team_name}</option>)}
+              {allTeams.filter(t => t.is_approved && getTeamId(t)).map(t => <option key={getTeamId(t)} value={getTeamId(t)}>{getTeamName(t)}</option>)}
             </select>
           </div>
           <button onClick={() => aiMutation.mutate(aiTeamId)} disabled={aiMutation.isPending || !aiTeamId}
@@ -1571,6 +1726,41 @@ function MentorOpsTab() {
 function AnomalyTab() {
   const qc = useQueryClient()
   
+  const [explanations, setExplanations] = useState({})
+
+  const generateExplanation = async (team) => {
+    const id = team.team_id
+    setExplanations(e => ({...e, [id]: {status: 'loading', text: ''}}))
+    try {
+      const res = await aiApi.explainAnomaly({
+        anomaly: {
+          kind: 'score_anomaly',
+          severity: 'high',
+          judge_id: 'panel',
+          team_id: id,
+          score: team.weighted_total || team.total_score || 0,
+          expected: 0,
+          metric: 0,
+          threshold: 2.0,
+          explanation: team.flag_reason || 'Statistical variance in judge scores',
+        },
+        team_name: team.team_name,
+      })
+      for (let i = 0; i < 20; i++) {
+        await new Promise(r => setTimeout(r, 2500))
+        const s = await solverApi.taskStatus(res.task_id)
+        if (s.status === 'success') {
+          setExplanations(e => ({...e, [id]: {status: 'done', text: s.result?.narrative || ''}}))
+          return
+        }
+        if (s.status === 'failed') break
+      }
+      setExplanations(e => ({...e, [id]: {status: 'error', text: 'Generation failed'}}))
+    } catch (err) {
+      setExplanations(e => ({...e, [id]: {status: 'error', text: err.message}}))
+    }
+  }
+
   const { data, isLoading } = useQuery({
     queryKey: ['anomalies'],
     queryFn: leaderboardApi.anomalies,
@@ -1691,7 +1881,39 @@ function AnomalyTab() {
                 </div>
                 <div className="text-sm text-slate-300 space-y-1">
                   <p><span className="text-slate-500">Weighted Score:</span> {team.weighted_total?.toFixed(2) || team.total_score}</p>
-                  <p><span className="text-slate-500">Anomaly Reason:</span> <span className="text-amber-400 font-mono">Statistical Variance Exception</span></p>
+                  <p>
+                    <span className="text-slate-500">Anomaly Reason:</span>{' '}
+                    <span className="text-amber-400 font-mono text-xs">
+                      {team.flag_reason || 'Statistical Variance Exception'}
+                    </span>
+                  </p>
+
+                  {/* AI Explanation */}
+                  <div className="mt-2">
+                    {!explanations[team.team_id] ? (
+                      <button
+                        onClick={() => generateExplanation(team)}
+                        className="flex items-center gap-1 text-xs text-indigo-400 hover:text-indigo-300"
+                      >
+                        <Wand2 size={11} /> AI Explain
+                      </button>
+                    ) : explanations[team.team_id].status === 'loading' ? (
+                      <div className="flex items-center gap-1.5 text-xs text-slate-400">
+                        <Loader2 size={11} className="animate-spin" /> Generating explanation…
+                      </div>
+                    ) : explanations[team.team_id].status === 'done' ? (
+                      <div className="bg-indigo-900/20 border border-indigo-700/30 rounded-lg p-2.5 mt-1">
+                        <p className="text-xs font-medium text-indigo-400 mb-1 flex items-center gap-1">
+                          <Wand2 size={11} /> AI Explanation
+                        </p>
+                        <p className="text-xs text-indigo-200 leading-relaxed">
+                          {explanations[team.team_id].text}
+                        </p>
+                      </div>
+                    ) : (
+                      <p className="text-xs text-red-400">{explanations[team.team_id].text}</p>
+                    )}
+                  </div>
                   <p><span className="text-slate-500">Detector Confidence:</span> 99.4%</p>
                 </div>
               </div>
@@ -1714,6 +1936,138 @@ function AnomalyTab() {
   )
 }
 
+// ── TAB: DEMO CONTROLS ───────────────────────────────────────────────────
+function DemoControlsTab() {
+  const qc = useQueryClient()
+  const [confirmText, setConfirmText] = useState('')
+
+  const { data: status, refetch: refetchStatus } = useQuery({
+    queryKey: ['demo-admin-status'],
+    queryFn: demoAdminApi.status,
+  })
+
+  const { data: eventState, refetch: refetchState } = useQuery({
+    queryKey: ['event-state'],
+    queryFn: eventStateApi.get,
+  })
+
+  const resetMutation = useMutation({
+    mutationFn: () => demoAdminApi.reset(confirmText),
+    onSuccess: (res) => {
+      alert(res.message + '\\n\\nDeleted:\\n' + JSON.stringify(res.deleted, null, 2))
+      setConfirmText('')
+      refetchStatus()
+      qc.invalidateQueries()
+    },
+    onError: (err) => alert('Error: ' + (err.response?.data?.detail || err.message))
+  })
+
+  const resetStageMutation = useMutation({
+    mutationFn: () => eventStateApi.reset(),
+    onSuccess: () => {
+      refetchState()
+      qc.invalidateQueries()
+    },
+    onError: (err) => alert('Error: ' + (err.response?.data?.detail || err.message))
+  })
+
+  const stageMutation = useMutation({
+    mutationFn: (stage) => eventStateApi.setStage(stage),
+    onSuccess: () => {
+      refetchState()
+      qc.invalidateQueries()
+    },
+    onError: (err) => alert('Error: ' + (err.response?.data?.detail || err.message))
+  })
+  
+  const stepMutation = useMutation({
+    mutationFn: (dir) => dir === 'next' ? eventStateApi.next() : eventStateApi.previous(),
+    onSuccess: () => {
+      refetchState()
+      qc.invalidateQueries()
+    },
+    onError: (err) => alert('Error: ' + (err.response?.data?.detail || err.message))
+  })
+
+  return (
+    <div>
+      <div className="mb-8">
+        <h2 className="text-lg font-semibold text-white mb-4">Demo Controls</h2>
+        
+        <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-6">
+          <StatCard label="Participants" value={status?.participants} colour="indigo" />
+          <StatCard label="Teams" value={status?.teams} colour="teal" />
+          <StatCard label="Evaluations" value={status?.evaluations} colour="amber" />
+          <StatCard label="Mentors" value={status?.mentors} colour="indigo" />
+          <StatCard label="Mentor Assignments" value={status?.mentor_assignments} colour="teal" />
+          <StatCard label="Comms Logs" value={status?.communication_logs} colour="amber" />
+        </div>
+
+        <div className="glass-card rounded-xl border border-red-500/50 p-6 bg-red-900/10 mb-8">
+          <h3 className="text-base font-bold text-red-400 flex items-center gap-2 mb-2">
+            <AlertTriangle size={18} /> Reset Demo Data
+          </h3>
+          <p className="text-sm text-slate-400 mb-4">
+            This clears participants, teams, evaluations, mentor assignments, feedback, sessions, and communication logs so you can restart the demo with the same CSV. Admin accounts are preserved.
+          </p>
+          <div className="flex gap-3 items-center">
+            <input
+              type="text"
+              value={confirmText}
+              onChange={e => setConfirmText(e.target.value)}
+              placeholder="Type RESET_DEMO_DATA"
+              className="bg-slate-900/50 border border-red-500/30 text-white rounded-lg px-4 py-2 text-sm focus:outline-none focus:border-red-500 w-64"
+            />
+            <button
+              onClick={() => resetMutation.mutate()}
+              disabled={confirmText !== 'RESET_DEMO_DATA' || resetMutation.isPending}
+              className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white text-sm font-medium rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+            >
+              {resetMutation.isPending ? <Loader2 size={16} className="animate-spin" /> : <Trash2 size={16} />}
+              Reset Data
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <h2 className="text-lg font-semibold text-white mb-4">Stage Controls</h2>
+        <div className="glass-card rounded-xl border border-slate-700/50 p-6">
+          <div className="flex items-center justify-between mb-6">
+            <div>
+              <p className="text-sm font-medium text-slate-400">Current Stage</p>
+              <p className="text-xl font-bold text-indigo-400 uppercase tracking-wide mt-1">
+                {eventState?.current_stage?.replace('_', ' ') || 'loading...'}
+              </p>
+            </div>
+            <div className="flex gap-2">
+              <button onClick={() => stepMutation.mutate('prev')} className="px-4 py-2 bg-slate-700 hover:bg-slate-600 text-white text-sm rounded-lg transition-colors">Previous</button>
+              <button onClick={() => stepMutation.mutate('next')} className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-sm rounded-lg transition-colors">Next</button>
+              <button onClick={() => resetStageMutation.mutate()} disabled={resetStageMutation.isPending} className="px-4 py-2 border border-slate-600 text-slate-300 hover:bg-slate-800 text-sm rounded-lg transition-colors ml-2 disabled:opacity-50">
+                {resetStageMutation.isPending ? 'Resetting...' : 'Reset to Registration'}
+              </button>
+            </div>
+          </div>
+          
+          <div>
+            <label className="block text-xs font-medium text-slate-400 mb-2">Jump directly to stage:</label>
+            <select 
+              value={eventState?.current_stage || ''}
+              onChange={e => stageMutation.mutate(e.target.value)}
+              className="w-full md:w-64 bg-slate-900/50 text-white border border-slate-700/50 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300"
+            >
+              <option value="registration">Registration</option>
+              <option value="team_formation">Team Formation</option>
+              <option value="evaluation">Evaluation</option>
+              <option value="results">Results</option>
+            </select>
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 // ── MAIN DASHBOARD ─────────────────────────────────────────────────────────
 const TABS = [
   { key: 'overview',        label: 'Overview',       Icon: LayoutDashboard },
@@ -1725,6 +2079,7 @@ const TABS = [
   { key: 'communications',  label: 'Communications', Icon: Mail },
   { key: 'mentorops',       label: 'Mentor Ops',     Icon: Target },
   { key: 'anomaly',         label: 'Anomaly Scanner',Icon: Activity },
+  { key: 'democontrols',    label: 'Demo Controls',  Icon: AlertTriangle },
 ]
 
 export default function AdminDashboard() {
@@ -1740,6 +2095,7 @@ export default function AdminDashboard() {
     communications: <CommunicationsTab />,
     mentorops:      <MentorOpsTab />,
     anomaly:        <AnomalyTab />,
+    democontrols:   <DemoControlsTab />,
   }
 
   return (
@@ -1752,7 +2108,7 @@ export default function AdminDashboard() {
         </div>
         <div className="flex items-center gap-3 text-xs text-slate-500">
           <span className="flex items-center gap-1">
-            <span className="w-2 h-2 rounded-full bg-teal-900/300 inline-block animate-pulse" />
+            <span className="w-2 h-2 rounded-full bg-teal-900/30 inline-block animate-pulse" />
             System Online
           </span>
         </div>
