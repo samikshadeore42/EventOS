@@ -28,3 +28,4 @@ backend/test.db
 .vscode/
 .idea/
 *.swp
+backend/uploads/

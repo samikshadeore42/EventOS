@@ -239,6 +239,19 @@ class LinkService:
                     for m in all_members
                 ]
 
+        project_submission_data = None
+        if participant.team_id:
+            from app.models.project_submission import ProjectSubmission
+            sub = db.query(ProjectSubmission).filter(ProjectSubmission.team_id == participant.team_id).first()
+            if sub:
+                project_submission_data = {
+                    "id": str(sub.id),
+                    "original_filename": sub.original_filename,
+                    "file_size_bytes": sub.file_size_bytes,
+                    "uploaded_at": sub.created_at.isoformat() if sub.created_at else None,
+                    "updated_at": sub.updated_at.isoformat() if sub.updated_at else None
+                }
+
         return ParticipantPortalResponse(
             participant_id = str(participant.id),
             name           = f"{participant.first_name} {participant.last_name}",
@@ -254,7 +267,8 @@ class LinkService:
                 {"phase": "Team Formation",  "status": "completed" if participant.team_id else ("active" if current_stage == "team_formation" else ("pending" if current_stage == "registration" else "completed"))},
                 {"phase": "Evaluation",      "status": "active" if current_stage == "evaluation" else ("completed" if current_stage == "results" else "pending")},
                 {"phase": "Results",         "status": "active" if current_stage == "results" else "pending"},
-            ]
+            ],
+            project_submission=project_submission_data
         ).model_dump()
 
     @staticmethod
@@ -270,8 +284,9 @@ class LinkService:
         if not evaluator:
             raise HTTPException(status_code=404, detail="Evaluator not found.")
 
-        from app.models.participant import Team
+        from app.models.participant import Team, Participant
         from app.models.evaluation import Evaluation
+        from app.models.project_submission import ProjectSubmission
         
         approved_teams = db.query(Team).filter(Team.is_approved == True).all()
         if not approved_teams:
@@ -282,15 +297,35 @@ class LinkService:
         ).all()
         submitted_team_ids = {str(e.team_id) for e in submitted}
 
-        teams_data = [
-            {
-                "team_id":      str(t.id),
+        submissions = db.query(ProjectSubmission).filter(ProjectSubmission.team_id.in_([t.id for t in approved_teams])).all() if approved_teams else []
+        sub_by_team = {str(s.team_id): s for s in submissions}
+        
+        participants = db.query(Participant).filter(Participant.id.in_([s.uploaded_by_participant_id for s in submissions])).all() if submissions else []
+        part_by_id = {str(p.id): p for p in participants}
+
+        teams_data = []
+        for t in approved_teams:
+            tid = str(t.id)
+            sub_data = None
+            if tid in sub_by_team:
+                s = sub_by_team[tid]
+                uploader = part_by_id.get(str(s.uploaded_by_participant_id))
+                sub_data = {
+                    "id": str(s.id),
+                    "original_filename": s.original_filename,
+                    "file_size_bytes": s.file_size_bytes,
+                    "uploaded_by": f"{uploader.first_name} {uploader.last_name}" if uploader else "Unknown",
+                    "uploaded_at": s.created_at.isoformat() if s.created_at else None,
+                    "download_url": f"/submissions/team/{tid}/download"
+                }
+
+            teams_data.append({
+                "team_id":      tid,
                 "team_name":    t.team_name,
                 "is_approved":  t.is_approved,
-                "already_graded": str(t.id) in submitted_team_ids,
-            }
-            for t in approved_teams
-        ]
+                "already_graded": tid in submitted_team_ids,
+                "submission":   sub_data
+            })
 
         return EvaluatorPortalResponse(
             evaluator_id    = str(evaluator.id),
