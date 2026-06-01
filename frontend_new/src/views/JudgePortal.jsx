@@ -4,9 +4,9 @@ import { useState, useEffect, useMemo } from 'react'
 import { useQuery, useMutation } from '@tanstack/react-query'
 import {
   ClipboardList, CheckCircle, Loader2, AlertTriangle,
-  ChevronRight, Send, RotateCcw, LogOut, Star, Wand2,
+  ChevronRight, Send, RotateCcw, LogOut, Star, Wand2, DownloadCloud
 } from 'lucide-react'
-import { portalApi, evaluationsApi, aiApi, solverApi } from '../services/api'
+import { portalApi, evaluationsApi, aiApi, solverApi, submissionsApi } from '../services/api'
 import { useAuth } from '../context/AuthContext'
 import { tokenStorage } from '../services/api'
 
@@ -105,6 +105,42 @@ function CriterionSlider({ criterion, value, onChange }) {
   )
 }
 
+// ── Team Submission ────────────────────────────────────────────────────────
+function TeamSubmissionSection({ team }) {
+  if (!team.submission) {
+    return (
+      <div className="mb-6 glass-card rounded-xl border border-slate-700/50 p-5 text-center">
+        <h3 className="text-sm font-semibold text-slate-100 mb-1">Submissions</h3>
+        <p className="text-xs text-slate-400">No project ZIP submitted yet for this team.</p>
+      </div>
+    )
+  }
+
+  const { original_filename, file_size_bytes, uploaded_by, uploaded_at } = team.submission
+
+  return (
+    <div className="mb-6 glass-card rounded-xl border border-slate-700/50 p-5">
+      <h3 className="text-sm font-semibold text-slate-100 mb-3">Submissions</h3>
+      <div className="bg-slate-800/50 rounded-lg p-4 flex flex-col sm:flex-row items-center justify-between gap-4">
+        <div>
+          <p className="text-sm font-medium text-slate-200">{original_filename}</p>
+          <p className="text-xs text-slate-400 mt-1">
+            Uploaded by {uploaded_by} on {new Date(uploaded_at).toLocaleDateString()} · {(file_size_bytes / 1024 / 1024).toFixed(2)} MB
+          </p>
+        </div>
+        <a 
+          href={submissionsApi.teamDownloadUrl(team.team_id)} 
+          target="_blank" 
+          rel="noreferrer"
+          className="shrink-0 flex items-center gap-2 btn-primary px-4 py-2 rounded-lg text-sm font-medium"
+        >
+          <DownloadCloud size={16} /> Download ZIP
+        </a>
+      </div>
+    </div>
+  )
+}
+
 // ── Scoring form ──────────────────────────────────────────────────────────
 
 function ScoringForm({ team, token, onSubmitted, alreadySubmitted }) {
@@ -154,6 +190,9 @@ function ScoringForm({ team, token, onSubmitted, alreadySubmitted }) {
           Score each criterion honestly. Your evaluation is anonymised in the final aggregate.
         </p>
       </div>
+
+      {/* Team Submission */}
+      <TeamSubmissionSection team={team} />
 
       {/* Sliders */}
       <div>
