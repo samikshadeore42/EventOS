@@ -2,6 +2,8 @@
 // Committee command-centre. Seven tabs, all fully wired to backend endpoints.
 // Dependencies: @tanstack/react-query, lucide-react, ../services/api, ../components/PipelineStepper
 
+import jsPDF from 'jspdf'
+import autoTable from 'jspdf-autotable'
 import { useState, useRef, useCallback } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import {
@@ -10,7 +12,7 @@ import {
   Play, Loader2, Check, X, AlertTriangle,
   ChevronDown, ChevronRight, Wand2,
   BarChart2, MessageSquare, Activity, Target, Calendar,
-  Send, Copy, Trash2, Plus, Shield,
+  Send, Copy, Trash2, Plus, Shield, FileText,
 } from 'lucide-react'
 import PipelineStepper from '../components/PipelineStepper'
 import {
@@ -1027,8 +1029,71 @@ function EvaluatorsTab() {
 // ── TAB 6: LEADERBOARD ─────────────────────────────────────────────────────
 function LeaderboardTab() {
   const qc = useQueryClient()
+  const [toastMsg, setToastMsg] = useState('')
 
   const { data: lb }       = useQuery({ queryKey: ['leaderboard'],  queryFn: leaderboardApi.get,        refetchInterval: 30_000 })
+
+  const showToast = (msg) => {
+    setToastMsg(msg)
+    setTimeout(() => setToastMsg(''), 3000)
+  }
+
+  const exportCSV = () => {
+    if (!lb?.leaderboard?.length) return
+    
+    const headers = ['Rank', 'Team', 'Technical', 'Innovation', 'Presentation', 'Total Score', 'Status']
+    const rows = lb.leaderboard.map(t => [
+      t.rank ?? '-',
+      t.team_name,
+      t.average_scores?.technical_depth?.toFixed(1) ?? '-',
+      t.average_scores?.innovation?.toFixed(1) ?? '-',
+      t.average_scores?.presentation?.toFixed(1) ?? '-',
+      t.weighted_total?.toFixed(2) ?? '-',
+      t.has_flags ? 'Flagged' : 'OK'
+    ])
+    
+    const csvContent = [
+      headers.join(','),
+      ...rows.map(e => e.map(f => `"${String(f).replace(/"/g, '""')}"`).join(','))
+    ].join('\n')
+    
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' })
+    const link = document.createElement('a')
+    link.href = URL.createObjectURL(blob)
+    link.download = 'leaderboard.csv'
+    link.click()
+    URL.revokeObjectURL(link.href)
+    showToast('CSV exported successfully')
+  }
+
+  const exportPDF = () => {
+    if (!lb?.leaderboard?.length) return
+    
+    const doc = new jsPDF()
+    doc.text('EventOS Leaderboard', 14, 15)
+    
+    const headers = [['Rank', 'Team', 'Technical', 'Innovation', 'Presentation', 'Total Score', 'Status']]
+    const data = lb.leaderboard.map(t => [
+      t.rank ?? '-',
+      t.team_name,
+      t.average_scores?.technical_depth?.toFixed(1) ?? '-',
+      t.average_scores?.innovation?.toFixed(1) ?? '-',
+      t.average_scores?.presentation?.toFixed(1) ?? '-',
+      t.weighted_total?.toFixed(2) ?? '-',
+      t.has_flags ? 'Flagged' : 'OK'
+    ])
+    
+    autoTable(doc, {
+      head: headers,
+      body: data,
+      startY: 20,
+      theme: 'grid',
+      headStyles: { fillColor: [79, 70, 229] }
+    })
+    
+    doc.save('leaderboard.pdf')
+    showToast('PDF exported successfully')
+  }
   const { data: anomalies } = useQuery({ queryKey: ['anomalies'],   queryFn: leaderboardApi.anomalies,  refetchInterval: 15_000 })
 
   const overrideMutation = useMutation({
@@ -1093,6 +1158,20 @@ function LeaderboardTab() {
           </div>
         </div>
       )}
+
+      {/* Header Actions */}
+      <div className="flex items-center justify-between mb-4 mt-2">
+        <h2 className="text-base font-semibold text-white">Event Rankings</h2>
+        <div className="flex gap-2 items-center">
+          {toastMsg && <span className="text-teal-400 text-xs mr-2 animate-pulse">{toastMsg}</span>}
+          <button onClick={exportCSV} disabled={!lb?.leaderboard?.length} className="flex items-center gap-1.5 text-sm px-3 py-1.5 rounded-lg border border-slate-700/50 text-slate-300 hover:bg-slate-800/40 disabled:opacity-50">
+            <FileText size={14} /> Export CSV
+          </button>
+          <button onClick={exportPDF} disabled={!lb?.leaderboard?.length} className="flex items-center gap-1.5 text-sm px-3 py-1.5 rounded-lg bg-indigo-600 text-white hover:bg-indigo-700 disabled:opacity-50">
+            <Download size={14} /> Export PDF
+          </button>
+        </div>
+      </div>
 
       {/* Rankings table */}
       <div className="glass-card rounded-xl border border-slate-700/50 overflow-hidden">
