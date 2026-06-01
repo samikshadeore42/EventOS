@@ -212,6 +212,9 @@ class LinkService:
         stage:          str,
         db:             Session
     ) -> dict:
+        from app.services.event_state_service import get_event_state
+        current_stage = get_event_state(db).current_stage
+
         participant = db.query(Participant).filter(
             Participant.id == participant_id
         ).first()
@@ -241,16 +244,16 @@ class LinkService:
             name           = f"{participant.first_name} {participant.last_name}",
             email          = participant.email,
             institution    = participant.institution,
-            stage          = stage,
+            stage          = current_stage,
             team_assigned  = participant.team_id is not None,
             team_name      = team.team_name if team else None,
             team_rationale = team.rationale if team else None,
             teammates      = teammates,
             timeline       = [
                 {"phase": "Registration",    "status": "completed"},
-                {"phase": "Team Formation",  "status": "completed" if participant.team_id else "pending"},
-                {"phase": "Evaluation",      "status": "active" if stage == "evaluation" else "pending"},
-                {"phase": "Results",         "status": "pending"},
+                {"phase": "Team Formation",  "status": "completed" if participant.team_id else ("active" if current_stage == "team_formation" else ("pending" if current_stage == "registration" else "completed"))},
+                {"phase": "Evaluation",      "status": "active" if current_stage == "evaluation" else ("completed" if current_stage == "results" else "pending")},
+                {"phase": "Results",         "status": "active" if current_stage == "results" else "pending"},
             ]
         ).model_dump()
 
