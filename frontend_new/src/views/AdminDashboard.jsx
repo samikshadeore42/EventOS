@@ -440,7 +440,7 @@ function TeamsTab() {
         },
       })
       for (let i = 0; i < 25; i++) {
-        await new Promise(r => setTimeout(r, 2500))
+        await new Promise(r => setTimeout(r, 3000))
         const s = await solverApi.taskStatus(res.task_id)
         if (s.status === 'success') {
           setRationales(r => ({...r, [id]: {status: 'done', text: s.result?.rationale || ''}}))
@@ -455,11 +455,17 @@ function TeamsTab() {
   }
 
   const generateAllRationale = async () => {
-    if (!drafts?.teams) return
-    setGeneratingAll(true)
-    for (const t of drafts.teams) await generateRationale(t)
-    setGeneratingAll(false)
+  if (!drafts?.teams) return
+  setGeneratingAll(true)
+  for (let i = 0; i < drafts.teams.length; i++) {
+    await generateRationale(drafts.teams[i])
+    // Wait 15 seconds between each team to avoid Gemini rate limits
+    if (i < drafts.teams.length - 1) {
+      await new Promise(r => setTimeout(r, 20000))
+    }
   }
+  setGeneratingAll(false)
+}
   const [config, setConfig] = useState({
     num_teams: 5, target_size: 4, k_min: 3, k_max: 5,
     max_per_institution: 1, use_mock_data: false,
@@ -1184,7 +1190,7 @@ function CommunicationsTab() {
 
     // Poll until done
     for (let i = 0; i < 25; i++) {
-      await new Promise(r => setTimeout(r, 2500))
+      await new Promise(r => setTimeout(r, 3000))
       const s = await solverApi.taskStatus(enqueued.task_id)
       if (s.status === 'success') {
         return { subject: s.result.subject, body_text: s.result.body }
@@ -1747,7 +1753,7 @@ function AnomalyTab() {
         team_name: team.team_name,
       })
       for (let i = 0; i < 20; i++) {
-        await new Promise(r => setTimeout(r, 2500))
+        await new Promise(r => setTimeout(r, 3000))
         const s = await solverApi.taskStatus(res.task_id)
         if (s.status === 'success') {
           setExplanations(e => ({...e, [id]: {status: 'done', text: s.result?.narrative || ''}}))
