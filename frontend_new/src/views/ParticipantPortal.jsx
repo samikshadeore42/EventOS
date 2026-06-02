@@ -10,6 +10,7 @@ import {
   UserCheck, Video, ClipboardList, MessageSquare, Send, Trophy,
   
 } from 'lucide-react'
+import EventOSLogo from '../components/EventOSLogo'
 import { portalApi, mentorApi } from '../services/api'
 import { useAuth } from '../context/AuthContext'
 
@@ -34,7 +35,8 @@ const STAGE_LABELS = {
 
 function PortalHeader({ name, email, eventName, stage }) {
   return (
-    <div className="text-center mb-10">
+    <div className="text-center mb-10 flex flex-col items-center">
+      <EventOSLogo className="text-indigo-600 mb-4" size={56} />
       <p className="text-xs font-bold text-indigo-600 uppercase tracking-widest mb-2">
         {eventName}
       </p>

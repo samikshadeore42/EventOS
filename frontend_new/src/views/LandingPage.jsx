@@ -1,16 +1,14 @@
 import React from 'react'
 import { Link } from 'react-router-dom'
 import { ArrowRight, Calendar, Users, Trophy, Shield, Zap, Sparkles, CheckSquare, Target, User, LayoutDashboard, Lock, Star, Clock, Heart } from 'lucide-react'
+import EventOSLogo from '../components/EventOSLogo'
 
 function Navbar() {
   return (
     <nav className="border-b border-slate-200/80 bg-white/80 backdrop-blur-md sticky top-0 z-50 shadow-sm">
       <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <Sparkles className="text-indigo-600" size={24} />
-          <span className="text-xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 to-teal-600">
-            EventOS
-          </span>
+          <EventOSLogo className="text-indigo-600" size={48} />
         </div>
         
         <div className="hidden md:flex items-center gap-6 text-sm font-medium">
@@ -249,8 +247,7 @@ function Footer() {
     <footer className="border-t border-slate-200 bg-white py-12 px-6 relative z-10">
       <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-6">
         <div className="flex items-center gap-2">
-          <Sparkles className="text-indigo-600" size={20} />
-          <span className="text-lg font-bold text-slate-800">EventOS</span>
+          <EventOSLogo className="text-indigo-600" size={32} />
         </div>
         
         <p className="text-sm text-slate-500 font-medium">

@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { Loader2, Lock, User, ShieldCheck } from 'lucide-react';
+import EventOSLogo from '../components/EventOSLogo';
 import axios from 'axios';
 
 const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
@@ -34,7 +35,7 @@ export default function AdminLogin() {
       
       <div className="sm:mx-auto sm:w-full sm:max-w-md z-10">
         <div className="flex justify-center text-indigo-600">
-          <ShieldCheck size={48} />
+          <EventOSLogo size={64} />
         </div>
         <h2 className="mt-4 text-center text-3xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 to-sky-600">
           EventOS Admin

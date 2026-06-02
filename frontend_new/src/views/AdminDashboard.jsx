@@ -14,6 +14,7 @@ import {
   BarChart2, MessageSquare, Activity, Target, Calendar,
   Send, Copy, Trash2, Plus, Shield, FileText,
 } from 'lucide-react'
+import EventOSLogo from '../components/EventOSLogo'
 import PipelineStepper from '../components/PipelineStepper'
 import {
   participantsApi,
@@ -2182,9 +2183,12 @@ export default function AdminDashboard() {
     <div className="min-h-screen bg-slate-50">
       {/* Top bar */}
       <header className="glass-card border-b border-slate-200 px-6 py-4 flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 to-violet-600 font-black">EventOS</h1>
-          <p className="text-xs text-slate-500">Committee Dashboard — WiSE@TI Hackathon</p>
+        <div className="flex items-center gap-4">
+          <EventOSLogo className="text-indigo-600" size={48} />
+          <div className="border-l border-slate-200 pl-4">
+            <h1 className="text-sm font-bold text-slate-800 uppercase tracking-wide">Committee Dashboard</h1>
+            <p className="text-xs font-medium text-slate-500">WiSE@TI Hackathon</p>
+          </div>
         </div>
         <div className="flex items-center gap-3 text-xs text-slate-500">
           <span className="flex items-center gap-1">
