@@ -9,6 +9,7 @@ from app.core.database import get_db
 from app.core.security import decode_access_token
 from app.models.evaluation import Evaluation, Evaluator
 from app.services.score_service import ScoreService
+from app.models.assignment import EvaluatorTeamAssignment
 from app.schemas.evaluation_schemas import (
     ScoreSubmissionRequest,
     ScoreUpdateRequest,
@@ -55,6 +56,16 @@ def submit_scorecard(
     if not evaluator.is_active:
         raise HTTPException(status_code=403, detail="Your evaluator account is inactive.")
 
+    assigned = db.query(EvaluatorTeamAssignment).filter_by(
+        evaluator_id=evaluator_id,
+        team_id=body.team_id
+    ).first()
+    
+    if not assigned:
+        raise HTTPException(
+            status_code=403,
+            detail="Access Denied:You are not assigned to evaluate this team."
+        )
     return ScoreService.submit_scorecard(
         evaluator_id=evaluator_id,
         team_id=body.team_id,

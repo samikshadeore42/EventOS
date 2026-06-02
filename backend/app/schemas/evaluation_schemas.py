@@ -63,3 +63,7 @@ class ConsolidationResult(BaseModel):
     flagged_count:     int
     leaderboard_ready: int     
     message:           str
+    
+class EvaluatorAssignmentRequest(BaseModel):
+    evaluator_id: UUID
+    team_ids:     List[UUID]
