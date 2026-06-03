@@ -380,18 +380,28 @@ function KeyDatesCard({ stage }) {
 // ── Project submission section ───────────────────────────────────────────────
 
 function ProjectSubmissionSection() {
+  const qc = useQueryClient()
   const [file, setFile] = useState(null)
-  const [submitted, setSubmitted] = useState(false)
   const [error, setError] = useState('')
   const [uploading, setUploading] = useState(false)
-  
+  const [showReplace, setShowReplace] = useState(false)
+
+  // Fetch existing submission metadata from backend
+  const { data: subData } = useQuery({
+    queryKey: ['participant-submission'],
+    queryFn: () => submissionsApi.getParticipantProject(),
+    retry: false,
+  })
+
+  const existingSub = subData?.submission ?? null
+
   const handleUpload = async () => {
     if (!file) return;
     if (file.size > 50 * 1024 * 1024) {
        setError("File must be under 50MB");
        return;
     }
-    if (!file.name.endsWith('.zip')) {
+    if (!file.name.toLowerCase().endsWith('.zip')) {
        setError("Only .zip files are allowed");
        return;
     }
@@ -399,13 +409,24 @@ function ProjectSubmissionSection() {
     try {
        setUploading(true)
        await submissionsApi.upload(file);
-       setSubmitted(true);
        setError('');
+       setFile(null);
+       setShowReplace(false);
+       // Refetch submission metadata
+       qc.invalidateQueries({ queryKey: ['participant-submission'] })
+       qc.invalidateQueries({ queryKey: ['portal-access'] })
     } catch (err) {
-       setError(err.message || 'Upload failed');
+       setError(err?.response?.data?.detail || err.message || 'Upload failed');
     } finally {
        setUploading(false)
     }
+  }
+
+  const formatBytes = (bytes) => {
+    if (!bytes) return '—'
+    if (bytes < 1024) return `${bytes} B`
+    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`
+    return `${(bytes / (1024 * 1024)).toFixed(1)} MB`
   }
 
   return (
@@ -414,14 +435,29 @@ function ProjectSubmissionSection() {
          <Send size={16} className="text-indigo-600" />
          <h3 className="text-sm font-bold text-slate-800">Submit Final Project (ZIP, max 50MB)</h3>
        </div>
-       {submitted ? (
-         <div className="bg-teal-50 border border-teal-200 rounded-xl p-4 text-center shadow-sm">
-            <CheckCircle size={24} className="text-teal-600 mx-auto mb-2" />
-            <p className="text-sm font-bold text-teal-800">Project Submitted Successfully</p>
-            <button onClick={() => setSubmitted(false)} className="text-xs text-indigo-600 mt-2 hover:underline">Upload a replacement?</button>
+
+       {/* Show existing submission info */}
+       {existingSub && !showReplace ? (
+         <div className="bg-teal-50 border border-teal-200 rounded-xl p-4 shadow-sm">
+            <div className="flex items-center gap-2 mb-2">
+              <CheckCircle size={18} className="text-teal-600" />
+              <p className="text-sm font-bold text-teal-800">Project Submitted</p>
+            </div>
+            <div className="text-xs text-slate-600 space-y-1 mb-3">
+              <p><span className="font-semibold">File:</span> {existingSub.original_filename}</p>
+              <p><span className="font-semibold">Size:</span> {formatBytes(existingSub.file_size_bytes)}</p>
+              <p><span className="font-semibold">Uploaded by:</span> {existingSub.uploaded_by}</p>
+              {existingSub.updated_at && (
+                <p><span className="font-semibold">Last updated:</span> {new Date(existingSub.updated_at).toLocaleString()}</p>
+              )}
+            </div>
+            <button onClick={() => setShowReplace(true)} className="text-xs text-indigo-600 font-semibold hover:underline">Upload a replacement?</button>
          </div>
        ) : (
          <div className="flex flex-col gap-2">
+           {existingSub && (
+             <p className="text-xs text-amber-700 font-medium mb-1">Replacing: {existingSub.original_filename}</p>
+           )}
            <div className="flex gap-2">
              <input 
                type="file" 
@@ -437,6 +473,9 @@ function ProjectSubmissionSection() {
                {uploading ? 'Uploading...' : 'Submit'}
              </button>
            </div>
+           {existingSub && (
+             <button onClick={() => setShowReplace(false)} className="text-xs text-slate-500 hover:underline self-start">Cancel</button>
+           )}
            {error && <p className="text-xs text-red-600">{error}</p>}
          </div>
        )}
@@ -706,7 +745,11 @@ export default function ParticipantPortal() {
           stage={stage}
         />
 
-        {participant_id && stage === 'results' && data?.rank <= 3 && (
+        {participant_id &&
+          stage === 'results' &&
+          typeof data?.rank === 'number' &&
+          data.rank >= 1 &&
+          data.rank <= 3 && (
           <ProgressionInvitationSection
             participantId={participant_id}
             currentStatus={progression_confirmed}
