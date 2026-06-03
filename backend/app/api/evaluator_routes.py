@@ -184,9 +184,12 @@ def assign_evaluator(
     eval_inst = _normalize_institution(evaluator.passed_out_institution)
     
     for t_id in payload.team_ids:
-        # Check conflict of interest
         team = db.query(Team).filter(Team.id == t_id).first()
-        if team and eval_inst:
+        if not team:
+            raise HTTPException(status_code=404, detail=f"Team {t_id} not found.")
+            
+        # Check conflict of interest
+        if eval_inst:
             member_institutions = {_normalize_institution(m.institution) for m in team.members}
             if eval_inst in member_institutions:
                 raise HTTPException(
