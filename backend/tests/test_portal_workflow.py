@@ -179,6 +179,37 @@ class TestEvaluatorAssignment:
         assert resp.status_code == 422
         assert "Conflict of interest" in resp.json()["detail"]
 
+    def test_assign_evaluator_preserves_old_on_failure(self, client, db_session):
+        """If validation fails, old assignments should not be deleted."""
+        from app.models.participant import EvaluatorTeamAssignment
+        evaluator = make_evaluator(
+            db_session, email=f"preserve_{uuid.uuid4().hex[:8]}@test.com", institution="iitl"
+        )
+        old_team = make_approved_team(db_session, name="Team Old")
+        db_session.add(EvaluatorTeamAssignment(evaluator_id=evaluator.id, team_id=old_team.id))
+        db_session.commit()
+
+        # Fail due to 404 missing team
+        resp404 = client.post("/evaluators/assign", json={
+            "evaluator_id": str(evaluator.id),
+            "team_ids": [str(uuid.uuid4())],
+        })
+        assert resp404.status_code == 404
+
+        # Fail due to 422 COI
+        conflict_team = make_approved_team(db_session, name="Team Conflict New")
+        make_participant_in_team(db_session, conflict_team, email=f"c_{uuid.uuid4().hex[:8]}@test.com", institution="IITL")
+        resp422 = client.post("/evaluators/assign", json={
+            "evaluator_id": str(evaluator.id),
+            "team_ids": [str(conflict_team.id)],
+        })
+        assert resp422.status_code == 422
+
+        # Verify old assignment still exists
+        assignments = db_session.query(EvaluatorTeamAssignment).filter_by(evaluator_id=evaluator.id).all()
+        assert len(assignments) == 1
+        assert assignments[0].team_id == old_team.id
+
     def test_assign_evaluator_empty_institution_no_block(self, client, db_session):
         """Evaluator with no institution should not be blocked."""
         evaluator = make_evaluator(

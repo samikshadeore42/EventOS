@@ -179,10 +179,9 @@ def assign_evaluator(
     if not evaluator:
         raise HTTPException(status_code=404, detail="Evaluator not found.")
         
-    db.query(EvaluatorTeamAssignment).filter_by(evaluator_id=payload.evaluator_id).delete()
-    
     eval_inst = _normalize_institution(evaluator.passed_out_institution)
     
+    # Validation Phase
     for t_id in payload.team_ids:
         team = db.query(Team).filter(Team.id == t_id).first()
         if not team:
@@ -196,12 +195,17 @@ def assign_evaluator(
                     status_code=422,
                     detail=f"Conflict of interest: Evaluator is from '{evaluator.passed_out_institution}', which matches team '{team.team_name}'."
                 )
-                
+
+    # Modification Phase
+    db.query(EvaluatorTeamAssignment).filter_by(evaluator_id=payload.evaluator_id).delete()
+    
+    for t_id in payload.team_ids:
         new_assignment = EvaluatorTeamAssignment(
             evaluator_id=payload.evaluator_id,
             team_id=t_id
         )
         db.add(new_assignment)
+        
     db.commit()
     
     return {
