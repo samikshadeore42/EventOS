@@ -3,7 +3,7 @@ from fastapi import APIRouter, Depends, HTTPException, UploadFile, File
 from fastapi.responses import FileResponse
 from sqlalchemy.orm import Session
 from app.core.database import get_db
-from app.core.security import decode_access_token, get_token_subject
+from app.core.security import decode_access_token, get_token_subject, parse_uuid_subject
 from app.models.participant import Participant
 from app.models.evaluation import Evaluator
 from app.services.project_submission_service import ProjectSubmissionService
@@ -17,7 +17,7 @@ def submit_project(token: str, file: UploadFile = File(...), db: Session = Depen
     if role != "participant":
         raise HTTPException(status_code=403, detail="Only participants can submit projects.")
         
-    participant_id = get_token_subject(payload)
+    participant_id = parse_uuid_subject(get_token_subject(payload), "participant ID")
     participant = db.query(Participant).filter(Participant.id == participant_id).first()
     if not participant:
         raise HTTPException(status_code=404, detail="Participant not found.")
@@ -45,7 +45,7 @@ def get_participant_project(token: str, db: Session = Depends(get_db)):
     if role != "participant":
         raise HTTPException(status_code=403, detail="Only participants can access this.")
         
-    participant_id = get_token_subject(payload)
+    participant_id = parse_uuid_subject(get_token_subject(payload), "participant ID")
     participant = db.query(Participant).filter(Participant.id == participant_id).first()
     if not participant:
         raise HTTPException(status_code=404, detail="Participant not found.")
@@ -79,7 +79,7 @@ def get_team_submission_judge(team_id: UUID, token: str, db: Session = Depends(g
     if role != "evaluator":
         raise HTTPException(status_code=403, detail="Only evaluators can access this.")
         
-    evaluator_id = get_token_subject(payload)
+    evaluator_id = parse_uuid_subject(get_token_subject(payload), "evaluator ID")
     evaluator = db.query(Evaluator).filter(Evaluator.id == evaluator_id).first()
     
     submission = ProjectSubmissionService.get_download_file_for_evaluator(db, evaluator, team_id)
@@ -106,7 +106,7 @@ def download_team_submission(team_id: UUID, token: str, db: Session = Depends(ge
     if role != "evaluator":
         raise HTTPException(status_code=403, detail="Only evaluators can download this.")
         
-    evaluator_id = get_token_subject(payload)
+    evaluator_id = parse_uuid_subject(get_token_subject(payload), "evaluator ID")
     evaluator = db.query(Evaluator).filter(Evaluator.id == evaluator_id).first()
     
     submission = ProjectSubmissionService.get_download_file_for_evaluator(db, evaluator, team_id)

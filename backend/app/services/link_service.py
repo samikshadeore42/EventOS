@@ -9,7 +9,7 @@ from uuid import UUID
 from sqlalchemy.orm import Session
 from fastapi import HTTPException
 
-from app.core.security import create_access_token, decode_access_token, get_token_subject
+from app.core.security import create_access_token, decode_access_token, get_token_subject, parse_uuid_subject
 from app.models.participant import Participant, Team
 from app.models.evaluation import Evaluator, Evaluation
 from app.models.mentor import Mentor, MentorAssignment
@@ -194,7 +194,7 @@ class LinkService:
     def resolve_portal_access(cls, token: str, db: Session) -> dict:
         payload = decode_access_token(token)
         role    = payload.get("role")
-        subject = get_token_subject(payload)
+        subject = parse_uuid_subject(get_token_subject(payload), "portal subject")
         stage   = payload.get("stage", "unknown")
 
         if role == "participant":
