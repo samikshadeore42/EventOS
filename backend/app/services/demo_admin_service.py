@@ -3,7 +3,11 @@ from app.models.mentor import MentorFeedback, MentorSession, MentorAssignment, M
 from app.models.evaluation import Evaluation, Evaluator
 from app.models.communication_log import CommunicationLog
 from app.models.participant import Participant, Team
+from app.models.project_submission import ProjectSubmission
 from app.models.event_state import EventState
+import os
+import shutil
+
 from app.models.event_config import EventConfig
 
 def get_demo_status(db: Session):
@@ -38,7 +42,21 @@ def reset_demo_data(db: Session, preserve_admins: bool = True):
         # 7. participants
         deleted_counts["participants"] = db.query(Participant).delete(synchronize_session=False)
         
-        # 8. teams
+        # 8. project submissions
+        deleted_counts["project_submissions"] = db.query(ProjectSubmission).delete(synchronize_session=False)
+
+        # clear submission files
+        uploads_dir = os.path.join("uploads", "project_submissions")
+        if os.path.exists(uploads_dir):
+            for filename in os.listdir(uploads_dir):
+                file_path = os.path.join(uploads_dir, filename)
+                try:
+                    if os.path.isfile(file_path):
+                        os.unlink(file_path)
+                except Exception as e:
+                    print(f"Failed to delete {file_path}. Reason: {e}")
+        
+        # 9. teams
         deleted_counts["teams"] = db.query(Team).delete(synchronize_session=False)
         
         # 9. evaluators/judges

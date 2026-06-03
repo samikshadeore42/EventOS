@@ -46,21 +46,21 @@ function StageNode({ meta, status, isLast }) {
   const { Icon } = meta
 
   const ring = {
-    completed: 'border-teal-500  bg-teal-900/30',
-    active:    'border-indigo-600 btn-primary',
-    pending:   'border-slate-700/50   bg-slate-800/40',
+    completed: 'border-teal-500 bg-teal-50',
+    active:    'border-indigo-600 bg-indigo-600',
+    pending:   'border-slate-200 bg-slate-50',
   }[status]
 
   const iconColor = {
-    completed: 'text-teal-500',
+    completed: 'text-teal-600',
     active:    'text-white',
-    pending:   'text-gray-300',
+    pending:   'text-slate-400',
   }[status]
 
   const labelColor = {
-    completed: 'text-teal-300  font-semibold',
-    active:    'text-indigo-300 font-semibold',
-    pending:   'text-slate-500   font-normal',
+    completed: 'text-teal-700 font-semibold',
+    active:    'text-indigo-700 font-semibold',
+    pending:   'text-slate-500 font-normal',
   }[status]
 
   return (
@@ -97,16 +97,16 @@ function StageNode({ meta, status, isLast }) {
 
 function SkeletonStepper() {
   return (
-    <div className="glass-card border border-slate-700/50 rounded-xl p-5">
+    <div className="glass-card border border-slate-200 rounded-xl p-5">
       <div className="flex items-center gap-2 mb-4">
-        <div className="h-4 w-32 bg-slate-700/50 rounded animate-pulse" />
-        <div className="h-3 w-20 bg-slate-700/50 rounded animate-pulse" />
+        <div className="h-4 w-32 bg-slate-200 rounded animate-pulse" />
+        <div className="h-3 w-20 bg-slate-200 rounded animate-pulse" />
       </div>
       <div className="flex items-center">
         {[1, 2, 3, 4].map((i) => (
           <div key={i} className="flex items-center flex-1">
-            <div className="w-10 h-10 rounded-full bg-slate-700/50 animate-pulse shrink-0" />
-            {i < 4 && <div className="flex-1 h-0.5 bg-slate-700/50 mx-1" />}
+            <div className="w-10 h-10 rounded-full bg-slate-200 animate-pulse shrink-0" />
+            {i < 4 && <div className="flex-1 h-0.5 bg-slate-200 mx-1" />}
           </div>
         ))}
       </div>
@@ -162,12 +162,12 @@ export default function PipelineStepper({ showAdvanceButton = false, className =
 
   // isAtLast is unused since we removed the check for showAdvanceButton
   return (
-    <div className={`glass-card border border-slate-700/50 rounded-xl p-5 ${className}`}>
+    <div className={`glass-card border border-slate-200 rounded-xl p-5 shadow-sm ${className}`}>
       {/* Header row */}
       <div className="flex items-center justify-between mb-5">
         <div className="min-w-0">
           <div className="flex items-center gap-2">
-            <h3 className="text-sm font-semibold text-white truncate">
+            <h3 className="text-sm font-semibold text-slate-900 truncate">
               {data?.event_name ?? 'EventOS'}
             </h3>
             {isFetching && (
@@ -176,7 +176,7 @@ export default function PipelineStepper({ showAdvanceButton = false, className =
           </div>
           <p className="text-xs text-slate-500 mt-0.5">
             Stage {currentIndex + 1} of {data?.total_stages ?? 4} —{' '}
-            <span className="text-indigo-400 font-medium capitalize">
+            <span className="text-indigo-600 font-medium capitalize">
               {currentStageName.replace('_', ' ')}
             </span>
           </p>
@@ -191,7 +191,7 @@ export default function PipelineStepper({ showAdvanceButton = false, className =
                 })
               }}
               disabled={previousMutation.isPending}
-              className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg border border-slate-600 text-slate-300 hover:bg-slate-800 disabled:opacity-50 transition-colors"
+              className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg border border-slate-200 text-slate-600 hover:bg-slate-50 disabled:opacity-50 transition-colors"
             >
               Previous
             </button>

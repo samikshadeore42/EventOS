@@ -79,7 +79,10 @@ function ScheduleMeetingForm({ teamId, onSuccess }) {
   })
 
   const mutation = useMutation({
-    mutationFn: () => mentorApi.createSession({ ...form, team_id: teamId, duration_minutes: +form.duration_minutes }),
+    mutationFn: () => {
+      const isoDate = new Date(form.scheduled_at).toISOString();
+      return mentorApi.createSession({ ...form, team_id: teamId, duration_minutes: +form.duration_minutes, scheduled_at: isoDate })
+    },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['mentor-teams'] })
       setForm({ title: '', meeting_url: '', scheduled_at: '', duration_minutes: 30, agenda: '' })

@@ -11,7 +11,7 @@ import {
   Check, X
 } from 'lucide-react'
 import EventOSLogo from '../components/EventOSLogo'
-import { portalApi, mentorApi } from '../services/api'
+import { portalApi, mentorApi, submissionsApi } from '../services/api'
 import { useAuth } from '../context/AuthContext'
 
 // ── Helpers ────────────────────────────────────────────────────────────────
@@ -380,36 +380,64 @@ function KeyDatesCard({ stage }) {
 // ── Project submission section ───────────────────────────────────────────────
 
 function ProjectSubmissionSection() {
-  const [url, setUrl] = useState('')
+  const [file, setFile] = useState(null)
   const [submitted, setSubmitted] = useState(false)
+  const [error, setError] = useState('')
+  const [uploading, setUploading] = useState(false)
   
+  const handleUpload = async () => {
+    if (!file) return;
+    if (file.size > 50 * 1024 * 1024) {
+       setError("File must be under 50MB");
+       return;
+    }
+    if (!file.name.endsWith('.zip')) {
+       setError("Only .zip files are allowed");
+       return;
+    }
+    
+    try {
+       setUploading(true)
+       await submissionsApi.upload(file);
+       setSubmitted(true);
+       setError('');
+    } catch (err) {
+       setError(err.message || 'Upload failed');
+    } finally {
+       setUploading(false)
+    }
+  }
+
   return (
     <div className="glass-card rounded-2xl border border-slate-200 p-6 mb-6">
        <div className="flex items-center gap-2 mb-4">
          <Send size={16} className="text-indigo-600" />
-         <h3 className="text-sm font-bold text-slate-800">Submit Final Project</h3>
+         <h3 className="text-sm font-bold text-slate-800">Submit Final Project (ZIP, max 50MB)</h3>
        </div>
        {submitted ? (
          <div className="bg-teal-50 border border-teal-200 rounded-xl p-4 text-center shadow-sm">
             <CheckCircle size={24} className="text-teal-600 mx-auto mb-2" />
             <p className="text-sm font-bold text-teal-800">Project Submitted Successfully</p>
-            <p className="text-xs font-medium text-teal-600 mt-1">{url}</p>
+            <button onClick={() => setSubmitted(false)} className="text-xs text-indigo-600 mt-2 hover:underline">Upload a replacement?</button>
          </div>
        ) : (
-         <div className="flex gap-2">
-           <input 
-             type="url" 
-             placeholder="https://github.com/your-repo..." 
-             className="flex-1 bg-white border border-slate-300 rounded-lg px-4 py-2 text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 shadow-sm"
-             value={url}
-             onChange={e => setUrl(e.target.value)}
-           />
-           <button 
-             onClick={() => { if(url) setSubmitted(true) }}
-             className="btn-primary px-4 py-2 rounded-lg text-sm font-semibold flex items-center gap-2"
-           >
-             Submit
-           </button>
+         <div className="flex flex-col gap-2">
+           <div className="flex gap-2">
+             <input 
+               type="file" 
+               accept=".zip"
+               className="flex-1 bg-white border border-slate-300 rounded-lg px-4 py-2 text-sm text-slate-900 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 shadow-sm"
+               onChange={e => { setFile(e.target.files[0]); setError(''); }}
+             />
+             <button 
+               onClick={handleUpload}
+               className="btn-primary px-4 py-2 rounded-lg text-sm font-semibold flex items-center gap-2 disabled:opacity-50"
+               disabled={!file || uploading}
+             >
+               {uploading ? 'Uploading...' : 'Submit'}
+             </button>
+           </div>
+           {error && <p className="text-xs text-red-600">{error}</p>}
          </div>
        )}
     </div>
@@ -530,13 +558,13 @@ function ProgressionInvitationSection({ participantId, currentStatus }) {
   }
 
   return (
-    <div className="glass-card rounded-2xl border border-indigo-500/40 p-6 mb-6 shadow-xl bg-gradient-to-r from-indigo-950/40 to-slate-900/40">
+    <div className="bg-gradient-to-br from-indigo-600 to-violet-600 rounded-2xl p-6 mb-6 shadow-md text-white">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div className="min-w-0">
           <h3 className="text-base font-bold text-white flex items-center gap-2">
             🎉 Final Round Invitation!
           </h3>
-          <p className="text-xs text-slate-400 mt-1 leading-relaxed">
+          <p className="text-xs text-white opacity-90 mt-1 leading-relaxed">
             Your team has qualified for the Grand Finale round. Please confirm your availability now.
           </p>
         </div>
@@ -544,14 +572,14 @@ function ProgressionInvitationSection({ participantId, currentStatus }) {
           <button
             disabled={mutation.isPending}
             onClick={() => mutation.mutate(true)}
-            className="flex-1 sm:flex-none text-xs bg-emerald-600 hover:bg-emerald-500 text-white font-semibold px-4 py-2.5 rounded-xl transition-all disabled:opacity-50 flex items-center justify-center gap-2"
+            className="flex-1 sm:flex-none text-xs bg-teal-500 hover:bg-teal-400 text-white font-semibold px-4 py-2.5 rounded-xl transition-all disabled:opacity-50 flex items-center justify-center gap-2"
           >
             {mutation.isPending && mutation.variables === true ? 'Saving...' : 'Accept Invite'}
           </button>
           <button
             disabled={mutation.isPending}
             onClick={() => mutation.mutate(false)}
-            className="flex-1 sm:flex-none text-xs border border-slate-700 hover:bg-slate-800 text-slate-300 font-medium px-4 py-2.5 rounded-xl transition-all disabled:opacity-50 flex items-center justify-center gap-2"
+            className="flex-1 sm:flex-none text-xs border border-white hover:bg-white/10 text-white font-medium px-4 py-2.5 rounded-xl transition-all disabled:opacity-50 flex items-center justify-center gap-2"
           >
             {mutation.isPending && mutation.variables === false ? '...' : 'Decline'}
           </button>
@@ -668,7 +696,7 @@ export default function ParticipantPortal() {
       {/* Thin top accent bar */}
       <div className="h-1 bg-gradient-to-r from-indigo-500 via-violet-500 to-teal-500" />
 
-      <div className="max-w-lg mx-auto px-4 py-10">
+      <div className="max-w-5xl mx-auto px-4 py-10">
 
         {/* Header */}
         <PortalHeader
@@ -678,37 +706,36 @@ export default function ParticipantPortal() {
           stage={stage}
         />
 
-        {participant_id && (stage === 'evaluation' || stage === 'results') && (
+        {participant_id && stage === 'results' && data?.rank <= 3 && (
           <ProgressionInvitationSection
             participantId={participant_id}
             currentStatus={progression_confirmed}
           />
         )}
 
-        {/* Timeline */}
-        <EventTimeline timeline={timeline} />
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="space-y-6">
+            <EventTimeline timeline={timeline} />
+            <KeyDatesCard stage={stage} />
+          </div>
+          
+          <div className="space-y-6">
+            {team_assigned && team_name
+              ? <TeamRevealSection
+                  teamName={team_name}
+                  rationale={team_rationale}
+                  teammates={teammates}
+                />
+              : <AwaitingCard />
+            }
 
-        {/* Team section — conditional on assignment status */}
-        {team_assigned && team_name
-          ? <TeamRevealSection
-              teamName={team_name}
-              rationale={team_rationale}
-              teammates={teammates}
-            />
-          : <AwaitingCard />
-        }
+            {team_assigned && (stage === 'evaluation' || stage === 'results') && <ProjectSubmissionSection />}
 
-        {/* Project Submission (Evaluation Stage) */}
-        {team_assigned && stage === 'evaluation' && <ProjectSubmissionSection />}
+            {stage === 'results' && <ResultsSection data={data} />}
 
-        {/* Results (Results Stage) */}
-        {stage === 'results' && <ResultsSection data={data} />}
-
-        {/* Mentor info (only when team is assigned) */}
-        {team_assigned && <MentorInfoSection mentorData={mentorData} />}
-
-        {/* Key dates */}
-        <KeyDatesCard stage={stage} />
+            {team_assigned && <MentorInfoSection mentorData={mentorData} />}
+          </div>
+        </div>
 
         {/* Support */}
         <SupportFooter supportEmail={supportEmail} />

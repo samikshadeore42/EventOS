@@ -11,5 +11,6 @@ from app.models.admin import Employee, Admin
 from app.models import event_state
 from app.models.event_state import EventState
 from app.models.assignment import EvaluatorTeamAssignment
+from app.models.project_submission import ProjectSubmission
 
-__all__ = ["Participant", "Team", "Mentor", "MentorAssignment", "MentorSession", "MentorFeedback", "Employee", "Admin", "EventState"]
+__all__ = ["Participant", "Team", "Mentor", "MentorAssignment", "MentorSession", "MentorFeedback", "Employee", "Admin", "EventState", "ProjectSubmission"]
