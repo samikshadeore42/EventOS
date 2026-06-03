@@ -214,6 +214,7 @@ function ParticipantsTab() {
     e.preventDefault()
     setDragActive(false)
     handleFile(e.dataTransfer.files[0])
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   const onDragOver = (e) => { e.preventDefault(); setDragActive(true) }

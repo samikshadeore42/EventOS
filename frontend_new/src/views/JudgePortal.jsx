@@ -384,9 +384,17 @@ export default function JudgePortal() {
   const [rubricLoading, setRubricLoading] = useState(false)
 
   useEffect(() => {
-    if (!selectedTeam) { setRubric(null); return }
-    setRubric(null)
-    setRubricLoading(true)
+    let active = true
+    if (!selectedTeam) {
+      setTimeout(() => { if (active) setRubric(null) }, 0)
+      return
+    }
+    setTimeout(() => {
+      if (active) {
+        setRubric(null)
+        setRubricLoading(true)
+      }
+    }, 0)
     const criteriaWeights = Object.fromEntries(
       CRITERIA.map(c => [c.label, c.weight])
     )
@@ -409,6 +417,7 @@ export default function JudgePortal() {
         setRubricLoading(false)
       })
       .catch(() => setRubricLoading(false))
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedTeam?.team_id])
 
   // Extract token from URL on mount (AuthContext also does this globally,
@@ -421,6 +430,7 @@ export default function JudgePortal() {
   useEffect(() => {
     const t = new URLSearchParams(window.location.search).get('token')
     if (t) setToken(t)
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   const { data: portalData, isLoading, error } = useQuery({

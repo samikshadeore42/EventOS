@@ -1,4 +1,5 @@
 // src/context/AuthContext.jsx
+/* eslint-disable react-refresh/only-export-components */
 import {
   createContext,
   useContext,
@@ -28,28 +29,40 @@ const AuthContext = createContext(null)
 
 // ── Provider ───────────────────────────────────────────────────────────────
 export function AuthProvider({ children }) {
-  const [token, setTokenState] = useState(() => tokenStorage.get())
+  const [token, setTokenState] = useState(() => {
+    const params = new URLSearchParams(window.location.search)
+    const urlToken = params.get('token')
+    if (urlToken) {
+      const decoded = decodePayload(urlToken)
+      if (decoded && !isExpired(decoded)) {
+        tokenStorage.set(urlToken)
+        return urlToken
+      }
+    }
+    return tokenStorage.get()
+  })
+
   const [payload, setPayload] = useState(() => {
+    const params = new URLSearchParams(window.location.search)
+    const urlToken = params.get('token')
+    if (urlToken) {
+      const decoded = decodePayload(urlToken)
+      if (decoded && !isExpired(decoded)) {
+        return decoded
+      }
+    }
     const t = tokenStorage.get()
     if (!t) return null
     const p = decodePayload(t)
     return p && !isExpired(p) ? p : null
   })
 
-  // On mount: look for ?token= in the URL (judge / participant magic links)
+  // On mount: clear token from URL bar if it was present
   useEffect(() => {
     const params = new URLSearchParams(window.location.search)
-    const urlToken = params.get('token')
-    if (!urlToken) return
-
-    const decoded = decodePayload(urlToken)
-    if (!decoded || isExpired(decoded)) return
-
-    // Store and clear from URL bar
-    tokenStorage.set(urlToken)
-    setTokenState(urlToken)
-    setPayload(decoded)
-    window.history.replaceState({}, document.title, window.location.pathname)
+    if (params.get('token')) {
+      window.history.replaceState({}, document.title, window.location.pathname)
+    }
   }, [])
 
   // Expose a setter so portal pages can manually call setToken when needed

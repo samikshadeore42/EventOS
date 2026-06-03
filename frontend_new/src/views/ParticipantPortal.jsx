@@ -638,6 +638,7 @@ export default function ParticipantPortal() {
   useEffect(() => {
     const t = new URLSearchParams(window.location.search).get('token')
     if (t) setToken(t)
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   const { data, isLoading, error } = useQuery({

@@ -340,6 +340,7 @@ export default function MentorPortal() {
   useEffect(() => {
     const t = new URLSearchParams(window.location.search).get('token')
     if (t) setToken(t)
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   // Load mentor profile via portal access
