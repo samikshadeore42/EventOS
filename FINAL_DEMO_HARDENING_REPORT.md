@@ -321,3 +321,40 @@ Output: (empty, untracked)
 
 ### Final Status
 All required fixes and final audit findings are implemented and verified. The `fix/final-portal-merge-cleanup` branch is completely hardened, 100% lint-free, securely transacted, and completely safe for Pull Request / Merge to `main`.
+
+## Final UUID and Git Hygiene Cleanup
+
+1. **UUID parsing issue root cause**: Token subjects were extracted as strings and passed directly into SQLAlchemy filters against UUID columns. While PostgreSQL driver natively coerces this, SQLite test environments fail with `.hex` attribute errors, and malformed strings could crash production with 500s.
+2. **ScoreService SQLAlchemy filter issue root cause**: The `evaluator_id` ternary check inside the SQLAlchemy filter suffered from Python expression precedence issues, causing a bare UUID object to be passed instead of a boolean filter expression when the input was already a UUID.
+3. **Files changed**: 
+   - `backend/app/core/security.py` (added `parse_uuid_subject`)
+   - `backend/app/api/submission_routes.py` (used safe UUID parser)
+   - `backend/app/api/evaluation_routes.py` (used safe UUID parser)
+   - `backend/app/services/link_service.py` (used safe UUID parser)
+   - `backend/app/services/score_service.py` (normalized UUID before query)
+   - `backend/tests/conftest.py` (removed unnecessary monkey patch)
+   - `backend/tests/test_portal_workflow.py` (cleanups)
+4. **Validation command outputs**:
+   - `python -m compileall backend/app backend/tests`: Clean, 0 errors.
+5. **pytest result**:
+   - `docker compose exec backend python -m pytest tests/test_portal_workflow.py -q`: `25 passed, 2 warnings in 1.75s`.
+6. **frontend build/lint result**:
+   - `npm run build`: `2056 modules transformed. Built in 770ms. No errors.`
+   - `npm run lint`: `0 problems.`
+7. **git status**:
+   - `nothing to commit, working tree clean`
+8. **git log --oneline -10**:
+   ```
+   287ca01 fix: normalize score service uuid filters and finalize portal workflow validation changes
+   ef48d96 fix: safely parse portal token uuid subjects
+   2e253be docs: finalize demo hardening verification
+   7a8f2b3 fix: preserve evaluator assignments on validation failure
+   7d18f9d fix: remove fake participant result fallbacks
+   9d7fa92 test: fix final portal workflow regressions
+   22d2ed7 docs: update final demo hardening report
+   bccbdca fix: clean remaining frontend lint issues
+   300196e fix: validate evaluator assignment team ids
+   b250692 fix: enforce strict score update validation and harden institution checks
+   ```
+9. **Final merge readiness verdict**:
+   - **Safe for PR/merge**. All workflows are functional, tests pass natively in docker, and git hygiene is 100% clean.
