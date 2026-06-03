@@ -18,6 +18,9 @@ dist/
 # Docker
 postgres_data/
 
+# Uploads (runtime)
+backend/uploads/
+
 # Runtime
 celerybeat-schedule
 backend/celerybeat-schedule

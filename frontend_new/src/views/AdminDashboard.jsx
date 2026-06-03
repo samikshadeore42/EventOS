@@ -12,7 +12,7 @@ import {
   Play, Loader2, Check, X, AlertTriangle,
   ChevronDown, ChevronRight, Wand2,
   BarChart2, MessageSquare, Activity, Target, Calendar,
-  Send, Copy, Trash2, Plus, Shield, FileText,
+  Send, Copy, Trash2, Plus, Shield, ShieldAlert, ShieldCheck, FileText,
 } from 'lucide-react'
 import EventOSLogo from '../components/EventOSLogo'
 import PipelineStepper from '../components/PipelineStepper'
@@ -29,7 +29,7 @@ import {
   demoAdminApi,
   eventStateApi,
 } from '../services/api'
-import { Shield,ShieldAlert, ShieldCheck} from 'lucide-react';
+
 // ── Shared micro-components ────────────────────────────────────────────────
 
 function StatCard({ label, value, sub, colour = 'indigo' }) {
@@ -429,7 +429,7 @@ function ParticipantsTab() {
 // ── TAB 3: TEAMS ───────────────────────────────────────────────────────────
 function TeamsTab() {
   const qc = useQueryClient()
-  const [taskId, setTaskId]       = useState(null)
+  const [taskId, setTaskId]       = useState(() => localStorage.getItem('solverTaskId') || null)
   const [committed, setCommitted] = useState(false)
   const [rationales, setRationales] = useState({})   // { team_id: {status, text} }
   const [generatingAll, setGeneratingAll] = useState(false)
@@ -477,7 +477,11 @@ function TeamsTab() {
   // Run mutation
   const runMutation = useMutation({
     mutationFn: () => solverApi.run(config),
-    onSuccess: (res) => { setTaskId(res.task_id); setCommitted(false) },
+    onSuccess: (res) => { 
+      setTaskId(res.task_id); 
+      localStorage.setItem('solverTaskId', res.task_id);
+      setCommitted(false); 
+    },
   })
 
   // Task polling — stops when terminal state reached
@@ -504,6 +508,7 @@ function TeamsTab() {
     mutationFn: () => solverApi.commit(taskId),
     onSuccess: () => {
       setCommitted(true)
+      localStorage.removeItem('solverTaskId')
       qc.invalidateQueries({ queryKey: ['pending-approvals'] })
       qc.invalidateQueries({ queryKey: ['all-teams'] })
     },
@@ -895,18 +900,32 @@ function ApprovalsTab() {
 function EvaluatorsTab() {
   const qc = useQueryClient()
   const [showForm, setShowForm] = useState(false)
-  const [form, setForm] = useState({ first_name: '', last_name: '', email: '', expertise_areas: '' })
+  const [form, setForm] = useState({ first_name: '', last_name: '', email: '', expertise_areas: '', passed_out_institution: '' })
+
+  // Assignment state
+  const [assignEvalId, setAssignEvalId] = useState('')
+  const [assignTeamIds, setAssignTeamIds] = useState([])
+  const [expandedEval, setExpandedEval] = useState(null)
 
   const { data, isLoading } = useQuery({ queryKey: ['evaluators'], queryFn: evaluatorsApi.list })
+  const { data: teamsData } = useQuery({ queryKey: ['all-teams'], queryFn: approvalsApi.all })
+  
+  // Fetch assignments for expanded evaluator
+  const { data: assignData } = useQuery({
+    queryKey: ['evaluator-assignments', expandedEval],
+    queryFn: () => evaluatorsApi.assignments(expandedEval),
+    enabled: !!expandedEval,
+  })
 
   const createMutation = useMutation({
     mutationFn: () => evaluatorsApi.create({
       ...form,
       expertise_areas: form.expertise_areas.split(',').map(s => s.trim()).filter(Boolean),
+      passed_out_institution: form.passed_out_institution.trim() || null,
     }),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['evaluators'] })
-      setForm({ first_name: '', last_name: '', email: '', expertise_areas: '' })
+      setForm({ first_name: '', last_name: '', email: '', expertise_areas: '', passed_out_institution: '' })
       setShowForm(false)
     },
   })
@@ -925,6 +944,17 @@ function EvaluatorsTab() {
     onSuccess:  () => qc.invalidateQueries({ queryKey: ['evaluators'] }),
   })
 
+  const assignMutation = useMutation({
+    mutationFn: (payload) => evaluatorsApi.assign(payload),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['evaluator-assignments'] })
+      qc.invalidateQueries({ queryKey: ['evaluators'] })
+      setAssignTeamIds([])
+      alert('Evaluator assigned successfully.')
+    },
+    onError: (err) => alert(`Assignment error: ${err.message}`)
+  })
+
   const fieldFor = (key, label, type = 'text', placeholder = '') => (
     <div>
       <label className="block text-xs font-medium text-slate-500 mb-1">{label}</label>
@@ -937,6 +967,14 @@ function EvaluatorsTab() {
       />
     </div>
   )
+
+  const approvedTeams = (teamsData?.teams || []).filter(t => t.is_approved)
+
+  function toggleTeamId(tid) {
+    setAssignTeamIds(ids =>
+      ids.includes(tid) ? ids.filter(x => x !== tid) : [...ids, tid]
+    )
+  }
 
   return (
     <div>
@@ -962,6 +1000,7 @@ function EvaluatorsTab() {
             {fieldFor('last_name',       'Last name',         'text', 'Sharma')}
             {fieldFor('email',           'Email',             'email','meena@ti.com')}
             {fieldFor('expertise_areas', 'Expertise (comma-separated)', 'text', 'embedded systems, signal processing')}
+            {fieldFor('passed_out_institution', 'Passed-out college / institution (optional)', 'text', 'IIT Madras')}
           </div>
           <div className="flex gap-2 justify-end">
             <button onClick={() => setShowForm(false)} className="text-sm px-3 py-1.5 rounded-lg border border-slate-200 text-slate-600 hover:bg-slate-50">Cancel</button>
@@ -982,47 +1021,106 @@ function EvaluatorsTab() {
       {isLoading
         ? Array.from({ length: 3 }).map((_, i) => <div key={i} className="h-14 bg-slate-200 rounded-xl animate-pulse mb-3" />)
         : (
-          <div className="glass-card rounded-xl border border-slate-200 overflow-hidden">
+          <div className="glass-card rounded-xl border border-slate-200 overflow-hidden mb-6">
             {(!data?.evaluators?.length)
               ? <div className="text-center py-12 text-slate-500 text-sm">No evaluators registered yet.</div>
               : data.evaluators.map((ev) => (
-                  <div key={ev.id} className="flex items-center gap-4 px-4 py-3 border-b border-slate-200 last:border-0 hover:bg-slate-50">
-                    <div className="w-9 h-9 rounded-full bg-amber-900/30 text-amber-700 font-semibold text-sm flex items-center justify-center shrink-0">
-                      {ev.first_name[0]}
+                  <div key={ev.id} className="border-b border-slate-200 last:border-0">
+                    <div className="flex items-center gap-4 px-4 py-3 hover:bg-slate-50">
+                      <div className="w-9 h-9 rounded-full bg-amber-50 border border-amber-200 text-amber-700 font-semibold text-sm flex items-center justify-center shrink-0">
+                        {ev.first_name[0]}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium text-slate-900">{ev.first_name} {ev.last_name}</p>
+                        <p className="text-xs text-slate-500">{ev.email}</p>
+                        {ev.passed_out_institution && (
+                          <p className="text-xs text-slate-500 mt-0.5">🏛️ {ev.passed_out_institution}</p>
+                        )}
+                        {ev.expertise_areas?.length > 0 && (
+                          <div className="flex gap-1 mt-1 flex-wrap">
+                            {ev.expertise_areas.map((a) => <Badge key={a} colour="gray">{a}</Badge>)}
+                          </div>
+                        )}
+                      </div>
+                      <div className="flex items-center gap-2 shrink-0">
+                        <Badge colour={ev.is_active ? 'teal' : 'red'}>{ev.is_active ? 'Active' : 'Inactive'}</Badge>
+                        {ev.access_link_sent && <Badge colour="green"><Check size={10} /> Link sent</Badge>}
+                      </div>
+                      <div className="flex gap-2 shrink-0">
+                        <button
+                          onClick={() => setExpandedEval(expandedEval === ev.id ? null : ev.id)}
+                          className="flex items-center gap-1 text-xs px-2.5 py-1.5 rounded-lg border border-slate-200 text-slate-600 hover:bg-slate-50"
+                        >
+                          <UserCheck size={12} />
+                          Assignments
+                        </button>
+                        <button
+                          onClick={() => sendLinkMutation.mutate(ev.id)}
+                          disabled={sendLinkMutation.isPending}
+                          title={ev.access_link_sent ? "Send access link again" : "Send access link"}
+                          className="flex items-center gap-1 text-xs px-2.5 py-1.5 rounded-lg border border-indigo-200 text-indigo-600 hover:bg-indigo-50 disabled:opacity-50"
+                        >
+                          {sendLinkMutation.isPending
+                            ? <Loader2 size={12} className="animate-spin" />
+                            : <Send size={12} />
+                          }
+                          {ev.access_link_sent ? "Resend Link" : "Send Link"}
+                        </button>
+                        <button
+                          onClick={() => { if (window.confirm('Remove this evaluator?')) deleteMutation.mutate(ev.id) }}
+                          className="p-1.5 text-slate-400 hover:text-red-500 rounded transition-colors"
+                        >
+                          <Trash2 size={14} />
+                        </button>
+                      </div>
                     </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium text-slate-900">{ev.first_name} {ev.last_name}</p>
-                      <p className="text-xs text-slate-500">{ev.email}</p>
-                      {ev.expertise_areas?.length > 0 && (
-                        <div className="flex gap-1 mt-1 flex-wrap">
-                          {ev.expertise_areas.map((a) => <Badge key={a} colour="gray">{a}</Badge>)}
+
+                    {/* Expanded: team assignments */}
+                    {expandedEval === ev.id && (
+                      <div className="px-4 py-4 bg-slate-50 border-t border-slate-200">
+                        <p className="text-xs font-bold text-slate-600 mb-2">Current Assignments</p>
+                        {assignData?.teams?.length > 0 ? (
+                          <div className="flex gap-1.5 flex-wrap mb-3">
+                            {assignData.teams.map(t => (
+                              <Badge key={t.team_id} colour="indigo">{t.team_name}</Badge>
+                            ))}
+                          </div>
+                        ) : (
+                          <p className="text-xs text-slate-500 mb-3">No teams assigned yet.</p>
+                        )}
+
+                        <p className="text-xs font-bold text-slate-600 mb-2">Assign to teams</p>
+                        <div className="flex flex-wrap gap-2 mb-3">
+                          {approvedTeams.length === 0 ? (
+                            <p className="text-xs text-slate-500">No approved teams available.</p>
+                          ) : approvedTeams.map(t => {
+                            const selected = assignTeamIds.includes(t.team_id)
+                            return (
+                              <button
+                                key={t.team_id}
+                                onClick={() => toggleTeamId(t.team_id)}
+                                className={`text-xs px-2.5 py-1.5 rounded-lg border transition-colors ${
+                                  selected
+                                    ? 'bg-indigo-50 border-indigo-300 text-indigo-700 font-semibold'
+                                    : 'border-slate-200 text-slate-600 hover:bg-slate-50'
+                                }`}
+                              >
+                                {t.team_name}
+                              </button>
+                            )
+                          })}
                         </div>
-                      )}
-                    </div>
-                    <div className="flex items-center gap-2 shrink-0">
-                      <Badge colour={ev.is_active ? 'teal' : 'red'}>{ev.is_active ? 'Active' : 'Inactive'}</Badge>
-                      {ev.access_link_sent && <Badge colour="green"><Check size={10} /> Link sent</Badge>}
-                    </div>
-                    <div className="flex gap-2 shrink-0">
-                      <button
-                        onClick={() => sendLinkMutation.mutate(ev.id)}
-                        disabled={sendLinkMutation.isPending}
-                        title={ev.access_link_sent ? "Send access link again" : "Send access link"}
-                        className="flex items-center gap-1 text-xs px-2.5 py-1.5 rounded-lg border border-indigo-200 text-indigo-600 hover:bg-indigo-50 border border-indigo-100 disabled:opacity-50"
-                      >
-                        {sendLinkMutation.isPending
-                          ? <Loader2 size={12} className="animate-spin" />
-                          : <Send size={12} />
-                        }
-                        {ev.access_link_sent ? "Resend Link" : "Send Link"}
-                      </button>
-                      <button
-                        onClick={() => { if (window.confirm('Remove this evaluator?')) deleteMutation.mutate(ev.id) }}
-                        className="p-1.5 text-slate-400 hover:text-red-500 rounded transition-colors"
-                      >
-                        <Trash2 size={14} />
-                      </button>
-                    </div>
+                        <button
+                          onClick={() => assignMutation.mutate({ evaluator_id: ev.id, team_ids: assignTeamIds })}
+                          disabled={assignMutation.isPending || assignTeamIds.length === 0}
+                          className="flex items-center gap-1.5 text-sm px-4 py-1.5 rounded-lg btn-primary text-white hover:bg-indigo-700 disabled:opacity-50"
+                        >
+                          {assignMutation.isPending ? <Loader2 size={14} className="animate-spin" /> : <Check size={14} />}
+                          Assign Evaluator
+                        </button>
+                        {assignMutation.isError && <p className="mt-2 text-xs text-red-500">{assignMutation.error?.message}</p>}
+                      </div>
+                    )}
                   </div>
                 ))
             }
