@@ -16,6 +16,20 @@ class ScoreSubmissionRequest(BaseModel):
     @field_validator("scores")
     @classmethod
     def validate_score_range(cls, v: Dict[str, float]) -> Dict[str, float]:
+        REQUIRED_CRITERIA = {"technical_depth", "innovation", "presentation", "feasibility"}
+        provided = set(v.keys())
+        if provided != REQUIRED_CRITERIA:
+            missing = REQUIRED_CRITERIA - provided
+            extra = provided - REQUIRED_CRITERIA
+            parts = []
+            if missing:
+                parts.append(f"missing: {', '.join(sorted(missing))}")
+            if extra:
+                parts.append(f"unexpected: {', '.join(sorted(extra))}")
+            raise ValueError(
+                f"Scores must include exactly: technical_depth, innovation, presentation, feasibility. "
+                f"({'; '.join(parts)})"
+            )
         for criterion, score in v.items():
             if not (0.0 <= score <= 10.0):
                 raise ValueError(
