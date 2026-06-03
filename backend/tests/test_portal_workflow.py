@@ -181,7 +181,7 @@ class TestEvaluatorAssignment:
 
     def test_assign_evaluator_preserves_old_on_failure(self, client, db_session):
         """If validation fails, old assignments should not be deleted."""
-        from app.models.participant import EvaluatorTeamAssignment
+        from app.models.assignment import EvaluatorTeamAssignment
         evaluator = make_evaluator(
             db_session, email=f"preserve_{uuid.uuid4().hex[:8]}@test.com", institution="iitl"
         )
@@ -506,7 +506,7 @@ class TestDownloadAuthorization:
         # Do NOT assign — should get 403
 
         with pytest.raises(HTTPException) as exc_info:
-            ProjectSubmissionService.get_download_file_for_evaluator(db_session, evaluator, str(team.id))
+            ProjectSubmissionService.get_download_file_for_evaluator(db_session, evaluator, team.id)
         assert exc_info.value.status_code == 403
         assert "not assigned" in exc_info.value.detail.lower()
 
@@ -521,7 +521,7 @@ class TestDownloadAuthorization:
 
         # Should get 404 (no submission), not 403 (not authorized)
         with pytest.raises(HTTPException) as exc_info:
-            ProjectSubmissionService.get_download_file_for_evaluator(db_session, evaluator, str(team.id))
+            ProjectSubmissionService.get_download_file_for_evaluator(db_session, evaluator, team.id)
         assert exc_info.value.status_code == 404
         assert "no project submission" in exc_info.value.detail.lower()
 
@@ -626,7 +626,7 @@ class TestScoreServiceInstitution:
 
     def test_coi_anomaly_detection_with_normalization(self, db_session):
         """Anomaly detector should flag COI if normalized institutions match."""
-        from app.services.score_service import ScoreService
+        from app.services.score_service import ScoreService, GRADING_CRITERIA
         from app.services.anomaly_detector import AnomalyDetector, build_panel_from_dicts
         from app.models.evaluation import Evaluation
 
@@ -649,18 +649,21 @@ class TestScoreServiceInstitution:
         )
 
         from app.core.security import generate_score_hash
-        scores = {"technical_depth": 8.0, "innovation": 7.0, "presentation": 6.0, "feasibility": 7.5}
+        # Conflict evaluator scores very high (all 10)
+        scores_high = {"technical_depth": 10.0, "innovation": 10.0, "presentation": 10.0, "feasibility": 10.0}
+        # Non-conflict evaluator scores low (all 4)
+        scores_low = {"technical_depth": 4.0, "innovation": 4.0, "presentation": 4.0, "feasibility": 4.0}
         ev1 = Evaluation(
             team_id=team.id,
             evaluator_id=evaluator.id,
-            scores=scores,
-            score_hash=generate_score_hash(str(evaluator.id), team.id, scores),
+            scores=scores_high,
+            score_hash=generate_score_hash(str(evaluator.id), team.id, scores_high),
         )
         ev2 = Evaluation(
             team_id=team.id,
             evaluator_id=evaluator2.id,
-            scores={"technical_depth": 9.0, "innovation": 8.0, "presentation": 7.0, "feasibility": 8.5},
-            score_hash=generate_score_hash(str(evaluator2.id), team.id, {"technical_depth": 9.0, "innovation": 8.0, "presentation": 7.0, "feasibility": 8.5}),
+            scores=scores_low,
+            score_hash=generate_score_hash(str(evaluator2.id), team.id, scores_low),
         )
         db_session.add_all([ev1, ev2])
         db_session.commit()
@@ -668,9 +671,13 @@ class TestScoreServiceInstitution:
         db_session.refresh(ev2)
 
         entries = ScoreService._build_panel_entries([ev1, ev2], db_session)
-        panel = build_panel_from_dicts(entries)
+        panel = build_panel_from_dicts(
+            entries,
+            criteria=list(GRADING_CRITERIA.keys()),
+            weights=GRADING_CRITERIA,
+        )
         detector = AnomalyDetector(panel)
-        report = detector.run_all_diagnostics()
+        report = detector.detect_all()
 
         anomalies = report.anomalies
         assert any(a.kind == "conflict_of_interest" for a in anomalies)

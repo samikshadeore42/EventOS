@@ -38,8 +38,12 @@ class ScoreService:
         scores:       dict,
         db:           Session
     ) -> Evaluation:
+        from uuid import UUID as PyUUID
+        # Normalize evaluator_id to a proper UUID once, before any query/insert
+        evaluator_uuid = PyUUID(str(evaluator_id)) if not isinstance(evaluator_id, PyUUID) else evaluator_id
+
         existing = db.query(Evaluation).filter(
-            Evaluation.evaluator_id == evaluator_id,
+            Evaluation.evaluator_id == evaluator_uuid,
             Evaluation.team_id      == team_id
         ).first()
         if existing:
@@ -61,13 +65,12 @@ class ScoreService:
                 detail="Cannot submit scores for a team that has not been approved yet."
             )
 
-        calculated_hash = generate_score_hash(evaluator_id,team_id,scores)
         # Save scorecard
         evaluation = Evaluation(
             team_id=team_id,
-            evaluator_id=evaluator_id,
+            evaluator_id=evaluator_uuid,
             scores=scores,
-            score_hash=calculated_hash,
+            score_hash=generate_score_hash(evaluator_uuid, team_id, scores),
             is_flagged=False
         )
         db.add(evaluation)
