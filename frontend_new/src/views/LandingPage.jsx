@@ -441,18 +441,7 @@ function Portals() {
   )
 }
 
-function CTA() {
-  return (
-    <section className="py-24 px-6 bg-indigo-50/50 relative z-10 border-t border-indigo-100">
-      <div className="max-w-4xl mx-auto text-center">
-        <h2 className="text-3xl font-bold text-slate-900 mb-6">Ready to scale your innovation ecosystem?</h2>
-        <Link to="/admin" className="inline-flex items-center gap-2 px-8 py-4 bg-indigo-600 text-white font-bold hover:bg-indigo-700 transition-colors rounded shadow-md shadow-indigo-600/20">
-          Deploy EventOS <ArrowRight size={18} />
-        </Link>
-      </div>
-    </section>
-  )
-}
+
 
 function Footer() {
   return (
@@ -485,7 +474,6 @@ export default function LandingPage() {
         <About />
         <Features />
         <Portals />
-        <CTA />
       </main>
       <Footer />
     </div>
