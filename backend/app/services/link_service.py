@@ -239,6 +239,17 @@ class LinkService:
                     for m in all_members
                 ]
 
+        rank = None
+        total_score = None
+        if current_stage == "results" and team:
+            from app.services.score_service import ScoreService
+            leaderboard_data = ScoreService.consolidate_all_teams(db).get("leaderboard", [])
+            for entry in leaderboard_data:
+                if str(entry["team_id"]) == str(team.id):
+                    rank = entry.get("rank")
+                    total_score = entry.get("weighted_total")
+                    break
+
         return ParticipantPortalResponse(
             participant_id = str(participant.id),
             name           = f"{participant.first_name} {participant.last_name}",
@@ -254,7 +265,10 @@ class LinkService:
                 {"phase": "Team Formation",  "status": "completed" if participant.team_id else ("active" if current_stage == "team_formation" else ("pending" if current_stage == "registration" else "completed"))},
                 {"phase": "Evaluation",      "status": "active" if current_stage == "evaluation" else ("completed" if current_stage == "results" else "pending")},
                 {"phase": "Results",         "status": "active" if current_stage == "results" else "pending"},
-            ]
+            ],
+            rank                  = rank,
+            total_score           = total_score,
+            progression_confirmed = participant.progression_confirmed,
         ).model_dump()
 
     @staticmethod
@@ -272,10 +286,18 @@ class LinkService:
 
         from app.models.participant import Team
         from app.models.evaluation import Evaluation
-        
-        approved_teams = db.query(Team).filter(Team.is_approved == True).all()
-        if not approved_teams:
-            approved_teams = db.query(Team).all()
+        from app.models.assignment import EvaluatorTeamAssignment
+
+        # Only load teams assigned to THIS evaluator
+        assignments = db.query(EvaluatorTeamAssignment).filter(
+            EvaluatorTeamAssignment.evaluator_id == evaluator_id
+        ).all()
+        assigned_team_ids = [a.team_id for a in assignments]
+
+        if assigned_team_ids:
+            assigned_teams = db.query(Team).filter(Team.id.in_(assigned_team_ids)).all()
+        else:
+            assigned_teams = []
 
         submitted = db.query(Evaluation).filter(
             Evaluation.evaluator_id == evaluator_id
@@ -289,7 +311,7 @@ class LinkService:
                 "is_approved":  t.is_approved,
                 "already_graded": str(t.id) in submitted_team_ids,
             }
-            for t in approved_teams
+            for t in assigned_teams
         ]
 
         return EvaluatorPortalResponse(
@@ -305,7 +327,7 @@ class LinkService:
                 {"key": "feasibility",      "label": "Feasibility",       "max": 10, "weight": 0.20},
             ],
             submitted_count = len(submitted_team_ids),
-            total_assigned  = len(approved_teams),
+            total_assigned  = len(assigned_teams),
         ).model_dump()
 
     @staticmethod
