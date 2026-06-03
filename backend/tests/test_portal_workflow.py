@@ -126,6 +126,17 @@ class TestEvaluatorAssignment:
         assert resp.status_code == 200
         assert resp.json()["status"] == "success"
 
+    def test_assign_evaluator_missing_team(self, client, db_session):
+        """Assignment with a missing team should return 404."""
+        evaluator = make_evaluator(db_session, email=f"missingteam_{uuid.uuid4().hex[:8]}@test.com")
+        
+        resp = client.post("/evaluators/assign", json={
+            "evaluator_id": str(evaluator.id),
+            "team_ids": [str(uuid.uuid4())],
+        })
+        assert resp.status_code == 404
+        assert "not found" in resp.json()["detail"].lower()
+
     def test_assign_evaluator_conflict_blocked(self, client, db_session):
         """Assignment should be blocked (422) when evaluator institution matches team member."""
         evaluator = make_evaluator(
@@ -337,6 +348,38 @@ class TestScoreCriteriaValidation:
         })
         # Should be 200 (accepted) — not 422
         assert resp.status_code in (200, 201)
+        evaluation_id = resp.json()["id"]
+
+        # Test PATCH update with all 4 criteria passes
+        resp_patch = client.patch(f"/evaluations/{evaluation_id}", params={"token": "mock-token"}, json={
+            "scores": {
+                "technical_depth": 9.0,
+                "innovation": 8.0,
+                "presentation": 7.0,
+                "feasibility": 8.5,
+            }
+        })
+        assert resp_patch.status_code == 200
+
+        # Test PATCH update with missing criterion fails
+        resp_patch_miss = client.patch(f"/evaluations/{evaluation_id}", params={"token": "mock-token"}, json={
+            "scores": {
+                "technical_depth": 9.0,
+            }
+        })
+        assert resp_patch_miss.status_code == 422
+
+        # Test PATCH update with extra criterion fails
+        resp_patch_extra = client.patch(f"/evaluations/{evaluation_id}", params={"token": "mock-token"}, json={
+            "scores": {
+                "technical_depth": 9.0,
+                "innovation": 8.0,
+                "presentation": 7.0,
+                "feasibility": 8.5,
+                "extra_crit": 1.0
+            }
+        })
+        assert resp_patch_extra.status_code == 422
 
 
 # ── Test: Project ZIP Upload ─────────────────────────────────────────────────
@@ -547,3 +590,42 @@ class TestScoreServiceInstitution:
         assert len(entries) == 1
         # Should contain the normalized institution, not empty string
         assert entries[0]["judge_institution"] == "iit delhi"
+        assert entries[0]["team_member_institutions"] == ["iit delhi"]
+
+    def test_coi_anomaly_detection_with_normalization(self, db_session):
+        """Anomaly detector should flag COI if normalized institutions match."""
+        from app.services.score_service import ScoreService
+        from app.services.anomaly_detector import AnomalyDetector, build_panel_from_dicts
+        from app.models.evaluation import Evaluation
+
+        evaluator = make_evaluator(
+            db_session,
+            email=f"coi_{uuid.uuid4().hex[:8]}@test.com",
+            institution="iitl",
+        )
+        team = make_approved_team(db_session, name="Team COI")
+        make_participant_in_team(
+            db_session, team,
+            email=f"coi_member_{uuid.uuid4().hex[:8]}@test.com",
+            institution="IITL ",
+        )
+
+        from app.core.security import generate_score_hash
+        scores = {"technical_depth": 8.0, "innovation": 7.0, "presentation": 6.0, "feasibility": 7.5}
+        ev = Evaluation(
+            team_id=team.id,
+            evaluator_id=evaluator.id,
+            scores=scores,
+            score_hash=generate_score_hash(str(evaluator.id), team.id, scores),
+        )
+        db_session.add(ev)
+        db_session.commit()
+        db_session.refresh(ev)
+
+        entries = ScoreService._build_panel_entries([ev], db_session)
+        panel = build_panel_from_dicts(entries)
+        detector = AnomalyDetector(panel)
+        report = detector.run_all_diagnostics()
+
+        anomalies = report.anomalies
+        assert any(a.anomaly_type == "Conflict of Interest" for a in anomalies)

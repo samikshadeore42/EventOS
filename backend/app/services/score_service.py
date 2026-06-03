@@ -92,6 +92,9 @@ class ScoreService:
         institution if the field exists on the model (currently it doesn't,
         so COI detection silently passes through — see class docstring above).
         """
+        def normalize_institution(value: str | None) -> str:
+            return " ".join((value or "").strip().lower().split())
+
         team_ids      = {ev.team_id      for ev in evaluations}
         evaluator_ids = {ev.evaluator_id for ev in evaluations}
 
@@ -111,7 +114,7 @@ class ScoreService:
 
             # Team member institutions — used by the COI detector
             member_institutions = (
-                list({m.institution for m in team.members})
+                list({normalize_institution(m.institution) for m in team.members if m.institution})
                 if team and team.members else []
             )
 
@@ -124,7 +127,7 @@ class ScoreService:
                 or ""
             )
             # Normalize for consistent COI matching
-            evaluator_institution = " ".join(evaluator_institution.strip().lower().split())
+            evaluator_institution = normalize_institution(evaluator_institution)
 
             evaluator_name = (
                 f"{evaluator.first_name} {evaluator.last_name}"
