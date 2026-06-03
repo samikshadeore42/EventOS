@@ -358,3 +358,5 @@ All required fixes and final audit findings are implemented and verified. The `f
    ```
 9. **Final merge readiness verdict**:
    - **Safe for PR/merge**. All workflows are functional, tests pass natively in docker, and git hygiene is 100% clean.
+
+Scorecard update endpoint now enforces evaluator role before ownership check.

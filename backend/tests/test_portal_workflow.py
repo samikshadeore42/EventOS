@@ -400,6 +400,41 @@ class TestScoreCriteriaValidation:
         })
         assert resp_patch_miss.status_code == 422
 
+    @patch("app.api.evaluation_routes.decode_access_token")
+    def test_non_evaluator_cannot_update_scorecard(self, mock_decode, client, db_session):
+        """A user with a non-evaluator role cannot update an evaluation."""
+        evaluator = make_evaluator(db_session, email=f"valid_{uuid.uuid4().hex[:8]}@test.com")
+        team = make_approved_team(db_session, name="Team ValidCrit2")
+        assign_evaluator_to_team(db_session, evaluator, team)
+
+        mock_decode.return_value = {"sub": str(evaluator.id), "role": "evaluator"}
+
+        resp = client.post("/evaluations", params={"token": "mock-token"}, json={
+            "team_id": str(team.id),
+            "scores": {
+                "technical_depth": 8.0,
+                "innovation": 7.0,
+                "presentation": 6.0,
+                "feasibility": 7.5,
+            },
+        })
+        assert resp.status_code in (200, 201)
+        evaluation_id = resp.json()["id"]
+
+        # Call PATCH with non-evaluator role
+        mock_decode.return_value = {"sub": str(evaluator.id), "role": "participant"}
+
+        resp_patch = client.patch(f"/evaluations/{evaluation_id}", params={"token": "mock-token"}, json={
+            "scores": {
+                "technical_depth": 9.0,
+                "innovation": 8.0,
+                "presentation": 7.0,
+                "feasibility": 8.5,
+            }
+        })
+        assert resp_patch.status_code == 403
+        assert resp_patch.json()["detail"] == "Only evaluators can update scorecards."
+
         # Test PATCH update with extra criterion fails
         resp_patch_extra = client.patch(f"/evaluations/{evaluation_id}", params={"token": "mock-token"}, json={
             "scores": {

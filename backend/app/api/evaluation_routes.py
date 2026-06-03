@@ -90,6 +90,12 @@ def update_scorecard(
     Re-runs anomaly detection after update.
     """
     payload      = decode_access_token(token)
+    if payload.get("role") != "evaluator":
+        raise HTTPException(
+            status_code=403,
+            detail="Only evaluators can update scorecards."
+        )
+
     evaluator_id = parse_uuid_subject(payload.get("sub"), "evaluator ID")
 
     evaluation = db.query(Evaluation).filter(
