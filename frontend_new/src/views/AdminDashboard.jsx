@@ -14,6 +14,7 @@ import {
   BarChart2, MessageSquare, Activity, Target, Calendar,
   Send, Copy, Trash2, Plus, Shield, FileText,
 } from 'lucide-react'
+import EventOSLogo from '../components/EventOSLogo'
 import PipelineStepper from '../components/PipelineStepper'
 import {
   participantsApi,
@@ -33,15 +34,15 @@ import { Shield,ShieldAlert, ShieldCheck} from 'lucide-react';
 
 function StatCard({ label, value, sub, colour = 'indigo' }) {
   const bg = {
-    indigo: 'bg-indigo-900/30 text-indigo-300',
-    teal:   'bg-teal-900/30   text-teal-300',
-    amber:  'bg-amber-900/30  text-amber-300',
-    red:    'bg-red-900/30    text-red-300',
-  }[colour] ?? 'bg-indigo-900/30 text-indigo-300'
+    indigo: 'bg-indigo-50 text-indigo-700 border border-indigo-100',
+    teal:   'bg-teal-50 text-teal-700 border border-teal-100',
+    amber:  'bg-amber-50 text-amber-700 border border-amber-100',
+    red:    'bg-red-50 text-red-700 border border-red-100',
+  }[colour] ?? 'bg-indigo-50 text-indigo-700 border border-indigo-100'
 
   return (
-    <div className="glass-card rounded-xl border border-slate-700/50 p-5">
-      <p className="text-xs font-medium text-slate-400 uppercase tracking-wide mb-1">{label}</p>
+    <div className="glass-card rounded-xl border border-slate-200 p-5">
+      <p className="text-xs font-medium text-slate-500 uppercase tracking-wide mb-1">{label}</p>
       <p className={`text-2xl font-bold px-2 py-0.5 rounded inline-block ${bg}`}>{value ?? '—'}</p>
       {sub && <p className="text-xs text-slate-500 mt-1">{sub}</p>}
     </div>
@@ -50,21 +51,22 @@ function StatCard({ label, value, sub, colour = 'indigo' }) {
 
 function Badge({ children, colour = 'gray' }) {
   const cls = {
-    green:  'bg-green-900/30 border border-green-500/30  text-green-300',
-    red:    'bg-red-900/30 border border-red-500/30    text-red-300',
-    amber:  'bg-amber-900/30 border border-amber-500/30  text-amber-300',
-    indigo: 'bg-indigo-900/30 border border-indigo-500/30 text-indigo-300',
-    gray:   'bg-slate-700/50   text-slate-300',
-  }[colour] ?? 'bg-slate-700/50 text-slate-300'
+    green:  'bg-green-50 border border-green-200 text-green-700',
+    red:    'bg-red-50 border border-red-200 text-red-700',
+    amber:  'bg-amber-50 border border-amber-200 text-amber-700',
+    indigo: 'bg-indigo-50 border border-indigo-200 text-indigo-700',
+    teal:   'bg-teal-50 border border-teal-200 text-teal-700',
+    gray:   'bg-slate-100 border border-slate-200 text-slate-700',
+  }[colour] ?? 'bg-slate-100 border border-slate-200 text-slate-700'
   return (
-    <span className={`inline-flex items-center gap-1 text-xs font-medium px-2 py-0.5 rounded-full ${cls}`}>
+    <span className={`inline-flex items-center gap-1 text-[11px] font-bold px-2 py-0.5 rounded-full ${cls}`}>
       {children}
     </span>
   )
 }
 
 function SectionTitle({ children }) {
-  return <h2 className="text-lg font-bold text-gradient mb-4">{children}</h2>
+  return <h2 className="text-lg font-bold text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 to-violet-600 font-black mb-4">{children}</h2>
 }
 
 // ── TAB 1: OVERVIEW ────────────────────────────────────────────────────────
@@ -87,16 +89,16 @@ function OverviewTab() {
 
       <div className="grid lg:grid-cols-2 gap-6">
         {/* Institution breakdown */}
-        <div className="glass-card rounded-xl border border-slate-700/50 p-5">
+        <div className="glass-card rounded-xl border border-slate-200 p-5">
           <SectionTitle>Institutions</SectionTitle>
           {summary?.institution_counts
             ? Object.entries(summary.institution_counts)
                 .sort(([, a], [, b]) => b - a)
                 .map(([inst, count]) => (
                   <div key={inst} className="flex items-center gap-3 mb-2.5">
-                    <span className="flex-1 text-sm text-slate-200 truncate">{inst}</span>
-                    <span className="text-sm font-semibold text-indigo-400 w-5 text-right">{count}</span>
-                    <div className="w-24 bg-slate-700/50 rounded-full h-1.5">
+                    <span className="flex-1 text-sm text-slate-800 truncate">{inst}</span>
+                    <span className="text-sm font-semibold text-indigo-600 w-5 text-right">{count}</span>
+                    <div className="w-24 bg-slate-200 rounded-full h-1.5">
                       <div
                         className="bg-indigo-400 h-1.5 rounded-full transition-all"
                         style={{ width: `${(count / (summary.total_participants || 1)) * 100}%` }}
@@ -109,16 +111,16 @@ function OverviewTab() {
         </div>
 
         {/* Mini leaderboard */}
-        <div className="glass-card rounded-xl border border-slate-700/50 p-5">
+        <div className="glass-card rounded-xl border border-slate-200 p-5">
           <SectionTitle>Top Teams</SectionTitle>
           {lb?.leaderboard?.length
             ? lb.leaderboard.slice(0, 6).map((team) => (
                 <div key={team.team_id} className="flex items-center gap-3 mb-2">
                   <span className="text-xs font-mono text-slate-500 w-5">{team.rank ?? '—'}</span>
-                  <span className="flex-1 text-sm text-slate-100 truncate">{team.team_name}</span>
+                  <span className="flex-1 text-sm text-slate-800 truncate">{team.team_name}</span>
                   {team.has_flags
                     ? <Badge colour="amber"><AlertTriangle size={10} /> Flagged</Badge>
-                    : <span className="text-sm font-semibold text-teal-300">{team.weighted_total?.toFixed(2)}</span>
+                    : <span className="text-sm font-semibold text-teal-700">{team.weighted_total?.toFixed(2)}</span>
                   }
                 </div>
               ))
@@ -128,13 +130,13 @@ function OverviewTab() {
       </div>
 
       {/* Recent comms */}
-      <div className="mt-6 glass-card rounded-xl border border-slate-700/50 p-5">
+      <div className="mt-6 glass-card rounded-xl border border-slate-200 p-5">
         <SectionTitle>Recent Communications</SectionTitle>
         {commsData?.logs?.length
           ? <div className="space-y-2">
               {commsData.logs.map((log) => (
-                <div key={log.id} className="flex items-center gap-3 py-1.5 border-b border-gray-50 last:border-0">
-                  <span className="text-xs text-slate-400 truncate flex-1">{log.recipient_email}</span>
+                <div key={log.id} className="flex items-center gap-3 py-1.5 border-b border-slate-100 last:border-0">
+                  <span className="text-xs text-slate-500 truncate flex-1">{log.recipient_email}</span>
                   <Badge colour="gray">{log.template}</Badge>
                   <Badge colour={log.success ? 'green' : 'red'}>{log.success ? 'Sent' : 'Failed'}</Badge>
                 </div>
@@ -229,13 +231,13 @@ function ParticipantsTab() {
       )}
 
       {/* CSV dropzone */}
-      <div className="glass-card rounded-xl border border-slate-700/50 p-5 mb-6">
+      <div className="glass-card rounded-xl border border-slate-200 p-5 mb-6">
         <div className="flex items-center justify-between mb-3">
           <SectionTitle>Upload Roster CSV</SectionTitle>
           <a
             href={participantsApi.csvTemplateUrl()}
             download
-            className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg border border-slate-700/50 text-slate-300 hover:bg-slate-800/40 transition-colors"
+            className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg border border-slate-200 text-slate-600 hover:bg-slate-50 transition-colors"
           >
             <Download size={13} /> Download Template
           </a>
@@ -248,8 +250,8 @@ function ParticipantsTab() {
           onClick={() => fileInputRef.current?.click()}
           className={`border-2 border-dashed rounded-xl p-10 text-center cursor-pointer transition-colors ${
             dragActive
-              ? 'border-indigo-500 bg-indigo-900/30'
-              : 'border-slate-700/50 hover:border-indigo-300 hover:bg-slate-800/40'
+              ? 'border-indigo-500 bg-indigo-50 border border-indigo-100'
+              : 'border-slate-200 hover:border-indigo-300 hover:bg-slate-50'
           }`}
         >
           <input
@@ -262,12 +264,12 @@ function ParticipantsTab() {
           {uploadMutation.isPending
             ? <div className="flex flex-col items-center gap-2">
                 <Loader2 size={28} className="text-indigo-500 animate-spin" />
-                <p className="text-sm text-slate-400">Uploading roster…</p>
+                <p className="text-sm text-slate-500">Uploading roster…</p>
               </div>
             : <div className="flex flex-col items-center gap-2">
-                <Upload size={28} className={dragActive ? 'text-indigo-500' : 'text-gray-300'} />
-                <p className="text-sm font-medium text-slate-200">
-                  Drop a CSV here or <span className="text-indigo-400">click to browse</span>
+                <Upload size={28} className={dragActive ? 'text-indigo-500' : 'text-slate-400'} />
+                <p className="text-sm font-medium text-slate-800">
+                  Drop a CSV here or <span className="text-indigo-600">click to browse</span>
                 </p>
                 <p className="text-xs text-slate-500">
                   Required columns: first_name, last_name, email, institution + any skill columns
@@ -278,16 +280,16 @@ function ParticipantsTab() {
 
         {/* Upload result */}
         {uploadResult && (
-          <div className="mt-4 p-4 bg-slate-800/40 rounded-lg border border-slate-700/50">
+          <div className="mt-4 p-4 bg-slate-50 rounded-lg border border-slate-200">
             <div className="flex justify-between mb-2">
-              <p className="text-sm font-medium text-slate-200">{uploadResult.message}</p>
-              <button onClick={() => setUploadResult(null)} className="text-slate-500 hover:text-slate-300">
+              <p className="text-sm font-medium text-slate-800">{uploadResult.message}</p>
+              <button onClick={() => setUploadResult(null)} className="text-slate-500 hover:text-slate-600">
                 <X size={14} />
               </button>
             </div>
             <div className="flex gap-4 text-xs">
-              <span className="text-teal-400 font-semibold">{uploadResult.created} created</span>
-              <span className="text-indigo-400 font-semibold">{uploadResult.updated} updated</span>
+              <span className="text-teal-600 font-semibold">{uploadResult.created} created</span>
+              <span className="text-indigo-600 font-semibold">{uploadResult.updated} updated</span>
               <span className="text-amber-600 font-semibold">{uploadResult.skipped} skipped</span>
               {uploadResult.errors > 0 && (
                 <span className="text-red-600 font-semibold">{uploadResult.errors} errors</span>
@@ -309,12 +311,12 @@ function ParticipantsTab() {
             value={search}
             onChange={(e) => { setSearch(e.target.value); setPage(1) }}
             placeholder="Search by name or email…"
-            className="flex-1 sm:w-64 text-sm border border-slate-700/50 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-300"
+            className="flex-1 sm:w-64 text-sm border border-slate-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
           />
           <select
             value={teamFilter}
             onChange={(e) => { setTeamFilter(e.target.value); setPage(1) }}
-            className="text-sm border border-slate-700/50 rounded-lg px-3 py-2 focus:outline-none bg-slate-900"
+            className="text-sm border border-slate-200 rounded-lg px-3 py-2 focus:outline-none bg-white"
           >
             <option value="">All</option>
             <option value="false">Unassigned</option>
@@ -338,7 +340,7 @@ function ParticipantsTab() {
       </div>
 
       {/* Participants table */}
-      <div className="glass-card rounded-xl border border-slate-700/50 overflow-hidden">
+      <div className="glass-card rounded-xl border border-slate-200 overflow-hidden">
         <table className="w-full text-sm">
           <thead>
             <tr className="bg-slate-800/40 border-b border-slate-700/50 text-left">
@@ -350,10 +352,10 @@ function ParticipantsTab() {
           <tbody>
             {isLoading
               ? Array.from({ length: 6 }).map((_, i) => (
-                  <tr key={i} className="border-b border-slate-700/30">
+                  <tr key={i} className="border-b border-slate-200">
                     {[1,2,3,4,5].map((j) => (
                       <td key={j} className="px-4 py-3">
-                        <div className="h-3 bg-slate-700/50 rounded animate-pulse w-24" />
+                        <div className="h-3 bg-slate-200 rounded animate-pulse w-24" />
                       </td>
                     ))}
                   </tr>
@@ -365,16 +367,16 @@ function ParticipantsTab() {
                     : null
 
                   return (
-                    <tr key={p.id} className="border-b border-slate-700/30 hover:bg-slate-800/40">
+                    <tr key={p.id} className="border-b border-slate-200 hover:bg-slate-50">
                       <td className="px-4 py-3">
-                        <p className="font-medium text-white">{p.first_name} {p.last_name}</p>
+                        <p className="font-medium text-slate-900">{p.first_name} {p.last_name}</p>
                         <p className="text-xs text-slate-500">{p.email}</p>
                       </td>
-                      <td className="px-4 py-3 text-slate-300">{p.institution}</td>
+                      <td className="px-4 py-3 text-slate-600">{p.institution}</td>
                       <td className="px-4 py-3">
                         {avg
                           ? <Badge colour="indigo">{avg}/10</Badge>
-                          : <span className="text-gray-300 text-xs">—</span>
+                          : <span className="text-slate-400 text-xs">—</span>
                         }
                       </td>
                       <td className="px-4 py-3">
@@ -395,7 +397,7 @@ function ParticipantsTab() {
                               deleteMutation.mutate(p.id)
                             }
                           }}
-                          className="p-1 text-gray-300 hover:text-red-500 rounded transition-colors"
+                          className="p-1 text-slate-400 hover:text-red-500 rounded transition-colors"
                         >
                           <Trash2 size={14} />
                         </button>
@@ -409,13 +411,13 @@ function ParticipantsTab() {
 
         {/* Pagination */}
         {data && data.total_pages > 1 && (
-          <div className="flex justify-between items-center px-4 py-3 border-t border-slate-700/30 text-xs text-slate-500">
+          <div className="flex justify-between items-center px-4 py-3 border-t border-slate-200 text-xs text-slate-500">
             <span>Page {data.page} of {data.total_pages} ({data.total} total)</span>
             <div className="flex gap-2">
               <button disabled={page === 1} onClick={() => setPage(p => p - 1)}
-                className="px-3 py-1.5 rounded border border-slate-700/50 disabled:opacity-40 hover:bg-slate-800/40">Prev</button>
+                className="px-3 py-1.5 rounded border border-slate-200 disabled:opacity-40 hover:bg-slate-50">Prev</button>
               <button disabled={page >= data.total_pages} onClick={() => setPage(p => p + 1)}
-                className="px-3 py-1.5 rounded border border-slate-700/50 disabled:opacity-40 hover:bg-slate-800/40">Next</button>
+                className="px-3 py-1.5 rounded border border-slate-200 disabled:opacity-40 hover:bg-slate-50">Next</button>
             </div>
           </div>
         )}
@@ -512,16 +514,16 @@ function TeamsTab() {
     : 0
 
   const statusColor = {
-    pending: 'text-slate-400',
-    running: 'text-indigo-400',
-    success: 'text-teal-400',
+    pending: 'text-slate-500',
+    running: 'text-indigo-600',
+    success: 'text-teal-600',
     failed:  'text-red-600',
-  }[taskStatus?.status] ?? 'text-slate-400'
+  }[taskStatus?.status] ?? 'text-slate-500'
 
   return (
     <div>
       {/* Solver config form */}
-      <div className="glass-card rounded-xl border border-slate-700/50 p-5 mb-6">
+      <div className="glass-card rounded-xl border border-slate-200 p-5 mb-6">
         <SectionTitle>Solver Configuration</SectionTitle>
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 mb-5">
           {[
@@ -532,23 +534,23 @@ function TeamsTab() {
             { key: 'max_per_institution', label: 'Max / institution',  min: 1,  max: 5  },
           ].map(({ key, label, min, max }) => (
             <div key={key}>
-              <label className="block text-xs font-medium text-slate-400 mb-1.5">{label}</label>
+              <label className="block text-xs font-medium text-slate-500 mb-1.5">{label}</label>
               <input
                 type="number" min={min} max={max}
                 value={config[key]}
                 onChange={(e) => setConfig((c) => ({ ...c, [key]: +e.target.value }))}
-                className="w-full border border-slate-700/50 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300"
+                className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
               />
             </div>
           ))}
 
           <div className="flex items-end">
-            <label className="flex items-center gap-2 text-sm text-slate-200 cursor-pointer pb-2">
+            <label className="flex items-center gap-2 text-sm text-slate-800 cursor-pointer pb-2">
               <input
                 type="checkbox"
                 checked={config.use_mock_data}
                 onChange={(e) => setConfig((c) => ({ ...c, use_mock_data: e.target.checked }))}
-                className="rounded border-slate-600/50 text-indigo-400 focus:ring-indigo-300"
+                className="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500"
               />
               Use mock data
             </label>
@@ -574,18 +576,18 @@ function TeamsTab() {
 
       {/* Task progress panel */}
       {taskId && taskStatus && (
-        <div className="glass-card rounded-xl border border-slate-700/50 p-5 mb-6">
+        <div className="glass-card rounded-xl border border-slate-200 p-5 mb-6">
           <div className="flex items-center justify-between mb-2">
-            <p className="text-sm font-medium text-slate-200">Solver progress</p>
+            <p className="text-sm font-medium text-slate-800">Solver progress</p>
             <span className={`text-sm font-semibold capitalize ${statusColor}`}>
               {taskStatus.status}
             </span>
           </div>
-          <div className="w-full bg-slate-700/50 rounded-full h-2 mb-3">
+          <div className="w-full bg-slate-200 rounded-full h-2 mb-3">
             <div
               className={`h-2 rounded-full transition-all duration-500 ${
-                taskStatus.status === 'success' ? 'bg-teal-900/30' :
-                taskStatus.status === 'failed'  ? 'bg-red-900/30'  : 'bg-indigo-900/30'
+                taskStatus.status === 'success' ? 'bg-teal-500' :
+                taskStatus.status === 'failed'  ? 'bg-red-500'  : 'bg-indigo-500'
               }`}
               style={{ width: `${progress}%` }}
             />
@@ -595,8 +597,8 @@ function TeamsTab() {
           {taskStatus.status === 'success' && taskStatus.result?.evaluation && (
             <div className="mt-3 flex flex-wrap gap-4 text-xs">
               <span>Quality: <strong className={
-                taskStatus.result.evaluation.quality === 'excellent' ? 'text-teal-400' :
-                taskStatus.result.evaluation.quality === 'good'      ? 'text-indigo-400' : 'text-amber-600'
+                taskStatus.result.evaluation.quality === 'excellent' ? 'text-teal-600' :
+                taskStatus.result.evaluation.quality === 'good'      ? 'text-indigo-600' : 'text-amber-600'
               }>{taskStatus.result.evaluation.quality}</strong></span>
               <span>Variance: <strong>{taskStatus.result.evaluation.variance_score}</strong></span>
               <span>Nodes visited: <strong>{taskStatus.result.evaluation.nodes_visited ?? '—'}</strong></span>
@@ -614,7 +616,7 @@ function TeamsTab() {
       {drafts?.teams && (
         <div>
           <div className="flex items-center justify-between mb-3">
-            <h3 className="text-sm font-semibold text-slate-200">
+            <h3 className="text-sm font-semibold text-slate-800">
               Draft lineups — {drafts.teams.length} teams, {drafts.total_participants} participants
             </h3>
             {!committed && (
@@ -622,7 +624,7 @@ function TeamsTab() {
                 <button
                   onClick={generateAllRationale}
                   disabled={generatingAll}
-                  className="flex items-center gap-1.5 text-sm px-4 py-2 rounded-lg border border-indigo-500/50 text-indigo-400 hover:bg-indigo-900/30 disabled:opacity-50"
+                  className="flex items-center gap-1.5 text-sm px-4 py-2 rounded-lg border border-indigo-500/50 text-indigo-600 hover:bg-indigo-50 border border-indigo-100 disabled:opacity-50"
                 >
                   {generatingAll
                     ? <Loader2 size={14} className="animate-spin" />
@@ -657,30 +659,30 @@ function TeamsTab() {
 
           <div className="grid md:grid-cols-2 xl:grid-cols-3 gap-4">
             {drafts.teams.map((team) => (
-              <div key={team.team_id} className="glass-card rounded-xl border border-slate-700/50 p-4">
+              <div key={team.team_id} className="glass-card rounded-xl border border-slate-200 p-4">
                 <div className="flex items-center justify-between mb-3">
-                  <p className="font-semibold text-sm text-white">{team.team_name}</p>
+                  <p className="font-semibold text-sm text-slate-900">{team.team_name}</p>
                   <Badge colour="indigo">{team.size} members</Badge>
                 </div>
                 <div className="space-y-2">
                   {team.members.map((m) => (
                     <div key={m.id} className="flex items-center gap-2">
-                      <div className="w-7 h-7 rounded-full bg-indigo-900/30 border border-indigo-500/30 text-indigo-300 text-xs font-semibold flex items-center justify-center shrink-0">
+                      <div className="w-7 h-7 rounded-full bg-indigo-50 border border-indigo-100 border border-indigo-200 text-indigo-700 text-xs font-semibold flex items-center justify-center shrink-0">
                         {m.name[0]}
                       </div>
                       <div className="min-w-0">
-                        <p className="text-xs font-medium text-slate-100 truncate">{m.name}</p>
+                        <p className="text-xs font-medium text-slate-800 truncate">{m.name}</p>
                         <p className="text-xs text-slate-500 truncate">{m.institution}</p>
                       </div>
                     </div>
                   ))}
                 </div>
                 {team.average_skill_vector?.length > 0 && (
-                  <div className="mt-3 pt-3 border-t border-slate-700/30">
+                  <div className="mt-3 pt-3 border-t border-slate-200">
                     <p className="text-xs text-slate-500 mb-1">Skill avg</p>
                     <div className="flex gap-1 flex-wrap">
                       {team.average_skill_vector.map((v, i) => (
-                        <span key={i} className="text-xs bg-slate-800/40 border border-slate-700/30 text-slate-300 px-1.5 py-0.5 rounded">
+                        <span key={i} className="text-xs bg-slate-50 border border-slate-200 text-slate-600 px-1.5 py-0.5 rounded">
                           {Number(v).toFixed(1)}
                         </span>
                       ))}
@@ -689,29 +691,29 @@ function TeamsTab() {
                 )}
 
                 {/* ── AI Rationale ── */}
-                <div className="mt-3 pt-3 border-t border-slate-700/30">
+                <div className="mt-3 pt-3 border-t border-slate-200">
                   {!rationales[team.team_id] ? (
                     <button
                       onClick={() => generateRationale(team)}
-                      className="flex items-center gap-1 text-xs text-indigo-400 hover:text-indigo-300 transition-colors"
+                      className="flex items-center gap-1 text-xs text-indigo-600 hover:text-indigo-700 transition-colors"
                     >
                       <Wand2 size={11} /> Generate rationale
                     </button>
                   ) : rationales[team.team_id].status === 'loading' ? (
-                    <div className="flex items-center gap-1.5 text-xs text-slate-400">
+                    <div className="flex items-center gap-1.5 text-xs text-slate-500">
                       <Loader2 size={11} className="animate-spin" /> Generating…
                     </div>
                   ) : rationales[team.team_id].status === 'done' ? (
-                    <div className="bg-indigo-900/20 border border-indigo-700/30 rounded-lg p-2.5">
-                      <p className="text-xs font-medium text-indigo-400 mb-1 flex items-center gap-1">
+                    <div className="bg-indigo-50 border border-indigo-100 border border-indigo-200 rounded-lg p-2.5">
+                      <p className="text-xs font-medium text-indigo-600 mb-1 flex items-center gap-1">
                         <Wand2 size={11} /> AI Rationale
                       </p>
-                      <p className="text-xs text-indigo-200 leading-relaxed">
+                      <p className="text-xs text-indigo-800 leading-relaxed">
                         {rationales[team.team_id].text}
                       </p>
                     </div>
                   ) : (
-                    <p className="text-xs text-red-400 flex items-center gap-1">
+                    <p className="text-xs text-red-600 flex items-center gap-1">
                       <AlertTriangle size={11} /> {rationales[team.team_id].text}
                     </p>
                   )}
@@ -761,7 +763,7 @@ function ApprovalsTab() {
       {/* Header actions */}
       <div className="flex items-center justify-between mb-5">
         <div>
-          <h2 className="text-base font-semibold text-white">Pending Approvals</h2>
+          <h2 className="text-base font-semibold text-slate-900">Pending Approvals</h2>
           <p className="text-sm text-slate-500">{pending?.total_pending ?? 0} team(s) awaiting review</p>
         </div>
         {(pending?.total_pending ?? 0) > 0 && (
@@ -790,31 +792,31 @@ function ApprovalsTab() {
 
       {isLoading && (
         <div className="space-y-3">
-          {[1,2,3].map(i => <div key={i} className="h-16 bg-slate-700/50 rounded-xl animate-pulse" />)}
+          {[1,2,3].map(i => <div key={i} className="h-16 bg-slate-200 rounded-xl animate-pulse" />)}
         </div>
       )}
 
       {!isLoading && pending?.total_pending === 0 && (
-        <div className="text-center py-16 text-gray-300">
+        <div className="text-center py-16 text-slate-400">
           <Shield size={36} className="mx-auto mb-3 opacity-50" />
-          <p className="text-sm text-slate-400 font-medium">All teams reviewed</p>
+          <p className="text-sm text-slate-500 font-medium">All teams reviewed</p>
           <p className="text-xs text-slate-500 mt-1">Run the solver and commit lineups to populate this queue.</p>
         </div>
       )}
 
       <div className="space-y-3">
         {pending?.teams.map((team) => (
-          <div key={team.team_id} className="glass-card rounded-xl border border-slate-700/50 overflow-hidden">
+          <div key={team.team_id} className="glass-card rounded-xl border border-slate-200 overflow-hidden">
             {/* Row */}
             <div
-              className="flex items-center gap-3 px-4 py-3 cursor-pointer hover:bg-slate-800/40"
+              className="flex items-center gap-3 px-4 py-3 cursor-pointer hover:bg-slate-50"
               onClick={() => setExpanded(expanded === team.team_id ? null : team.team_id)}
             >
-              <div className="w-9 h-9 rounded-lg bg-indigo-900/30 text-indigo-300 flex items-center justify-center font-semibold text-sm shrink-0">
+              <div className="w-9 h-9 rounded-lg bg-indigo-50 text-indigo-700 border border-indigo-100 flex items-center justify-center font-semibold text-sm shrink-0">
                 {team.team_name[0]}
               </div>
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-semibold text-white">{team.team_name}</p>
+                <p className="text-sm font-semibold text-slate-900">{team.team_name}</p>
                 <p className="text-xs text-slate-500">{team.member_count} members</p>
               </div>
               <Badge colour="amber">Pending</Badge>
@@ -826,16 +828,16 @@ function ApprovalsTab() {
 
             {/* Expanded detail */}
             {expanded === team.team_id && detail && (
-              <div className="border-t border-slate-700/30 px-4 py-4">
+              <div className="border-t border-slate-200 px-4 py-4">
                 {/* Members grid */}
                 <div className="grid grid-cols-2 gap-2 mb-4">
                   {detail.members?.map((m) => (
                     <div key={m.id} className="flex items-center gap-2">
-                      <div className="w-7 h-7 rounded-full bg-slate-700/50 text-slate-300 text-xs font-semibold flex items-center justify-center shrink-0">
+                      <div className="w-7 h-7 rounded-full bg-slate-200 text-slate-600 text-xs font-semibold flex items-center justify-center shrink-0">
                         {m.name[0]}
                       </div>
                       <div className="min-w-0">
-                        <p className="text-xs font-medium text-slate-100 truncate">{m.name}</p>
+                        <p className="text-xs font-medium text-slate-800 truncate">{m.name}</p>
                         <p className="text-xs text-slate-500 truncate">{m.institution}</p>
                       </div>
                     </div>
@@ -844,8 +846,8 @@ function ApprovalsTab() {
 
                 {/* AI rationale */}
                 {detail.rationale && (
-                  <div className="bg-indigo-900/30 border border-indigo-100 rounded-lg p-3 mb-4">
-                    <p className="text-xs font-medium text-indigo-300 mb-1 flex items-center gap-1">
+                  <div className="bg-indigo-50 border border-indigo-100 border border-indigo-100 rounded-lg p-3 mb-4">
+                    <p className="text-xs font-medium text-indigo-700 mb-1 flex items-center gap-1">
                       <Wand2 size={12} /> AI Rationale
                     </p>
                     <p className="text-xs text-indigo-800 leading-relaxed">{detail.rationale}</p>
@@ -858,7 +860,7 @@ function ApprovalsTab() {
                   onChange={(e) => setNotes(e.target.value)}
                   placeholder="Notes (required when rejecting)…"
                   rows={2}
-                  className="w-full text-sm border border-slate-700/50 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-300 mb-3 resize-none"
+                  className="w-full text-sm border border-slate-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500 mb-3 resize-none"
                 />
                 <div className="flex justify-end gap-2">
                   <button
@@ -925,13 +927,13 @@ function EvaluatorsTab() {
 
   const fieldFor = (key, label, type = 'text', placeholder = '') => (
     <div>
-      <label className="block text-xs font-medium text-slate-400 mb-1">{label}</label>
+      <label className="block text-xs font-medium text-slate-500 mb-1">{label}</label>
       <input
         type={type}
         value={form[key]}
         onChange={(e) => setForm((f) => ({ ...f, [key]: e.target.value }))}
         placeholder={placeholder}
-        className="w-full border border-slate-700/50 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300"
+        className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
       />
     </div>
   )
@@ -939,7 +941,7 @@ function EvaluatorsTab() {
   return (
     <div>
       <div className="flex items-center justify-between mb-5">
-        <h2 className="text-base font-semibold text-white">Evaluators / Judges</h2>
+        <h2 className="text-base font-semibold text-slate-900">Evaluators / Judges</h2>
         <button
           onClick={() => setShowForm((s) => !s)}
           className="flex items-center gap-1.5 text-sm px-3 py-1.5 rounded-lg btn-primary text-white hover:bg-indigo-700"
@@ -947,14 +949,14 @@ function EvaluatorsTab() {
           <Plus size={14} /> Add Evaluator
         </button>
       </div>
-      <p className="text-xs text-slate-400 mb-6 italic">
+      <p className="text-xs text-slate-500 mb-6 italic">
         Evaluators receive secure magic links and score approved teams in the Judge Portal. Submitted scorecards update the leaderboard and anomaly scanner.
       </p>
 
       {/* Add form */}
       {showForm && (
-        <div className="glass-card rounded-xl border border-slate-700/50 p-5 mb-5">
-          <p className="text-sm font-semibold text-slate-200 mb-4">New Evaluator</p>
+        <div className="glass-card rounded-xl border border-slate-200 p-5 mb-5">
+          <p className="text-sm font-semibold text-slate-800 mb-4">New Evaluator</p>
           <div className="grid grid-cols-2 gap-3 mb-3">
             {fieldFor('first_name',      'First name',        'text', 'Dr. Meena')}
             {fieldFor('last_name',       'Last name',         'text', 'Sharma')}
@@ -962,7 +964,7 @@ function EvaluatorsTab() {
             {fieldFor('expertise_areas', 'Expertise (comma-separated)', 'text', 'embedded systems, signal processing')}
           </div>
           <div className="flex gap-2 justify-end">
-            <button onClick={() => setShowForm(false)} className="text-sm px-3 py-1.5 rounded-lg border border-slate-700/50 text-slate-300 hover:bg-slate-800/40">Cancel</button>
+            <button onClick={() => setShowForm(false)} className="text-sm px-3 py-1.5 rounded-lg border border-slate-200 text-slate-600 hover:bg-slate-50">Cancel</button>
             <button
               onClick={() => createMutation.mutate()}
               disabled={createMutation.isPending || !form.email}
@@ -978,18 +980,18 @@ function EvaluatorsTab() {
 
       {/* Evaluator list */}
       {isLoading
-        ? Array.from({ length: 3 }).map((_, i) => <div key={i} className="h-14 bg-slate-700/50 rounded-xl animate-pulse mb-3" />)
+        ? Array.from({ length: 3 }).map((_, i) => <div key={i} className="h-14 bg-slate-200 rounded-xl animate-pulse mb-3" />)
         : (
-          <div className="glass-card rounded-xl border border-slate-700/50 overflow-hidden">
+          <div className="glass-card rounded-xl border border-slate-200 overflow-hidden">
             {(!data?.evaluators?.length)
               ? <div className="text-center py-12 text-slate-500 text-sm">No evaluators registered yet.</div>
               : data.evaluators.map((ev) => (
-                  <div key={ev.id} className="flex items-center gap-4 px-4 py-3 border-b border-slate-700/30 last:border-0 hover:bg-slate-800/40">
-                    <div className="w-9 h-9 rounded-full bg-amber-900/30 text-amber-300 font-semibold text-sm flex items-center justify-center shrink-0">
+                  <div key={ev.id} className="flex items-center gap-4 px-4 py-3 border-b border-slate-200 last:border-0 hover:bg-slate-50">
+                    <div className="w-9 h-9 rounded-full bg-amber-900/30 text-amber-700 font-semibold text-sm flex items-center justify-center shrink-0">
                       {ev.first_name[0]}
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium text-white">{ev.first_name} {ev.last_name}</p>
+                      <p className="text-sm font-medium text-slate-900">{ev.first_name} {ev.last_name}</p>
                       <p className="text-xs text-slate-500">{ev.email}</p>
                       {ev.expertise_areas?.length > 0 && (
                         <div className="flex gap-1 mt-1 flex-wrap">
@@ -1006,7 +1008,7 @@ function EvaluatorsTab() {
                         onClick={() => sendLinkMutation.mutate(ev.id)}
                         disabled={sendLinkMutation.isPending}
                         title={ev.access_link_sent ? "Send access link again" : "Send access link"}
-                        className="flex items-center gap-1 text-xs px-2.5 py-1.5 rounded-lg border border-indigo-200 text-indigo-400 hover:bg-indigo-900/30 disabled:opacity-50"
+                        className="flex items-center gap-1 text-xs px-2.5 py-1.5 rounded-lg border border-indigo-200 text-indigo-600 hover:bg-indigo-50 border border-indigo-100 disabled:opacity-50"
                       >
                         {sendLinkMutation.isPending
                           ? <Loader2 size={12} className="animate-spin" />
@@ -1016,7 +1018,7 @@ function EvaluatorsTab() {
                       </button>
                       <button
                         onClick={() => { if (window.confirm('Remove this evaluator?')) deleteMutation.mutate(ev.id) }}
-                        className="p-1.5 text-gray-300 hover:text-red-500 rounded transition-colors"
+                        className="p-1.5 text-slate-400 hover:text-red-500 rounded transition-colors"
                       >
                         <Trash2 size={14} />
                       </button>
@@ -1126,14 +1128,14 @@ function LeaderboardTab() {
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-2">
               <AlertTriangle size={16} className="text-amber-600" />
-              <p className="text-sm font-semibold text-amber-300">
+              <p className="text-sm font-semibold text-amber-700">
                 {anomalies.total_flagged} flagged scorecard(s) — results on hold
               </p>
             </div>
             <button
               onClick={() => overrideAllMutation.mutate()}
               disabled={overrideAllMutation.isPending}
-              className="text-xs px-3 py-1.5 rounded-lg border border-amber-300 text-amber-300 hover:bg-amber-900/30 border border-amber-500/30"
+              className="text-xs px-3 py-1.5 rounded-lg border border-amber-300 text-amber-700 hover:bg-amber-900/30 border border-amber-200"
             >
               Clear all flags
             </button>
@@ -1142,7 +1144,7 @@ function LeaderboardTab() {
             {anomalies.scorecards.map((sc) => (
               <div key={sc.id} className="flex items-start gap-3 glass-card rounded-lg p-3 border border-amber-100">
                 <div className="flex-1 min-w-0">
-                  <p className="text-xs font-medium text-slate-100">
+                  <p className="text-xs font-medium text-slate-800">
                     Evaluator <span className="font-mono">{sc.evaluator_id.slice(0,8)}…</span>
                     {' → '}Team <span className="font-mono">{sc.team_id.slice(0,8)}…</span>
                   </p>
@@ -1166,10 +1168,10 @@ function LeaderboardTab() {
 
       {/* Header Actions */}
       <div className="flex items-center justify-between mb-4 mt-2">
-        <h2 className="text-base font-semibold text-white">Event Rankings</h2>
+        <h2 className="text-base font-semibold text-slate-900">Event Rankings</h2>
         <div className="flex gap-2 items-center">
-          {toastMsg && <span className="text-teal-400 text-xs mr-2 animate-pulse">{toastMsg}</span>}
-          <button onClick={exportCSV} disabled={!lb?.leaderboard?.length} className="flex items-center gap-1.5 text-sm px-3 py-1.5 rounded-lg border border-slate-700/50 text-slate-300 hover:bg-slate-800/40 disabled:opacity-50">
+          {toastMsg && <span className="text-teal-600 text-xs mr-2 animate-pulse">{toastMsg}</span>}
+          <button onClick={exportCSV} disabled={!lb?.leaderboard?.length} className="flex items-center gap-1.5 text-sm px-3 py-1.5 rounded-lg border border-slate-200 text-slate-600 hover:bg-slate-50 disabled:opacity-50">
             <FileText size={14} /> Export CSV
           </button>
           <button onClick={exportPDF} disabled={!lb?.leaderboard?.length} className="flex items-center gap-1.5 text-sm px-3 py-1.5 rounded-lg bg-indigo-600 text-white hover:bg-indigo-700 disabled:opacity-50">
@@ -1179,8 +1181,8 @@ function LeaderboardTab() {
       </div>
 
       {/* Rankings table */}
-      <div className="glass-card rounded-xl border border-slate-700/50 overflow-hidden">
-        <div className="grid grid-cols-12 bg-slate-800/40 border-b border-slate-700/50 px-4 py-3 text-xs font-medium text-slate-400 uppercase tracking-wide">
+      <div className="glass-card rounded-xl border border-slate-200 overflow-hidden">
+        <div className="grid grid-cols-12 bg-slate-50 border-b border-slate-200 px-4 py-3 text-xs font-medium text-slate-500 uppercase tracking-wide">
           <div className="col-span-1">#</div>
           <div className="col-span-3">Team</div>
           <div className="col-span-2">Technical</div>
@@ -1195,16 +1197,16 @@ function LeaderboardTab() {
           : lb.leaderboard.map((team, i) => (
               <div
                 key={team.team_id}
-                className={`grid grid-cols-12 items-center px-4 py-3 border-b border-slate-700/30 text-sm ${i === 0 && !team.has_flags ? 'bg-amber-900/30' : ''}`}
+                className={`grid grid-cols-12 items-center px-4 py-3 border-b border-slate-200 text-sm ${i === 0 && !team.has_flags ? 'bg-amber-900/30' : ''}`}
               >
                 <div className="col-span-1 font-mono font-semibold text-slate-500">
                   {team.rank ?? <span className="text-gray-200">—</span>}
                 </div>
-                <div className="col-span-3 font-medium text-white truncate">{team.team_name}</div>
-                <div className="col-span-2 text-slate-300">{team.average_scores?.technical_depth?.toFixed(1) ?? '—'}</div>
-                <div className="col-span-2 text-slate-300">{team.average_scores?.innovation?.toFixed(1) ?? '—'}</div>
-                <div className="col-span-2 text-slate-300">{team.average_scores?.presentation?.toFixed(1) ?? '—'}</div>
-                <div className="col-span-1 font-bold text-indigo-300">{team.weighted_total?.toFixed(2) ?? '—'}</div>
+                <div className="col-span-3 font-medium text-slate-900 truncate">{team.team_name}</div>
+                <div className="col-span-2 text-slate-600">{team.average_scores?.technical_depth?.toFixed(1) ?? '—'}</div>
+                <div className="col-span-2 text-slate-600">{team.average_scores?.innovation?.toFixed(1) ?? '—'}</div>
+                <div className="col-span-2 text-slate-600">{team.average_scores?.presentation?.toFixed(1) ?? '—'}</div>
+                <div className="col-span-1 font-bold text-indigo-700">{team.weighted_total?.toFixed(2) ?? '—'}</div>
                 <div className="col-span-1">
                   {team.has_flags
                     ? <Badge colour="amber"><AlertTriangle size={10} /> Flag</Badge>
@@ -1296,20 +1298,20 @@ function CommunicationsTab() {
   return (
     <div>
       {/* Communication log */}
-      <div className="glass-card rounded-xl border border-slate-700/50 overflow-hidden mb-8">
-        <div className="flex items-center justify-between px-4 py-3 border-b border-slate-700/30">
-          <p className="text-sm font-semibold text-slate-200">Communication Log</p>
+      <div className="glass-card rounded-xl border border-slate-200 overflow-hidden mb-8">
+        <div className="flex items-center justify-between px-4 py-3 border-b border-slate-200">
+          <p className="text-sm font-semibold text-slate-800">Communication Log</p>
           <div className="flex gap-2">
             <input
               value={templateFilter}
               onChange={(e) => setTemplateFilter(e.target.value)}
               placeholder="Filter by template…"
-              className="text-xs border border-slate-700/50 rounded-lg px-2.5 py-1.5 focus:outline-none w-36"
+              className="text-xs border border-slate-200 rounded-lg px-2.5 py-1.5 focus:outline-none w-36"
             />
             <select
               value={successFilter}
               onChange={(e) => setSuccessFilter(e.target.value)}
-              className="text-xs border border-slate-700/50 rounded-lg px-2.5 py-1.5 focus:outline-none"
+              className="text-xs border border-slate-200 rounded-lg px-2.5 py-1.5 focus:outline-none"
             >
               <option value="">All statuses</option>
               <option value="true">Sent</option>
@@ -1317,37 +1319,37 @@ function CommunicationsTab() {
             </select>
           </div>
         </div>
-        <div className="px-4 py-2 bg-slate-800/30 border-b border-slate-700/30 text-[11px] text-slate-400">
+        <div className="px-4 py-2 bg-white/30 border-b border-slate-200 text-[11px] text-slate-500">
           <span className="font-medium">Note:</span> Queued means the background worker accepted the job. Sent/Failed is recorded after provider response.
         </div>
 
         {isLoading
-          ? <div className="p-4 space-y-2">{Array.from({length:5}).map((_,i)=><div key={i} className="h-8 bg-slate-700/50 rounded animate-pulse" />)}</div>
+          ? <div className="p-4 space-y-2">{Array.from({length:5}).map((_,i)=><div key={i} className="h-8 bg-slate-200 rounded animate-pulse" />)}</div>
           : !commsData?.logs?.length
             ? <div className="text-center py-10 text-sm text-slate-500">No emails dispatched yet.</div>
             : <table className="w-full text-sm">
                 <thead>
-                  <tr className="bg-slate-800/40 text-left border-b border-slate-700/30">
+                  <tr className="bg-slate-50 text-left border-b border-slate-200">
                     {['Recipient', 'Template', 'Stage', 'Status', 'Sent at'].map(h => (
-                      <th key={h} className="px-4 py-2.5 text-xs font-medium text-slate-400 uppercase tracking-wide">{h}</th>
+                      <th key={h} className="px-4 py-2.5 text-xs font-medium text-slate-500 uppercase tracking-wide">{h}</th>
                     ))}
                   </tr>
                 </thead>
                 <tbody>
                   {commsData.logs.map((log) => (
-                    <tr key={log.id} className="border-b border-gray-50 hover:bg-slate-800/40">
+                    <tr key={log.id} className="border-b border-slate-100 hover:bg-slate-50">
                       <td className="px-4 py-2.5">
-                        <p className="text-slate-100 font-medium truncate max-w-[160px]">{log.recipient_email}</p>
+                        <p className="text-slate-800 font-medium truncate max-w-[160px]">{log.recipient_email}</p>
                       </td>
                       <td className="px-4 py-2.5"><Badge colour="gray">{log.template}</Badge></td>
-                      <td className="px-4 py-2.5 text-slate-400 text-xs capitalize">{log.stage}</td>
+                      <td className="px-4 py-2.5 text-slate-500 text-xs capitalize">{log.stage}</td>
                       <td className="px-4 py-2.5">
                         <div className="flex flex-col gap-1">
                           <div>
                             <Badge colour={log.success ? 'green' : 'red'}>{log.success ? 'Sent' : 'Failed'}</Badge>
                           </div>
                           {!log.success && (
-                            <span className="text-[10px] text-red-400 leading-tight max-w-[200px] block truncate" title={log.error_message || "No provider error captured. Check Celery worker logs."}>
+                            <span className="text-[10px] text-red-600 leading-tight max-w-[200px] block truncate" title={log.error_message || "No provider error captured. Check Celery worker logs."}>
                               {log.error_message || "No provider error captured. Check Celery worker logs."}
                             </span>
                           )}
@@ -1370,7 +1372,7 @@ function CommunicationsTab() {
           {/* Config */}
           <div className="space-y-4">
             <div>
-              <label className="block text-xs font-medium text-slate-400 mb-2">Draft type</label>
+              <label className="block text-xs font-medium text-slate-500 mb-2">Draft type</label>
               <div className="flex flex-wrap gap-2">
                 {DRAFT_TYPES.map((t) => (
                   <button
@@ -1383,7 +1385,7 @@ function CommunicationsTab() {
                     className={`text-xs px-3 py-1.5 rounded-lg border transition-colors ${
                       draftType === t.value
                         ? 'btn-primary text-white border-indigo-600'
-                        : 'border-slate-700/50 text-slate-300 hover:bg-slate-800/40'
+                        : 'border-slate-200 text-slate-600 hover:bg-slate-50'
                     }`}
                   >
                     {t.label}
@@ -1393,23 +1395,23 @@ function CommunicationsTab() {
             </div>
 
             <div>
-              <label className="block text-xs font-medium text-slate-400 mb-2">Tone</label>
+              <label className="block text-xs font-medium text-slate-500 mb-2">Tone</label>
               <select
                 value={draftTone}
                 onChange={(e) => setDraftTone(e.target.value)}
-                className="text-sm border border-slate-700/50 rounded-lg px-3 py-2 focus:outline-none w-full"
+                className="text-sm border border-slate-200 rounded-lg px-3 py-2 focus:outline-none w-full"
               >
                 {['professional', 'encouraging', 'formal'].map(t => <option key={t} value={t}>{t}</option>)}
               </select>
             </div>
 
             <div>
-              <label className="block text-xs font-medium text-slate-400 mb-2">Context (JSON)</label>
+              <label className="block text-xs font-medium text-slate-500 mb-2">Context (JSON)</label>
               <textarea
                 value={draftContext}
                 onChange={(e) => setDraftContext(e.target.value)}
                 rows={8}
-                className="w-full font-mono text-xs border border-slate-700/50 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-300 resize-none"
+                className="w-full font-mono text-xs border border-slate-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500 resize-none"
               />
             </div>
 
@@ -1425,36 +1427,36 @@ function CommunicationsTab() {
           </div>
 
           {/* Preview */}
-          <div className="glass-card rounded-xl border border-slate-700/50 p-5 flex flex-col min-h-64">
+          <div className="glass-card rounded-xl border border-slate-200 p-5 flex flex-col min-h-64">
             {draft ? (
               <>
                 <div className="flex items-center justify-between mb-3">
-                  <p className="text-xs font-medium text-slate-400 uppercase tracking-wide">Draft Preview</p>
+                  <p className="text-xs font-medium text-slate-500 uppercase tracking-wide">Draft Preview</p>
                   <button
                     onClick={() => {
                       navigator.clipboard.writeText(draft.body_text)
                       setCopied(true)
                       setTimeout(() => setCopied(false), 2000)
                     }}
-                    className="flex items-center gap-1 text-xs px-2 py-1 rounded border border-slate-700/50 hover:bg-slate-800/40"
+                    className="flex items-center gap-1 text-xs px-2 py-1 rounded border border-slate-200 hover:bg-slate-50"
                   >
                     <Copy size={12} /> {copied ? 'Copied!' : 'Copy'}
                   </button>
                 </div>
-                <div className="pb-3 mb-3 border-b border-slate-700/30">
+                <div className="pb-3 mb-3 border-b border-slate-200">
                   <p className="text-xs text-slate-500 mb-0.5">Subject</p>
-                  <p className="text-sm font-semibold text-white">{draft.subject}</p>
+                  <p className="text-sm font-semibold text-slate-900">{draft.subject}</p>
                 </div>
                 <div className="flex-1 overflow-auto">
                   <p className="text-xs text-slate-500 mb-1.5">Body</p>
-                  <p className="text-sm text-slate-200 whitespace-pre-wrap leading-relaxed">{draft.body_text}</p>
+                  <p className="text-sm text-slate-800 whitespace-pre-wrap leading-relaxed">{draft.body_text}</p>
                 </div>
-                <p className="mt-4 pt-3 border-t border-slate-700/30 text-xs text-amber-600">
+                <p className="mt-4 pt-3 border-t border-slate-200 text-xs text-amber-600">
                   ⚠ Review carefully before dispatching. This draft has not been sent.
                 </p>
               </>
             ) : (
-              <div className="flex-1 flex items-center justify-center text-gray-300">
+              <div className="flex-1 flex items-center justify-center text-slate-400">
                 <div className="text-center">
                   <Wand2 size={28} className="mx-auto mb-2 opacity-40" />
                   <p className="text-sm">Generate a draft to preview it here</p>
@@ -1536,14 +1538,14 @@ function MentorOpsTab() {
 
   const fieldFor = (key, label, type, placeholder) => (
     <div>
-      <label className="block text-xs font-medium text-slate-400 mb-1">{label}</label>
+      <label className="block text-xs font-medium text-slate-500 mb-1">{label}</label>
       <input type={type} value={form[key]} onChange={e => setForm(f => ({...f, [key]: e.target.value}))}
-        placeholder={placeholder} className="w-full border border-slate-700/50 bg-slate-900/50 text-white rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300" />
+        placeholder={placeholder} className="w-full border border-slate-200 bg-white shadow-sm text-slate-900 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
     </div>
   )
 
   const riskBadge = (level) => {
-    const cls = { low: 'bg-green-900/30 text-green-400 border border-green-500/30', medium: 'bg-amber-900/30 text-amber-400 border border-amber-500/30', high: 'bg-red-900/30 text-red-400 border border-red-500/30', critical: 'bg-red-900/50 text-red-300 border border-red-500/50 font-bold' }[level] ?? 'bg-slate-700/50 text-slate-300'
+    const cls = { low: 'bg-green-50 border border-green-100 text-green-600 border border-green-200', medium: 'bg-amber-900/30 text-amber-600 border border-amber-200', high: 'bg-red-900/30 text-red-600 border border-red-200', critical: 'bg-red-900/50 text-red-700 border border-red-500/50 font-bold' }[level] ?? 'bg-slate-200 text-slate-600'
     return <span className={`inline-flex items-center text-xs font-medium px-2 py-0.5 rounded-full ${cls}`}>{level}</span>
   }
 
@@ -1556,8 +1558,8 @@ function MentorOpsTab() {
           { label: 'Missing daily update', value: ops.teams_missing_daily_update, icon: MessageSquare, colour: ops.teams_missing_daily_update > 0 ? 'red' : 'teal' },
           { label: 'Low progress teams', value: ops.low_progress_teams, icon: BarChart2, colour: ops.low_progress_teams > 0 ? 'red' : 'teal' },
         ].map(({ label, value, icon: Icon, colour }) => (
-          <div key={label} className="glass-card rounded-xl border border-slate-700/50 p-4">
-            <div className="flex items-center gap-2 mb-1"><Icon size={14} className="text-slate-500" /><p className="text-xs font-medium text-slate-400 uppercase tracking-wide">{label}</p></div>
+          <div key={label} className="glass-card rounded-xl border border-slate-200 p-4">
+            <div className="flex items-center gap-2 mb-1"><Icon size={14} className="text-slate-500" /><p className="text-xs font-medium text-slate-500 uppercase tracking-wide">{label}</p></div>
             <p className={`text-2xl font-bold px-2 py-0.5 rounded inline-block bg-${colour}-900/30 text-${colour}-400 border border-${colour}-500/30`}>{value ?? '—'}</p>
           </div>
         ))}
@@ -1565,15 +1567,15 @@ function MentorOpsTab() {
 
       {/* Mentors list */}
       <div className="flex items-center justify-between mb-5">
-        <h2 className="text-base font-semibold text-white">Mentors</h2>
+        <h2 className="text-base font-semibold text-slate-900">Mentors</h2>
         <button onClick={() => setShowForm(s => !s)} className="flex items-center gap-1.5 text-sm px-3 py-1.5 rounded-lg btn-primary">
           <Plus size={14} /> Add Mentor
         </button>
       </div>
 
       {showForm && (
-        <div className="glass-card rounded-xl border border-slate-700/50 p-5 mb-5">
-          <p className="text-sm font-semibold text-slate-200 mb-4">New Mentor</p>
+        <div className="glass-card rounded-xl border border-slate-200 p-5 mb-5">
+          <p className="text-sm font-semibold text-slate-800 mb-4">New Mentor</p>
           <div className="grid grid-cols-2 gap-3 mb-3">
             {fieldFor('first_name', 'First name', 'text', 'Dr. Priya')}
             {fieldFor('last_name', 'Last name', 'text', 'Kumar')}
@@ -1582,7 +1584,7 @@ function MentorOpsTab() {
           </div>
           <div className="mb-3">{fieldFor('expertise_areas', 'Expertise (comma-separated)', 'text', 'embedded systems, signal processing')}</div>
           <div className="flex gap-2 justify-end">
-            <button onClick={() => setShowForm(false)} className="text-sm px-3 py-1.5 rounded-lg border border-slate-700/50 text-slate-300 hover:bg-slate-800/40">Cancel</button>
+            <button onClick={() => setShowForm(false)} className="text-sm px-3 py-1.5 rounded-lg border border-slate-200 text-slate-600 hover:bg-slate-50">Cancel</button>
             <button onClick={() => createMutation.mutate()} disabled={createMutation.isPending || !form.email}
               className="flex items-center gap-1.5 text-sm px-4 py-1.5 rounded-lg btn-primary disabled:opacity-50">
               {createMutation.isPending ? <Loader2 size={14} className="animate-spin" /> : <Check size={14} />} Save
@@ -1593,16 +1595,16 @@ function MentorOpsTab() {
       )}
 
       {isLoading
-        ? Array.from({ length: 3 }).map((_, i) => <div key={i} className="h-14 bg-slate-700/50 rounded-xl animate-pulse mb-3" />)
+        ? Array.from({ length: 3 }).map((_, i) => <div key={i} className="h-14 bg-slate-200 rounded-xl animate-pulse mb-3" />)
         : (
-          <div className="glass-card rounded-xl border border-slate-700/50 overflow-hidden mb-8">
+          <div className="glass-card rounded-xl border border-slate-200 overflow-hidden mb-8">
             {(!mentors.length)
               ? <div className="text-center py-12 text-slate-500 text-sm">No mentors registered yet.</div>
               : mentors.map(m => (
-                <div key={m.id} className="flex items-center gap-4 px-4 py-3 border-b border-slate-700/30 last:border-0 hover:bg-slate-800/40">
-                  <div className="w-9 h-9 rounded-full bg-teal-900/30 text-teal-300 border border-teal-500/30 font-semibold text-sm flex items-center justify-center shrink-0">{m.first_name[0]}</div>
+                <div key={m.id} className="flex items-center gap-4 px-4 py-3 border-b border-slate-200 last:border-0 hover:bg-slate-50">
+                  <div className="w-9 h-9 rounded-full bg-teal-900/30 text-teal-700 border border-teal-200 font-semibold text-sm flex items-center justify-center shrink-0">{m.first_name[0]}</div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-white">{m.first_name} {m.last_name}</p>
+                    <p className="text-sm font-medium text-slate-900">{m.first_name} {m.last_name}</p>
                     <p className="text-xs text-slate-500">{m.email}{m.organization ? ` · ${m.organization}` : ''}</p>
                     {m.expertise_areas?.length > 0 && (
                       <div className="flex gap-1 mt-1 flex-wrap">
@@ -1618,7 +1620,7 @@ function MentorOpsTab() {
                   <div className="flex gap-2 shrink-0 items-center">
                     {m.assigned_team_count > 0 ? (
                       <button onClick={() => sendLinkMutation.mutate(m.id)} disabled={sendLinkMutation.isPending}
-                        title={m.access_link_sent ? "Send access link again" : "Send access link"} className="flex items-center gap-1 text-xs px-2.5 py-1.5 rounded-lg border border-indigo-500/30 text-indigo-400 hover:bg-indigo-900/30 disabled:opacity-50">
+                        title={m.access_link_sent ? "Send access link again" : "Send access link"} className="flex items-center gap-1 text-xs px-2.5 py-1.5 rounded-lg border border-indigo-200 text-indigo-600 hover:bg-indigo-50 border border-indigo-100 disabled:opacity-50">
                         {sendLinkMutation.isPending ? <Loader2 size={12} className="animate-spin" /> : <Send size={12} />} {m.access_link_sent ? "Resend Link" : "Send Link"}
                       </button>
                     ) : (
@@ -1636,35 +1638,35 @@ function MentorOpsTab() {
 
       {/* Assignments */}
       <div className="flex items-center justify-between mb-4">
-        <h2 className="text-base font-semibold text-white">Assignments</h2>
+        <h2 className="text-base font-semibold text-slate-900">Assignments</h2>
         <button onClick={() => setShowAssignForm(s => !s)} className="flex items-center gap-1.5 text-sm px-3 py-1.5 rounded-lg btn-secondary">
           <Plus size={14} /> Assign
         </button>
       </div>
 
       {showAssignForm && (
-        <div className="glass-card rounded-xl border border-slate-700/50 p-5 mb-5">
-          <p className="text-sm font-semibold text-slate-200 mb-4">Assign Mentor to Team</p>
+        <div className="glass-card rounded-xl border border-slate-200 p-5 mb-5">
+          <p className="text-sm font-semibold text-slate-800 mb-4">Assign Mentor to Team</p>
           <div className="grid grid-cols-2 gap-3 mb-3">
             <div>
-              <label className="block text-xs font-medium text-slate-400 mb-1">Mentor</label>
+              <label className="block text-xs font-medium text-slate-500 mb-1">Mentor</label>
               <select value={assignForm.mentor_id} onChange={e => setAssignForm(f => ({...f, mentor_id: e.target.value}))}
-                className="w-full border border-slate-700/50 bg-slate-900/50 text-white rounded-lg px-3 py-2 text-sm focus:outline-none">
+                className="w-full border border-slate-200 bg-white shadow-sm text-slate-900 rounded-lg px-3 py-2 text-sm focus:outline-none">
                 <option value="">-- select mentor --</option>
                 {mentors.filter(m => m.is_active).map(m => <option key={m.id} value={m.id}>{m.first_name} {m.last_name}</option>)}
               </select>
             </div>
             <div>
-              <label className="block text-xs font-medium text-slate-400 mb-1">Team</label>
+              <label className="block text-xs font-medium text-slate-500 mb-1">Team</label>
               <select value={assignForm.team_id} onChange={e => setAssignForm(f => ({...f, team_id: e.target.value}))}
-                className="w-full border border-slate-700/50 bg-slate-900/50 text-white rounded-lg px-3 py-2 text-sm focus:outline-none">
+                className="w-full border border-slate-200 bg-white shadow-sm text-slate-900 rounded-lg px-3 py-2 text-sm focus:outline-none">
                 <option value="">-- select team --</option>
                 {allTeams.filter(t => t.is_approved && getTeamId(t)).map(t => <option key={getTeamId(t)} value={getTeamId(t)}>{getTeamName(t)}</option>)}
               </select>
             </div>
           </div>
           <div className="flex gap-2 justify-end">
-            <button onClick={() => setShowAssignForm(false)} className="text-sm px-3 py-1.5 rounded-lg border border-slate-700/50 text-slate-300 hover:bg-slate-800/40">Cancel</button>
+            <button onClick={() => setShowAssignForm(false)} className="text-sm px-3 py-1.5 rounded-lg border border-slate-200 text-slate-600 hover:bg-slate-50">Cancel</button>
             <button onClick={() => assignMutation.mutate()} disabled={assignMutation.isPending || !assignForm.mentor_id || !assignForm.team_id}
               className="flex items-center gap-1.5 text-sm px-4 py-1.5 rounded-lg btn-secondary disabled:opacity-50">
               {assignMutation.isPending ? <Loader2 size={14} className="animate-spin" /> : <Check size={14} />} Assign
@@ -1675,17 +1677,17 @@ function MentorOpsTab() {
       )}
 
       {assignments.length > 0 && (
-        <div className="glass-card rounded-xl border border-slate-700/50 overflow-hidden mb-8">
+        <div className="glass-card rounded-xl border border-slate-200 overflow-hidden mb-8">
           {assignments.map(a => (
-            <div key={a.id} className="flex items-center gap-4 px-4 py-3 border-b border-slate-700/30 last:border-0 hover:bg-slate-800/40">
+            <div key={a.id} className="flex items-center gap-4 px-4 py-3 border-b border-slate-200 last:border-0 hover:bg-slate-50">
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium text-white">{a.mentor_name} → {a.team_name}</p>
+                <p className="text-sm font-medium text-slate-900">{a.mentor_name} → {a.team_name}</p>
                 <p className="text-xs text-slate-500">Stage: {a.stage}</p>
               </div>
               <Badge colour={a.is_active ? 'teal' : 'gray'}>{a.is_active ? 'Active' : 'Inactive'}</Badge>
               {a.is_active && (
                 <button onClick={() => { if (window.confirm('Unassign?')) unassignMutation.mutate(a.id) }}
-                  className="text-xs px-2 py-1 rounded border border-red-500/30 text-red-400 hover:bg-red-900/30">Unassign</button>
+                  className="text-xs px-2 py-1 rounded border border-red-200 text-red-600 hover:bg-red-900/30">Unassign</button>
               )}
             </div>
           ))}
@@ -1695,21 +1697,21 @@ function MentorOpsTab() {
       {/* Suggestions */}
       {suggestions.length > 0 && (
         <div className="mb-8">
-          <h2 className="text-base font-semibold text-white mb-4 flex items-center gap-2"><Wand2 size={16} className="text-indigo-500" /> Skill-Gap Mentor Suggestions</h2>
+          <h2 className="text-base font-semibold text-slate-900 mb-4 flex items-center gap-2"><Wand2 size={16} className="text-indigo-500" /> Skill-Gap Mentor Suggestions</h2>
           <div className="space-y-3">
             {suggestions.map(s => (
-              <div key={String(s.team_id)} className="glass-card rounded-xl border border-slate-700/50 p-4">
-                <p className="text-sm font-semibold text-white mb-1">{s.team_name}</p>
-                <p className="text-xs text-slate-400 mb-2">{s.reason}</p>
+              <div key={String(s.team_id)} className="glass-card rounded-xl border border-slate-200 p-4">
+                <p className="text-sm font-semibold text-slate-900 mb-1">{s.team_name}</p>
+                <p className="text-xs text-slate-500 mb-2">{s.reason}</p>
                 {s.suggested_mentors?.map(c => (
-                  <div key={String(c.mentor_id)} className="flex items-center gap-2 text-xs text-slate-300 mb-1">
+                  <div key={String(c.mentor_id)} className="flex items-center gap-2 text-xs text-slate-600 mb-1">
                     <span className="font-medium flex-1">{c.mentor_name}</span>
                     <Badge colour="indigo">load: {c.current_load}</Badge>
                     <Badge colour="teal">score: {c.match_score}</Badge>
                     <button
                       onClick={() => assignMutation.mutate({ mentor_id: c.mentor_id, team_id: getTeamId(s) })}
                       disabled={assignMutation.isPending}
-                      className="ml-2 text-xs px-2 py-1 rounded bg-teal-900/30 text-teal-400 hover:bg-teal-900/50 border border-teal-500/30 disabled:opacity-50"
+                      className="ml-2 text-xs px-2 py-1 rounded bg-teal-900/30 text-teal-600 hover:bg-teal-900/50 border border-teal-200 disabled:opacity-50"
                     >
                       {assignMutation.isPending ? 'Assigning...' : 'Assign'}
                     </button>
@@ -1724,9 +1726,9 @@ function MentorOpsTab() {
       {/* Risk table */}
       {riskTeams.length > 0 && (
         <div className="mb-8">
-          <h2 className="text-base font-semibold text-white mb-4 flex items-center gap-2"><Shield size={16} className="text-red-500" /> Risk Scores</h2>
-          <div className="glass-card rounded-xl border border-slate-700/50 overflow-hidden">
-            <div className="grid grid-cols-12 bg-slate-800/40 border-b border-slate-700/50 px-4 py-3 text-xs font-medium text-slate-400 uppercase tracking-wide">
+          <h2 className="text-base font-semibold text-slate-900 mb-4 flex items-center gap-2"><Shield size={16} className="text-red-500" /> Risk Scores</h2>
+          <div className="glass-card rounded-xl border border-slate-200 overflow-hidden">
+            <div className="grid grid-cols-12 bg-slate-50 border-b border-slate-200 px-4 py-3 text-xs font-medium text-slate-500 uppercase tracking-wide">
               <div className="col-span-3">Team</div>
               <div className="col-span-2">Mentor</div>
               <div className="col-span-1">Score</div>
@@ -1735,12 +1737,12 @@ function MentorOpsTab() {
               <div className="col-span-4">Reasons</div>
             </div>
             {riskTeams.map(t => (
-              <div key={String(t.team_id)} className="grid grid-cols-12 items-center px-4 py-3 border-b border-slate-700/30 text-sm last:border-0">
-                <div className="col-span-3 font-medium text-white truncate">{t.team_name}</div>
-                <div className="col-span-2 text-slate-400 truncate">{t.mentor_name ?? '—'}</div>
-                <div className="col-span-1 font-bold text-slate-200">{t.risk_score}</div>
+              <div key={String(t.team_id)} className="grid grid-cols-12 items-center px-4 py-3 border-b border-slate-200 text-sm last:border-0">
+                <div className="col-span-3 font-medium text-slate-900 truncate">{t.team_name}</div>
+                <div className="col-span-2 text-slate-500 truncate">{t.mentor_name ?? '—'}</div>
+                <div className="col-span-1 font-bold text-slate-800">{t.risk_score}</div>
                 <div className="col-span-1">{riskBadge(t.risk_level)}</div>
-                <div className="col-span-1 text-slate-300">{t.latest_progress_score?.toFixed(1) ?? '—'}</div>
+                <div className="col-span-1 text-slate-600">{t.latest_progress_score?.toFixed(1) ?? '—'}</div>
                 <div className="col-span-4 text-xs text-slate-500">{t.reasons?.join(', ') || '—'}</div>
               </div>
             ))}
@@ -1751,7 +1753,7 @@ function MentorOpsTab() {
       {/* Actions row */}
       <div className="flex items-center gap-3 mb-8">
         <button onClick={() => reminderMutation.mutate()} disabled={reminderMutation.isPending}
-          className="flex items-center gap-1.5 text-sm px-4 py-2 rounded-lg btn-secondary text-amber-400 disabled:opacity-50">
+          className="flex items-center gap-1.5 text-sm px-4 py-2 rounded-lg btn-secondary text-amber-600 disabled:opacity-50">
           {reminderMutation.isPending ? <Loader2 size={14} className="animate-spin" /> : <Mail size={14} />} Send Daily Reminders
         </button>
         {reminderMutation.isSuccess && (
@@ -1761,7 +1763,7 @@ function MentorOpsTab() {
             ) : (
               <>
                 <p className="font-semibold">{reminderMutation.data?.message}</p>
-                <ul className="mt-1 space-y-0.5 text-[10px] text-slate-400">
+                <ul className="mt-1 space-y-0.5 text-[10px] text-slate-500">
                   <li>• queued: {reminderMutation.data?.queued} (total processed)</li>
                   <li>• sent: {reminderMutation.data?.sent} (real SendGrid email sent)</li>
                   <li>• simulated: {reminderMutation.data?.simulated} (mock-mode email logged)</li>
@@ -1775,11 +1777,11 @@ function MentorOpsTab() {
 
       {/* AI Summary */}
       <div className="mb-6">
-        <h2 className="text-base font-semibold text-white mb-4 flex items-center gap-2"><Wand2 size={16} className="text-violet-500" /> AI Team Summary</h2>
+        <h2 className="text-base font-semibold text-slate-900 mb-4 flex items-center gap-2"><Wand2 size={16} className="text-violet-500" /> AI Team Summary</h2>
         <div className="flex gap-2 items-end mb-4">
           <div className="flex-1">
             <select value={aiTeamId} onChange={e => setAiTeamId(e.target.value)}
-              className="w-full border border-slate-700/50 bg-slate-900/50 text-white rounded-lg px-3 py-2 text-sm focus:outline-none">
+              className="w-full border border-slate-200 bg-white shadow-sm text-slate-900 rounded-lg px-3 py-2 text-sm focus:outline-none">
               <option value="">-- select team --</option>
               {allTeams.filter(t => t.is_approved && getTeamId(t)).map(t => <option key={getTeamId(t)} value={getTeamId(t)}>{getTeamName(t)}</option>)}
             </select>
@@ -1790,12 +1792,12 @@ function MentorOpsTab() {
           </button>
         </div>
         {aiResult && (
-          <div className="glass-card rounded-xl border border-slate-700/50 p-5">
+          <div className="glass-card rounded-xl border border-slate-200 p-5">
             <div className="flex items-center gap-2 mb-3">
-              <p className="text-sm font-semibold text-white">{aiResult.team_name}</p>
+              <p className="text-sm font-semibold text-slate-900">{aiResult.team_name}</p>
               <Badge colour={aiResult.tone === 'urgent' ? 'red' : aiResult.tone === 'watchlist' ? 'amber' : 'teal'}>{aiResult.tone}</Badge>
             </div>
-            <p className="text-sm text-slate-200 leading-relaxed mb-2">{aiResult.summary}</p>
+            <p className="text-sm text-slate-800 leading-relaxed mb-2">{aiResult.summary}</p>
             {aiResult.recommended_focus && <p className="text-xs text-indigo-600 mb-1"><strong>Focus:</strong> {aiResult.recommended_focus}</p>}
             {aiResult.committee_note && <p className="text-xs text-slate-500"><strong>Committee note:</strong> {aiResult.committee_note}</p>}
           </div>
@@ -1869,7 +1871,7 @@ function AnomalyTab() {
 
   if (isLoading) {
     return (
-      <div className="flex flex-col items-center justify-center py-20 text-slate-400">
+      <div className="flex flex-col items-center justify-center py-20 text-slate-500">
         <Loader2 size={32} className="animate-spin mb-4 text-indigo-500" />
         <p>Scanning for anomalies...</p>
       </div>
@@ -1884,17 +1886,17 @@ function AnomalyTab() {
       {/* Stats Header */}
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h2 className="text-xl font-bold text-white flex items-center gap-2">
-            <Activity className="text-indigo-400" /> Anomaly Detector Scanner
+          <h2 className="text-xl font-bold text-slate-900 flex items-center gap-2">
+            <Activity className="text-indigo-600" /> Anomaly Detector Scanner
           </h2>
-          <p className="text-sm text-slate-400 mt-1">Real-time monitoring of judge evaluations and score distributions.</p>
+          <p className="text-sm text-slate-500 mt-1">Real-time monitoring of judge evaluations and score distributions.</p>
         </div>
         
         {totalFlagged > 0 && (
           <button 
             onClick={() => { if(window.confirm('Override all flagged scorecards?')) overrideAllMutation.mutate() }}
             disabled={overrideAllMutation.isPending}
-            className="btn-secondary px-4 py-2 rounded-lg flex items-center gap-2 text-sm text-amber-400 hover:text-amber-300 border-amber-500/30"
+            className="btn-secondary px-4 py-2 rounded-lg flex items-center gap-2 text-sm text-amber-600 hover:text-amber-700 border-amber-200"
           >
             {overrideAllMutation.isPending ? <Loader2 size={16} className="animate-spin" /> : <Shield size={16} />}
             Override All Flags
@@ -1904,11 +1906,11 @@ function AnomalyTab() {
 
       {/* Stats Cards & Analytics */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
-        <div className="glass-card p-5 rounded-xl border border-slate-700/50">
-          <p className="text-xs font-medium text-slate-400 uppercase mb-1">Total Flagged Teams</p>
-          <p className="text-3xl font-bold text-red-400">{totalFlagged}</p>
+        <div className="glass-card p-5 rounded-xl border border-slate-200">
+          <p className="text-xs font-medium text-slate-500 uppercase mb-1">Total Flagged Teams</p>
+          <p className="text-3xl font-bold text-red-600">{totalFlagged}</p>
           
-          <div className="mt-4 pt-4 border-t border-slate-700/50">
+          <div className="mt-4 pt-4 border-t border-slate-200">
             <p className="text-xs text-slate-500 mb-2">Historical Frequency</p>
             <div className="flex items-end h-8 gap-1">
               {[2, 5, 3, 7, 4, 1, totalFlagged].map((val, idx) => (
@@ -1920,27 +1922,27 @@ function AnomalyTab() {
           </div>
         </div>
         
-        <div className="glass-card p-5 rounded-xl border border-slate-700/50 flex flex-col justify-between">
+        <div className="glass-card p-5 rounded-xl border border-slate-200 flex flex-col justify-between">
           <div>
-            <p className="text-xs font-medium text-slate-400 uppercase mb-1">Sweep Status</p>
-            <p className="text-xl font-bold text-teal-400 flex items-center gap-2 mt-1">
+            <p className="text-xs font-medium text-slate-500 uppercase mb-1">Sweep Status</p>
+            <p className="text-xl font-bold text-teal-600 flex items-center gap-2 mt-1">
               <span className="w-2.5 h-2.5 rounded-full bg-teal-400 animate-pulse"></span> Active Pipeline
             </p>
             <p className="text-xs text-slate-500 mt-2">Checking every 15s</p>
           </div>
           <div className="mt-4">
-             <div className="w-full bg-slate-700/50 rounded-full h-1.5 mb-1">
+             <div className="w-full bg-slate-200 rounded-full h-1.5 mb-1">
                 <div className="bg-teal-400 h-1.5 rounded-full w-full animate-[progress_2s_ease-in-out_infinite]"></div>
              </div>
           </div>
         </div>
         
-        <div className="glass-card p-5 rounded-xl border border-slate-700/50 flex flex-col justify-between">
+        <div className="glass-card p-5 rounded-xl border border-slate-200 flex flex-col justify-between">
           <div>
-            <p className="text-xs font-medium text-slate-400 uppercase mb-1">AI Confidence Score</p>
-            <p className="text-3xl font-bold text-indigo-400">98.2%</p>
+            <p className="text-xs font-medium text-slate-500 uppercase mb-1">AI Confidence Score</p>
+            <p className="text-3xl font-bold text-indigo-600">98.2%</p>
           </div>
-          <p className="text-xs text-slate-400 leading-relaxed mt-3">
+          <p className="text-xs text-slate-500 leading-relaxed mt-3">
             Detector model operates with high precision. Overriding a flag will permanently unblock the team's progression.
           </p>
         </div>
@@ -1948,26 +1950,26 @@ function AnomalyTab() {
 
       {/* Flagged Cards List */}
       <div className="space-y-4">
-        <h3 className="text-lg font-semibold text-white mb-2">Flagged Evaluations Pipeline</h3>
+        <h3 className="text-lg font-semibold text-slate-900 mb-2">Flagged Evaluations Pipeline</h3>
         {flaggedTeams.length === 0 ? (
-          <div className="glass-card py-16 text-center rounded-xl border border-slate-700/50">
+          <div className="glass-card py-16 text-center rounded-xl border border-slate-200">
             <CheckSquare size={48} className="mx-auto text-teal-500/50 mb-3" />
-            <p className="text-white font-medium">No Anomalies Detected</p>
+            <p className="text-slate-900 font-medium">No Anomalies Detected</p>
             <p className="text-sm text-slate-500">All scorecards are currently within expected variance thresholds.</p>
           </div>
         ) : (
           flaggedTeams.map(team => (
-            <div key={team.team_id} className="glass-card p-5 rounded-xl border border-red-500/30 flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div key={team.team_id} className="glass-card p-5 rounded-xl border border-red-200 flex flex-col md:flex-row md:items-center justify-between gap-4">
               <div className="flex-1">
                 <div className="flex items-center gap-2 mb-2">
-                  <h4 className="font-bold text-white text-lg">{team.team_name}</h4>
+                  <h4 className="font-bold text-slate-900 text-lg">{team.team_name}</h4>
                   <Badge colour="red"><AlertTriangle size={12} /> Flagged</Badge>
                 </div>
-                <div className="text-sm text-slate-300 space-y-1">
+                <div className="text-sm text-slate-600 space-y-1">
                   <p><span className="text-slate-500">Weighted Score:</span> {team.weighted_total?.toFixed(2) || team.total_score}</p>
                   <p>
                     <span className="text-slate-500">Anomaly Reason:</span>{' '}
-                    <span className="text-amber-400 font-mono text-xs">
+                    <span className="text-amber-600 font-mono text-xs">
                       {team.flag_reason || 'Statistical Variance Exception'}
                     </span>
                   </p>
@@ -1977,25 +1979,25 @@ function AnomalyTab() {
                     {!explanations[team.team_id] ? (
                       <button
                         onClick={() => generateExplanation(team)}
-                        className="flex items-center gap-1 text-xs text-indigo-400 hover:text-indigo-300"
+                        className="flex items-center gap-1 text-xs text-indigo-600 hover:text-indigo-700"
                       >
                         <Wand2 size={11} /> AI Explain
                       </button>
                     ) : explanations[team.team_id].status === 'loading' ? (
-                      <div className="flex items-center gap-1.5 text-xs text-slate-400">
+                      <div className="flex items-center gap-1.5 text-xs text-slate-500">
                         <Loader2 size={11} className="animate-spin" /> Generating explanation…
                       </div>
                     ) : explanations[team.team_id].status === 'done' ? (
-                      <div className="bg-indigo-900/20 border border-indigo-700/30 rounded-lg p-2.5 mt-1">
-                        <p className="text-xs font-medium text-indigo-400 mb-1 flex items-center gap-1">
+                      <div className="bg-indigo-50 border border-indigo-100 border border-indigo-200 rounded-lg p-2.5 mt-1">
+                        <p className="text-xs font-medium text-indigo-600 mb-1 flex items-center gap-1">
                           <Wand2 size={11} /> AI Explanation
                         </p>
-                        <p className="text-xs text-indigo-200 leading-relaxed">
+                        <p className="text-xs text-indigo-800 leading-relaxed">
                           {explanations[team.team_id].text}
                         </p>
                       </div>
                     ) : (
-                      <p className="text-xs text-red-400">{explanations[team.team_id].text}</p>
+                      <p className="text-xs text-red-600">{explanations[team.team_id].text}</p>
                     )}
                   </div>
                   <p><span className="text-slate-500">Detector Confidence:</span> 99.4%</p>
@@ -2006,7 +2008,7 @@ function AnomalyTab() {
                 <button 
                   onClick={() => { if(window.confirm(`Override flag for ${team.team_name}?`)) overrideMutation.mutate(team.team_id) }}
                   disabled={overrideMutation.isPending}
-                  className="btn-secondary px-4 py-2 rounded-lg text-sm flex justify-center items-center gap-2 border-indigo-500/30 hover:border-indigo-400/60"
+                  className="btn-secondary px-4 py-2 rounded-lg text-sm flex justify-center items-center gap-2 border-indigo-200 hover:border-indigo-400/60"
                 >
                   {overrideMutation.isPending ? <Loader2 size={16} className="animate-spin" /> : <Shield size={16} />}
                   Force Override
@@ -2091,7 +2093,7 @@ function DemoControlsTab() {
   return (
     <div>
       <div className="mb-8">
-        <h2 className="text-lg font-semibold text-white mb-4">Demo Controls</h2>
+        <h2 className="text-lg font-semibold text-slate-900 mb-4">Demo Controls</h2>
         
         <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-6">
           <StatCard label="Participants" value={status?.participants} colour="indigo" />
@@ -2103,10 +2105,10 @@ function DemoControlsTab() {
         </div>
 
         <div className="glass-card rounded-xl border border-red-500/50 p-6 bg-red-900/10 mb-8">
-          <h3 className="text-base font-bold text-red-400 flex items-center gap-2 mb-2">
+          <h3 className="text-base font-bold text-red-600 flex items-center gap-2 mb-2">
             <AlertTriangle size={18} /> Reset Demo Data
           </h3>
-          <p className="text-sm text-slate-400 mb-4">
+          <p className="text-sm text-slate-500 mb-4">
             This clears participants, teams, evaluations, mentor assignments, feedback, sessions, and communication logs so you can restart the demo with the same CSV. Admin accounts are preserved.
           </p>
           <div className="flex gap-3 items-center">
@@ -2115,12 +2117,12 @@ function DemoControlsTab() {
               value={confirmText}
               onChange={e => setConfirmText(e.target.value)}
               placeholder="Type RESET_DEMO_DATA"
-              className="bg-slate-900/50 border border-red-500/30 text-white rounded-lg px-4 py-2 text-sm focus:outline-none focus:border-red-500 w-64"
+              className="bg-white shadow-sm border border-red-200 text-slate-900 rounded-lg px-4 py-2 text-sm focus:outline-none focus:border-red-500 w-64"
             />
             <button
               onClick={() => resetMutation.mutate()}
               disabled={confirmText !== 'RESET_DEMO_DATA' || resetMutation.isPending}
-              className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white text-sm font-medium rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+              className="px-4 py-2 bg-red-600 hover:bg-red-700 text-slate-900 text-sm font-medium rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
             >
               {resetMutation.isPending ? <Loader2 size={16} className="animate-spin" /> : <Trash2 size={16} />}
               Reset Data
@@ -2176,30 +2178,30 @@ function DemoControlsTab() {
       </div>
 
       <div>
-        <h2 className="text-lg font-semibold text-white mb-4">Stage Controls</h2>
-        <div className="glass-card rounded-xl border border-slate-700/50 p-6">
+        <h2 className="text-lg font-semibold text-slate-900 mb-4">Stage Controls</h2>
+        <div className="glass-card rounded-xl border border-slate-200 p-6">
           <div className="flex items-center justify-between mb-6">
             <div>
-              <p className="text-sm font-medium text-slate-400">Current Stage</p>
-              <p className="text-xl font-bold text-indigo-400 uppercase tracking-wide mt-1">
+              <p className="text-sm font-medium text-slate-500">Current Stage</p>
+              <p className="text-xl font-bold text-indigo-600 uppercase tracking-wide mt-1">
                 {eventState?.current_stage?.replace('_', ' ') || 'loading...'}
               </p>
             </div>
             <div className="flex gap-2">
-              <button onClick={() => stepMutation.mutate('prev')} className="px-4 py-2 bg-slate-700 hover:bg-slate-600 text-white text-sm rounded-lg transition-colors">Previous</button>
-              <button onClick={() => stepMutation.mutate('next')} className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-sm rounded-lg transition-colors">Next</button>
-              <button onClick={() => resetStageMutation.mutate()} disabled={resetStageMutation.isPending} className="px-4 py-2 border border-slate-600 text-slate-300 hover:bg-slate-800 text-sm rounded-lg transition-colors ml-2 disabled:opacity-50">
+              <button onClick={() => stepMutation.mutate('prev')} className="px-4 py-2 bg-slate-200 hover:bg-slate-300 text-slate-800 text-sm font-semibold rounded-lg transition-colors">Previous</button>
+              <button onClick={() => stepMutation.mutate('next')} className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-semibold rounded-lg transition-colors">Next</button>
+              <button onClick={() => resetStageMutation.mutate()} disabled={resetStageMutation.isPending} className="px-4 py-2 border border-slate-300 text-slate-600 hover:bg-slate-50 text-sm font-semibold rounded-lg transition-colors ml-2 disabled:opacity-50">
                 {resetStageMutation.isPending ? 'Resetting...' : 'Reset to Registration'}
               </button>
             </div>
           </div>
           
           <div>
-            <label className="block text-xs font-medium text-slate-400 mb-2">Jump directly to stage:</label>
+            <label className="block text-xs font-medium text-slate-500 mb-2">Jump directly to stage:</label>
             <select 
               value={eventState?.current_stage || ''}
               onChange={e => stageMutation.mutate(e.target.value)}
-              className="w-full md:w-64 bg-slate-900/50 text-white border border-slate-700/50 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300"
+              className="w-full md:w-64 bg-white shadow-sm text-slate-900 border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
             >
               <option value="registration">Registration</option>
               <option value="team_formation">Team Formation</option>
@@ -2244,16 +2246,19 @@ export default function AdminDashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-800/40">
+    <div className="min-h-screen bg-slate-50">
       {/* Top bar */}
-      <header className="glass-card border-b border-slate-700/50 px-6 py-4 flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-extrabold text-gradient">EventOS</h1>
-          <p className="text-xs text-slate-500">Committee Dashboard — WiSE@TI Hackathon</p>
+      <header className="glass-card border-b border-slate-200 px-6 py-4 flex items-center justify-between">
+        <div className="flex items-center gap-4">
+          <EventOSLogo className="text-indigo-600" size={48} />
+          <div className="border-l border-slate-200 pl-4">
+            <h1 className="text-sm font-bold text-slate-800 uppercase tracking-wide">Committee Dashboard</h1>
+            <p className="text-xs font-medium text-slate-500">WiSE@TI Hackathon</p>
+          </div>
         </div>
         <div className="flex items-center gap-3 text-xs text-slate-500">
           <span className="flex items-center gap-1">
-            <span className="w-2 h-2 rounded-full bg-teal-900/30 inline-block animate-pulse" />
+            <span className="w-2 h-2 rounded-full bg-teal-500 inline-block animate-pulse" />
             System Online
           </span>
         </div>
@@ -2264,7 +2269,7 @@ export default function AdminDashboard() {
         <PipelineStepper showAdvanceButton className="mb-6" />
 
         {/* Tab navigation */}
-        <div className="flex gap-1 mb-6 glass-card rounded-xl border border-slate-700/50 p-1 overflow-x-auto">
+        <div className="flex gap-1 mb-6 glass-card rounded-xl border border-slate-200 p-1 overflow-x-auto">
           {TABS.map(({ key, label, Icon }) => (
             <button
               key={key}
@@ -2272,7 +2277,7 @@ export default function AdminDashboard() {
               className={`flex items-center gap-1.5 text-sm px-3 py-2 rounded-lg whitespace-nowrap transition-colors ${
                 activeTab === key
                   ? 'btn-primary text-white font-medium'
-                  : 'text-slate-300 hover:bg-slate-700/50'
+                  : 'text-slate-600 hover:bg-slate-200'
               }`}
             >
               <Icon size={14} />

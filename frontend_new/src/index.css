@@ -6,47 +6,47 @@
     font-family: 'Outfit', 'Inter', system-ui, -apple-system, sans-serif;
   }
   body {
-    @apply bg-slate-950 text-slate-100 min-h-screen relative overflow-x-hidden;
+    @apply bg-slate-50 text-slate-900 min-h-screen relative overflow-x-hidden;
     background-image: 
-      radial-gradient(circle at 15% 50%, rgba(99, 102, 241, 0.15), transparent 25%),
-      radial-gradient(circle at 85% 30%, rgba(168, 85, 247, 0.15), transparent 25%),
-      radial-gradient(circle at 50% 80%, rgba(56, 189, 248, 0.1), transparent 25%);
+      radial-gradient(circle at 15% 50%, rgba(99, 102, 241, 0.08), transparent 25%),
+      radial-gradient(circle at 85% 30%, rgba(168, 85, 247, 0.08), transparent 25%),
+      radial-gradient(circle at 50% 80%, rgba(56, 189, 248, 0.05), transparent 25%);
     background-attachment: fixed;
   }
   body::before {
     content: "";
     position: fixed;
     top: 0; left: 0; width: 100%; height: 100%;
-    background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.03'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+    background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%230f172a' fill-opacity='0.03'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
     pointer-events: none;
     z-index: -1;
   }
 
   /* DROPDOWN OPTIONS FIX */
   select option {
-    background-color: #1e293b;
-    color: #f8fafc;
+    background-color: #ffffff;
+    color: #0f172a;
   }
 }
 
 @layer utilities {
   .glass-panel {
-    @apply bg-slate-900/40 backdrop-blur-xl border border-slate-700/50 shadow-[0_8px_32px_0_rgba(0,0,0,0.36)];
+    @apply bg-white/80 backdrop-blur-xl border border-slate-200/60 shadow-[0_8px_32px_0_rgba(0,0,0,0.05)];
   }
   .glass-card {
-    @apply bg-slate-800/40 backdrop-blur-lg border border-slate-700/50 shadow-lg hover:shadow-indigo-500/10 hover:border-indigo-500/30 transition-all duration-300;
+    @apply bg-white/70 backdrop-blur-lg border border-slate-200/50 shadow-md hover:shadow-indigo-500/15 hover:border-indigo-400/40 transition-all duration-300;
   }
   .text-gradient {
-    @apply bg-clip-text text-transparent bg-gradient-to-r from-indigo-400 via-purple-400 to-sky-400;
+    @apply bg-clip-text text-transparent bg-gradient-to-r from-indigo-600 via-purple-600 to-sky-600;
   }
   .btn-primary {
-    @apply bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white shadow-lg shadow-indigo-500/25 hover:shadow-indigo-500/40 transition-all duration-300 font-medium tracking-wide border border-indigo-400/20;
+    @apply bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white shadow-md shadow-indigo-500/20 hover:shadow-indigo-500/30 transition-all duration-300 font-medium tracking-wide border border-indigo-400/20;
   }
   .btn-secondary {
-    @apply bg-slate-800/80 hover:bg-slate-700/80 text-slate-200 border border-slate-600/50 hover:border-slate-500/50 transition-all duration-300 backdrop-blur-md shadow-md font-medium;
+    @apply bg-white/90 hover:bg-slate-50/90 text-slate-700 border border-slate-300 hover:border-slate-400 transition-all duration-300 backdrop-blur-md shadow-sm font-medium;
   }
   .btn-danger {
-    @apply bg-gradient-to-r from-red-600/80 to-rose-600/80 hover:from-red-500 hover:to-rose-500 text-white shadow-lg shadow-red-500/20 hover:shadow-red-500/40 transition-all duration-300 font-medium border border-red-400/20;
+    @apply bg-gradient-to-r from-red-600 to-rose-600 hover:from-red-500 hover:to-rose-500 text-white shadow-md shadow-red-500/20 hover:shadow-red-500/30 transition-all duration-300 font-medium border border-red-400/20;
   }
   ::-webkit-scrollbar {
     width: 8px;
@@ -56,7 +56,7 @@
     background: transparent;
   }
   ::-webkit-scrollbar-thumb {
-    @apply bg-slate-700/50 rounded-full hover:bg-slate-600/80 transition-colors;
+    @apply bg-slate-300 rounded-full hover:bg-slate-400 transition-colors;
   }
   input[type='range'] {
     -webkit-appearance: none;
@@ -65,7 +65,7 @@
     border-radius: 9999px;
     cursor: pointer;
     outline: none;
-    @apply bg-slate-700/50 border border-slate-600/50;
+    @apply bg-slate-200 border border-slate-300;
   }
   input[type='range']::-webkit-slider-thumb {
     -webkit-appearance: none;
@@ -73,12 +73,12 @@
     width: 1.25rem;
     height: 1.25rem;
     border-radius: 9999px;
-    @apply bg-indigo-400 border-2 border-indigo-200 shadow-[0_0_10px_rgba(129,140,248,0.5)];
+    @apply bg-indigo-600 border-2 border-indigo-100 shadow-[0_0_10px_rgba(79,70,229,0.3)];
     transition: all 0.2s;
     cursor: pointer;
   }
   input[type='range']::-webkit-slider-thumb:hover {
     transform: scale(1.15);
-    @apply shadow-[0_0_15px_rgba(129,140,248,0.8)];
+    @apply shadow-[0_0_15px_rgba(79,70,229,0.5)];
   }
 }

@@ -19,15 +19,15 @@ function initials(name = '') {
 
 function Badge({ children, colour = 'gray' }) {
   const cls = {
-    green:  'bg-green-900/40 border border-green-500/30  text-green-300',
-    red:    'bg-red-900/40 border border-red-500/30    text-red-300',
-    amber:  'bg-amber-900/40 border border-amber-500/30  text-amber-300',
-    indigo: 'bg-indigo-900/40 border border-indigo-500/30 text-indigo-300',
-    teal:   'bg-teal-900/40 border border-teal-500/30   text-teal-300',
-    gray:   'bg-slate-700/50   text-slate-300',
-  }[colour] ?? 'bg-slate-700/50 text-slate-300'
+    green:  'bg-green-50 border border-green-200 text-green-700',
+    red:    'bg-red-50 border border-red-200 text-red-700',
+    amber:  'bg-amber-50 border border-amber-200 text-amber-700',
+    indigo: 'bg-indigo-50 border border-indigo-200 text-indigo-700',
+    teal:   'bg-teal-50 border border-teal-200 text-teal-700',
+    gray:   'bg-slate-100 border border-slate-200 text-slate-700',
+  }[colour] ?? 'bg-slate-100 border border-slate-200 text-slate-700'
   return (
-    <span className={`inline-flex items-center gap-1 text-xs font-medium px-2 py-0.5 rounded-full ${cls}`}>
+    <span className={`inline-flex items-center gap-1 text-[11px] font-bold px-2 py-0.5 rounded-full ${cls}`}>
       {children}
     </span>
   )
@@ -41,12 +41,12 @@ function riskColour(level) {
 function PortalSkeleton() {
   return (
     <div className="max-w-4xl mx-auto px-4 py-12">
-      <div className="h-6 w-48 bg-slate-700/50 rounded animate-pulse mb-2" />
-      <div className="h-4 w-32 bg-slate-700/50 rounded animate-pulse mb-8" />
+      <div className="h-6 w-48 bg-slate-200 rounded animate-pulse mb-2" />
+      <div className="h-4 w-32 bg-slate-200 rounded animate-pulse mb-8" />
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-        {[1,2,3,4].map(i => <div key={i} className="h-24 bg-slate-700/50 rounded-xl animate-pulse" />)}
+        {[1,2,3,4].map(i => <div key={i} className="h-24 bg-slate-200 rounded-xl animate-pulse" />)}
       </div>
-      <div className="h-64 bg-slate-700/50 rounded-xl animate-pulse" />
+      <div className="h-64 bg-slate-200 rounded-xl animate-pulse" />
     </div>
   )
 }
@@ -54,19 +54,19 @@ function PortalSkeleton() {
 // ── Stats card ─────────────────────────────────────────────────────────────
 function StatCard({ label, value, icon: Icon, colour = 'indigo' }) {
   const bg = {
-    indigo: 'bg-indigo-900/30 text-indigo-300',
-    teal:   'bg-teal-900/30   text-teal-300',
-    amber:  'bg-amber-900/30  text-amber-300',
-    red:    'bg-red-900/30    text-red-300',
-  }[colour] ?? 'bg-indigo-900/30 text-indigo-300'
+    indigo: 'bg-indigo-50 text-indigo-700 border-indigo-100',
+    teal:   'bg-teal-50 text-teal-700 border-teal-100',
+    amber:  'bg-amber-50 text-amber-700 border-amber-100',
+    red:    'bg-red-50 text-red-700 border-red-100',
+  }[colour] ?? 'bg-indigo-50 text-indigo-700 border-indigo-100'
 
   return (
-    <div className="glass-card rounded-xl border border-slate-700/50 p-4">
+    <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-4">
       <div className="flex items-center gap-2 mb-2">
-        <Icon size={14} className="text-slate-500" />
-        <p className="text-xs font-medium text-slate-400 uppercase tracking-wide">{label}</p>
+        <Icon size={14} className="text-slate-400" />
+        <p className="text-xs font-bold text-slate-500 uppercase tracking-wide">{label}</p>
       </div>
-      <p className={`text-2xl font-bold px-2 py-0.5 rounded inline-block ${bg}`}>{value ?? '—'}</p>
+      <p className={`text-2xl font-black px-3 py-1 rounded-lg inline-block border ${bg}`}>{value ?? '—'}</p>
     </div>
   )
 }
@@ -88,45 +88,45 @@ function ScheduleMeetingForm({ teamId, onSuccess }) {
   })
 
   return (
-    <div className="glass-card rounded-xl border border-slate-700/50 p-5">
-      <h3 className="text-sm font-semibold text-slate-200 mb-4 flex items-center gap-2">
-        <Calendar size={14} className="text-indigo-500" /> Schedule Meeting
+    <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-5">
+      <h3 className="text-sm font-bold text-slate-800 mb-4 flex items-center gap-2">
+        <Calendar size={14} className="text-indigo-600" /> Schedule Meeting
       </h3>
       <div className="grid grid-cols-2 gap-3 mb-3">
         <div>
-          <label className="block text-xs font-medium text-slate-400 mb-1">Title</label>
+          <label className="block text-xs font-bold text-slate-600 mb-1">Title</label>
           <input value={form.title} onChange={e => setForm(f => ({...f, title: e.target.value}))}
-            placeholder="Daily standup" className="w-full bg-slate-900/50 text-white border border-slate-700/50 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300" />
+            placeholder="Daily standup" className="w-full bg-white text-slate-900 border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 shadow-sm placeholder-slate-400" />
         </div>
         <div>
-          <label className="block text-xs font-medium text-slate-400 mb-1">Meeting URL</label>
+          <label className="block text-xs font-bold text-slate-600 mb-1">Meeting URL</label>
           <input value={form.meeting_url} onChange={e => setForm(f => ({...f, meeting_url: e.target.value}))}
-            placeholder="https://meet.google.com/..." className="w-full bg-slate-900/50 text-white border border-slate-700/50 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300" />
+            placeholder="https://meet.google.com/..." className="w-full bg-white text-slate-900 border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 shadow-sm placeholder-slate-400" />
         </div>
         <div>
-          <label className="block text-xs font-medium text-slate-400 mb-1">Date & Time</label>
+          <label className="block text-xs font-bold text-slate-600 mb-1">Date & Time</label>
           <input type="datetime-local" value={form.scheduled_at} onChange={e => setForm(f => ({...f, scheduled_at: e.target.value}))}
-            className="w-full bg-slate-900/50 text-white border border-slate-700/50 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300" />
+            className="w-full bg-white text-slate-900 border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 shadow-sm" />
         </div>
         <div>
-          <label className="block text-xs font-medium text-slate-400 mb-1">Duration (minutes)</label>
+          <label className="block text-xs font-bold text-slate-600 mb-1">Duration (minutes)</label>
           <input type="number" min={5} max={480} value={form.duration_minutes} onChange={e => setForm(f => ({...f, duration_minutes: e.target.value}))}
-            className="w-full bg-slate-900/50 text-white border border-slate-700/50 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300" />
+            className="w-full bg-white text-slate-900 border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 shadow-sm" />
         </div>
       </div>
       <div className="mb-3">
-        <label className="block text-xs font-medium text-slate-400 mb-1">Agenda (optional)</label>
+        <label className="block text-xs font-bold text-slate-600 mb-1">Agenda (optional)</label>
         <textarea value={form.agenda} onChange={e => setForm(f => ({...f, agenda: e.target.value}))}
-          rows={2} placeholder="Topics to discuss..." className="w-full bg-slate-900/50 text-white border border-slate-700/50 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300 resize-none" />
+          rows={2} placeholder="Topics to discuss..." className="w-full bg-white text-slate-900 border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 resize-none shadow-sm placeholder-slate-400" />
       </div>
       <div className="flex justify-end">
         <button onClick={() => mutation.mutate()} disabled={mutation.isPending || !form.title || !form.meeting_url || !form.scheduled_at}
-          className="flex items-center gap-1.5 text-sm px-4 py-2 rounded-lg bg-indigo-600 text-white hover:bg-indigo-700 disabled:opacity-50 transition-colors">
+          className="flex items-center gap-1.5 text-sm font-semibold px-4 py-2 rounded-lg btn-primary text-white hover:bg-indigo-700 disabled:opacity-50 shadow-sm">
           {mutation.isPending ? <Loader2 size={14} className="animate-spin" /> : <Plus size={14} />} Schedule
         </button>
       </div>
-      {mutation.isError && <p className="mt-2 text-xs text-red-500">{mutation.error?.message}</p>}
-      {mutation.isSuccess && <p className="mt-2 text-xs text-teal-600">Meeting scheduled successfully!</p>}
+      {mutation.isError && <p className="mt-2 text-xs font-semibold text-red-500">{mutation.error?.message}</p>}
+      {mutation.isSuccess && <p className="mt-2 text-xs font-semibold text-teal-600">Meeting scheduled successfully!</p>}
     </div>
   )
 }
@@ -170,33 +170,33 @@ function DailyProgressForm({ teamId, members, onSuccess }) {
 
   const scoreField = (key, label) => (
     <div>
-      <label className="block text-xs font-medium text-slate-400 mb-1">{label} (0-10)</label>
+      <label className="block text-xs font-bold text-slate-600 mb-1">{label} (0-10)</label>
       <input type="number" min={0} max={10} step={0.5} value={form[key]}
         onChange={e => setForm(f => ({...f, [key]: e.target.value}))}
-        className="w-full bg-slate-900/50 text-white border border-slate-700/50 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300" />
+        className="w-full bg-white text-slate-900 border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 shadow-sm" />
     </div>
   )
 
   return (
-    <div className="glass-card rounded-xl border border-slate-700/50 p-5">
-      <h3 className="text-sm font-semibold text-slate-200 mb-4 flex items-center gap-2">
-        <MessageSquare size={14} className="text-indigo-500" /> Submit Feedback
+    <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-5">
+      <h3 className="text-sm font-bold text-slate-800 mb-4 flex items-center gap-2">
+        <MessageSquare size={14} className="text-indigo-600" /> Submit Feedback
       </h3>
       {/* Tab toggle */}
-      <div className="flex gap-1 mb-4 bg-slate-800/40 rounded-lg p-1 w-fit">
-        <button onClick={() => setTab('team')} className={`text-xs px-3 py-1.5 rounded-md transition-colors ${tab === 'team' ? 'bg-indigo-600 text-white' : 'text-slate-300 hover:bg-slate-700/50'}`}>
+      <div className="flex gap-1 mb-4 bg-slate-100 border border-slate-200 rounded-lg p-1 w-fit shadow-inner">
+        <button onClick={() => setTab('team')} className={`text-xs font-bold px-3 py-1.5 rounded-md transition-all shadow-sm ${tab === 'team' ? 'bg-white text-indigo-700 ring-1 ring-slate-200' : 'text-slate-500 hover:text-slate-800 hover:bg-slate-200/50 shadow-none'}`}>
           Team Update
         </button>
-        <button onClick={() => setTab('individual')} className={`text-xs px-3 py-1.5 rounded-md transition-colors ${tab === 'individual' ? 'bg-indigo-600 text-white' : 'text-slate-300 hover:bg-slate-700/50'}`}>
+        <button onClick={() => setTab('individual')} className={`text-xs font-bold px-3 py-1.5 rounded-md transition-all shadow-sm ${tab === 'individual' ? 'bg-white text-indigo-700 ring-1 ring-slate-200' : 'text-slate-500 hover:text-slate-800 hover:bg-slate-200/50 shadow-none'}`}>
           Individual Feedback
         </button>
       </div>
 
       {tab === 'individual' && members?.length > 0 && (
         <div className="mb-3">
-          <label className="block text-xs font-medium text-slate-400 mb-1">Select Participant</label>
+          <label className="block text-xs font-bold text-slate-600 mb-1">Select Participant</label>
           <select value={form.participant_id} onChange={e => setForm(f => ({...f, participant_id: e.target.value}))}
-            className="w-full bg-slate-900/50 text-white border border-slate-700/50 rounded-lg px-3 py-2 text-sm focus:outline-none">
+            className="w-full bg-white text-slate-900 border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 shadow-sm">
             <option value="">-- select --</option>
             {members.map(m => <option key={m.id} value={m.id}>{m.name}</option>)}
           </select>
@@ -211,37 +211,37 @@ function DailyProgressForm({ teamId, members, onSuccess }) {
       </div>
 
       <div className="mb-3">
-        <label className="block text-xs font-medium text-slate-400 mb-1">Feedback</label>
+        <label className="block text-xs font-bold text-slate-600 mb-1">Feedback</label>
         <textarea value={form.feedback_text} onChange={e => setForm(f => ({...f, feedback_text: e.target.value}))}
-          rows={3} placeholder="Observations, progress notes..." className="w-full bg-slate-900/50 text-white border border-slate-700/50 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300 resize-none" />
+          rows={3} placeholder="Observations, progress notes..." className="w-full bg-white text-slate-900 border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 resize-none shadow-sm placeholder-slate-400" />
       </div>
 
       <div className="grid grid-cols-2 gap-3 mb-3">
         <div>
-          <label className="block text-xs font-medium text-slate-400 mb-1">Blockers</label>
+          <label className="block text-xs font-bold text-slate-600 mb-1">Blockers</label>
           <textarea value={form.blockers} onChange={e => setForm(f => ({...f, blockers: e.target.value}))}
-            rows={2} placeholder="Any blockers..." className="w-full bg-slate-900/50 text-white border border-slate-700/50 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300 resize-none" />
+            rows={2} placeholder="Any blockers..." className="w-full bg-white text-slate-900 border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 resize-none shadow-sm placeholder-slate-400" />
         </div>
         <div>
-          <label className="block text-xs font-medium text-slate-400 mb-1">Action Items (one per line)</label>
+          <label className="block text-xs font-bold text-slate-600 mb-1">Action Items (one per line)</label>
           <textarea value={form.action_items_str} onChange={e => setForm(f => ({...f, action_items_str: e.target.value}))}
-            rows={2} placeholder="Complete API integration&#10;Fix auth bug" className="w-full bg-slate-900/50 text-white border border-slate-700/50 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300 resize-none" />
+            rows={2} placeholder="Complete API integration&#10;Fix auth bug" className="w-full bg-white text-slate-900 border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 resize-none shadow-sm placeholder-slate-400" />
         </div>
       </div>
 
       <div className="flex items-center justify-between">
-        <label className="flex items-center gap-2 text-xs text-slate-300 cursor-pointer">
+        <label className="flex items-center gap-2 text-xs font-medium text-slate-600 cursor-pointer">
           <input type="checkbox" checked={form.visible_to_participant} onChange={e => setForm(f => ({...f, visible_to_participant: e.target.checked}))}
-            className="rounded border-slate-600 text-indigo-400 focus:ring-indigo-300" />
+            className="rounded border-slate-300 text-indigo-600 focus:ring-indigo-500" />
           Visible to participant
         </label>
         <button onClick={() => mutation.mutate()} disabled={mutation.isPending || !form.feedback_text}
-          className="flex items-center gap-1.5 text-sm px-4 py-2 rounded-lg bg-teal-600 text-white hover:bg-teal-700 disabled:opacity-50 transition-colors">
+          className="flex items-center gap-1.5 text-sm font-semibold px-4 py-2 rounded-lg btn-primary text-white hover:bg-indigo-700 disabled:opacity-50 shadow-sm">
           {mutation.isPending ? <Loader2 size={14} className="animate-spin" /> : <Send size={14} />} Submit
         </button>
       </div>
-      {mutation.isError && <p className="mt-2 text-xs text-red-500">{mutation.error?.message}</p>}
-      {mutation.isSuccess && <p className="mt-2 text-xs text-teal-600">Feedback submitted!</p>}
+      {mutation.isError && <p className="mt-2 text-xs font-semibold text-red-500">{mutation.error?.message}</p>}
+      {mutation.isSuccess && <p className="mt-2 text-xs font-semibold text-teal-600">Feedback submitted!</p>}
     </div>
   )
 }
@@ -251,14 +251,14 @@ function TeamCard({ team }) {
   const [expanded, setExpanded] = useState(false)
 
   return (
-    <div className="glass-card rounded-xl border border-slate-700/50 overflow-hidden">
-      <div className="flex items-center gap-3 px-4 py-3 cursor-pointer hover:bg-slate-800/40" onClick={() => setExpanded(!expanded)}>
-        <div className="w-10 h-10 rounded-lg bg-indigo-900/30 text-indigo-300 flex items-center justify-center font-semibold text-sm shrink-0">
+    <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+      <div className="flex items-center gap-3 px-4 py-3 cursor-pointer hover:bg-slate-50 transition-colors" onClick={() => setExpanded(!expanded)}>
+        <div className="w-10 h-10 rounded-lg bg-indigo-50 border border-indigo-100 text-indigo-700 flex items-center justify-center font-bold text-sm shrink-0">
           {initials(team.team_name)}
         </div>
         <div className="flex-1 min-w-0">
-          <p className="text-sm font-semibold text-white">{team.team_name}</p>
-          <p className="text-xs text-slate-500">{team.member_count} members · {team.feedback_count} feedbacks</p>
+          <p className="text-sm font-bold text-slate-900">{team.team_name}</p>
+          <p className="text-xs font-medium text-slate-500">{team.member_count} members · {team.feedback_count} feedbacks</p>
         </div>
         <div className="flex items-center gap-2 shrink-0">
           {team.latest_progress_score != null && (
@@ -272,27 +272,27 @@ function TeamCard({ team }) {
             </Badge>
           )}
         </div>
-        {expanded ? <ChevronUp size={16} className="text-slate-500" /> : <ChevronDown size={16} className="text-slate-500" />}
+        {expanded ? <ChevronUp size={16} className="text-slate-400" /> : <ChevronDown size={16} className="text-slate-400" />}
       </div>
 
       {expanded && (
-        <div className="border-t border-slate-700/30 px-4 py-4 space-y-4">
+        <div className="border-t border-slate-200 px-4 py-4 space-y-4 bg-slate-50/50">
           {/* Members */}
           <div>
-            <p className="text-xs font-medium text-slate-400 mb-2">Team Members</p>
+            <p className="text-xs font-bold text-slate-600 mb-2">Team Members</p>
             <div className="grid grid-cols-2 gap-2">
               {team.members?.map((m, i) => (
-                <div key={m.id} className="flex items-center gap-2 bg-slate-800/40 rounded-lg p-2">
-                  <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-semibold shrink-0 ${
-                    ['bg-indigo-900/40 border border-indigo-500/30 text-indigo-300', 'bg-teal-900/40 border border-teal-500/30 text-teal-300', 'bg-amber-900/40 border border-amber-500/30 text-amber-300', 'bg-rose-900/40 border border-rose-500/30 text-rose-300'][i % 4]
+                <div key={m.id} className="flex items-center gap-2 bg-white border border-slate-200 rounded-lg p-2 shadow-sm">
+                  <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold shrink-0 ${
+                    ['bg-indigo-50 border border-indigo-200 text-indigo-700', 'bg-teal-50 border border-teal-200 text-teal-700', 'bg-amber-50 border border-amber-200 text-amber-700', 'bg-rose-50 border border-rose-200 text-rose-700'][i % 4]
                   }`}>{initials(m.name)}</div>
                   <div className="min-w-0">
-                    <p className="text-xs font-medium text-slate-100 truncate">{m.name}</p>
-                    <p className="text-xs text-slate-500 truncate">{m.institution}</p>
+                    <p className="text-xs font-bold text-slate-800 truncate">{m.name}</p>
+                    <p className="text-[11px] font-medium text-slate-500 truncate">{m.institution}</p>
                     {m.skills && Object.keys(m.skills).length > 0 && (
                       <div className="flex gap-1 mt-0.5 flex-wrap">
                         {Object.entries(m.skills).slice(0, 3).map(([k, v]) => (
-                          <span key={k} className="text-xs bg-slate-700/50 text-slate-400 px-1 rounded">{k}: {Number(v).toFixed(0)}</span>
+                          <span key={k} className="text-[10px] font-bold bg-slate-100 border border-slate-200 text-slate-600 px-1.5 py-0.5 rounded">{k}: {Number(v).toFixed(0)}</span>
                         ))}
                       </div>
                     )}
@@ -304,15 +304,15 @@ function TeamCard({ team }) {
 
           {/* Next meeting info */}
           {team.next_meeting && (
-            <div className="bg-indigo-900/30 rounded-lg p-3">
-              <p className="text-xs font-medium text-indigo-300 mb-1">Next Meeting</p>
-              <p className="text-sm text-indigo-200">{team.next_meeting.title}</p>
-              <p className="text-xs text-indigo-400 mt-0.5">
+            <div className="bg-indigo-50 border border-indigo-100 rounded-lg p-3 shadow-sm">
+              <p className="text-xs font-bold text-indigo-700 mb-1">Next Meeting</p>
+              <p className="text-sm font-bold text-indigo-900">{team.next_meeting.title}</p>
+              <p className="text-xs font-medium text-indigo-700 mt-0.5">
                 {new Date(team.next_meeting.scheduled_at).toLocaleString()} · {team.next_meeting.duration_minutes}min
               </p>
               {team.next_meeting.meeting_url && (
                 <a href={team.next_meeting.meeting_url} target="_blank" rel="noreferrer"
-                  className="inline-block mt-1 text-xs text-indigo-400 underline">Join meeting</a>
+                  className="inline-block mt-2 font-bold text-xs text-white bg-indigo-600 px-3 py-1.5 rounded hover:bg-indigo-700 transition-colors shadow-sm">Join meeting</a>
               )}
             </div>
           )}
@@ -361,13 +361,13 @@ export default function MentorPortal() {
   // ── Guards ─────────────────────────────────────────────────────────────
   if (!urlToken) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-slate-800/40 px-4">
+      <div className="min-h-screen flex items-center justify-center bg-slate-50 px-4">
         <div className="text-center max-w-sm">
-          <AlertTriangle size={40} className="text-amber-400 mx-auto mb-4" />
-          <h2 className="text-lg font-bold text-slate-200 mb-1">No access token</h2>
-          <p className="text-sm text-slate-500">
+          <AlertTriangle size={40} className="text-amber-500 mx-auto mb-4" />
+          <h2 className="text-lg font-bold text-slate-800 mb-1">No access token</h2>
+          <p className="text-sm font-medium text-slate-600">
             Please use the secure mentor link sent to your email.
-            It looks like <code className="text-xs bg-slate-700/50 px-1 py-0.5 rounded">/mentor?token=…</code>
+            It looks like <code className="text-xs bg-slate-200 text-slate-700 px-1 py-0.5 rounded border border-slate-300">/mentor?token=…</code>
           </p>
         </div>
       </div>
@@ -378,13 +378,13 @@ export default function MentorPortal() {
 
   if (profileError) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-slate-800/40 px-4">
+      <div className="min-h-screen flex items-center justify-center bg-slate-50 px-4">
         <div className="text-center max-w-sm">
-          <AlertTriangle size={40} className="text-red-400 mx-auto mb-4" />
-          <h2 className="text-lg font-bold text-slate-200 mb-2">
+          <AlertTriangle size={40} className="text-red-500 mx-auto mb-4" />
+          <h2 className="text-lg font-bold text-slate-800 mb-2">
             {profileError.message?.includes('expired') ? 'Link expired' : 'Access denied'}
           </h2>
-          <p className="text-sm text-slate-500 leading-relaxed">
+          <p className="text-sm font-medium text-slate-600 leading-relaxed">
             {profileError.message?.includes('expired')
               ? 'Your access link has expired. Contact the committee for a fresh link.'
               : `Could not verify your access. (${profileError.message})`
@@ -398,12 +398,12 @@ export default function MentorPortal() {
   // Wrong role guard
   if (profileData && profileData.role !== 'mentor') {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-slate-800/40 px-4">
+      <div className="min-h-screen flex items-center justify-center bg-slate-50 px-4">
         <div className="text-center max-w-sm">
-          <AlertTriangle size={40} className="text-amber-400 mx-auto mb-4" />
-          <h2 className="text-lg font-bold text-slate-200 mb-1">Wrong portal</h2>
-          <p className="text-sm text-slate-500">
-            This link is for mentors. Your token has role <code className="bg-slate-700/50 px-1 rounded text-xs">{profileData.role}</code>.
+          <AlertTriangle size={40} className="text-amber-500 mx-auto mb-4" />
+          <h2 className="text-lg font-bold text-slate-800 mb-1">Wrong portal</h2>
+          <p className="text-sm font-medium text-slate-600">
+            This link is for mentors. Your token has role <code className="bg-slate-200 border border-slate-300 px-1 rounded text-xs">{profileData.role}</code>.
           </p>
         </div>
       </div>
@@ -414,20 +414,20 @@ export default function MentorPortal() {
   const teams = teamsData?.teams ?? []
 
   return (
-    <div className="min-h-screen bg-slate-800/40">
+    <div className="min-h-screen bg-slate-50">
       {/* Top accent bar */}
       <div className="h-1 bg-gradient-to-r from-teal-500 via-indigo-500 to-violet-500" />
 
       <div className="max-w-4xl mx-auto px-4 py-8">
         {/* Header */}
         <div className="mb-8">
-          <p className="text-xs font-semibold text-teal-600 uppercase tracking-widest mb-1">Mentor Portal</p>
-          <h1 className="text-2xl font-black text-white mb-1">
+          <p className="text-xs font-bold text-indigo-600 uppercase tracking-widest mb-1">Mentor Portal</p>
+          <h1 className="text-2xl font-black text-slate-900 mb-1">
             Welcome, {profile.name?.split(' ')[0] ?? 'Mentor'} 👋
           </h1>
-          <p className="text-sm text-slate-500">{profile.email}</p>
+          <p className="text-sm font-medium text-slate-500">{profile.email}</p>
           {profile.organization && (
-            <p className="text-xs text-slate-500 mt-0.5">{profile.organization}</p>
+            <p className="text-xs font-medium text-slate-500 mt-0.5">{profile.organization}</p>
           )}
           {profile.expertise_areas?.length > 0 && (
             <div className="flex gap-1 mt-2 flex-wrap">
@@ -446,19 +446,19 @@ export default function MentorPortal() {
 
         {/* Teams */}
         <div className="mb-4">
-          <h2 className="text-base font-semibold text-white mb-4 flex items-center gap-2">
-            <Users size={16} className="text-indigo-500" /> Your Teams
+          <h2 className="text-base font-bold text-slate-900 mb-4 flex items-center gap-2">
+            <Users size={16} className="text-indigo-600" /> Your Teams
           </h2>
 
           {teamsLoading ? (
             <div className="space-y-3">
-              {[1,2].map(i => <div key={i} className="h-16 bg-slate-700/50 rounded-xl animate-pulse" />)}
+              {[1,2].map(i => <div key={i} className="h-16 bg-slate-200 rounded-xl animate-pulse" />)}
             </div>
           ) : teams.length === 0 ? (
-            <div className="text-center py-16 glass-card rounded-xl border border-slate-700/50">
-              <Users size={36} className="mx-auto mb-3 text-slate-600" />
-              <p className="text-sm text-slate-400 font-medium">No teams assigned yet</p>
-              <p className="text-xs text-slate-500 mt-1">The committee will assign you to teams soon.</p>
+            <div className="text-center py-16 bg-white rounded-xl border border-slate-200 shadow-sm">
+              <Users size={36} className="mx-auto mb-3 text-slate-300" />
+              <p className="text-sm text-slate-500 font-bold">No teams assigned yet</p>
+              <p className="text-xs text-slate-400 mt-1 font-medium">The committee will assign you to teams soon.</p>
             </div>
           ) : (
             <div className="space-y-3">
@@ -469,7 +469,7 @@ export default function MentorPortal() {
 
         {/* Footer */}
         <div className="text-center pt-6 pb-10">
-          <p className="text-xs text-slate-500">EventOS · WiSE@TI Hackathon · Mentor Portal</p>
+          <p className="text-xs font-medium text-slate-500">EventOS · WiSE@TI Hackathon · Mentor Portal</p>
         </div>
       </div>
     </div>
