@@ -164,6 +164,10 @@ def get_evaluator_assignments(evaluator_id: uuid.UUID, db: Session = Depends(get
         ]
     }
 
+def _normalize_institution(value):
+    """Trim, lowercase, collapse whitespace for institution comparison."""
+    return " ".join((value or "").strip().lower().split())
+
 @router.post("/assign", summary="Assign an evaluator to specific teams")
 def assign_evaluator(
     payload: EvaluatorAssignmentRequest,
@@ -177,15 +181,17 @@ def assign_evaluator(
         
     db.query(EvaluatorTeamAssignment).filter_by(evaluator_id=payload.evaluator_id).delete()
     
+    eval_inst = _normalize_institution(evaluator.passed_out_institution)
+    
     for t_id in payload.team_ids:
         # Check conflict of interest
         team = db.query(Team).filter(Team.id == t_id).first()
-        if team and evaluator.passed_out_institution:
-            member_institutions = {m.institution for m in team.members}
-            if evaluator.passed_out_institution in member_institutions:
+        if team and eval_inst:
+            member_institutions = {_normalize_institution(m.institution) for m in team.members}
+            if eval_inst in member_institutions:
                 raise HTTPException(
                     status_code=422,
-                    detail=f"Conflict of interest: Evaluator is from {evaluator.passed_out_institution}, which matches team '{team.team_name}'."
+                    detail=f"Conflict of interest: Evaluator is from '{evaluator.passed_out_institution}', which matches team '{team.team_name}'."
                 )
                 
         new_assignment = EvaluatorTeamAssignment(

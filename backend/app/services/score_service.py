@@ -115,13 +115,16 @@ class ScoreService:
                 if team and team.members else []
             )
 
-            # Evaluator institution: not currently tracked in the Evaluator
-            # model. Using getattr so this code keeps working unchanged the
-            # moment that field is added — COI detection will then start
-            # firing automatically with no further code changes here.
+            # Evaluator institution: uses passed_out_institution (added in
+            # the portal-workflow-polish branch). Falls back to legacy
+            # "institution" field if it somehow exists, then empty string.
             evaluator_institution = (
-                getattr(evaluator, "institution", "") if evaluator else ""
+                getattr(evaluator, "passed_out_institution", None)
+                or getattr(evaluator, "institution", None)
+                or ""
             )
+            # Normalize for consistent COI matching
+            evaluator_institution = " ".join(evaluator_institution.strip().lower().split())
 
             evaluator_name = (
                 f"{evaluator.first_name} {evaluator.last_name}"

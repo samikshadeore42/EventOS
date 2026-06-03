@@ -1,7 +1,8 @@
 # File: backend/tests/test_portal_workflow.py
 # Regression tests for portal evaluation workflow fixes.
-# Tests evaluator creation, assignment, conflict enforcement,
-# judge portal restrictions, submission upload/download auth.
+# Tests evaluator creation, assignment, conflict enforcement (with normalization),
+# judge portal restrictions, submission upload/download auth,
+# demo reset FK ordering, and score_service institution field.
 
 import io
 import uuid
@@ -135,6 +136,48 @@ class TestEvaluatorAssignment:
         assert resp.status_code == 422
         assert "Conflict of interest" in resp.json()["detail"]
 
+    def test_assign_evaluator_conflict_normalized(self, client, db_session):
+        """Conflict check must be case-insensitive. 'iitl' == 'IITL'."""
+        evaluator = make_evaluator(
+            db_session,
+            email=f"normconflict_{uuid.uuid4().hex[:8]}@test.com",
+            institution="iitl",
+        )
+        team = make_approved_team(db_session, name="Team NormConflict")
+        make_participant_in_team(
+            db_session, team,
+            email=f"student_{uuid.uuid4().hex[:8]}@iitl.ac.in",
+            institution="IITL",
+        )
+
+        resp = client.post("/evaluators/assign", json={
+            "evaluator_id": str(evaluator.id),
+            "team_ids": [str(team.id)],
+        })
+        assert resp.status_code == 422
+        assert "Conflict of interest" in resp.json()["detail"]
+
+    def test_assign_evaluator_empty_institution_no_block(self, client, db_session):
+        """Evaluator with no institution should not be blocked."""
+        evaluator = make_evaluator(
+            db_session,
+            email=f"noinst_assign_{uuid.uuid4().hex[:8]}@test.com",
+            institution=None,
+        )
+        team = make_approved_team(db_session, name="Team EmptyInst")
+        make_participant_in_team(
+            db_session, team,
+            email=f"student_{uuid.uuid4().hex[:8]}@test.com",
+            institution="IITL",
+        )
+
+        resp = client.post("/evaluators/assign", json={
+            "evaluator_id": str(evaluator.id),
+            "team_ids": [str(team.id)],
+        })
+        assert resp.status_code == 200
+        assert resp.json()["status"] == "success"
+
     def test_get_evaluator_assignments(self, client, db_session):
         """GET /evaluators/{id}/assignments should return assigned teams."""
         evaluator = make_evaluator(db_session, email=f"getassign_{uuid.uuid4().hex[:8]}@test.com")
@@ -259,3 +302,73 @@ class TestDownloadAuthorization:
             ProjectSubmissionService.get_download_file_for_evaluator(db_session, evaluator, str(team.id))
         assert exc_info.value.status_code == 404
         assert "no project submission" in exc_info.value.detail.lower()
+
+
+# ── Test: Demo Reset FK Order ────────────────────────────────────────────────
+
+class TestDemoResetOrder:
+    def test_reset_after_submission_no_fk_error(self, db_session):
+        """Demo reset should not fail with FK error when submissions exist."""
+        from app.services.demo_admin_service import reset_demo_data
+        from app.models.project_submission import ProjectSubmission
+
+        team = make_approved_team(db_session, name="Team ResetTest")
+        participant = make_participant_in_team(
+            db_session, team,
+            email=f"resetp_{uuid.uuid4().hex[:8]}@test.com",
+        )
+
+        # Create a project submission record (no actual file needed for FK test)
+        ps = ProjectSubmission(
+            team_id=team.id,
+            uploaded_by_participant_id=participant.id,
+            original_filename="test.zip",
+            stored_filename="test_uuid.zip",
+            file_path="/tmp/test_uuid.zip",
+            file_size_bytes=1024,
+        )
+        db_session.add(ps)
+        db_session.commit()
+
+        # This should NOT raise IntegrityError
+        result = reset_demo_data(db_session)
+        assert result["project_submissions"] >= 1
+        assert result["participants"] >= 1
+        assert result["teams"] >= 1
+
+
+# ── Test: Score Service Institution Field ────────────────────────────────────
+
+class TestScoreServiceInstitution:
+    def test_build_panel_uses_passed_out_institution(self, db_session):
+        """_build_panel_entries should read passed_out_institution, not institution."""
+        from app.services.score_service import ScoreService
+        from app.models.evaluation import Evaluation
+
+        evaluator = make_evaluator(
+            db_session,
+            email=f"scoreservice_{uuid.uuid4().hex[:8]}@test.com",
+            institution="IIT Delhi",
+        )
+        team = make_approved_team(db_session, name="Team ScoreService")
+        make_participant_in_team(
+            db_session, team,
+            email=f"member_{uuid.uuid4().hex[:8]}@test.com",
+        )
+
+        from app.core.security import generate_score_hash
+        scores = {"technical_depth": 8.0, "innovation": 7.0, "presentation": 6.0, "feasibility": 7.5}
+        ev = Evaluation(
+            team_id=team.id,
+            evaluator_id=evaluator.id,
+            scores=scores,
+            score_hash=generate_score_hash(str(evaluator.id), team.id, scores),
+        )
+        db_session.add(ev)
+        db_session.commit()
+        db_session.refresh(ev)
+
+        entries = ScoreService._build_panel_entries([ev], db_session)
+        assert len(entries) == 1
+        # Should contain the normalized institution, not empty string
+        assert entries[0]["judge_institution"] == "iit delhi"
