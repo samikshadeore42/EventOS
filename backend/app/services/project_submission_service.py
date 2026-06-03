@@ -92,17 +92,20 @@ class ProjectSubmissionService:
             raise HTTPException(status_code=403, detail="Evaluator not active.")
             
         from app.models.participant import Team
+        from app.models.assignment import EvaluatorTeamAssignment
+        
         team = db.query(Team).filter(Team.id == team_id).first()
         if not team:
             raise HTTPException(status_code=404, detail="Team not found.")
-            
-        approved_teams = db.query(Team).filter(Team.is_approved == True).all()
-        if not approved_teams:
-            approved_teams = db.query(Team).all()
-            
-        team_ids_visible = {str(t.id) for t in approved_teams}
-        if str(team_id) not in team_ids_visible:
-            raise HTTPException(status_code=403, detail="Not authorized to access this team's submission.")
+        
+        # Only allow download if this evaluator is assigned to this team
+        assignment = db.query(EvaluatorTeamAssignment).filter_by(
+            evaluator_id=evaluator.id,
+            team_id=team_id
+        ).first()
+        
+        if not assignment:
+            raise HTTPException(status_code=403, detail="Not authorized to access this team's submission. You are not assigned to this team.")
             
         submission = db.query(ProjectSubmission).filter(ProjectSubmission.team_id == team_id).first()
         if not submission:
