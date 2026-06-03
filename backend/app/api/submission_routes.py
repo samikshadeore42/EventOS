@@ -1,3 +1,4 @@
+from uuid import UUID
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, File
 from fastapi.responses import FileResponse
 from sqlalchemy.orm import Session
@@ -72,7 +73,7 @@ def get_participant_project(token: str, db: Session = Depends(get_db)):
     }
 
 @router.get("/team/{team_id}")
-def get_team_submission_judge(team_id: str, token: str, db: Session = Depends(get_db)):
+def get_team_submission_judge(team_id: UUID, token: str, db: Session = Depends(get_db)):
     payload = decode_access_token(token)
     role = payload.get("role")
     if role != "evaluator":
@@ -99,7 +100,7 @@ def get_team_submission_judge(team_id: str, token: str, db: Session = Depends(ge
     }
 
 @router.get("/team/{team_id}/download")
-def download_team_submission(team_id: str, token: str, db: Session = Depends(get_db)):
+def download_team_submission(team_id: UUID, token: str, db: Session = Depends(get_db)):
     payload = decode_access_token(token)
     role = payload.get("role")
     if role != "evaluator":

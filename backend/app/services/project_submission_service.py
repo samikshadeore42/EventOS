@@ -1,6 +1,8 @@
 import os
 import shutil
 import uuid
+import zipfile
+import io
 from fastapi import UploadFile, HTTPException
 from sqlalchemy.orm import Session
 
@@ -14,7 +16,8 @@ MAX_FILE_SIZE = 50 * 1024 * 1024  # 50MB
 class ProjectSubmissionService:
     @staticmethod
     def validate_zip_upload(file: UploadFile):
-        if not file.filename.endswith(".zip"):
+        # Case-insensitive extension check
+        if not (file.filename or "").lower().endswith(".zip"):
             raise HTTPException(status_code=400, detail="Only .zip project files are allowed.")
         
         file.file.seek(0, 2)
@@ -22,10 +25,16 @@ class ProjectSubmissionService:
         file.file.seek(0)
         
         if size == 0:
-            raise HTTPException(status_code=400, detail="Only .zip project files are allowed.")
+            raise HTTPException(status_code=400, detail="Uploaded file is empty.")
         
         if size > MAX_FILE_SIZE:
             raise HTTPException(status_code=400, detail="Project ZIP must be under 50MB.")
+
+        # Verify the file is a genuine ZIP archive
+        if not zipfile.is_zipfile(file.file):
+            file.file.seek(0)
+            raise HTTPException(status_code=400, detail="Uploaded file is not a valid ZIP archive.")
+        file.file.seek(0)
             
         return size
 
