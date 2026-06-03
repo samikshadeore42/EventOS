@@ -203,7 +203,7 @@ function ScoringForm({ team, onSubmitted, alreadySubmitted }) {
             </div>
           </div>
           <p className="text-xs font-medium text-indigo-700 mb-3">
-            You can still edit your scores after submission until the final evaluation deadline closes.
+            Please review carefully. After submission, this scorecard cannot be edited from the portal.
           </p>
           <div className="flex gap-2">
             <button
