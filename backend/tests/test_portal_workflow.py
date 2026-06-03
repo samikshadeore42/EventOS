@@ -2,10 +2,12 @@
 # Regression tests for portal evaluation workflow fixes.
 # Tests evaluator creation, assignment, conflict enforcement (with normalization),
 # judge portal restrictions, submission upload/download auth,
-# demo reset FK ordering, and score_service institution field.
+# demo reset FK ordering, score_service institution field,
+# exact score criteria validation, and ZIP archive validation.
 
 import io
 import uuid
+import zipfile
 import pytest
 from unittest.mock import patch, MagicMock
 from fastapi.testclient import TestClient
@@ -69,6 +71,15 @@ def make_evaluator_token(evaluator_id):
 def make_participant_token(participant_id):
     """Create a mock JWT payload for a participant."""
     return {"sub": str(participant_id), "role": "participant"}
+
+
+def make_valid_zip_bytes():
+    """Create a genuine valid ZIP file in memory."""
+    buf = io.BytesIO()
+    with zipfile.ZipFile(buf, 'w', zipfile.ZIP_DEFLATED) as zf:
+        zf.writestr("README.md", "# Test Project\nThis is a test.")
+    buf.seek(0)
+    return buf.read()
 
 
 # ── Test: Evaluator Creation with passed_out_institution ─────────────────────
@@ -244,13 +255,97 @@ class TestScoreSubmissionAuth:
         assert "not assigned" in resp.json()["detail"].lower()
 
 
+# ── Test: Score Criteria Validation ──────────────────────────────────────────
+
+class TestScoreCriteriaValidation:
+    @patch("app.api.evaluation_routes.decode_access_token")
+    def test_missing_criterion_rejected(self, mock_decode, client, db_session):
+        """Score submission with missing criterion should return 422."""
+        evaluator = make_evaluator(db_session, email=f"miss_{uuid.uuid4().hex[:8]}@test.com")
+        team = make_approved_team(db_session, name="Team MissCrit")
+        assign_evaluator_to_team(db_session, evaluator, team)
+
+        mock_decode.return_value = {"sub": str(evaluator.id), "role": "evaluator"}
+
+        resp = client.post("/evaluations", params={"token": "mock-token"}, json={
+            "team_id": str(team.id),
+            "scores": {
+                "technical_depth": 8.0,
+                # missing innovation, presentation, feasibility
+            },
+        })
+        assert resp.status_code == 422
+
+    @patch("app.api.evaluation_routes.decode_access_token")
+    def test_extra_criterion_rejected(self, mock_decode, client, db_session):
+        """Score submission with extra unknown criterion should return 422."""
+        evaluator = make_evaluator(db_session, email=f"extra_{uuid.uuid4().hex[:8]}@test.com")
+        team = make_approved_team(db_session, name="Team ExtraCrit")
+        assign_evaluator_to_team(db_session, evaluator, team)
+
+        mock_decode.return_value = {"sub": str(evaluator.id), "role": "evaluator"}
+
+        resp = client.post("/evaluations", params={"token": "mock-token"}, json={
+            "team_id": str(team.id),
+            "scores": {
+                "technical_depth": 8.0,
+                "innovation": 7.0,
+                "presentation": 6.0,
+                "feasibility": 7.5,
+                "random_extra": 10.0,
+            },
+        })
+        assert resp.status_code == 422
+
+    @patch("app.api.evaluation_routes.decode_access_token")
+    def test_out_of_range_score_rejected(self, mock_decode, client, db_session):
+        """Score > 10 should be rejected with 422."""
+        evaluator = make_evaluator(db_session, email=f"range_{uuid.uuid4().hex[:8]}@test.com")
+        team = make_approved_team(db_session, name="Team OutRange")
+        assign_evaluator_to_team(db_session, evaluator, team)
+
+        mock_decode.return_value = {"sub": str(evaluator.id), "role": "evaluator"}
+
+        resp = client.post("/evaluations", params={"token": "mock-token"}, json={
+            "team_id": str(team.id),
+            "scores": {
+                "technical_depth": 11.0,
+                "innovation": 7.0,
+                "presentation": 6.0,
+                "feasibility": 7.5,
+            },
+        })
+        assert resp.status_code == 422
+
+    @patch("app.api.evaluation_routes.decode_access_token")
+    def test_valid_full_scores_accepted(self, mock_decode, client, db_session):
+        """All 4 valid criteria with valid range should be accepted."""
+        evaluator = make_evaluator(db_session, email=f"valid_{uuid.uuid4().hex[:8]}@test.com")
+        team = make_approved_team(db_session, name="Team ValidCrit")
+        assign_evaluator_to_team(db_session, evaluator, team)
+
+        mock_decode.return_value = {"sub": str(evaluator.id), "role": "evaluator"}
+
+        resp = client.post("/evaluations", params={"token": "mock-token"}, json={
+            "team_id": str(team.id),
+            "scores": {
+                "technical_depth": 8.0,
+                "innovation": 7.0,
+                "presentation": 6.0,
+                "feasibility": 7.5,
+            },
+        })
+        # Should be 200 (accepted) — not 422
+        assert resp.status_code in (200, 201)
+
+
 # ── Test: Project ZIP Upload ─────────────────────────────────────────────────
 
 class TestProjectSubmission:
     @patch("app.api.submission_routes.decode_access_token")
     @patch("app.api.submission_routes.get_token_subject")
-    def test_participant_upload_zip(self, mock_subject, mock_decode, client, db_session):
-        """Participant with a team should be able to upload a .zip file."""
+    def test_participant_upload_valid_zip(self, mock_subject, mock_decode, client, db_session):
+        """Participant with a team should be able to upload a valid .zip file."""
         team = make_approved_team(db_session, name="Team Upload")
         participant = make_participant_in_team(
             db_session, team,
@@ -260,15 +355,68 @@ class TestProjectSubmission:
         mock_decode.return_value = {"sub": str(participant.id), "role": "participant"}
         mock_subject.return_value = str(participant.id)
 
-        # Create a minimal zip file in memory
-        zip_content = b"PK\x05\x06" + b"\x00" * 18  # empty zip
+        zip_bytes = make_valid_zip_bytes()
         resp = client.post(
             "/submissions/participant/project",
             params={"token": "mock-token"},
-            files={"file": ("project.zip", io.BytesIO(zip_content), "application/zip")},
+            files={"file": ("project.zip", io.BytesIO(zip_bytes), "application/zip")},
         )
-        # May fail because of zip validation — check it's at least the right route
-        assert resp.status_code in (200, 400)  # 400 if zip is too small/invalid
+        assert resp.status_code == 200
+        assert resp.json()["success"] is True
+
+    @patch("app.api.submission_routes.decode_access_token")
+    @patch("app.api.submission_routes.get_token_subject")
+    def test_fake_zip_rejected(self, mock_subject, mock_decode, client, db_session):
+        """A text file renamed to .zip should be rejected as not a valid ZIP archive."""
+        team = make_approved_team(db_session, name="Team FakeZip")
+        participant = make_participant_in_team(
+            db_session, team,
+            email=f"fake_{uuid.uuid4().hex[:8]}@test.com",
+        )
+
+        mock_decode.return_value = {"sub": str(participant.id), "role": "participant"}
+        mock_subject.return_value = str(participant.id)
+
+        fake_content = b"This is not a zip file at all, just plain text."
+        resp = client.post(
+            "/submissions/participant/project",
+            params={"token": "mock-token"},
+            files={"file": ("project.zip", io.BytesIO(fake_content), "application/zip")},
+        )
+        assert resp.status_code == 400
+        assert "not a valid ZIP archive" in resp.json()["detail"]
+
+    @patch("app.api.submission_routes.decode_access_token")
+    @patch("app.api.submission_routes.get_token_subject")
+    def test_uppercase_zip_extension_accepted(self, mock_subject, mock_decode, client, db_session):
+        """Project.ZIP (uppercase) should be accepted."""
+        team = make_approved_team(db_session, name="Team UpperZip")
+        participant = make_participant_in_team(
+            db_session, team,
+            email=f"upper_{uuid.uuid4().hex[:8]}@test.com",
+        )
+
+        mock_decode.return_value = {"sub": str(participant.id), "role": "participant"}
+        mock_subject.return_value = str(participant.id)
+
+        zip_bytes = make_valid_zip_bytes()
+        resp = client.post(
+            "/submissions/participant/project",
+            params={"token": "mock-token"},
+            files={"file": ("Project.ZIP", io.BytesIO(zip_bytes), "application/zip")},
+        )
+        assert resp.status_code == 200
+
+
+# ── Test: Submission Route UUID Validation ───────────────────────────────────
+
+class TestSubmissionRouteUUID:
+    @patch("app.api.submission_routes.decode_access_token")
+    def test_invalid_uuid_returns_422(self, mock_decode, client, db_session):
+        """GET /submissions/team/not-a-uuid should return 422."""
+        mock_decode.return_value = {"sub": str(uuid.uuid4()), "role": "evaluator"}
+        resp = client.get("/submissions/team/not-a-uuid", params={"token": "mock-token"})
+        assert resp.status_code == 422
 
 
 # ── Test: Download Authorization ──────────────────────────────────────────────
@@ -335,6 +483,33 @@ class TestDemoResetOrder:
         assert result["project_submissions"] >= 1
         assert result["participants"] >= 1
         assert result["teams"] >= 1
+
+    def test_reset_clears_all_counts(self, db_session):
+        """After reset, all entity counts should be zero."""
+        from app.services.demo_admin_service import reset_demo_data, get_demo_status
+        from app.models.project_submission import ProjectSubmission
+
+        team = make_approved_team(db_session, name="Team ResetClear")
+        participant = make_participant_in_team(
+            db_session, team,
+            email=f"clearp_{uuid.uuid4().hex[:8]}@test.com",
+        )
+
+        ps = ProjectSubmission(
+            team_id=team.id,
+            uploaded_by_participant_id=participant.id,
+            original_filename="test.zip",
+            stored_filename="test_uuid.zip",
+            file_path="/tmp/test_uuid.zip",
+            file_size_bytes=1024,
+        )
+        db_session.add(ps)
+        db_session.commit()
+
+        reset_demo_data(db_session)
+        status = get_demo_status(db_session)
+        assert status["participants"] == 0
+        assert status["teams"] == 0
 
 
 # ── Test: Score Service Institution Field ────────────────────────────────────
