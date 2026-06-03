@@ -1,5 +1,5 @@
 // src/context/AuthContext.jsx
-import React, {
+import {
   createContext,
   useContext,
   useEffect,
