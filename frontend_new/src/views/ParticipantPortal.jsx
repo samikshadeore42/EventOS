@@ -486,6 +486,9 @@ function ProjectSubmissionSection() {
 // ── Results section ────────────────────────────────────────────────────────
 
 function ResultsSection({ data }) {
+  const hasScore = typeof data?.total_score === 'number'
+  const hasRank = typeof data?.rank === 'number'
+
   return (
     <div className="bg-indigo-50 rounded-2xl border border-indigo-200 p-6 mb-6 text-center shadow-sm">
       <div className="flex items-center justify-center gap-2 mb-4">
@@ -495,11 +498,15 @@ function ResultsSection({ data }) {
       <div className="flex justify-center gap-12 mt-2">
         <div>
           <p className="text-xs font-bold text-slate-500 uppercase tracking-widest mb-1">Your Score</p>
-          <p className="text-4xl font-black text-indigo-600">{data.total_score || '8.4'}</p>
+          <p className="text-4xl font-black text-indigo-600">
+            {hasScore ? data.total_score.toFixed(2) : 'Pending'}
+          </p>
         </div>
         <div>
            <p className="text-xs font-bold text-slate-500 uppercase tracking-widest mb-1">Global Rank</p>
-           <p className="text-4xl font-black text-teal-600">{data.rank ? `#${data.rank}` : '#12'}</p>
+           <p className="text-4xl font-black text-teal-600">
+             {hasRank ? `#${data.rank}` : '—'}
+           </p>
         </div>
       </div>
       <p className="text-xs font-medium text-slate-600 mt-4">Results are final. Congratulations on completing the WiSE@TI Hackathon!</p>
