@@ -4,9 +4,9 @@ import { useState, useEffect, useMemo } from 'react'
 import { useQuery, useMutation } from '@tanstack/react-query'
 import {
   ClipboardList, CheckCircle, Loader2, AlertTriangle,
-  ChevronRight, Send, RotateCcw, LogOut, Star, Wand2,
+  ChevronRight, Send, RotateCcw, LogOut, Star, Wand2, Download,
 } from 'lucide-react'
-import { portalApi, evaluationsApi, aiApi, solverApi } from '../services/api'
+import { portalApi, evaluationsApi, aiApi, solverApi, submissionsApi } from '../services/api'
 import { useAuth } from '../context/AuthContext'
 import { tokenStorage } from '../services/api'
 
@@ -232,6 +232,74 @@ function ScoringForm({ team, token, onSubmitted, alreadySubmitted }) {
           {submitMutation.isError && (
             <p className="mt-2 text-xs font-semibold text-red-500">{submitMutation.error?.message}</p>
           )}
+        </div>
+      )}
+    </div>
+  )
+}
+
+// ── Team submission download section ───────────────────────────────────────
+
+function TeamSubmissionSection({ teamId }) {
+  const [downloading, setDownloading] = useState(false)
+
+  const { data, isLoading, error } = useQuery({
+    queryKey: ['team-submission', teamId],
+    queryFn: () => submissionsApi.getTeamSubmission(teamId),
+    enabled: !!teamId,
+    retry: false,
+  })
+
+  async function handleDownload() {
+    setDownloading(true)
+    try {
+      const response = await submissionsApi.downloadTeamZip(teamId)
+      const blob = new Blob([response.data], { type: 'application/zip' })
+      const url = window.URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = data?.submission?.original_filename || `team_${teamId}.zip`
+      document.body.appendChild(a)
+      a.click()
+      a.remove()
+      window.URL.revokeObjectURL(url)
+    } catch (err) {
+      alert('Download failed: ' + (err.response?.data?.detail || err.message))
+    } finally {
+      setDownloading(false)
+    }
+  }
+
+  const sub = data?.submission
+
+  return (
+    <div className="mb-4 bg-white rounded-xl border border-slate-200 p-5 shadow-sm">
+      <p className="text-xs font-bold text-slate-500 uppercase tracking-wide mb-3 flex items-center gap-1.5">
+        <ClipboardList size={12} /> Submissions
+      </p>
+      {isLoading ? (
+        <div className="flex items-center gap-2 text-xs font-medium text-slate-500">
+          <Loader2 size={11} className="animate-spin text-indigo-500" /> Loading submission info…
+        </div>
+      ) : error || !sub ? (
+        <p className="text-sm font-medium text-slate-500">No project ZIP submitted yet.</p>
+      ) : (
+        <div className="flex items-center justify-between gap-3">
+          <div className="min-w-0">
+            <p className="text-sm font-bold text-slate-800 truncate">{sub.original_filename}</p>
+            <p className="text-xs text-slate-500 mt-0.5">
+              Uploaded by {sub.uploaded_by} · {sub.file_size_bytes ? `${(sub.file_size_bytes / 1024 / 1024).toFixed(1)} MB` : ''}
+              {sub.created_at && ` · ${new Date(sub.created_at).toLocaleString()}`}
+            </p>
+          </div>
+          <button
+            onClick={handleDownload}
+            disabled={downloading}
+            className="flex items-center gap-1.5 text-sm font-semibold px-4 py-2 rounded-lg btn-primary text-white hover:bg-indigo-700 disabled:opacity-50 shadow-sm shrink-0"
+          >
+            {downloading ? <Loader2 size={14} className="animate-spin" /> : <Download size={14} />}
+            Download ZIP
+          </button>
         </div>
       )}
     </div>
@@ -540,6 +608,11 @@ export default function JudgePortal() {
                   </div>
                 ) : null}
               </div>
+            )}
+
+          {/* Project Submission — download section */}
+            {selectedTeam && (
+              <TeamSubmissionSection teamId={selectedTeam.team_id} />
             )}
 
             {/* Scoring form */}
