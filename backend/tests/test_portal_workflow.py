@@ -572,6 +572,7 @@ class TestScoreServiceInstitution:
         make_participant_in_team(
             db_session, team,
             email=f"member_{uuid.uuid4().hex[:8]}@test.com",
+            institution="IIT Delhi",
         )
 
         from app.core.security import generate_score_hash
@@ -610,22 +611,35 @@ class TestScoreServiceInstitution:
             institution="IITL ",
         )
 
+        evaluator2 = make_evaluator(
+            db_session,
+            email=f"eval2_{uuid.uuid4().hex[:8]}@test.com",
+            institution="NIT Trichy",
+        )
+
         from app.core.security import generate_score_hash
         scores = {"technical_depth": 8.0, "innovation": 7.0, "presentation": 6.0, "feasibility": 7.5}
-        ev = Evaluation(
+        ev1 = Evaluation(
             team_id=team.id,
             evaluator_id=evaluator.id,
             scores=scores,
             score_hash=generate_score_hash(str(evaluator.id), team.id, scores),
         )
-        db_session.add(ev)
+        ev2 = Evaluation(
+            team_id=team.id,
+            evaluator_id=evaluator2.id,
+            scores={"technical_depth": 9.0, "innovation": 8.0, "presentation": 7.0, "feasibility": 8.5},
+            score_hash=generate_score_hash(str(evaluator2.id), team.id, {"technical_depth": 9.0, "innovation": 8.0, "presentation": 7.0, "feasibility": 8.5}),
+        )
+        db_session.add_all([ev1, ev2])
         db_session.commit()
-        db_session.refresh(ev)
+        db_session.refresh(ev1)
+        db_session.refresh(ev2)
 
-        entries = ScoreService._build_panel_entries([ev], db_session)
+        entries = ScoreService._build_panel_entries([ev1, ev2], db_session)
         panel = build_panel_from_dicts(entries)
         detector = AnomalyDetector(panel)
         report = detector.run_all_diagnostics()
 
         anomalies = report.anomalies
-        assert any(a.anomaly_type == "Conflict of Interest" for a in anomalies)
+        assert any(a.kind == "conflict_of_interest" for a in anomalies)
