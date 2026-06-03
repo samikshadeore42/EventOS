@@ -4,11 +4,10 @@ import { useState, useEffect, useMemo } from 'react'
 import { useQuery, useMutation } from '@tanstack/react-query'
 import {
   ClipboardList, CheckCircle, Loader2, AlertTriangle,
-  ChevronRight, Send, RotateCcw, LogOut, Star, Wand2, Download,
+  ChevronRight, Send, RotateCcw, Wand2, Download,
 } from 'lucide-react'
 import { portalApi, evaluationsApi, aiApi, solverApi, submissionsApi } from '../services/api'
 import { useAuth } from '../context/AuthContext'
-import { tokenStorage } from '../services/api'
 
 // ── Grading criteria — mirrors backend GRADING_CRITERIA constant ───────────
 const CRITERIA = [
@@ -107,10 +106,9 @@ function CriterionSlider({ criterion, value, onChange }) {
 
 // ── Scoring form ──────────────────────────────────────────────────────────
 
-function ScoringForm({ team, token, onSubmitted, alreadySubmitted }) {
+function ScoringForm({ team, onSubmitted, alreadySubmitted }) {
   const [scores, setScores]         = useState(DEFAULT_SCORES)
   const [confirming, setConfirming] = useState(false)
-  const [isEditing, setIsEditing]   = useState(false)
 
   const total   = useMemo(() => weightedTotal(scores), [scores])
   const quality = useMemo(() => qualityLabel(total), [total])
@@ -128,18 +126,12 @@ function ScoringForm({ team, token, onSubmitted, alreadySubmitted }) {
     setScores((s) => ({ ...s, [key]: val }))
   }
 
-  if (alreadySubmitted && !isEditing) {
+  if (alreadySubmitted) {
     return (
       <div className="flex flex-col items-center justify-center h-full py-20 text-center">
         <CheckCircle size={48} className="text-teal-500 mb-4" />
         <h3 className="text-lg font-bold text-slate-800 mb-1">Scorecard submitted</h3>
-        <p className="text-sm font-medium text-slate-600 mb-6">Your evaluation for <strong className="text-slate-900">{team.team_name}</strong> has been recorded.</p>
-        <button 
-          onClick={() => setIsEditing(true)}
-          className="flex items-center gap-2 px-5 py-2.5 rounded-xl border border-indigo-200 text-indigo-700 hover:bg-indigo-50 transition-colors text-sm font-semibold"
-        >
-          Edit Evaluation
-        </button>
+        <p className="text-sm font-medium text-slate-600">Your evaluation for <strong className="text-slate-900">{team.team_name}</strong> has been recorded.</p>
       </div>
     )
   }
@@ -308,7 +300,7 @@ function TeamSubmissionSection({ teamId }) {
 
 // ── Team queue sidebar ─────────────────────────────────────────────────────
 
-function TeamQueueSidebar({ teams, selectedId, submittedIds, onSelect, evaluatorName, progress }) {
+function TeamQueueSidebar({ teams, selectedId, submittedIds, onSelect, evaluatorName }) {
   return (
     <aside className="w-full lg:w-72 bg-white border-b lg:border-b-0 lg:border-r border-slate-200 flex flex-col shadow-sm z-10">
       {/* Evaluator header */}
@@ -620,7 +612,6 @@ export default function JudgePortal() {
               <ScoringForm
                 key={selectedTeam.team_id}
                 team={selectedTeam}
-                token={urlToken}
                 onSubmitted={handleSubmitted}
                 alreadySubmitted={
                   submittedIds.includes(selectedTeam.team_id) ||

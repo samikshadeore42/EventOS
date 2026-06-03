@@ -903,7 +903,6 @@ function EvaluatorsTab() {
   const [form, setForm] = useState({ first_name: '', last_name: '', email: '', expertise_areas: '', passed_out_institution: '' })
 
   // Assignment state
-  const [assignEvalId, setAssignEvalId] = useState('')
   const [assignTeamIds, setAssignTeamIds] = useState([])
   const [expandedEval, setExpandedEval] = useState(null)
 
@@ -1216,7 +1215,7 @@ function LeaderboardTab() {
     },
   })
 
-  const CRITERIA = ['technical_depth', 'innovation', 'presentation', 'feasibility']
+
 
   return (
     <div>
@@ -1348,7 +1347,7 @@ function CommunicationsTab() {
 
   const draftMutation = useMutation({
   mutationFn: async () => {
-    let ctx = draftContext
+    let ctx
     try { ctx = JSON.parse(draftContext) } catch { throw new Error('Context is not valid JSON') }
 
     const stageMap = {

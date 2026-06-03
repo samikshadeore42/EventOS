@@ -6,8 +6,8 @@ import { useState, useEffect, useMemo } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import {
   Users, Calendar, MessageSquare, AlertTriangle, Loader2,
-  CheckCircle, Clock, Send, Plus, ChevronDown, ChevronUp,
-  Target, BarChart2, ClipboardList,
+  Clock, Send, Plus, ChevronDown, ChevronUp,
+  Target,
 } from 'lucide-react'
 import { mentorApi, portalApi } from '../services/api'
 import { useAuth } from '../context/AuthContext'
@@ -33,9 +33,7 @@ function Badge({ children, colour = 'gray' }) {
   )
 }
 
-function riskColour(level) {
-  return { low: 'green', medium: 'amber', high: 'red', critical: 'red' }[level] ?? 'gray'
-}
+
 
 // ── Loading skeleton ───────────────────────────────────────────────────────
 function PortalSkeleton() {
