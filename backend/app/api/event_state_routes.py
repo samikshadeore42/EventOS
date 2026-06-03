@@ -6,7 +6,8 @@ from app.services.event_state_service import (
 )
 from pydantic import BaseModel
 
-router = APIRouter(prefix="/event-state", tags=["Event State"])
+
+router = APIRouter(prefix="/event-state", tags=["Event State Controls"])
 
 class SetStageRequest(BaseModel):
     stage: str
@@ -14,21 +15,25 @@ class SetStageRequest(BaseModel):
 @router.get("")
 def get_state_endpoint(db: Session = Depends(get_db)):
     state = get_event_state(db)
-    return {"current_stage": state.current_stage, "manual_override_enabled": state.manual_override_enabled}
+    return {
+        "current_stage": state.current_stage, 
+        "manual_override_enabled": state.manual_override_enabled,
+        "event_name":getattr(state,"event_name","Demo Event")
+    }
 
-@router.post("/set")
+@router.post("/set", summary="Jump directly to a specific stage")
 def set_stage_endpoint(req: SetStageRequest, db: Session = Depends(get_db)):
     try:
         state = set_stage(db, req.stage)
-        return {"current_stage": state.current_stage}
+        return {"current_stage": state.current_stage,"message": f"Jumped to {state.current_stage}"}
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
 
-@router.post("/next")
+@router.post("/next",)
 def next_stage_endpoint(db: Session = Depends(get_db)):
     try:
         state = next_stage(db)
-        return {"current_stage": state.current_stage}
+        return {"current_stage": state.current_stage,"message": "Advanced to next stage"}
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
 
@@ -36,11 +41,11 @@ def next_stage_endpoint(db: Session = Depends(get_db)):
 def previous_stage_endpoint(db: Session = Depends(get_db)):
     try:
         state = previous_stage(db)
-        return {"current_stage": state.current_stage}
+        return {"current_stage": state.current_stage,"message": "Rolled back to previous stage"}
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
 
 @router.post("/reset")
 def reset_stage_endpoint(db: Session = Depends(get_db)):
     state = reset_stage(db)
-    return {"current_stage": state.current_stage}
+    return {"current_stage": state.current_stage, "message": "Event reset to registration"}

@@ -10,5 +10,6 @@ from app.models import admin # noqa
 from app.models.admin import Employee, Admin
 from app.models import event_state
 from app.models.event_state import EventState
+from app.models.assignment import EvaluatorTeamAssignment
 
 __all__ = ["Participant", "Team", "Mentor", "MentorAssignment", "MentorSession", "MentorFeedback", "Employee", "Admin", "EventState"]

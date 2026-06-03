@@ -5,7 +5,7 @@
 
 from ast import Index
 import uuid
-from datetime import datetime
+from datetime import datetime, timezone
 from sqlalchemy import String, Boolean, DateTime, ForeignKey, Float, Text,Index, UniqueConstraint
 from sqlalchemy.dialects.postgresql import UUID, JSONB
 from sqlalchemy.orm import Mapped, mapped_column, relationship
@@ -49,6 +49,8 @@ class Evaluation(Base):
     )
 
     scores:       Mapped[dict]           = mapped_column(JSONB, nullable=False, default=dict)
+    score_hash:   Mapped[str | None]     = mapped_column(String(64), nullable=True)
+    
     is_flagged:   Mapped[bool]           = mapped_column(Boolean, default=False, index=True)
     flag_reason:  Mapped[str | None]     = mapped_column(Text, nullable=True)
     anomaly_score: Mapped[float | None]  = mapped_column(Float, nullable=True)

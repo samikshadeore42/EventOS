@@ -6,6 +6,9 @@ from typing import Optional
 from jose import JWTError, jwt
 from fastapi import HTTPException, status
 from dotenv import load_dotenv
+import hashlib
+import json
+from uuid import UUID
 
 load_dotenv()
 
@@ -76,3 +79,10 @@ def verify_password(plain_password: str, hashed_password: str) -> bool:
 
 def get_password_hash(password: str) -> str:
     return bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
+
+
+SCORE_SECRET_SALT = os.getenv("SCORE_SECRET_SALT", "eventos-zero-trust-salt")
+def generate_score_hash(evaluator_id: UUID | str, team_id: UUID | str, scores: dict)-> str:
+    sorted_scores_string = json.dumps(scores, sort_keys=True)
+    payload = f"{str(evaluator_id)}:{str(team_id)}:{sorted_scores_string}:{SCORE_SECRET_SALT}"
+    return hashlib.sha256(payload.encode('utf-8')).hexdigest()

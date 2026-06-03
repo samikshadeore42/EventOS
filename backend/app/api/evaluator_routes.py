@@ -7,6 +7,8 @@ from typing import Optional, List
 from app.core.database import get_db
 from app.models.evaluation import Evaluator
 from app.services.link_service import LinkService
+from app.models.assignment import EvaluatorTeamAssignment
+from app.schemas.evaluation_schemas import EvaluatorAssignmentRequest
 
 router = APIRouter(prefix="/evaluators", tags=["Evaluators"])
 
@@ -138,4 +140,24 @@ def send_evaluator_link(
         "provider": result.get("provider"),
         "message_id": result.get("message_id"),
         "portal_url": link_data["portal_url"]
+    }
+
+@router.post("/assign", summary="Assign an evaluator to specific teams")
+def assign_evaluator(
+    payload: EvaluatorAssignmentRequest,
+    db: Session = Depends(get_db)
+):
+    db.query(EvaluatorTeamAssignment).filter_by(evaluator_id=payload.evaluator_id).delete()
+    
+    for t_id in payload.team_ids:
+        new_assignment = EvaluatorTeamAssignment(
+            evaluator_id=payload.evaluator_id,
+            team_id=t_id
+        )
+        db.add(new_assignment)
+    db.commit()
+    
+    return {
+        "status":"success",
+        "message": f"Evaluator {payload.evaluator_id} assigned to {len(payload.team_ids)} teams."
     }

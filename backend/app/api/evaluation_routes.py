@@ -9,6 +9,8 @@ from app.core.database import get_db
 from app.core.security import decode_access_token
 from app.models.evaluation import Evaluation, Evaluator
 from app.services.score_service import ScoreService
+from app.models.assignment import EvaluatorTeamAssignment
+from app.core.security import generate_score_hash
 from app.schemas.evaluation_schemas import (
     ScoreSubmissionRequest,
     ScoreUpdateRequest,
@@ -55,6 +57,16 @@ def submit_scorecard(
     if not evaluator.is_active:
         raise HTTPException(status_code=403, detail="Your evaluator account is inactive.")
 
+    assigned = db.query(EvaluatorTeamAssignment).filter_by(
+        evaluator_id=evaluator_id,
+        team_id=body.team_id
+    ).first()
+    
+    if not assigned:
+        raise HTTPException(
+            status_code=403,
+            detail="Access Denied:You are not assigned to evaluate this team."
+        )
     return ScoreService.submit_scorecard(
         evaluator_id=evaluator_id,
         team_id=body.team_id,
@@ -92,6 +104,8 @@ def update_scorecard(
         )
 
     evaluation.scores = body.scores
+    
+    evaluation.score_hash = generate_score_hash(evaluator_id, evaluation.team_id, body.scores)
     db.commit()
     db.refresh(evaluation)
 
@@ -170,3 +184,45 @@ def clear_flag(evaluation_id: UUID, db: Session = Depends(get_db)):
 )
 def get_leaderboard(db: Session = Depends(get_db)):
     return ScoreService.consolidate_all_teams(db)
+
+
+@router.get(
+    "/audit-integrity", 
+    summary="Run a cryptographic audit on all scores to detect database tampering"
+)
+def audit_score_integrity(db: Session = Depends(get_db)):
+    """
+    Scans the database and recalculates the SHA-256 hash for every scorecard.
+    If the recalculated hash doesn't match the stored score_hash, tampering occurred.
+    """
+    evaluations = db.query(Evaluation).all()
+    tampered_records = []
+    audited_count = 0
+    
+    for eval_record in evaluations:
+        if not eval_record.score_hash:
+            continue
+            
+        audited_count += 1
+        expected_hash = generate_score_hash(
+            evaluator_id=eval_record.evaluator_id, 
+            team_id=eval_record.team_id, 
+            scores=eval_record.scores
+        )
+        if expected_hash != eval_record.score_hash:
+            tampered_records.append({
+                "evaluation_id": str(eval_record.id),
+                "team_id": str(eval_record.team_id),
+                "evaluator_id": str(eval_record.evaluator_id),
+                "issue": "Cryptographic signature mismatch. Data was tampered with."
+            })
+            
+    is_secure = len(tampered_records) == 0
+    
+    return {
+        "status": "success",
+        "is_secure": is_secure,
+        "total_audited": audited_count,
+        "tampered_records": tampered_records,
+        "message": "Zero-Trust Audit Complete. All signatures match." if is_secure else f"ALERT: {len(tampered_records)} tampered records found!"
+    }

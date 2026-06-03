@@ -42,6 +42,8 @@ class Participant(Base):
     email_verified:    Mapped[bool]    = mapped_column(Boolean, default=False)
     welcome_email_sent: Mapped[bool]   = mapped_column(Boolean, default=False)
 
+    progression_confirmed: Mapped[bool | None] = mapped_column(Boolean, nullable=True)
+    
     created_at: Mapped[datetime]       = mapped_column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
     updated_at: Mapped[datetime]       = mapped_column(
         DateTime(timezone=True),

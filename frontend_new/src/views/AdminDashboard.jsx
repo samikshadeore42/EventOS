@@ -29,7 +29,7 @@ import {
   demoAdminApi,
   eventStateApi,
 } from '../services/api'
-
+import { Shield,ShieldAlert, ShieldCheck} from 'lucide-react';
 // ── Shared micro-components ────────────────────────────────────────────────
 
 function StatCard({ label, value, sub, colour = 'indigo' }) {
@@ -343,9 +343,9 @@ function ParticipantsTab() {
       <div className="glass-card rounded-xl border border-slate-200 overflow-hidden">
         <table className="w-full text-sm">
           <thead>
-            <tr className="bg-slate-50 border-b border-slate-200 text-left">
-              {['Name', 'Institution', 'Skills (avg)', 'Team', ''].map((h) => (
-                <th key={h} className="px-4 py-3 text-xs font-medium text-slate-500 uppercase tracking-wide">{h}</th>
+            <tr className="bg-slate-800/40 border-b border-slate-700/50 text-left">
+              {['Name', 'Institution', 'Skills (avg)', 'Team', 'Invitation Status', ''].map((h) => (
+                <th key={h} className="px-4 py-3 text-xs font-medium text-slate-400 uppercase tracking-wide">{h}</th>
               ))}
             </tr>
           </thead>
@@ -384,6 +384,11 @@ function ParticipantsTab() {
                           ? <Badge colour="teal">{p.team_name}</Badge>
                           : <span className="text-xs text-slate-500">Unassigned</span>
                         }
+                      </td>
+                      <td className="px-4 py-3">
+                        {p.progression_confirmed === true && <Badge colour="green">Confirmed</Badge>}
+                        {p.progression_confirmed === false && <Badge colour="red">Declined</Badge>}
+                        {p.progression_confirmed === null && <Badge colour="amber">No Response</Badge>}
                       </td>
                       <td className="px-4 py-3 text-right">
                         <button
@@ -2022,6 +2027,21 @@ function DemoControlsTab() {
   const qc = useQueryClient()
   const [confirmText, setConfirmText] = useState('')
 
+  const [auditResult, setAuditResult] = useState(null);
+  const [isAuditing, setIsAuditing] = useState(false);
+
+  const runSecurityAudit = async () => {
+    setIsAuditing(true);
+    try {
+      const response = await fetch('http://localhost:8000/evaluations/audit-integrity');
+      const data = await response.json();
+      setAuditResult(data);
+    } catch (error) {
+      console.error("Audit failed",error);
+    }
+    setIsAuditing(false);
+  };
+
   const { data: status, refetch: refetchStatus } = useQuery({
     queryKey: ['demo-admin-status'],
     queryFn: demoAdminApi.status,
@@ -2107,6 +2127,52 @@ function DemoControlsTab() {
               {resetMutation.isPending ? <Loader2 size={16} className="animate-spin" /> : <Trash2 size={16} />}
               Reset Data
             </button>
+          </div>
+        </div>
+        <div className="mb-8">
+          <h2 className="text-lg font-semibold text-white mb-4">Security & Integrity</h2>
+          <div className="glass-card rounded-xl border border-slate-700/50 p-6">
+            <div className="flex items-center justify-between mb-4">
+              <div>
+                <h3 className="text-base font-bold text-white flex items-center gap-2">
+                  <Shield className="text-indigo-400" /> Zero-Trust Integrity Audit
+                </h3>
+                <p className="text-sm text-slate-400 mt-1">Cryptographically verify that no scorecards have been manipulated.</p>
+              </div>
+              <button 
+                onClick={runSecurityAudit}
+                disabled={isAuditing}
+                className="bg-indigo-600 hover:bg-indigo-500 text-white px-4 py-2 rounded-lg text-sm font-medium transition-all disabled:opacity-50 flex items-center gap-2"
+              >
+                {isAuditing ? <Loader2 size={16} className="animate-spin" /> : <ShieldCheck size={16} />}
+                {isAuditing ? "Scanning..." : "Run System Audit"}
+              </button>
+            </div>
+
+            {auditResult && (
+              <div className={`p-4 rounded-xl border ${auditResult.is_secure ? 'bg-emerald-900/20 border-emerald-500/30' : 'bg-red-900/20 border-red-500/30'}`}>
+                {auditResult.is_secure ? (
+                  <p className="text-emerald-400 text-sm font-medium flex items-center gap-2">
+                    <ShieldCheck size={18} /> 
+                    Secure: {auditResult.total_audited} scorecards cryptographically verified. No tampering detected.
+                  </p>
+                ) : (
+                  <div>
+                    <p className="text-red-400 text-sm font-bold flex items-center gap-2 mb-2">
+                      <ShieldAlert size={18} /> 
+                      CRITICAL ALERT: Database tampering detected!
+                    </p>
+                    <ul className="text-xs text-red-300 list-disc pl-5 space-y-1">
+                      {auditResult.tampered_records.map(record => (
+                        <li key={record.evaluation_id}>
+                          Evaluation <span className="font-mono">{record.evaluation_id.slice(0,8)}...</span> fails signature check.
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
         </div>
       </div>

@@ -18,6 +18,7 @@ from app.models.evaluation import Evaluation, Evaluator
 from app.models.participant import Team
 from app.schemas.evaluation_schemas import TeamScoreSummary
 from app.services.anomaly_detector import AnomalyDetector, build_panel_from_dicts
+from app.core.security import generate_score_hash
 
 GRADING_CRITERIA = {
     "technical_depth": 0.35,
@@ -60,11 +61,13 @@ class ScoreService:
                 detail="Cannot submit scores for a team that has not been approved yet."
             )
 
+        calculated_hash = generate_score_hash(evaluator_id,team_id,scores)
         # Save scorecard
         evaluation = Evaluation(
             team_id=team_id,
             evaluator_id=evaluator_id,
             scores=scores,
+            score_hash=calculated_hash,
             is_flagged=False
         )
         db.add(evaluation)
