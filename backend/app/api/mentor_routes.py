@@ -10,7 +10,7 @@ from sqlalchemy.orm import Session
 from uuid import UUID
 
 from app.core.database import get_db
-from app.core.security import decode_access_token, verify_token_role, get_token_subject
+from app.core.security import decode_access_token, verify_token_role, get_token_subject, parse_uuid_subject
 from app.services.mentor_service import MentorService
 from app.services.mentor_ops_service import MentorOpsService
 from app.services.link_service import LinkService
@@ -35,7 +35,7 @@ router = APIRouter(tags=["Mentor Operations"])
 def _get_mentor_id(token: str) -> UUID:
     payload = decode_access_token(token)
     verify_token_role(payload, "mentor")
-    return UUID(get_token_subject(payload))
+    return parse_uuid_subject(get_token_subject(payload), "mentor ID")
 
 
 # ═══════════════════════════════════════════════════════════════════════════
@@ -286,7 +286,7 @@ def participant_mentor_info(
 ):
     payload = decode_access_token(token)
     verify_token_role(payload, "participant")
-    participant_id = UUID(get_token_subject(payload))
+    participant_id = parse_uuid_subject(get_token_subject(payload), "participant ID")
 
     from app.models.participant import Participant
     participant = db.query(Participant).filter(Participant.id == participant_id).first()

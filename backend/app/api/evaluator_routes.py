@@ -18,6 +18,7 @@ class EvaluatorCreate(BaseModel):
     last_name:       str = Field(..., min_length=1, max_length=50)
     email:           EmailStr
     expertise_areas: List[str] = Field(default_factory=list)
+    passed_out_institution: Optional[str] = None
 
 
 class EvaluatorResponse(BaseModel):
@@ -26,6 +27,7 @@ class EvaluatorResponse(BaseModel):
     last_name:       str
     email:           str
     expertise_areas: list
+    passed_out_institution: Optional[str] = None
     is_active:       bool
     access_link_sent: bool
     model_config = {"from_attributes": True}
@@ -54,6 +56,7 @@ def create_evaluator(body: EvaluatorCreate, db: Session = Depends(get_db)):
         last_name=body.last_name.strip(),
         email=body.email.lower().strip(),
         expertise_areas=body.expertise_areas,
+        passed_out_institution=body.passed_out_institution,
         is_active=True,
     )
     db.add(e)
@@ -142,11 +145,58 @@ def send_evaluator_link(
         "portal_url": link_data["portal_url"]
     }
 
+@router.get("/{evaluator_id}/assignments", summary="Get teams assigned to an evaluator")
+def get_evaluator_assignments(evaluator_id: uuid.UUID, db: Session = Depends(get_db)):
+    e = db.query(Evaluator).filter(Evaluator.id == evaluator_id).first()
+    if not e:
+        raise HTTPException(status_code=404, detail="Evaluator not found.")
+    
+    from app.models.participant import Team
+    assignments = db.query(EvaluatorTeamAssignment).filter_by(evaluator_id=evaluator_id).all()
+    team_ids = [a.team_id for a in assignments]
+    teams = db.query(Team).filter(Team.id.in_(team_ids)).all() if team_ids else []
+    
+    return {
+        "evaluator_id": str(evaluator_id),
+        "teams": [
+            {"team_id": str(t.id), "team_name": t.team_name, "is_approved": t.is_approved}
+            for t in teams
+        ]
+    }
+
+def _normalize_institution(value):
+    """Trim, lowercase, collapse whitespace for institution comparison."""
+    return " ".join((value or "").strip().lower().split())
+
 @router.post("/assign", summary="Assign an evaluator to specific teams")
 def assign_evaluator(
     payload: EvaluatorAssignmentRequest,
     db: Session = Depends(get_db)
 ):
+    from app.models.participant import Team
+    
+    evaluator = db.query(Evaluator).filter(Evaluator.id == payload.evaluator_id).first()
+    if not evaluator:
+        raise HTTPException(status_code=404, detail="Evaluator not found.")
+        
+    eval_inst = _normalize_institution(evaluator.passed_out_institution)
+    
+    # Validation Phase
+    for t_id in payload.team_ids:
+        team = db.query(Team).filter(Team.id == t_id).first()
+        if not team:
+            raise HTTPException(status_code=404, detail=f"Team {t_id} not found.")
+            
+        # Check conflict of interest
+        if eval_inst:
+            member_institutions = {_normalize_institution(m.institution) for m in team.members}
+            if eval_inst in member_institutions:
+                raise HTTPException(
+                    status_code=422,
+                    detail=f"Conflict of interest: Evaluator is from '{evaluator.passed_out_institution}', which matches team '{team.team_name}'."
+                )
+
+    # Modification Phase
     db.query(EvaluatorTeamAssignment).filter_by(evaluator_id=payload.evaluator_id).delete()
     
     for t_id in payload.team_ids:
@@ -155,6 +205,7 @@ def assign_evaluator(
             team_id=t_id
         )
         db.add(new_assignment)
+        
     db.commit()
     
     return {

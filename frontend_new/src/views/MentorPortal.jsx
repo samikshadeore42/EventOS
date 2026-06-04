@@ -6,8 +6,8 @@ import { useState, useEffect, useMemo } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import {
   Users, Calendar, MessageSquare, AlertTriangle, Loader2,
-  CheckCircle, Clock, Send, Plus, ChevronDown, ChevronUp,
-  Target, BarChart2, ClipboardList,
+  Clock, Send, Plus, ChevronDown, ChevronUp,
+  Target,
 } from 'lucide-react'
 import { mentorApi, portalApi } from '../services/api'
 import { useAuth } from '../context/AuthContext'
@@ -33,9 +33,7 @@ function Badge({ children, colour = 'gray' }) {
   )
 }
 
-function riskColour(level) {
-  return { low: 'green', medium: 'amber', high: 'red', critical: 'red' }[level] ?? 'gray'
-}
+
 
 // ── Loading skeleton ───────────────────────────────────────────────────────
 function PortalSkeleton() {
@@ -79,7 +77,10 @@ function ScheduleMeetingForm({ teamId, onSuccess }) {
   })
 
   const mutation = useMutation({
-    mutationFn: () => mentorApi.createSession({ ...form, team_id: teamId, duration_minutes: +form.duration_minutes }),
+    mutationFn: () => {
+      const isoDate = new Date(form.scheduled_at).toISOString();
+      return mentorApi.createSession({ ...form, team_id: teamId, duration_minutes: +form.duration_minutes, scheduled_at: isoDate })
+    },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['mentor-teams'] })
       setForm({ title: '', meeting_url: '', scheduled_at: '', duration_minutes: 30, agenda: '' })
@@ -339,6 +340,7 @@ export default function MentorPortal() {
   useEffect(() => {
     const t = new URLSearchParams(window.location.search).get('token')
     if (t) setToken(t)
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   // Load mentor profile via portal access

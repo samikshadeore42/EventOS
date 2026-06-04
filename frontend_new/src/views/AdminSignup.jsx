@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { Loader2, Lock, User, IdCard, ShieldCheck } from 'lucide-react';
+import { Loader2, Lock, User, IdCard } from 'lucide-react';
 import EventOSLogo from '../components/EventOSLogo';
 import axios from 'axios';
 

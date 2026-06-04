@@ -32,7 +32,8 @@ api.interceptors.request.use(
       config.url?.includes('/portal/access') ||
       config.url?.includes('/evaluations') ||
       config.url?.includes('/mentor-portal/') ||
-      config.url?.includes('/participant-mentor-info')
+      config.url?.includes('/participant-mentor-info') ||
+      config.url?.includes('/submissions')
 
     if (needsQueryToken) {
       config.params = { ...config.params, token }
@@ -161,6 +162,12 @@ export const evaluatorsApi = {
 
   sendLink: (id, stage = 'evaluation') =>
     api.post(`/evaluators/${id}/send-access-link?stage=${stage}`),
+
+  assign: (data) =>
+    api.post('/evaluators/assign', data),
+
+  assignments: (evaluatorId) =>
+    api.get(`/evaluators/${evaluatorId}/assignments`),
 }
 
 // ── Evaluations (judge scorecard submission) ──────────────────────────────
@@ -325,6 +332,37 @@ export const mentorApi = {
 export const systemApi = {
   health: () =>
     api.get('/health'),
+}
+
+// ── Submissions ────────────────────────────────────────────────────────────
+export const submissionsApi = {
+  /** Upload project ZIP (participant) — POST /submissions/participant/project */
+  upload: (file) => {
+    const form = new FormData()
+    form.append('file', file)
+    return api.post('/submissions/participant/project', form, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    })
+  },
+
+  /** Get participant's own team submission metadata */
+  getParticipantProject: () =>
+    api.get('/submissions/participant/project'),
+
+  /** Get submission metadata for a team (judge) */
+  getTeamSubmission: (teamId) =>
+    api.get(`/submissions/team/${teamId}`),
+
+  /** Download team ZIP (judge) — GET /submissions/team/{team_id}/download
+   *  Returns a raw Axios response (not unwrapped) so caller can access the blob.
+   */
+  downloadTeamZip: (teamId) => {
+    const token = sessionStorage.getItem(SESSION_KEY)
+    return axios.get(`${BASE_URL}/submissions/team/${teamId}/download`, {
+      params: { token },
+      responseType: 'blob',
+    })
+  },
 }
 
 export default api

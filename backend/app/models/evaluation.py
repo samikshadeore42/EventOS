@@ -21,6 +21,7 @@ class Evaluator(Base):
     last_name:        Mapped[str]       = mapped_column(String(50),  nullable=False)
     email:            Mapped[str]       = mapped_column(String(255), nullable=False, unique=True, index=True)
     expertise_areas:  Mapped[dict]      = mapped_column(JSONB, nullable=False, default=list)
+    passed_out_institution: Mapped[str | None] = mapped_column(String(100), nullable=True)
     is_active:        Mapped[bool]      = mapped_column(Boolean, default=True, index=True)
     access_link_sent: Mapped[bool]      = mapped_column(Boolean, default=False)
     created_at:       Mapped[datetime]  = mapped_column(DateTime, default=datetime.utcnow)

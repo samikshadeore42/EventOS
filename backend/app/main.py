@@ -25,7 +25,7 @@ from app.api.mentor_routes import router as mentor_router
 from app.api.admin_routes import router as admin_router
 from app.api.demo_admin_routes import router as demo_admin_router
 from app.api.event_state_routes import router as event_state_router
-from app.api import event_state_routes
+from app.api.submission_routes import router as submission_router
 
 app = FastAPI(
     title="EventOS API",
@@ -33,10 +33,10 @@ app = FastAPI(
     version="1.0.0",
 )
 
-# Added port 5174 here to prevent silent CORS blocks!
+# Added ports 5174 and 5175 here to prevent silent CORS blocks!
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173", "http://localhost:5174"],
+    allow_origins=["http://localhost:5173", "http://localhost:5174", "http://localhost:5175"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -58,7 +58,7 @@ app.include_router(mentor_router)
 app.include_router(admin_router)
 app.include_router(demo_admin_router)
 app.include_router(event_state_router)
-app.include_router(event_state_routes.router)
+app.include_router(submission_router)
 
 @app.on_event("startup")
 async def startup():

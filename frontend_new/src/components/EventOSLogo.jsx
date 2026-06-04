@@ -1,4 +1,4 @@
-import React from 'react'
+// EventOS Logo component
 
 export default function EventOSLogo({ className = "", size = 24 }) {
   return (

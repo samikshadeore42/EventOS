@@ -38,8 +38,12 @@ class ScoreService:
         scores:       dict,
         db:           Session
     ) -> Evaluation:
+        from uuid import UUID as PyUUID
+        # Normalize evaluator_id to a proper UUID once, before any query/insert
+        evaluator_uuid = PyUUID(str(evaluator_id)) if not isinstance(evaluator_id, PyUUID) else evaluator_id
+
         existing = db.query(Evaluation).filter(
-            Evaluation.evaluator_id == evaluator_id,
+            Evaluation.evaluator_id == evaluator_uuid,
             Evaluation.team_id      == team_id
         ).first()
         if existing:
@@ -61,13 +65,12 @@ class ScoreService:
                 detail="Cannot submit scores for a team that has not been approved yet."
             )
 
-        calculated_hash = generate_score_hash(evaluator_id,team_id,scores)
         # Save scorecard
         evaluation = Evaluation(
             team_id=team_id,
-            evaluator_id=evaluator_id,
+            evaluator_id=evaluator_uuid,
             scores=scores,
-            score_hash=calculated_hash,
+            score_hash=generate_score_hash(evaluator_uuid, team_id, scores),
             is_flagged=False
         )
         db.add(evaluation)
@@ -92,6 +95,9 @@ class ScoreService:
         institution if the field exists on the model (currently it doesn't,
         so COI detection silently passes through — see class docstring above).
         """
+        def normalize_institution(value: str | None) -> str:
+            return " ".join((value or "").strip().lower().split())
+
         team_ids      = {ev.team_id      for ev in evaluations}
         evaluator_ids = {ev.evaluator_id for ev in evaluations}
 
@@ -111,17 +117,20 @@ class ScoreService:
 
             # Team member institutions — used by the COI detector
             member_institutions = (
-                list({m.institution for m in team.members})
+                list({normalize_institution(m.institution) for m in team.members if m.institution})
                 if team and team.members else []
             )
 
-            # Evaluator institution: not currently tracked in the Evaluator
-            # model. Using getattr so this code keeps working unchanged the
-            # moment that field is added — COI detection will then start
-            # firing automatically with no further code changes here.
+            # Evaluator institution: uses passed_out_institution (added in
+            # the portal-workflow-polish branch). Falls back to legacy
+            # "institution" field if it somehow exists, then empty string.
             evaluator_institution = (
-                getattr(evaluator, "institution", "") if evaluator else ""
+                getattr(evaluator, "passed_out_institution", None)
+                or getattr(evaluator, "institution", None)
+                or ""
             )
+            # Normalize for consistent COI matching
+            evaluator_institution = normalize_institution(evaluator_institution)
 
             evaluator_name = (
                 f"{evaluator.first_name} {evaluator.last_name}"

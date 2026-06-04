@@ -4,11 +4,10 @@ import { useState, useEffect, useMemo } from 'react'
 import { useQuery, useMutation } from '@tanstack/react-query'
 import {
   ClipboardList, CheckCircle, Loader2, AlertTriangle,
-  ChevronRight, Send, RotateCcw, LogOut, Star, Wand2,
+  ChevronRight, Send, RotateCcw, Wand2, Download,
 } from 'lucide-react'
-import { portalApi, evaluationsApi, aiApi, solverApi } from '../services/api'
+import { portalApi, evaluationsApi, aiApi, solverApi, submissionsApi } from '../services/api'
 import { useAuth } from '../context/AuthContext'
-import { tokenStorage } from '../services/api'
 
 // ── Grading criteria — mirrors backend GRADING_CRITERIA constant ───────────
 const CRITERIA = [
@@ -107,10 +106,9 @@ function CriterionSlider({ criterion, value, onChange }) {
 
 // ── Scoring form ──────────────────────────────────────────────────────────
 
-function ScoringForm({ team, token, onSubmitted, alreadySubmitted }) {
+function ScoringForm({ team, onSubmitted, alreadySubmitted }) {
   const [scores, setScores]         = useState(DEFAULT_SCORES)
   const [confirming, setConfirming] = useState(false)
-  const [isEditing, setIsEditing]   = useState(false)
 
   const total   = useMemo(() => weightedTotal(scores), [scores])
   const quality = useMemo(() => qualityLabel(total), [total])
@@ -128,18 +126,12 @@ function ScoringForm({ team, token, onSubmitted, alreadySubmitted }) {
     setScores((s) => ({ ...s, [key]: val }))
   }
 
-  if (alreadySubmitted && !isEditing) {
+  if (alreadySubmitted) {
     return (
       <div className="flex flex-col items-center justify-center h-full py-20 text-center">
         <CheckCircle size={48} className="text-teal-500 mb-4" />
         <h3 className="text-lg font-bold text-slate-800 mb-1">Scorecard submitted</h3>
-        <p className="text-sm font-medium text-slate-600 mb-6">Your evaluation for <strong className="text-slate-900">{team.team_name}</strong> has been recorded.</p>
-        <button 
-          onClick={() => setIsEditing(true)}
-          className="flex items-center gap-2 px-5 py-2.5 rounded-xl border border-indigo-200 text-indigo-700 hover:bg-indigo-50 transition-colors text-sm font-semibold"
-        >
-          Edit Evaluation
-        </button>
+        <p className="text-sm font-medium text-slate-600">Your evaluation for <strong className="text-slate-900">{team.team_name}</strong> has been recorded.</p>
       </div>
     )
   }
@@ -211,7 +203,7 @@ function ScoringForm({ team, token, onSubmitted, alreadySubmitted }) {
             </div>
           </div>
           <p className="text-xs font-medium text-indigo-700 mb-3">
-            You can still edit your scores after submission until the final evaluation deadline closes.
+            Please review carefully. After submission, this scorecard cannot be edited from the portal.
           </p>
           <div className="flex gap-2">
             <button
@@ -238,9 +230,77 @@ function ScoringForm({ team, token, onSubmitted, alreadySubmitted }) {
   )
 }
 
+// ── Team submission download section ───────────────────────────────────────
+
+function TeamSubmissionSection({ teamId }) {
+  const [downloading, setDownloading] = useState(false)
+
+  const { data, isLoading, error } = useQuery({
+    queryKey: ['team-submission', teamId],
+    queryFn: () => submissionsApi.getTeamSubmission(teamId),
+    enabled: !!teamId,
+    retry: false,
+  })
+
+  async function handleDownload() {
+    setDownloading(true)
+    try {
+      const response = await submissionsApi.downloadTeamZip(teamId)
+      const blob = new Blob([response.data], { type: 'application/zip' })
+      const url = window.URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = data?.submission?.original_filename || `team_${teamId}.zip`
+      document.body.appendChild(a)
+      a.click()
+      a.remove()
+      window.URL.revokeObjectURL(url)
+    } catch (err) {
+      alert('Download failed: ' + (err.response?.data?.detail || err.message))
+    } finally {
+      setDownloading(false)
+    }
+  }
+
+  const sub = data?.submission
+
+  return (
+    <div className="mb-4 bg-white rounded-xl border border-slate-200 p-5 shadow-sm">
+      <p className="text-xs font-bold text-slate-500 uppercase tracking-wide mb-3 flex items-center gap-1.5">
+        <ClipboardList size={12} /> Submissions
+      </p>
+      {isLoading ? (
+        <div className="flex items-center gap-2 text-xs font-medium text-slate-500">
+          <Loader2 size={11} className="animate-spin text-indigo-500" /> Loading submission info…
+        </div>
+      ) : error || !sub ? (
+        <p className="text-sm font-medium text-slate-500">No project ZIP submitted yet.</p>
+      ) : (
+        <div className="flex items-center justify-between gap-3">
+          <div className="min-w-0">
+            <p className="text-sm font-bold text-slate-800 truncate">{sub.original_filename}</p>
+            <p className="text-xs text-slate-500 mt-0.5">
+              Uploaded by {sub.uploaded_by} · {sub.file_size_bytes ? `${(sub.file_size_bytes / 1024 / 1024).toFixed(1)} MB` : ''}
+              {sub.created_at && ` · ${new Date(sub.created_at).toLocaleString()}`}
+            </p>
+          </div>
+          <button
+            onClick={handleDownload}
+            disabled={downloading}
+            className="flex items-center gap-1.5 text-sm font-semibold px-4 py-2 rounded-lg btn-primary text-white hover:bg-indigo-700 disabled:opacity-50 shadow-sm shrink-0"
+          >
+            {downloading ? <Loader2 size={14} className="animate-spin" /> : <Download size={14} />}
+            Download ZIP
+          </button>
+        </div>
+      )}
+    </div>
+  )
+}
+
 // ── Team queue sidebar ─────────────────────────────────────────────────────
 
-function TeamQueueSidebar({ teams, selectedId, submittedIds, onSelect, evaluatorName, progress }) {
+function TeamQueueSidebar({ teams, selectedId, submittedIds, onSelect, evaluatorName }) {
   return (
     <aside className="w-full lg:w-72 bg-white border-b lg:border-b-0 lg:border-r border-slate-200 flex flex-col shadow-sm z-10">
       {/* Evaluator header */}
@@ -324,9 +384,17 @@ export default function JudgePortal() {
   const [rubricLoading, setRubricLoading] = useState(false)
 
   useEffect(() => {
-    if (!selectedTeam) { setRubric(null); return }
-    setRubric(null)
-    setRubricLoading(true)
+    let active = true
+    if (!selectedTeam) {
+      setTimeout(() => { if (active) setRubric(null) }, 0)
+      return
+    }
+    setTimeout(() => {
+      if (active) {
+        setRubric(null)
+        setRubricLoading(true)
+      }
+    }, 0)
     const criteriaWeights = Object.fromEntries(
       CRITERIA.map(c => [c.label, c.weight])
     )
@@ -349,6 +417,7 @@ export default function JudgePortal() {
         setRubricLoading(false)
       })
       .catch(() => setRubricLoading(false))
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedTeam?.team_id])
 
   // Extract token from URL on mount (AuthContext also does this globally,
@@ -361,6 +430,7 @@ export default function JudgePortal() {
   useEffect(() => {
     const t = new URLSearchParams(window.location.search).get('token')
     if (t) setToken(t)
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   const { data: portalData, isLoading, error } = useQuery({
@@ -542,12 +612,16 @@ export default function JudgePortal() {
               </div>
             )}
 
+          {/* Project Submission — download section */}
+            {selectedTeam && (
+              <TeamSubmissionSection teamId={selectedTeam.team_id} />
+            )}
+
             {/* Scoring form */}
             {selectedTeam && (
               <ScoringForm
                 key={selectedTeam.team_id}
                 team={selectedTeam}
-                token={urlToken}
                 onSubmitted={handleSubmitted}
                 alreadySubmitted={
                   submittedIds.includes(selectedTeam.team_id) ||

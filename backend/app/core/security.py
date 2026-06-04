@@ -72,6 +72,17 @@ def get_token_subject(payload: dict) -> str:
         )
     return sub
 
+def parse_uuid_subject(value, label: str = "token subject") -> UUID:
+    if isinstance(value, UUID):
+        return value
+    try:
+        return UUID(str(value))
+    except (TypeError, ValueError, AttributeError):
+        raise HTTPException(
+            status_code=401,
+            detail=f"Invalid {label}."
+        )
+
 import bcrypt
 
 def verify_password(plain_password: str, hashed_password: str) -> bool:

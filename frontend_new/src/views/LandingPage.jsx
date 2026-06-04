@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { ArrowRight, Activity, Network, Building2, LayoutDashboard, Database, Globe2, Cpu, LineChart, ShieldCheck, Target, FileText, Users, Star } from 'lucide-react'
 import EventOSLogo from '../components/EventOSLogo'
@@ -64,11 +64,11 @@ function CommandCenterVisual() {
           </div>
           <div className="col-span-1 bg-slate-50/80 rounded border border-slate-200 p-3 flex flex-col gap-3 justify-center shadow-sm">
             <span className="text-[9px] text-slate-500 uppercase tracking-widest font-bold">System Status</span>
-            {[1,2,3].map(i => (
+            {[78, 92, 85].map((pct, i) => (
               <div key={i} className="flex items-center gap-2">
                 <ShieldCheck size={12} className="text-emerald-500 shrink-0" />
                 <div className="h-1.5 flex-1 bg-slate-200 rounded-full">
-                   <div className="h-full bg-emerald-500 rounded-full" style={{ width: `${Math.random()*40+60}%`}}></div>
+                   <div className="h-full bg-emerald-500 rounded-full" style={{ width: `${pct}%`}}></div>
                 </div>
               </div>
             ))}

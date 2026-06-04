@@ -6,7 +6,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 
 from app.core.database import get_db
-from app.core.security import decode_access_token
+from app.core.security import decode_access_token, parse_uuid_subject
 from app.models.evaluation import Evaluation, Evaluator
 from app.services.score_service import ScoreService
 from app.models.assignment import EvaluatorTeamAssignment
@@ -48,7 +48,7 @@ def submit_scorecard(
             detail="Only evaluators can submit scorecards."
         )
 
-    evaluator_id = payload.get("sub")
+    evaluator_id = parse_uuid_subject(payload.get("sub"), "evaluator ID")
 
     # Verify evaluator exists in DB
     evaluator = db.query(Evaluator).filter(Evaluator.id == evaluator_id).first()
@@ -90,7 +90,13 @@ def update_scorecard(
     Re-runs anomaly detection after update.
     """
     payload      = decode_access_token(token)
-    evaluator_id = payload.get("sub")
+    if payload.get("role") != "evaluator":
+        raise HTTPException(
+            status_code=403,
+            detail="Only evaluators can update scorecards."
+        )
+
+    evaluator_id = parse_uuid_subject(payload.get("sub"), "evaluator ID")
 
     evaluation = db.query(Evaluation).filter(
         Evaluation.id           == evaluation_id,

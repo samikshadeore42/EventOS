@@ -1,8 +1,3 @@
-# File: backend/tests/conftest.py
-#
-# Shared pytest fixtures used across all test files.
-# conftest.py is auto-loaded by pytest — no import needed.
-
 import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy import create_engine
@@ -33,6 +28,23 @@ def setup_test_database():
     """Create all tables once per test session, drop after."""
     # Import all models so SQLAlchemy registers them
     from app.models import participant, evaluation, mentor  # noqa: F401
+    from sqlalchemy.dialects.postgresql import JSONB, ARRAY
+    from sqlalchemy.types import JSON
+    
+    # Remove PostgreSQL-specific indexes and types that break SQLite compilation
+    for table_name, table in Base.metadata.tables.items():
+        # Convert PostgreSQL types to SQLite compatible types
+        for col in table.columns:
+            if isinstance(col.type, JSONB) or isinstance(col.type, ARRAY):
+                col.type = JSON()
+                
+        # Remove PostgreSQL-specific indexes
+        indexes_to_remove = [idx for idx in table.indexes if "using" in getattr(idx, "dialect_options", {}).get("postgresql", {})]
+        # Also catch name-based if the above doesn't work
+        indexes_to_remove += [idx for idx in table.indexes if "gin" in idx.name.lower() and idx not in indexes_to_remove]
+        for idx in indexes_to_remove:
+            table.indexes.remove(idx)
+            
     Base.metadata.create_all(bind=engine)
     yield
     Base.metadata.drop_all(bind=engine)
