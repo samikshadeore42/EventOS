@@ -344,9 +344,9 @@ function ParticipantsTab() {
       <div className="glass-card rounded-xl border border-slate-200 overflow-hidden">
         <table className="w-full text-sm">
           <thead>
-            <tr className="bg-slate-800/40 border-b border-slate-700/50 text-left">
+            <tr className="bg-slate-50 border-b border-slate-200 text-left">
               {['Name', 'Institution', 'Skills (avg)', 'Team', 'Invitation Status', ''].map((h) => (
-                <th key={h} className="px-4 py-3 text-xs font-medium text-slate-400 uppercase tracking-wide">{h}</th>
+                <th key={h} className="px-4 py-3 text-xs font-medium text-slate-500 uppercase tracking-wide">{h}</th>
               ))}
             </tr>
           </thead>
@@ -361,7 +361,7 @@ function ParticipantsTab() {
                     ))}
                   </tr>
                 ))
-              : data?.participants.map((p) => {
+              : data?.participants && data.participants.length > 0 ? data.participants.map((p) => {
                   const skills = Object.values(p.skill_vector || {})
                   const avg = skills.length
                     ? (skills.reduce((a, b) => a + b, 0) / skills.length).toFixed(1)
@@ -405,7 +405,13 @@ function ParticipantsTab() {
                       </td>
                     </tr>
                   )
-                })
+                }) : (
+                  <tr>
+                    <td colSpan="6" className="px-4 py-8 text-center text-sm text-slate-500">
+                      {search || teamFilter !== '' ? "No participants found matching the current filters." : "No participants registered yet."}
+                    </td>
+                  </tr>
+                )
             }
           </tbody>
         </table>
