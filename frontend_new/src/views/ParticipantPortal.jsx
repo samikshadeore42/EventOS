@@ -307,11 +307,11 @@ function MentorInfoSection({ mentorData }) {
           <div className="space-y-3">
             {mentorData.visible_feedback.slice(0, 3).map((fb, i) => (
               <div key={fb.id || i} className="bg-slate-50 rounded-xl p-3 border border-slate-200">
-                <p className="text-sm text-slate-700 leading-relaxed font-medium">{fb.feedback_text}</p>
+                <p className="text-sm text-slate-800 leading-relaxed font-semibold">{fb.feedback_text}</p>
                 {fb.progress_score != null && (
-                  <p className="text-xs font-semibold text-slate-500 mt-1">Progress: {fb.progress_score}/10</p>
+                  <p className="text-xs font-semibold text-slate-800 mt-1">Progress: {fb.progress_score}/10</p>
                 )}
-                <p className="text-xs text-slate-400 mt-1 font-medium">
+                <p className="text-xs text-slate-700 mt-1 font-medium">
                   {fb.created_at ? new Date(fb.created_at).toLocaleDateString() : ''}
                 </p>
               </div>
@@ -657,12 +657,13 @@ export default function ParticipantPortal() {
     refetchInterval: 15000,
   })
 
-  // Fetch mentor info for participants
   const { data: mentorData } = useQuery({
-    queryKey: ['participant-mentor-info'],
+    queryKey: ['participant-mentor-info', urlToken],
     queryFn: mentorApi.participantInfo,
     enabled: !!urlToken && data?.participant_id != null,
-    staleTime: 60 * 1000,
+    staleTime: 0,
+    refetchInterval: 15000,
+    refetchOnWindowFocus: true,
   })
 
   // ── Guards ─────────────────────────────────────────────────────────────

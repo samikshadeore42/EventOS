@@ -249,7 +249,15 @@ function DailyProgressForm({ teamId, members, onSuccess }) {
 
 // ── Team card ──────────────────────────────────────────────────────────────
 function TeamCard({ team }) {
+  const qc = useQueryClient()
   const [expanded, setExpanded] = useState(false)
+  const cancelMutation = useMutation({
+    mutationFn: (id) => mentorApi.cancelSession(id),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['mentor-teams'] })
+      qc.invalidateQueries({ queryKey: ['portal-access'] })
+    }
+  })
 
   return (
     <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
@@ -315,6 +323,17 @@ function TeamCard({ team }) {
                 <a href={team.next_meeting.meeting_url} target="_blank" rel="noreferrer"
                   className="inline-block mt-2 font-bold text-xs text-white bg-indigo-600 px-3 py-1.5 rounded hover:bg-indigo-700 transition-colors shadow-sm">Join meeting</a>
               )}
+              <button 
+                onClick={() => {
+                  if (window.confirm("Remove this scheduled meeting?")) {
+                    cancelMutation.mutate(team.next_meeting.id)
+                  }
+                }}
+                disabled={cancelMutation.isPending}
+                className="inline-block mt-2 ml-2 font-bold text-xs text-red-600 bg-red-50 border border-red-200 px-3 py-1.5 rounded hover:bg-red-100 transition-colors shadow-sm"
+              >
+                {cancelMutation.isPending ? 'Cancelling...' : 'Cancel Meeting / Remove Meeting'}
+              </button>
             </div>
           )}
 
