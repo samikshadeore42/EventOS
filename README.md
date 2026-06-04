@@ -468,6 +468,19 @@ docker compose down -v && docker compose up --build
 docker compose exec backend alembic upgrade head
 ```
 
+### Reset Admin Login
+
+To reset demo admin login:
+
+```bash
+docker compose exec backend alembic upgrade head
+docker compose exec backend python bootstrap_admin.py
+```
+
+Credentials:
+- username: `admin`
+- password: `admin123`
+
 ---
 
 ## Generating Frontend API Client
