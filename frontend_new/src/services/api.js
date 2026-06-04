@@ -321,6 +321,7 @@ export const mentorApi = {
   myTeams:        () => api.get('/mentor-portal/teams'),
   createSession:  (data) => api.post('/mentor-portal/sessions', data),
   updateSession:  (id, data) => api.patch(`/mentor-portal/sessions/${id}`, data),
+  cancelSession:  (id) => api.patch(`/mentor-portal/sessions/${id}`, { status: 'cancelled' }),
   submitFeedback: (data) => api.post('/mentor-portal/feedback', data),
   teamFeedback:   (teamId) => api.get(`/mentor-portal/feedback/team/${teamId}`),
 

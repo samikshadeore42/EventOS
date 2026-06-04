@@ -1613,11 +1613,11 @@ function MentorOpsTab() {
       }
       return mentorApi.assign(payload);
     },
-    onSuccess: () => { qc.invalidateQueries({ queryKey: ['mentor-assignments'] }); qc.invalidateQueries({ queryKey: ['mentor-ops-summary'] }); qc.invalidateQueries({ queryKey: ['mentor-risk-teams'] }); qc.invalidateQueries({ queryKey: ['mentor-suggestions'] }); setShowAssignForm(false) },
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ['mentor-assignments'] }); qc.invalidateQueries({ queryKey: ['mentor-ops-summary'] }); qc.invalidateQueries({ queryKey: ['mentor-risk-teams'] }); qc.invalidateQueries({ queryKey: ['mentor-suggestions'] }); qc.invalidateQueries({ queryKey: ['mentors'] }); setShowAssignForm(false) },
   })
   const unassignMutation = useMutation({
     mutationFn: (id) => mentorApi.unassign(id),
-    onSuccess: () => { qc.invalidateQueries({ queryKey: ['mentor-assignments'] }); qc.invalidateQueries({ queryKey: ['mentor-ops-summary'] }) },
+    onSuccess: () => { qc.invalidateQueries({ queryKey: ['mentor-assignments'] }); qc.invalidateQueries({ queryKey: ['mentor-ops-summary'] }); qc.invalidateQueries({ queryKey: ['mentor-risk-teams'] }); qc.invalidateQueries({ queryKey: ['mentor-suggestions'] }); qc.invalidateQueries({ queryKey: ['mentors'] }) },
   })
   const reminderMutation = useMutation({
     mutationFn: mentorApi.sendDailyReminders,
@@ -1698,7 +1698,12 @@ function MentorOpsTab() {
           <div className="glass-card rounded-xl border border-slate-200 overflow-hidden mb-8">
             {(!mentors.length)
               ? <div className="text-center py-12 text-slate-500 text-sm">No mentors registered yet.</div>
-              : mentors.map(m => (
+              : mentors.map(m => {
+                  const activeAssignmentsForMentor = assignments.filter(
+                    a => a.mentor_id === m.id && a.is_active !== false
+                  ).length
+                  const effectiveAssignedTeamCount = activeAssignmentsForMentor || m.assigned_team_count || 0
+                  return (
                 <div key={m.id} className="flex items-center gap-4 px-4 py-3 border-b border-slate-200 last:border-0 hover:bg-slate-50">
                   <div className="w-9 h-9 rounded-full bg-teal-900/30 text-teal-700 border border-teal-200 font-semibold text-sm flex items-center justify-center shrink-0">{m.first_name[0]}</div>
                   <div className="flex-1 min-w-0">
@@ -1711,12 +1716,12 @@ function MentorOpsTab() {
                     )}
                   </div>
                   <div className="flex items-center gap-2 shrink-0">
-                    <Badge colour="indigo">{m.assigned_team_count} teams</Badge>
+                    <Badge colour="indigo">{effectiveAssignedTeamCount} teams</Badge>
                     <Badge colour={m.is_active ? 'teal' : 'red'}>{m.is_active ? 'Active' : 'Inactive'}</Badge>
                     {m.access_link_sent && <Badge colour="green"><Check size={10} /> Link sent</Badge>}
                   </div>
                   <div className="flex gap-2 shrink-0 items-center">
-                    {m.assigned_team_count > 0 ? (
+                    {effectiveAssignedTeamCount > 0 ? (
                       <button onClick={() => sendLinkMutation.mutate(m.id)} disabled={sendLinkMutation.isPending}
                         title={m.access_link_sent ? "Send access link again" : "Send access link"} className="flex items-center gap-1 text-xs px-2.5 py-1.5 rounded-lg border border-indigo-200 text-indigo-600 hover:bg-indigo-50 border border-indigo-100 disabled:opacity-50">
                         {sendLinkMutation.isPending ? <Loader2 size={12} className="animate-spin" /> : <Send size={12} />} {m.access_link_sent ? "Resend Link" : "Send Link"}
@@ -1728,7 +1733,7 @@ function MentorOpsTab() {
                       className="p-1.5 text-slate-600 hover:text-red-500 rounded transition-colors"><Trash2 size={14} /></button>
                   </div>
                 </div>
-              ))
+              )})
             }
           </div>
         )
@@ -2327,8 +2332,29 @@ const TABS = [
   { key: 'democontrols',    label: 'Demo Controls',  Icon: AlertTriangle },
 ]
 
+const VALID_TABS = TABS.map(t => t.key)
+
+function getInitialAdminTab() {
+  const urlTab = new URLSearchParams(window.location.search).get('tab')
+  if (VALID_TABS.includes(urlTab)) return urlTab
+
+  const savedTab = localStorage.getItem('eventosAdminActiveTab')
+  if (VALID_TABS.includes(savedTab)) return savedTab
+
+  return 'overview'
+}
+
 export default function AdminDashboard() {
-  const [activeTab, setActiveTab] = useState('overview')
+  const [activeTab, setActiveTabState] = useState(getInitialAdminTab)
+
+  const setActiveTab = (tab) => {
+    if (!VALID_TABS.includes(tab)) return
+    setActiveTabState(tab)
+    localStorage.setItem('eventosAdminActiveTab', tab)
+    const url = new URL(window.location.href)
+    url.searchParams.set('tab', tab)
+    window.history.replaceState(null, '', url.toString())
+  }
 
   const TAB_CONTENT = {
     overview:       <OverviewTab />,
