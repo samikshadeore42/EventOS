@@ -142,6 +142,7 @@ class ScoreService:
                 "judge_name":               evaluator_name,
                 "judge_institution":        evaluator_institution,
                 "team_id":                  str(ev.team_id),
+                "team_name":                team.team_name if team else str(ev.team_id),
                 "team_member_institutions": member_institutions,
                 "scores": {
                     c: float(ev.scores.get(c, 0.0)) for c in GRADING_CRITERIA.keys()
