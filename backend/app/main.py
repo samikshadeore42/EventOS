@@ -36,7 +36,7 @@ app = FastAPI(
 # Added ports 5174 and 5175 here to prevent silent CORS blocks!
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173", "http://localhost:5174", "http://localhost:5175"],
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
