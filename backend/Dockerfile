@@ -16,3 +16,9 @@ RUN pip install --no-cache-dir -r requirements.txt
 COPY . .
 
 EXPOSE 8000
+
+# Make the startup script executable
+RUN chmod +x start.sh
+
+# Run the script when the container starts
+CMD ["./start.sh"]
