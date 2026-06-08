@@ -5,7 +5,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
 from app.core.database import get_db
-from app.models.evaluation import Evaluation
+from app.models.evaluation import Evaluation, Evaluator
 from app.models.participant import Team
 from app.services.score_service import ScoreService
 
@@ -40,6 +40,10 @@ def get_anomalies(db: Session = Depends(get_db)):
     team_ids = {sc.team_id for sc in flagged}
     teams = {t.id: t for t in db.query(Team).filter(Team.id.in_(team_ids)).all()} if team_ids else {}
     
+    # Fetch evaluator names
+    evaluator_ids = {sc.evaluator_id for sc in flagged}
+    evaluators = {e.id: e for e in db.query(Evaluator).filter(Evaluator.id.in_(evaluator_ids)).all()} if evaluator_ids else {}
+    
     return {
         "total_flagged": len(flagged),
         "message": (
@@ -53,6 +57,7 @@ def get_anomalies(db: Session = Depends(get_db)):
                 "team_name":     teams.get(sc.team_id).team_name if teams.get(sc.team_id) else "Unknown Team",
                 "total_score":   sum(float(v) for v in sc.scores.values()) if sc.scores else 0,
                 "evaluator_id":  str(sc.evaluator_id),
+                "evaluator_name": f"{evaluators.get(sc.evaluator_id).first_name} {evaluators.get(sc.evaluator_id).last_name}" if evaluators.get(sc.evaluator_id) else "Unknown",
                 "scores":        sc.scores,
                 "flag_reason":   sc.flag_reason,
                 "anomaly_score": round(sc.anomaly_score, 3) if sc.anomaly_score else None,

@@ -1249,8 +1249,8 @@ function LeaderboardTab() {
               <div key={sc.id} className="flex items-start gap-3 glass-card rounded-lg p-3 border border-amber-100">
                 <div className="flex-1 min-w-0">
                   <p className="text-xs font-medium text-slate-800">
-                    Evaluator <span className="font-mono">{sc.evaluator_id.slice(0,8)}…</span>
-                    {' → '}Team <span className="font-mono">{sc.team_id.slice(0,8)}…</span>
+                    Evaluator <span className="font-semibold text-slate-900">{sc.evaluator_name}</span>
+                    {' → '}Team <span className="font-semibold text-slate-900">{sc.team_name}</span>
                   </p>
                   <p className="text-xs text-red-600 mt-0.5 leading-relaxed">{sc.flag_reason}</p>
                   {sc.anomaly_score != null && (
