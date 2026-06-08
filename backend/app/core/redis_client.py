@@ -9,7 +9,7 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-REDIS_URL = os.getenv("REDIS_URL", "redis://redis:6379/0")
+REDIS_URL = os.getenv("RENDER_REDIS_URL") or os.getenv("REDIS_URL", "redis://localhost:6379/0")
 
 # Set up our base connection arguments
 pool_kwargs = {
