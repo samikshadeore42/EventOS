@@ -4,9 +4,9 @@
 echo "Running database migrations..."
 alembic upgrade head
 
-# 2. Start the Celery worker in the background
+# 2. Start the Celery worker in the background (Restricted to 1 process)
 echo "Starting Celery worker..."
-celery -A app.core.celery_app worker --loglevel=info &
+celery -A app.core.celery_app worker --concurrency=1 --loglevel=info &
 
 # 3. Start the FastAPI web server in the foreground
 echo "Starting FastAPI server..."
