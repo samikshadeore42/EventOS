@@ -35,6 +35,11 @@ def get_leaderboard(db: Session = Depends(get_db)):
 )
 def get_anomalies(db: Session = Depends(get_db)):
     flagged = ScoreService.get_flagged_scorecards(db)
+    
+    # Fetch team names for the flagged scorecards
+    team_ids = {sc.team_id for sc in flagged}
+    teams = {t.id: t for t in db.query(Team).filter(Team.id.in_(team_ids)).all()} if team_ids else {}
+    
     return {
         "total_flagged": len(flagged),
         "message": (
@@ -45,6 +50,8 @@ def get_anomalies(db: Session = Depends(get_db)):
             {
                 "id":            str(sc.id),
                 "team_id":       str(sc.team_id),
+                "team_name":     teams.get(sc.team_id).team_name if teams.get(sc.team_id) else "Unknown Team",
+                "total_score":   sum(float(v) for v in sc.scores.values()) if sc.scores else 0,
                 "evaluator_id":  str(sc.evaluator_id),
                 "scores":        sc.scores,
                 "flag_reason":   sc.flag_reason,

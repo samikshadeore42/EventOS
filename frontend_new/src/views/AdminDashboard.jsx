@@ -1987,7 +1987,7 @@ function AnomalyTab() {
     )
   }
 
-  const flaggedTeams = data?.teams || []
+  const flaggedTeams = data?.scorecards || []
   const totalFlagged = data?.total_flagged || 0
 
   return (
@@ -2068,7 +2068,7 @@ function AnomalyTab() {
           </div>
         ) : (
           flaggedTeams.map(team => (
-            <div key={team.team_id} className="glass-card p-5 rounded-xl border border-red-200 flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div key={team.id} className="glass-card p-5 rounded-xl border border-red-200 flex flex-col md:flex-row md:items-center justify-between gap-4">
               <div className="flex-1">
                 <div className="flex items-center gap-2 mb-2">
                   <h4 className="font-bold text-slate-900 text-lg">{team.team_name}</h4>
@@ -2115,7 +2115,7 @@ function AnomalyTab() {
               
               <div className="flex flex-col gap-2 min-w-[160px]">
                 <button 
-                  onClick={() => { if(window.confirm(`Override flag for ${team.team_name}?`)) overrideMutation.mutate(team.team_id) }}
+                  onClick={() => { if(window.confirm(`Override flag for ${team.team_name}?`)) overrideMutation.mutate(team.id) }}
                   disabled={overrideMutation.isPending}
                   className="btn-secondary px-4 py-2 rounded-lg text-sm flex justify-center items-center gap-2 border-indigo-200 hover:border-indigo-400/60"
                 >
