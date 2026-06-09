@@ -84,6 +84,7 @@ class ParticipantResponse(BaseModel):
     skill_vector:        Dict[str, float]
     team_id:             Optional[UUID]   = None
     team_name:           Optional[str]    = None
+    team_status:         Optional[str]    = None
     email_verified:      bool
     welcome_email_sent:  bool
     progression_confirmed: Optional[bool] = None

@@ -383,7 +383,9 @@ function ParticipantsTab() {
                       <td className="px-4 py-3">
                         {p.team_name
                           ? <Badge colour="teal">{p.team_name}</Badge>
-                          : <span className="text-xs text-slate-500">Unassigned</span>
+                          : p.team_status === "pending_approval"
+                            ? <Badge colour="amber">Pending Approval</Badge>
+                            : <span className="text-xs text-slate-500">Unassigned</span>
                         }
                       </td>
                       <td className="px-4 py-3">
