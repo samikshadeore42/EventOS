@@ -66,10 +66,12 @@ class ParticipantService:
                 )
             )
 
-        if filters.team_assigned is True:
-            query = query.filter(Participant.team_id.isnot(None))
-        elif filters.team_assigned is False:
-            query = query.filter(Participant.team_id.is_(None))
+        if filters.team_assigned is not None:
+            query = query.outerjoin(Team, Participant.team_id == Team.id)
+            if filters.team_assigned is True:
+                query = query.filter(Participant.team_id.isnot(None), Team.approval_status == "published")
+            elif filters.team_assigned is False:
+                query = query.filter(or_(Participant.team_id.is_(None), Team.approval_status != "published"))
 
         if filters.search:
             term = f"%{filters.search.lower()}%"
@@ -100,13 +102,24 @@ class ParticipantService:
         teams    = {}
         if team_ids:
             team_rows = db.query(Team).filter(Team.id.in_(team_ids)).all()
-            teams     = {str(t.id): t.team_name for t in team_rows}
+            teams     = {str(t.id): t for t in team_rows}
 
         import math
         rows = []
         for p in participants:
             data             = ParticipantResponse.model_validate(p)
-            data.team_name   = teams.get(str(p.team_id)) if p.team_id else None
+            team_obj         = teams.get(str(p.team_id)) if p.team_id else None
+            
+            if team_obj and team_obj.approval_status == "published":
+                data.team_name   = team_obj.team_name
+                data.team_status = "published"
+            elif team_obj:
+                data.team_name   = None
+                data.team_status = "pending_approval"
+            else:
+                data.team_name   = None
+                data.team_status = None
+                
             rows.append(data)
 
         return PaginatedParticipants(
@@ -361,8 +374,9 @@ class ParticipantService:
         Uses indexed queries only — no full table scans.
         """
         total       = db.query(func.count(Participant.id)).scalar() or 0
-        assigned    = db.query(func.count(Participant.id)).filter(
-            Participant.team_id.isnot(None)
+        assigned    = db.query(func.count(Participant.id)).outerjoin(Team, Participant.team_id == Team.id).filter(
+            Participant.team_id.isnot(None),
+            Team.approval_status == "published"
         ).scalar() or 0
         unassigned  = total - assigned
 

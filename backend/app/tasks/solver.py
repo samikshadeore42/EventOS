@@ -71,7 +71,8 @@ def run_team_formation(self, roster: list, config: dict):
                 target_size=config["target_size"],
                 k_min=config["k_min"],
                 k_max=config["k_max"],
-                max_per_institution=config.get("max_per_institution", 1)
+                max_per_institution=config.get("max_per_institution", 1),
+                excluded_combinations=[set(ex) for ex in config.get("excluded_combinations", [])]
             )
         except ValueError as e:
             TaskTracker.mark_failed(task_id, str(e))

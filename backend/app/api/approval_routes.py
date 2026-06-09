@@ -200,3 +200,17 @@ def bulk_approval(
     )
 
     return BulkApprovalResponse(**result)
+
+
+# ── POST /approvals/publish ──────────────────────────────────────────
+
+@router.post(
+    "/publish",
+    summary="Publish the fully approved team formation",
+    description="Validates all teams are approved and all participants assigned, then publishes and sends emails."
+)
+def publish_formation(db: Session = Depends(get_db)):
+    result = ApprovalService.publish_formation(db)
+    if not result["success"]:
+        raise HTTPException(status_code=400, detail=result["message"])
+    return result

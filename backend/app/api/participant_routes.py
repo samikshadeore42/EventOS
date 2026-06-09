@@ -141,11 +141,14 @@ def get_participant(
     p = ParticipantService.get_by_id(participant_id, db)
     data = ParticipantResponse.model_validate(p)
 
-    # Enrich with team name if assigned
+    # Enrich with team name if assigned and published
     if p.team_id:
         from app.models.participant import Team
         team = db.query(Team).filter(Team.id == p.team_id).first()
-        data.team_name = team.team_name if team else None
+        if team and team.approval_status == "published":
+            data.team_name = team.team_name
+        else:
+            data.team_name = None
 
     return data
 

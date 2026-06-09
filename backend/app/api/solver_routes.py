@@ -119,12 +119,33 @@ def run_solver(
         )
 
     # ── Enqueue Celery task ───────────────────────────────────────────
+    from app.models.event_state import EventState
+    from app.models.participant import Team
+    from app.services.approval_service import ApprovalService
+
+    event_state = db.query(EventState).first()
+    if not event_state:
+        event_state = EventState()
+        db.add(event_state)
+        db.commit()
+        db.refresh(event_state)
+
+    excluded = list(event_state.rejected_teams) if event_state.rejected_teams else []
+
+    currently_rejected = db.query(Team).filter(Team.approval_status == "rejected").all()
+    for t in currently_rejected:
+        members = ApprovalService.get_team_members(t.id, db)
+        member_ids = sorted([str(m.id) for m in members])
+        if member_ids not in excluded:
+            excluded.append(member_ids)
+
     solver_config = {
         "num_teams":           config.num_teams,
         "target_size":         config.target_size,
         "k_min":               config.k_min,
         "k_max":               config.k_max,
         "max_per_institution": config.max_per_institution,
+        "excluded_combinations": excluded
     }
 
     task = run_team_formation.delay(roster, solver_config)
@@ -241,18 +262,32 @@ def commit_solver_results(task_id: str, db: Session = Depends(get_db)):
     After this, they appear in GET /approvals/pending for committee review.
     """
     from app.models.participant import Team, Participant
+    from app.models.event_state import EventState
+    from app.services.approval_service import ApprovalService
+
     status = TaskTracker.get_status(task_id)
     if not status or status["status"] != "success":
         raise HTTPException(status_code=425,
             detail="Solver task not complete. Check status first.")
 
-    existing_teams = db.query(Team).filter(Team.approval_status.in_(["pending", "approved", "rejected"])).first()
-    existing_assigned_participants = db.query(Participant).filter(Participant.team_id.isnot(None)).first()
-    if existing_teams or existing_assigned_participants:
-        raise HTTPException(
-            status_code=409,
-            detail="Teams already exist for this roster. Clear previous teams before committing a new formation."
-        )
+    event_state = db.query(EventState).first()
+    if not event_state:
+        event_state = EventState()
+        db.add(event_state)
+
+    current_teams = db.query(Team).filter(Team.approval_status.in_(["pending", "approved", "rejected"])).all()
+    
+    new_rejected = list(event_state.rejected_teams) if event_state.rejected_teams else []
+    for t in current_teams:
+        if t.approval_status == "rejected":
+            members = ApprovalService.get_team_members(t.id, db)
+            member_ids = sorted([str(m.id) for m in members])
+            if member_ids not in new_rejected:
+                new_rejected.append(member_ids)
+        t.approval_status = "superseded"
+        t.is_approved = False
+    
+    event_state.rejected_teams = new_rejected
 
     teams_data = status["result"]["teams"]
     created_teams = []

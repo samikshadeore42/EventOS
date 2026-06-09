@@ -92,6 +92,7 @@ class CSPFormulation:
     k_min:           int
     k_max:           int
     max_per_institution: int = 1
+    excluded_combinations: List[set[str]] = field(default_factory=list)
 
     def __post_init__(self):
         """Validates the formulation is mathematically feasible."""
@@ -138,7 +139,8 @@ class ConstraintChecker:
         team: TeamSlot,
         candidate: ParticipantNode,
         k_max: int,
-        max_per_institution: int = 1
+        max_per_institution: int = 1,
+        excluded_combinations: List[set[str]] = None
     ) -> tuple[bool, str]:
         if not ConstraintChecker.check_size_limit(team, k_max):
             return False, f"Team {team.id} is full ({team.size()}/{k_max})"
@@ -148,6 +150,12 @@ class ConstraintChecker:
                 f"Team {team.id} already has {max_per_institution} member(s) "
                 f"from {candidate.institution}"
             )
+
+        if excluded_combinations:
+            new_members = {m.id for m in team.members} | {candidate.id}
+            for ex in excluded_combinations:
+                if new_members == ex:
+                    return False, "This exact combination was previously rejected"
 
         return True, "ok"
 
@@ -320,7 +328,7 @@ class CSPTeamSolver:
 
         for team in ordered_teams:
             valid, reason = self.checker.check_all_constraints(
-                team, current, self.f.k_max, self.f.max_per_institution
+                team, current, self.f.k_max, self.f.max_per_institution, self.f.excluded_combinations
             )
 
             if not valid:
@@ -344,7 +352,7 @@ class CSPTeamSolver:
         for participant in remaining:
             has_valid_team = any(
                 self.checker.check_all_constraints(
-                    team, participant, self.f.k_max, self.f.max_per_institution
+                    team, participant, self.f.k_max, self.f.max_per_institution, self.f.excluded_combinations
                 )[0]
                 for team in teams
             )
@@ -363,7 +371,7 @@ class CSPTeamSolver:
             return sum(
                 1 for t in teams
                 if self.checker.check_all_constraints(
-                    t, p, self.f.k_max, self.f.max_per_institution
+                    t, p, self.f.k_max, self.f.max_per_institution, self.f.excluded_combinations
                 )[0]
             )
 
@@ -377,7 +385,7 @@ class CSPTeamSolver:
         scored = []
         for team in teams:
             valid, _ = self.checker.check_all_constraints(
-                team, candidate, self.f.k_max, self.f.max_per_institution
+                team, candidate, self.f.k_max, self.f.max_per_institution, self.f.excluded_combinations
             )
             if not valid:
                 continue
@@ -406,7 +414,7 @@ class CSPTeamSolver:
             placed = False
             for team in sorted(teams, key=lambda t: t.size()):
                 valid, _ = self.checker.check_all_constraints(
-                    team, participant, self.f.k_max, self.f.max_per_institution
+                    team, participant, self.f.k_max, self.f.max_per_institution, self.f.excluded_combinations
                 )
                 if valid:
                     team.members.append(participant)
@@ -425,7 +433,8 @@ def build_formulation_from_dicts(
     target_size: int,
     k_min:       int,
     k_max:       int,
-    max_per_institution: int = 1
+    max_per_institution: int = 1,
+    excluded_combinations: List[set[str]] = None
 ) -> CSPFormulation:
     nodes = [
         ParticipantNode(
@@ -442,5 +451,6 @@ def build_formulation_from_dicts(
         target_size=target_size,
         k_min=k_min,
         k_max=k_max,
-        max_per_institution=max_per_institution
+        max_per_institution=max_per_institution,
+        excluded_combinations=excluded_combinations or []
     )
