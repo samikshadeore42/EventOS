@@ -788,7 +788,16 @@ function ApprovalsTab() {
     onError: (err) => alert(err.message)
   })
 
-  const activeTeams = allTeams?.filter(t => t.approval_status !== 'superseded') || []
+  const teamsResponse = allTeams
+  const normalizedAllTeams = Array.isArray(teamsResponse)
+    ? teamsResponse
+    : Array.isArray(teamsResponse?.teams)
+      ? teamsResponse.teams
+      : Array.isArray(teamsResponse?.data)
+        ? teamsResponse.data
+        : []
+
+  const activeTeams = normalizedAllTeams.filter(t => t.approval_status !== 'superseded')
   const hasRejected = activeTeams.some(t => t.approval_status === 'rejected')
   const allApproved = activeTeams.length > 0 && activeTeams.every(t => t.approval_status === 'approved')
   const hasPublished = activeTeams.length > 0 && activeTeams.every(t => t.approval_status === 'published')
