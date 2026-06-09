@@ -101,6 +101,17 @@ def send_batch_emails(self, recipient_list: list, template: str, event_name: str
                     results["simulated"] += 1
                 else:
                     results["sent"] += 1
+                    
+                # Update participant DB for team links
+                if template == "team_assignment":
+                    from app.core.database import SessionLocal
+                    from app.models.participant import Participant
+                    with SessionLocal() as db:
+                        participant = db.query(Participant).filter(Participant.email == recipient["email"]).first()
+                        if participant:
+                            participant.team_link_sent = True
+                            db.commit()
+
             else:
                 results["failed"] += 1
                 results["errors"].append({"email": recipient["email"], "error": result.get("error")})

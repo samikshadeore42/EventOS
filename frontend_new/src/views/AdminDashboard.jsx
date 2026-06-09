@@ -345,7 +345,7 @@ function ParticipantsTab() {
         <table className="w-full text-sm">
           <thead>
             <tr className="bg-slate-50 border-b border-slate-200 text-left">
-              {['Name', 'Institution', 'Skills (avg)', 'Team', 'Invitation Status', ''].map((h) => (
+              {['Name', 'Institution', 'Skills (avg)', 'Team', 'Team Link Status', ''].map((h) => (
                 <th key={h} className="px-4 py-3 text-xs font-medium text-slate-500 uppercase tracking-wide">{h}</th>
               ))}
             </tr>
@@ -389,9 +389,11 @@ function ParticipantsTab() {
                         }
                       </td>
                       <td className="px-4 py-3">
-                        {p.progression_confirmed === true && <Badge colour="green">Confirmed</Badge>}
-                        {p.progression_confirmed === false && <Badge colour="red">Declined</Badge>}
-                        {p.progression_confirmed === null && <Badge colour="amber">No Response</Badge>}
+                        {p.team_link_sent ? (
+                          <Badge colour="green">Email Sent</Badge>
+                        ) : (
+                          <Badge colour="slate">Not Sent</Badge>
+                        )}
                       </td>
                       <td className="px-4 py-3 text-right">
                         <button
@@ -786,6 +788,8 @@ function ApprovalsTab() {
       qc.invalidateQueries({ queryKey: ['pending-approvals'] })
       qc.invalidateQueries({ queryKey: ['all-teams'] })
       qc.invalidateQueries({ queryKey: ['comms-log'] })
+      qc.invalidateQueries({ queryKey: ['participants'] })
+      qc.invalidateQueries({ queryKey: ['roster-summary'] })
     },
     onError: (err) => alert(err.message)
   })

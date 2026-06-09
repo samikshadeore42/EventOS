@@ -87,6 +87,7 @@ class ParticipantResponse(BaseModel):
     team_status:         Optional[str]    = None
     email_verified:      bool
     welcome_email_sent:  bool
+    team_link_sent:      bool             = False
     progression_confirmed: Optional[bool] = None
     created_at:          datetime
 
