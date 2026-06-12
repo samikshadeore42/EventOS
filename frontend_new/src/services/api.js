@@ -187,6 +187,36 @@ export const authApi = {
     api.get('/organizations'),
 }
 
+// ── Organizations ─────────────────────────────────────────────────────────
+export const organizationsApi = {
+  update: (id, data) =>
+    api.patch(`/organizations/${id}`, data),
+    
+  members: (id) =>
+    api.get(`/organizations/${id}/members`),
+    
+  updateMemberRole: (orgId, memberId, role) =>
+    api.patch(`/organizations/${orgId}/members/${memberId}/role`, undefined, { params: { role } }),
+    
+  removeMember: (orgId, memberId) =>
+    api.delete(`/organizations/${orgId}/members/${memberId}`),
+    
+  invitations: (id) =>
+    api.get(`/organizations/${id}/invitations`),
+    
+  invite: (id, data) =>
+    api.post(`/organizations/${id}/invitations`, data),
+    
+  revokeInvitation: (orgId, invId) =>
+    api.delete(`/organizations/${orgId}/invitations/${invId}`),
+    
+  previewInvitation: (token) =>
+    api.get(`/organizations/preview-invitation?token=${token}`),
+    
+  acceptInvitation: (data) =>
+    api.post(`/organizations/accept-invitation`, data),
+}
+
 // ── Participants ──────────────────────────────────────────────────────────
 export const participantsApi = {
   list: (params = {}) =>

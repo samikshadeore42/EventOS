@@ -12,11 +12,12 @@ import {
   Play, Loader2, Check, X, AlertTriangle,
   ChevronDown, ChevronRight, Wand2,
   BarChart2, MessageSquare, Activity, Target, Calendar,
-  Send, Copy, Trash2, Plus, Shield, ShieldAlert, ShieldCheck, FileText,
+  Send, Copy, Trash2, Plus, Shield, ShieldAlert, ShieldCheck, FileText, Settings,
 } from 'lucide-react'
 import EventOSLogo from '../components/EventOSLogo'
 import PipelineStepper from '../components/PipelineStepper'
 import OrgSwitcher from '../components/OrgSwitcher'
+import SettingsTab from '../components/SettingsTab'
 import {
   participantsApi,
   solverApi,
@@ -2432,6 +2433,7 @@ const TABS = [
   { key: 'mentorops',       label: 'Mentor Ops',     Icon: Target },
   { key: 'anomaly',         label: 'Anomaly Scanner',Icon: Activity },
   { key: 'democontrols',    label: 'Demo Controls',  Icon: AlertTriangle },
+  { key: 'settings',        label: 'Settings',       Icon: Settings },
 ]
 
 const VALID_TABS = TABS.map(t => t.key)
@@ -2469,6 +2471,7 @@ export default function AdminDashboard() {
     mentorops:      <MentorOpsTab />,
     anomaly:        <AnomalyTab />,
     democontrols:   <DemoControlsTab />,
+    settings:       <SettingsTab />,
   }
 
   return (
