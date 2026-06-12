@@ -13,8 +13,7 @@ name: Phase 0 CI
 permissions:
   contents: read
 
-concurrency:git log -1 --oneline
-git status --short
+concurrency:
   group: phase0-ci-${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
