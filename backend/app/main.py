@@ -41,13 +41,17 @@ app = FastAPI(
     version="1.0.0",
 )
 
-# Added ports 5174 and 5175 here to prevent silent CORS blocks!
+# CORS: use explicit origins from env (comma-separated), fallback to dev defaults
+import os
+_cors_origins_str = os.getenv("CORS_ALLOWED_ORIGINS", "http://localhost:5173,http://localhost:5174,http://localhost:5175,http://localhost:3000")
+_cors_origins = [o.strip() for o in _cors_origins_str.split(",") if o.strip()]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=_cors_origins,
     allow_credentials=True,
     allow_methods=["*"],
-    allow_headers=["*"],
+    allow_headers=["*", "X-Organization-Id"],
 )
 
 # Register API routers
