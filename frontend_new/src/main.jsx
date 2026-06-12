@@ -11,8 +11,9 @@ import JudgePortal from './views/JudgePortal'
 import ParticipantPortal from './views/ParticipantPortal'
 import MentorPortal from './views/MentorPortal'
 import LandingPage from './views/LandingPage'
-import AdminLogin from './views/AdminLogin'
-import AdminSignup from './views/AdminSignup'
+import AuthLogin from './views/AuthLogin'
+import AuthRegister from './views/AuthRegister'
+import AuthResetPassword from './views/AuthResetPassword'
 
 
 const queryClient = new QueryClient({
@@ -48,8 +49,12 @@ function App() {
                     <AdminDashboard />
                 </ProtectedAdminRoute>
             } />
-            <Route path="/admin/login" element={<AdminLogin />} />
-            <Route path="/admin/signup" element={<AdminSignup />} />
+            <Route path="/admin/login" element={<Navigate to="/auth/login" replace />} />
+            <Route path="/admin/signup" element={<Navigate to="/auth/register" replace />} />
+            
+            <Route path="/auth/login" element={<AuthLogin />} />
+            <Route path="/auth/register" element={<AuthRegister />} />
+            <Route path="/auth/reset-password" element={<AuthResetPassword />} />
 
             <Route path="/" element={<LandingPage />} />
           </Routes>

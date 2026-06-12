@@ -72,6 +72,27 @@ export const tokenStorage = {
 // DOMAIN API MODULES
 // ═════════════════════════════════════════════════════════════════════════
 
+// ── Authentication ────────────────────────────────────────────────────────
+export const authApi = {
+  login: (data) =>
+    api.post('/auth/login', data),
+
+  registerOrganization: (data) =>
+    api.post('/auth/register-organization', data),
+
+  resetPasswordRequest: (data) =>
+    api.post('/auth/reset-password-request', data),
+
+  resetPasswordConfirm: (data) =>
+    api.post('/auth/reset-password', data),
+
+  logout: () =>
+    api.post('/auth/logout'),
+
+  me: () =>
+    api.get('/auth/me'),
+}
+
 // ── Participants ──────────────────────────────────────────────────────────
 export const participantsApi = {
   list: (params = {}) =>

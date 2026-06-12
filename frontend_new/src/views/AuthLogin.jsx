@@ -1,14 +1,13 @@
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { Loader2, Lock, User } from 'lucide-react';
+import { Loader2, Lock, Mail } from 'lucide-react';
 import EventOSLogo from '../components/EventOSLogo';
-import axios from 'axios';
+import { authApi } from '../services/api';
 
-const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 
-export default function AdminLogin() {
-  const [formData, setFormData] = useState({ username: '', password: '' });
+export default function AuthLogin() {
+  const [formData, setFormData] = useState({ email: '', password: '' });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const navigate = useNavigate();
@@ -19,11 +18,20 @@ export default function AdminLogin() {
     setLoading(true);
     setError(null);
     try {
-      const res = await axios.post(`${BASE_URL}/admin/login`, formData);
-      setToken(res.data.access_token);
-      navigate('/admin');
+      // If user inputs a legacy username without '@', we try the fallback first
+      let emailPayload = formData.email;
+      if (!emailPayload.includes('@')) {
+        emailPayload = `${emailPayload}@legacy.eventos.invalid`;
+      }
+
+      const res = await authApi.login({
+        email: emailPayload,
+        password: formData.password
+      });
+      setToken(res.access_token);
+      navigate('/admin'); // Redirect back to Stage 1 dashboard
     } catch (err) {
-      setError(err.response?.data?.detail || 'Login failed. Please check your credentials.');
+      setError(err.message || 'Login failed. Please check your credentials.');
     } finally {
       setLoading(false);
     }
@@ -38,11 +46,8 @@ export default function AdminLogin() {
           <EventOSLogo size={64} />
         </div>
         <h2 className="mt-4 text-center text-3xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 to-sky-600">
-          EventOS Admin
+          Sign in to EventOS
         </h2>
-        <p className="mt-2 text-center text-sm text-slate-500">
-          Command Center Access
-        </p>
       </div>
 
       <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md z-10">
@@ -55,18 +60,18 @@ export default function AdminLogin() {
             )}
             
             <div>
-              <label className="block text-sm font-medium text-slate-700">Username</label>
+              <label className="block text-sm font-medium text-slate-700">Email address</label>
               <div className="mt-1 relative rounded-md shadow-sm">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <User className="h-5 w-5 text-slate-400" />
+                  <Mail className="h-5 w-5 text-slate-400" />
                 </div>
                 <input
                   type="text"
                   required
-                  value={formData.username}
-                  onChange={(e) => setFormData({ ...formData, username: e.target.value })}
+                  value={formData.email}
+                  onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                   className="block w-full pl-10 bg-slate-50 text-slate-900 placeholder-slate-400 border border-slate-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm p-2.5"
-                  placeholder="misha"
+                  placeholder="you@example.com (or username)"
                 />
               </div>
             </div>
@@ -88,19 +93,27 @@ export default function AdminLogin() {
               </div>
             </div>
 
+            <div className="flex items-center justify-between">
+              <div className="text-sm">
+                <Link to="/auth/reset-password" className="font-medium text-indigo-600 hover:text-indigo-500">
+                  Forgot your password?
+                </Link>
+              </div>
+            </div>
+
             <button
               type="submit"
               disabled={loading}
               className="w-full flex justify-center py-2.5 px-4 border border-indigo-400/20 rounded-lg shadow-lg shadow-indigo-500/25 text-sm font-medium text-white bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 focus:outline-none transition-all disabled:opacity-50"
             >
-              {loading ? <Loader2 className="animate-spin h-5 w-5" /> : 'Log in to Command Center'}
+              {loading ? <Loader2 className="animate-spin h-5 w-5" /> : 'Sign in'}
             </button>
           </form>
 
           <div className="mt-6 text-center text-sm">
-            <span className="text-slate-500">New employee? </span>
-            <Link to="/admin/signup" className="font-medium text-indigo-600 hover:text-indigo-500">
-              Create an account
+            <span className="text-slate-500">Don't have an organization? </span>
+            <Link to="/auth/register" className="font-medium text-indigo-600 hover:text-indigo-500">
+              Create one
             </Link>
           </div>
         </div>
