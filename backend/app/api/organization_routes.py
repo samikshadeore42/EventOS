@@ -3,7 +3,7 @@ from sqlalchemy.orm import Session
 from app.core.database import get_db
 from app.core.auth_deps import get_current_user, RequireOrganizationRole
 from app.schemas.organization import (
-    OrganizationResponse, MembershipResponse, MemberDetailResponse,
+    OrganizationResponse, OrganizationUpdate, MembershipResponse, MemberDetailResponse,
     InvitationCreate, InvitationResponse, InvitationPreview
 )
 from app.models.organization import Organization
@@ -35,6 +35,30 @@ def get_organization(
     membership = Depends(RequireOrganizationRole()) # any role
 ):
     return membership.organization
+
+@router.patch("/{organization_id}", response_model=OrganizationResponse)
+def update_organization(
+    organization_id: uuid.UUID,
+    data: OrganizationUpdate,
+    db: Session = Depends(get_db),
+    membership = Depends(RequireOrganizationRole('owner', 'admin'))
+):
+    org = db.query(Organization).filter(Organization.id == organization_id).first()
+    if not org:
+        raise HTTPException(404, "Organization not found")
+    
+    if data.name is not None:
+        org.name = data.name
+    if data.description is not None:
+        org.description = data.description
+    if data.logo_url is not None:
+        org.logo_url = data.logo_url
+    
+    org.updated_at = datetime.now(timezone.utc)
+    AuditService.log_action(db, "organization.updated", actor_user_id=membership.user_id, organization_id=organization_id)
+    db.commit()
+    db.refresh(org)
+    return org
 
 @router.get("/{organization_id}/members", response_model=list[MemberDetailResponse])
 def list_members(

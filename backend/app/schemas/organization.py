@@ -8,6 +8,11 @@ class OrganizationCreate(BaseModel):
     slug: str = Field(..., min_length=1, max_length=255)
     description: Optional[str] = None
 
+class OrganizationUpdate(BaseModel):
+    name: Optional[str] = Field(None, min_length=1, max_length=255)
+    description: Optional[str] = None
+    logo_url: Optional[str] = None
+
 class OrganizationResponse(BaseModel):
     id: uuid.UUID
     name: str
