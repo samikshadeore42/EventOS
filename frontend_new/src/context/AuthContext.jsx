@@ -7,7 +7,7 @@ import {
   useState,
   useCallback,
 } from 'react'
-import { tokenStorage } from '../services/api'
+import { tokenStorage, orgStorage, authApi } from '../services/api'
 
 // ── JWT helpers ────────────────────────────────────────────────────────────
 function decodePayload(token) {
@@ -57,6 +57,11 @@ export function AuthProvider({ children }) {
     return p && !isExpired(p) ? p : null
   })
 
+  // Organization state
+  const [activeOrganization, setActiveOrganization] = useState(null)
+  const [availableOrganizations, setAvailableOrganizations] = useState([])
+  const [activeMembership, setActiveMembership] = useState(null)
+
   // On mount: clear token from URL bar if it was present
   useEffect(() => {
     const params = new URLSearchParams(window.location.search)
@@ -65,12 +70,50 @@ export function AuthProvider({ children }) {
     }
   }, [])
 
+  // Load organizations after login
+  const loadOrganizations = useCallback(async () => {
+    try {
+      const orgs = await authApi.myOrganizations()
+      const orgList = Array.isArray(orgs) ? orgs : []
+      setAvailableOrganizations(orgList)
+      
+      // Restore previously active org or pick the first
+      const savedOrgId = orgStorage.get()
+      const restored = orgList.find((o) => o.id === savedOrgId)
+      const active = restored || orgList[0] || null
+      
+      if (active) {
+        setActiveOrganization(active)
+        orgStorage.set(active.id)
+        // Find membership role (the backend returns this organization because the user is a member)
+        setActiveMembership({ role: 'owner' }) // Will be refined from /me or dedicated endpoint
+      }
+    } catch {
+      // User may be a portal user without org membership — that's fine
+      setAvailableOrganizations([])
+      setActiveOrganization(null)
+    }
+  }, [])
+
+  // Auto-load orgs when we have a valid non-portal token
+  useEffect(() => {
+    if (token && payload && !isExpired(payload) && payload.typ === 'access') {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      loadOrganizations()
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [token])
+
   // Expose a setter so portal pages can manually call setToken when needed
   const setToken = useCallback((newToken) => {
     if (!newToken) {
       tokenStorage.clear()
+      orgStorage.clear()
       setTokenState(null)
       setPayload(null)
+      setActiveOrganization(null)
+      setAvailableOrganizations([])
+      setActiveMembership(null)
       return
     }
     const decoded = decodePayload(newToken)
@@ -80,10 +123,27 @@ export function AuthProvider({ children }) {
     setPayload(decoded)
   }, [])
 
-  const logout = useCallback(() => {
+  // Switch active organization
+  const switchOrganization = useCallback((org) => {
+    setActiveOrganization(org)
+    orgStorage.set(org.id)
+    // Note: The consuming component should invalidate React Query caches
+  }, [])
+
+  // Logout — call backend then clear local state
+  const logout = useCallback(async () => {
+    try {
+      await authApi.logout()
+    } catch {
+      // Backend may already be unreachable — clear local state anyway
+    }
     tokenStorage.clear()
+    orgStorage.clear()
     setTokenState(null)
     setPayload(null)
+    setActiveOrganization(null)
+    setAvailableOrganizations([])
+    setActiveMembership(null)
   }, [])
 
   // Derived values every consumer needs
@@ -92,6 +152,8 @@ export function AuthProvider({ children }) {
   const activeStage    = payload?.stage ?? null
   const isPortalUser   = role === 'evaluator' || role === 'participant' || role === 'mentor'
   const authenticated  = !!(token && payload && !isExpired(payload))
+  const isAdmin        = !!(activeOrganization && activeMembership && 
+                           (activeMembership.role === 'owner' || activeMembership.role === 'admin'))
 
   return (
     <AuthContext.Provider
@@ -103,8 +165,15 @@ export function AuthProvider({ children }) {
         activeStage,
         isPortalUser,
         authenticated,
+        isAdmin,
         setToken,
         logout,
+        // Organization
+        activeOrganization,
+        availableOrganizations,
+        activeMembership,
+        switchOrganization,
+        loadOrganizations,
       }}
     >
       {children}

@@ -58,6 +58,16 @@ def get_current_user(
     if not session or session.revoked_at is not None:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Session revoked or invalid")
 
+    # Validate session ownership — prevent cross-user session attacks
+    if str(session.user_id) != str(user.id):
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Session does not belong to authenticated user")
+
+    # Validate session expiry
+    from datetime import datetime, timezone
+    session_expires = session.expires_at.replace(tzinfo=timezone.utc) if session.expires_at.tzinfo is None else session.expires_at
+    if session_expires < datetime.now(timezone.utc):
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Session expired")
+
     # Validate token version
     if payload.get("ver") != user.token_version:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Session invalidated by security event")
@@ -88,6 +98,14 @@ class RequireOrganizationRole:
         target_org_id = organization_id or x_organization_id
         if not target_org_id:
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Organization ID is required")
+
+        # Verify organization exists and is active
+        from app.models.organization import Organization
+        org = db.query(Organization).filter(Organization.id == target_org_id).first()
+        if not org:
+            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Organization not found.")
+        if not org.is_active:
+            raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Organization is inactive.")
             
         membership = OrganizationService.get_membership(db, target_org_id, user.id)
         

@@ -1,6 +1,5 @@
 import { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext';
+import { Link } from 'react-router-dom';
 import { Loader2, Mail, Lock, User, Building } from 'lucide-react';
 import EventOSLogo from '../components/EventOSLogo';
 import { authApi } from '../services/api';
@@ -17,8 +16,7 @@ export default function AuthRegister() {
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-  const navigate = useNavigate();
-  const { setToken } = useAuth();
+  const [registered, setRegistered] = useState(false);
 
   const handleRegister = async (e) => {
     e.preventDefault();
@@ -26,13 +24,7 @@ export default function AuthRegister() {
     setError(null);
     try {
       await authApi.registerOrganization(formData);
-      // Auto-login after successful registration
-      const loginRes = await authApi.login({
-        email: formData.email,
-        password: formData.password
-      });
-      setToken(loginRes.access_token);
-      navigate('/admin');
+      setRegistered(true);
     } catch (err) {
       setError(err.message || 'Registration failed. Please try again.');
     } finally {
@@ -59,6 +51,21 @@ export default function AuthRegister() {
 
       <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-xl z-10">
         <div className="bg-white/80 py-8 px-4 shadow-sm backdrop-blur-xl border border-slate-200/50 sm:rounded-2xl sm:px-10">
+          {registered ? (
+            <div className="text-center">
+              <div className="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-green-100 mb-4">
+                <Mail className="h-6 w-6 text-green-600" />
+              </div>
+              <h3 className="text-lg font-medium text-slate-900 mb-2">Check your email</h3>
+              <p className="text-sm text-slate-600 mb-6">
+                We've sent a verification link to <strong>{formData.email}</strong>. 
+                Please verify your email address before signing in.
+              </p>
+              <Link to="/auth/login" className="font-medium text-indigo-600 hover:text-indigo-500">
+                Go to sign in
+              </Link>
+            </div>
+          ) : (
           <form className="space-y-6" onSubmit={handleRegister}>
             {error && (
               <div className="bg-red-50 border border-red-200 text-red-600 p-3 rounded-lg text-sm text-center">
@@ -189,6 +196,7 @@ export default function AuthRegister() {
               {loading ? <Loader2 className="animate-spin h-5 w-5" /> : 'Register Organization'}
             </button>
           </form>
+          )}
 
           <div className="mt-6 text-center text-sm">
             <span className="text-slate-500">Already have an account? </span>

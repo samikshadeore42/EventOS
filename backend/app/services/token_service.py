@@ -19,7 +19,7 @@ class TokenService:
         user_id: str,
         session_id: str,
         token_version: int,
-        role: str = "admin",
+        role: str = "user",
         expires_in: timedelta = timedelta(minutes=15)
     ) -> str:
         now = datetime.now(timezone.utc)
@@ -27,6 +27,7 @@ class TokenService:
             "sub": str(user_id),
             "sid": str(session_id),
             "ver": token_version,
+            "typ": "access",
             "role": role,
             "iat": now,
             "exp": now + expires_in,

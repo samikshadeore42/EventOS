@@ -54,7 +54,13 @@ def test_forgot_password_creates_email_job_and_reset_flow(mock_delay, client, db
     assert reset_response.status_code == 200
     assert reset_response.json()["status"] == "success"
     
-    # Verify login with new password
+    # Verify login with new password (must verify email first)
+    from datetime import datetime, timezone
+    user_obj = db_session.query(User).filter(User.email == email).first()
+    user_obj.email_verified = True
+    user_obj.email_verified_at = datetime.now(timezone.utc)
+    db_session.commit()
+    
     login_response = client.post("/auth/login", json={"email": email, "password": "NewSecretPassword123!"})
     assert login_response.status_code == 200
 

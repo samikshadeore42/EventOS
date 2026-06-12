@@ -10,6 +10,8 @@ export default function AuthLogin() {
   const [formData, setFormData] = useState({ email: '', password: '' });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [verificationRequired, setVerificationRequired] = useState(false);
+  const [resendSuccess, setResendSuccess] = useState(false);
   const navigate = useNavigate();
   const { setToken } = useAuth();
 
@@ -17,6 +19,7 @@ export default function AuthLogin() {
     e.preventDefault();
     setLoading(true);
     setError(null);
+    setVerificationRequired(false);
     try {
       // If user inputs a legacy username without '@', we try the fallback first
       let emailPayload = formData.email;
@@ -31,9 +34,24 @@ export default function AuthLogin() {
       setToken(res.access_token);
       navigate('/admin'); // Redirect back to Stage 1 dashboard
     } catch (err) {
-      setError(err.message || 'Login failed. Please check your credentials.');
+      const msg = err.message || '';
+      if (msg.includes('EMAIL_VERIFICATION_REQUIRED') || msg.includes('verify your email')) {
+        setVerificationRequired(true);
+      } else {
+        setError(msg || 'Login failed. Please check your credentials.');
+      }
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleResendVerification = async () => {
+    try {
+      await authApi.resendVerification({ email: formData.email });
+      setResendSuccess(true);
+    } catch {
+      // Always show success to prevent enumeration
+      setResendSuccess(true);
     }
   };
 
@@ -56,6 +74,21 @@ export default function AuthLogin() {
             {error && (
               <div className="bg-red-50 border border-red-200 text-red-600 p-3 rounded-lg text-sm text-center">
                 {error}
+              </div>
+            )}
+
+            {verificationRequired && (
+              <div className="bg-amber-50 border border-amber-200 text-amber-700 p-3 rounded-lg text-sm text-center">
+                <p className="font-medium mb-1">Email verification required</p>
+                <p className="mb-2">Please check your inbox and verify your email before signing in.</p>
+                {resendSuccess ? (
+                  <p className="text-green-600 font-medium">Verification email sent!</p>
+                ) : (
+                  <button type="button" onClick={handleResendVerification}
+                    className="text-indigo-600 hover:text-indigo-500 font-medium underline">
+                    Resend verification email
+                  </button>
+                )}
               </div>
             )}
             
@@ -95,7 +128,7 @@ export default function AuthLogin() {
 
             <div className="flex items-center justify-between">
               <div className="text-sm">
-                <Link to="/auth/reset-password" className="font-medium text-indigo-600 hover:text-indigo-500">
+                <Link to="/auth/forgot-password" className="font-medium text-indigo-600 hover:text-indigo-500">
                   Forgot your password?
                 </Link>
               </div>

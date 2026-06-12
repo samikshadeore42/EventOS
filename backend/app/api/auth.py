@@ -95,6 +95,13 @@ def login(data: LoginRequest, request: Request, db: Session = Depends(get_db)):
         db.commit()
         raise HTTPException(status_code=401, detail="Invalid email or password")
 
+    # Block unverified users
+    if not user.email_verified:
+        raise HTTPException(
+            status_code=403,
+            detail={"code": "EMAIL_VERIFICATION_REQUIRED", "message": "Please verify your email address before logging in."}
+        )
+
     # Success
     session, refresh_token = SessionService.create_session(db, user.id, ip_address=request.client.host if request.client else None)
     access_token = TokenService.create_access_token(user.id, session.id, user.token_version)

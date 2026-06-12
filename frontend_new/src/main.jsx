@@ -13,7 +13,9 @@ import MentorPortal from './views/MentorPortal'
 import LandingPage from './views/LandingPage'
 import AuthLogin from './views/AuthLogin'
 import AuthRegister from './views/AuthRegister'
-import AuthResetPassword from './views/AuthResetPassword'
+import AuthVerifyEmail from './views/AuthVerifyEmail'
+import AuthForgotPassword from './views/AuthForgotPassword'
+import AuthResetPasswordConfirm from './views/AuthResetPasswordConfirm'
 
 
 const queryClient = new QueryClient({
@@ -27,9 +29,9 @@ const queryClient = new QueryClient({
 })
 
 function ProtectedAdminRoute({ children }) {
-    const { role } = useAuth();
-    if (!role) return <Navigate to="/admin/login" replace />;
-    if (role !== 'admin') return <Navigate to={`/${role}`} replace />;
+    const { authenticated, isPortalUser } = useAuth();
+    if (!authenticated) return <Navigate to="/auth/login" replace />;
+    if (isPortalUser) return <Navigate to="/" replace />;
     return children;
 }
 
@@ -54,7 +56,9 @@ function App() {
             
             <Route path="/auth/login" element={<AuthLogin />} />
             <Route path="/auth/register" element={<AuthRegister />} />
-            <Route path="/auth/reset-password" element={<AuthResetPassword />} />
+            <Route path="/auth/verify-email" element={<AuthVerifyEmail />} />
+            <Route path="/auth/forgot-password" element={<AuthForgotPassword />} />
+            <Route path="/auth/reset-password" element={<AuthResetPasswordConfirm />} />
 
             <Route path="/" element={<LandingPage />} />
           </Routes>

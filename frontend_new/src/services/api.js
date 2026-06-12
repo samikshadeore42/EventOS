@@ -6,6 +6,7 @@ import axios from 'axios'
 
 const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000'
 const SESSION_KEY = 'eventos_token'
+const ORG_KEY = 'eventos_active_org_id'
 
 // ── Axios instance ─────────────────────────────────────────────────────────
 const api = axios.create({
@@ -14,10 +15,22 @@ const api = axios.create({
   headers: { 'Content-Type': 'application/json' },
 })
 
+// Public auth paths that should NOT receive organization headers
+const PUBLIC_AUTH_PATHS = [
+  '/auth/login', '/auth/register-organization', '/auth/forgot-password',
+  '/auth/reset-password', '/auth/verify-email', '/auth/resend-verification',
+  '/auth/refresh', '/auth/invitations',
+]
+
+function isPublicAuthPath(url) {
+  return PUBLIC_AUTH_PATHS.some((p) => url?.startsWith(p))
+}
+
 // ── Request interceptor ───────────────────────────────────────────────────
-// Reads the JWT from sessionStorage and injects it two ways:
-//   1. Authorization: Bearer <token>  — for all requests (future-proofs admin auth)
-//   2. ?token= query param            — for portal/evaluation routes (current backend contract)
+// Injects:
+//   1. Authorization: Bearer <token> — for authenticated requests
+//   2. X-Organization-Id             — for org-scoped admin requests
+//   3. ?token= query param           — for portal/evaluation routes
 api.interceptors.request.use(
   (config) => {
     const token = sessionStorage.getItem(SESSION_KEY)
@@ -26,6 +39,14 @@ api.interceptors.request.use(
     // Always attach as Bearer header
     config.headers = config.headers ?? {}
     config.headers['Authorization'] = `Bearer ${token}`
+
+    // Attach organization context for admin API calls (not public auth)
+    if (!isPublicAuthPath(config.url)) {
+      const orgId = sessionStorage.getItem(ORG_KEY)
+      if (orgId) {
+        config.headers['X-Organization-Id'] = orgId
+      }
+    }
 
     // Also inject as query param for the two portal-facing endpoint groups
     const needsQueryToken =
@@ -68,6 +89,13 @@ export const tokenStorage = {
   clear:  ()      => sessionStorage.removeItem(SESSION_KEY),
 }
 
+// ── Organization helpers (used by AuthContext) ────────────────────────────
+export const orgStorage = {
+  get:    ()       => sessionStorage.getItem(ORG_KEY),
+  set:    (orgId)  => sessionStorage.setItem(ORG_KEY, orgId),
+  clear:  ()       => sessionStorage.removeItem(ORG_KEY),
+}
+
 // ═════════════════════════════════════════════════════════════════════════
 // DOMAIN API MODULES
 // ═════════════════════════════════════════════════════════════════════════
@@ -80,17 +108,32 @@ export const authApi = {
   registerOrganization: (data) =>
     api.post('/auth/register-organization', data),
 
-  resetPasswordRequest: (data) =>
-    api.post('/auth/reset-password-request', data),
+  verifyEmail: (token) =>
+    api.post(`/auth/verify-email?token=${encodeURIComponent(token)}`),
 
-  resetPasswordConfirm: (data) =>
+  resendVerification: (data) =>
+    api.post('/auth/resend-verification', data),
+
+  forgotPassword: (data) =>
+    api.post('/auth/forgot-password', data),
+
+  resetPassword: (data) =>
     api.post('/auth/reset-password', data),
+
+  refresh: (data) =>
+    api.post('/auth/refresh', data),
 
   logout: () =>
     api.post('/auth/logout'),
 
+  logoutAll: () =>
+    api.post('/auth/logout-all'),
+
   me: () =>
     api.get('/auth/me'),
+
+  myOrganizations: () =>
+    api.get('/organizations'),
 }
 
 // ── Participants ──────────────────────────────────────────────────────────

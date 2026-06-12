@@ -91,7 +91,7 @@ def client():
         user_id="a2222222-2222-2222-2222-222222222222",
         session_id="a3333333-3333-3333-3333-333333333333",
         token_version=1,
-        role="admin"
+        role="user"
     )
     c = TestClient(app)
     c.headers.update({
