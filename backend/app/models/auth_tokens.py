@@ -22,6 +22,7 @@ class AdminInvitation(Base):
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))
 
     organization = relationship("Organization", back_populates="invitations")
+    invited_by_user = relationship("User", foreign_keys=[invited_by_user_id])
 
 class UserSession(Base):
     __tablename__ = "user_sessions"
@@ -49,6 +50,18 @@ class EmailVerificationToken(Base):
     used_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
 
+    user = relationship("User", back_populates="email_verification_tokens")
+
+    @property
+    def is_valid(self) -> bool:
+        if self.used_at is not None:
+            return False
+        if self.expires_at.tzinfo is None:
+            now = datetime.utcnow()
+        else:
+            now = datetime.now(timezone.utc)
+        return self.expires_at > now
+
 class PasswordResetToken(Base):
     __tablename__ = "password_reset_tokens"
 
@@ -58,3 +71,15 @@ class PasswordResetToken(Base):
     expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
     used_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
+
+    user = relationship("User", back_populates="password_reset_tokens")
+
+    @property
+    def is_valid(self) -> bool:
+        if self.used_at is not None:
+            return False
+        if self.expires_at.tzinfo is None:
+            now = datetime.utcnow()
+        else:
+            now = datetime.now(timezone.utc)
+        return self.expires_at > now
