@@ -54,15 +54,19 @@ def test_failed_retry_updates_same_row(db_session):
     
     # Simulate a failure by temporarily patching SendGrid or mocking the response
     with patch("app.services.email_service.EMAIL_DELIVERY_MODE", "sendgrid"):
-        with patch("app.services.email_service.SendGridAPIClient") as mock_sg:
-            mock_sg.side_effect = Exception("Simulated send failure")
-            r1 = EmailService.send_email(
-                to_email=email,
-                subject="Fail Test",
-                html_content="<p>Fail</p>",
-                idempotency_key=key
-            )
-            assert r1.get("success") is False
+        with patch(
+            "app.services.email_service.SENDGRID_API_KEY",
+            "ci-test-sendgrid-key",
+        ):
+            with patch("app.services.email_service.SendGridAPIClient") as mock_sg:
+                mock_sg.side_effect = Exception("Simulated send failure")
+                r1 = EmailService.send_email(
+                    to_email=email,
+                    subject="Fail Test",
+                    html_content="<p>Fail</p>",
+                    idempotency_key=key
+                )
+                assert r1.get("success") is False
             
     logs = db_session.query(CommunicationLog).filter_by(idempotency_key=key).all()
     assert len(logs) == 1
