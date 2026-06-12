@@ -22,6 +22,10 @@ def override_get_db():
 # Override DB dependency for all tests
 app.dependency_overrides[get_db] = override_get_db
 
+# Disable rate limiter for testing
+if hasattr(app.state, "limiter"):
+    app.state.limiter.enabled = False
+
 
 @pytest.fixture(scope="session", autouse=True)
 def setup_test_database():

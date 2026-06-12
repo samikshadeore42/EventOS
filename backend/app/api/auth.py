@@ -16,6 +16,7 @@ from app.models.auth_tokens import UserSession, EmailVerificationToken, Password
 from app.core.security import get_password_hash
 import uuid
 from datetime import datetime, timezone
+from app.core.rate_limit import limiter
 
 router = APIRouter(prefix="/auth", tags=["Authentication"])
 
@@ -81,6 +82,7 @@ def register_organization(data: OwnerRegistrationRequest, request: Request, db: 
 import app.models.user
 
 @router.post("/login", response_model=TokenPairResponse)
+@limiter.limit("10/minute")
 def login(data: LoginRequest, request: Request, db: Session = Depends(get_db)):
     user = AuthService.get_user_by_email(db, data.email)
     if not user:
@@ -193,7 +195,8 @@ class ResendVerificationRequest(BaseModel):
     email: EmailStr
 
 @router.post("/resend-verification")
-def resend_verification(data: ResendVerificationRequest, db: Session = Depends(get_db)):
+@limiter.limit("5/minute")
+def resend_verification(data: ResendVerificationRequest, request: Request, db: Session = Depends(get_db)):
     user = AuthService.get_user_by_email(db, data.email)
     if not user:
         return {"message": "If this email is registered, a new verification link has been sent."}
@@ -219,7 +222,8 @@ def resend_verification(data: ResendVerificationRequest, db: Session = Depends(g
     return {"message": "If this email is registered, a new verification link has been sent."}
 
 @router.post("/forgot-password")
-def forgot_password(data: ForgotPasswordRequest, db: Session = Depends(get_db)):
+@limiter.limit("5/minute")
+def forgot_password(data: ForgotPasswordRequest, request: Request, db: Session = Depends(get_db)):
     user = AuthService.get_user_by_email(db, data.email)
     if user and user.is_active:
         # Invalidate older tokens
