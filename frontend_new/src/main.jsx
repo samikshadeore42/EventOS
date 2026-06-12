@@ -30,9 +30,19 @@ const queryClient = new QueryClient({
 })
 
 function ProtectedAdminRoute({ children }) {
-    const { authenticated, isPortalUser } = useAuth();
+    const { authenticated, isPortalUser, isAdmin, activeOrganization, orgsLoaded } = useAuth();
+
     if (!authenticated) return <Navigate to="/auth/login" replace />;
     if (isPortalUser) return <Navigate to="/" replace />;
+
+    if (!orgsLoaded) {
+        return <div className="flex items-center justify-center h-screen text-slate-400">Loading...</div>;
+    }
+
+    if (!activeOrganization || !isAdmin) {
+        return <Navigate to="/" replace />;
+    }
+
     return children;
 }
 

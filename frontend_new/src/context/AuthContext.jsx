@@ -61,6 +61,8 @@ export function AuthProvider({ children }) {
   const [activeOrganization, setActiveOrganization] = useState(null)
   const [availableOrganizations, setAvailableOrganizations] = useState([])
   const [activeMembership, setActiveMembership] = useState(null)
+  const [membershipsByOrgId, setMembershipsByOrgId] = useState({})
+  const [orgsLoaded, setOrgsLoaded] = useState(false)
 
   // On mount: clear token from URL bar if it was present
   useEffect(() => {
@@ -85,26 +87,43 @@ export function AuthProvider({ children }) {
 
   // Load organizations after login
   const loadOrganizations = useCallback(async () => {
+    setOrgsLoaded(false)
     try {
-      const orgs = await authApi.myOrganizations()
-      const orgList = Array.isArray(orgs) ? orgs : []
+      const result = await authApi.myOrganizations()
+        const list = Array.isArray(result) ? result : []
+
+      const orgList = list.map((r) => r.organization)
       setAvailableOrganizations(orgList)
-      
-      // Restore previously active org or pick the first
+
+      const membershipMap = {}
+      list.forEach((r) => {
+        membershipMap[r.organization.id] = r.membership
+      })  
+      setMembershipsByOrgId(membershipMap)
+
       const savedOrgId = orgStorage.get()
-      const restored = orgList.find((o) => o.id === savedOrgId)
-      const active = restored || orgList[0] || null
-      
-      if (active) {
-        setActiveOrganization(active)
-        orgStorage.set(active.id)
-        // Find membership role (the backend returns this organization because the user is a member)
-        setActiveMembership({ role: 'owner' }) // Will be refined from /me or dedicated endpoint
+      const restoredIdx = list.findIndex(
+        (r) => r.organization.id === savedOrgId
+      )
+      const activeIdx = restoredIdx >= 0 ? restoredIdx : 0
+      const activeEntry = list[activeIdx] || null
+
+      if (activeEntry) {
+        setActiveOrganization(activeEntry.organization)
+        setActiveMembership(activeEntry.membership)
+        orgStorage.set(activeEntry.organization.id)
+      } else {
+        setActiveOrganization(null)
+        setActiveMembership(null)
       }
     } catch {
       // User may be a portal user without org membership — that's fine
       setAvailableOrganizations([])
+      setMembershipsByOrgId({})
       setActiveOrganization(null)
+      setActiveMembership(null)
+    } finally {
+      setOrgsLoaded(true)
     }
   }, [])
 
@@ -156,9 +175,9 @@ export function AuthProvider({ children }) {
   // Switch active organization
   const switchOrganization = useCallback((org) => {
     setActiveOrganization(org)
+    setActiveMembership(membershipsByOrgId[org.id] || null)
     orgStorage.set(org.id)
-    // Note: The consuming component should invalidate React Query caches
-  }, [])
+  }, [membershipsByOrgId])
 
   // Logout — call backend then clear local state
   const logout = useCallback(async () => {
@@ -206,6 +225,7 @@ export function AuthProvider({ children }) {
         activeMembership,
         switchOrganization,
         loadOrganizations,
+        orgsLoaded,
       }}
     >
       {children}
