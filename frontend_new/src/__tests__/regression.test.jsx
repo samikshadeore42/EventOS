@@ -35,8 +35,6 @@ const queryClient = new QueryClient({
   },
 });
 
-import { useAuth } from '../context/AuthContext';
-
 vi.mock('../context/AuthContext', async () => {
   const originalModule = await vi.importActual('../context/AuthContext');
   return {
