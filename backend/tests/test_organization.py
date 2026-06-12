@@ -103,3 +103,48 @@ def test_accept_invitation(db_session: Session):
     orgs_resp = client.get("/organizations", headers={"Authorization": f"Bearer {token3}"})
     orgs = orgs_resp.json()
     assert len(orgs) == 2  # their own org + org1
+
+def test_update_organization(db_session: Session):
+    token = create_auth_user(client, "updater")
+    resp = client.get("/organizations", headers={"Authorization": f"Bearer {token}"})
+    org_id = resp.json()[0]["id"]
+    
+    update_resp = client.patch(f"/organizations/{org_id}", json={
+        "name": "Updated Org Name",
+        "description": "New description"
+    }, headers={"Authorization": f"Bearer {token}"})
+    
+    assert update_resp.status_code == 200
+    data = update_resp.json()
+    assert data["name"] == "Updated Org Name"
+    assert data["description"] == "New description"
+
+def test_update_organization_non_member_denied(db_session: Session):
+    token1 = create_auth_user(client, "updowner")
+    token2 = create_auth_user(client, "updother")
+    
+    resp1 = client.get("/organizations", headers={"Authorization": f"Bearer {token1}"})
+    org1_id = resp1.json()[0]["id"]
+    
+    update_resp = client.patch(f"/organizations/{org1_id}", json={"name": "Hacked"}, headers={"Authorization": f"Bearer {token2}"})
+    assert update_resp.status_code == 403
+
+@pytest.mark.parametrize("role", ["owner", "admin"])
+def test_invitation_dispatches_email(role, db_session: Session):
+    from unittest.mock import patch
+    
+    token = create_auth_user(client, f"emailinv{role}")
+    resp = client.get("/organizations", headers={"Authorization": f"Bearer {token}"})
+    org_id = resp.json()[0]["id"]
+    
+    with patch("app.tasks.communications.send_invitation_email.delay") as mock_delay:
+        invite_resp = client.post(f"/organizations/{org_id}/invitations", json={
+            "email": f"newinvitee_{role}@test.com",
+            "role": "admin"
+        }, headers={"Authorization": f"Bearer {token}"})
+        
+        assert invite_resp.status_code == 200
+        assert mock_delay.called
+        args = mock_delay.call_args[0]
+        assert args[0] == f"newinvitee_{role}@test.com"
+
