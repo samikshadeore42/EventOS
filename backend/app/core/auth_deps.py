@@ -45,6 +45,19 @@ def get_current_user(
     if not user.is_active:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Inactive user")
 
+    sid = payload.get("sid")
+    if not sid:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Missing session ID in token")
+    try:
+        session_id = uuid.UUID(sid)
+    except ValueError:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid session ID format")
+
+    from app.models.auth_tokens import UserSession
+    session = db.query(UserSession).filter(UserSession.id == session_id).first()
+    if not session or session.revoked_at is not None:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Session revoked or invalid")
+
     # Validate token version
     if payload.get("ver") != user.token_version:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Session invalidated by security event")
