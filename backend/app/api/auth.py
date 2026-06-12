@@ -127,8 +127,8 @@ def refresh(data: RefreshRequest, db: Session = Depends(get_db)):
         raise HTTPException(status_code=403, detail="User inactive")
 
     # Rotate
-    new_refresh_token = SessionService.rotate_refresh_token(db, session)
-    access_token = TokenService.create_access_token(user.id, session.id, user.token_version)
+    new_session, new_refresh_token = SessionService.rotate_refresh_token(db, session)
+    access_token = TokenService.create_access_token(user.id, new_session.id, user.token_version)
     
     db.commit()
     return {"access_token": access_token, "refresh_token": new_refresh_token, "token_type": "bearer"}

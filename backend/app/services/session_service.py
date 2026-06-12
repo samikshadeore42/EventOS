@@ -38,17 +38,30 @@ class SessionService:
         db: Session,
         session: UserSession,
         refresh_token_expire_days: int = 7
-    ) -> str:
-        # Generate new token
+    ) -> tuple[UserSession, str]:
+        # Revoke the old session
+        session.revoked_at = datetime.now(timezone.utc)
+        
+        # Create a new session with the same token_family_id
         new_raw_refresh_token = TokenService.generate_random_token()
-        session.refresh_token_hash = TokenService.hash_token(new_raw_refresh_token)
+        new_refresh_token_hash = TokenService.hash_token(new_raw_refresh_token)
         
         now = datetime.now(timezone.utc)
-        session.expires_at = now + timedelta(days=refresh_token_expire_days)
-        session.last_used_at = now
+        expires_at = now + timedelta(days=refresh_token_expire_days)
         
+        new_session = UserSession(
+            user_id=session.user_id,
+            refresh_token_hash=new_refresh_token_hash,
+            token_family_id=session.token_family_id,
+            user_agent=session.user_agent,
+            ip_address=session.ip_address,
+            expires_at=expires_at,
+            last_used_at=now
+        )
+        db.add(new_session)
         db.flush()
-        return new_raw_refresh_token
+        
+        return new_session, new_raw_refresh_token
 
     @staticmethod
     def revoke_session(db: Session, session: UserSession):
