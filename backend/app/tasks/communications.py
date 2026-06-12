@@ -247,3 +247,30 @@ def send_password_reset_email(self, to_email: str, recipient_name: str, reset_li
         return result
     except Exception as exc:
         raise self.retry(exc=exc, countdown=60 * (self.request.retries + 1))
+
+
+@celery_app.task(
+    bind=True,
+    base=EmailTask,
+    queue="notifications",
+    name="app.tasks.communications.send_invitation_email",
+    max_retries=3,
+)
+def send_invitation_email(self, to_email: str, organization_name: str, inviter_name: str, role: str, invite_link: str):
+    try:
+        norm_email = to_email.strip().lower()
+        idem_key = f"{self.request.id}:invitation:{norm_email}"
+
+        result = EmailService.send_admin_invitation(
+            to_email=to_email,
+            organization_name=organization_name,
+            inviter_name=inviter_name,
+            role=role,
+            invite_link=invite_link,
+            idempotency_key=idem_key
+        )
+        if not result.get("success"):
+            raise Exception(result.get("error", "Unknown SendGrid error"))
+        return result
+    except Exception as exc:
+        raise self.retry(exc=exc, countdown=60 * (self.request.retries + 1))

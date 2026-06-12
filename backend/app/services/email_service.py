@@ -301,3 +301,21 @@ class EmailService:
             recipient_name=recipient_name, template="password_reset", stage="auth",
             idempotency_key=idempotency_key
         )
+
+    @staticmethod
+    def send_admin_invitation(to_email: str, organization_name: str, inviter_name: str, role: str, invite_link: str, idempotency_key: str = None) -> dict:
+        """Sends an admin invitation email."""
+        html_content = f"""
+        <p>Hi,</p>
+        <p><strong>{inviter_name}</strong> has invited you to join <strong>{organization_name}</strong> as a <strong>{role}</strong> on EventOS.</p>
+        <p>Click the link below to accept the invitation:</p>
+        <p><a href="{invite_link}">Accept Invitation</a></p>
+        <p>This invitation will expire in 48 hours.</p>
+        <p>If you did not expect this invitation, please ignore this email.</p>
+        """
+        subject = f"You're invited to join {organization_name} on EventOS"
+        return EmailService.send_email(
+            to_email, subject, html_content,
+            recipient_name=to_email, template="admin_invitation", stage="auth",
+            idempotency_key=idempotency_key
+        )

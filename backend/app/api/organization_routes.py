@@ -13,8 +13,10 @@ from app.services.organization_service import OrganizationService
 from app.services.invitation_service import InvitationService
 from app.services.auth_service import AuthService
 from app.services.audit_service import AuditService
+from app.models.user import User
 from datetime import datetime, timezone
 import uuid
+import os
 
 router = APIRouter(prefix="/organizations", tags=["Organizations"])
 
@@ -140,7 +142,24 @@ def invite_admin(
     
     AuditService.log_action(db, "admin.invited", actor_user_id=current_membership.user_id, organization_id=organization_id, metadata={"role": data.role})
     db.commit()
-    # TODO: Send Email (mocked)
+
+    # Dispatch invitation email via Celery
+    org = db.query(Organization).filter(Organization.id == organization_id).first()
+    inviter = db.query(User).filter(User.id == current_membership.user_id).first()
+    frontend_base = os.getenv("FRONTEND_BASE_URL", "http://localhost:5173")
+    invite_link = f"{frontend_base}/auth/accept-invitation?token={raw_token}"
+    try:
+        from app.tasks.communications import send_invitation_email
+        send_invitation_email.delay(
+            data.email,
+            org.name if org else "EventOS Organization",
+            f"{inviter.first_name} {inviter.last_name}" if inviter else "An admin",
+            data.role,
+            invite_link
+        )
+    except Exception:
+        pass  # Email failure should not block invitation creation
+
     return invitation
 
 @router.get("/{organization_id}/invitations", response_model=list[InvitationResponse])
@@ -188,7 +207,7 @@ def preview_invitation(token: str, db: Session = Depends(get_db)):
     if invitation.status != 'pending' or expires_at < datetime.now(timezone.utc):
         raise HTTPException(400, {"code": "TOKEN_EXPIRED", "message": "Invitation is expired or no longer valid."})
         
-    inviter = db.query(app.models.user.User).filter(app.models.user.User.id == invitation.invited_by_user_id).first()
+    inviter = db.query(User).filter(User.id == invitation.invited_by_user_id).first()
     
     return {
         "organization_name": invitation.organization.name,

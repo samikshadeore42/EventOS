@@ -16,6 +16,7 @@ import AuthRegister from './views/AuthRegister'
 import AuthVerifyEmail from './views/AuthVerifyEmail'
 import AuthForgotPassword from './views/AuthForgotPassword'
 import AuthResetPasswordConfirm from './views/AuthResetPasswordConfirm'
+import AuthAcceptInvitation from './views/AuthAcceptInvitation'
 
 
 const queryClient = new QueryClient({
@@ -59,6 +60,7 @@ function App() {
             <Route path="/auth/verify-email" element={<AuthVerifyEmail />} />
             <Route path="/auth/forgot-password" element={<AuthForgotPassword />} />
             <Route path="/auth/reset-password" element={<AuthResetPasswordConfirm />} />
+            <Route path="/auth/accept-invitation" element={<AuthAcceptInvitation />} />
 
             <Route path="/" element={<LandingPage />} />
           </Routes>
