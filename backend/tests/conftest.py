@@ -46,6 +46,35 @@ def setup_test_database():
             table.indexes.remove(idx)
             
     Base.metadata.create_all(bind=engine)
+    
+    # Create a global test admin and organization
+    db = TestingSessionLocal()
+    from app.models.organization import Organization
+    from app.models.user import User
+    from app.models.organization_membership import OrganizationMembership
+    import uuid
+    from datetime import datetime, timezone, timedelta
+    
+    from app.models.auth_tokens import UserSession
+    from app.services.token_service import TokenService
+    
+    # Use fixed UUIDs so we can reference them in the client fixture
+    org_id = uuid.UUID("a1111111-1111-1111-1111-111111111111")
+    user_id = uuid.UUID("a2222222-2222-2222-2222-222222222222")
+    session_id = uuid.UUID("a3333333-3333-3333-3333-333333333333")
+    
+    org = Organization(id=org_id, name="Test Org", slug="test-org", is_active=True, created_at=datetime.now(timezone.utc), updated_at=datetime.now(timezone.utc))
+    user = User(id=user_id, first_name="Test", last_name="Admin", email="admin@test.com", password_hash="hash", email_verified=True, is_active=True, failed_login_attempts=0, token_version=1, created_at=datetime.now(timezone.utc), updated_at=datetime.now(timezone.utc))
+    membership = OrganizationMembership(id=uuid.uuid4(), organization_id=org_id, user_id=user_id, role="owner", status="active", joined_at=datetime.now(timezone.utc), created_at=datetime.now(timezone.utc), updated_at=datetime.now(timezone.utc))
+    user_session = UserSession(id=session_id, user_id=user_id, refresh_token_hash="hash", token_family_id="fam", expires_at=datetime.now(timezone.utc) + timedelta(days=1), created_at=datetime.now(timezone.utc))
+    
+    db.add(org)
+    db.add(user)
+    db.add(membership)
+    db.add(user_session)
+    db.commit()
+    db.close()
+    
     yield
     Base.metadata.drop_all(bind=engine)
     import os
@@ -55,8 +84,21 @@ def setup_test_database():
 
 @pytest.fixture(scope="session")
 def client():
-    """Shared TestClient — one instance for the full session."""
-    return TestClient(app)
+    """Shared TestClient — one instance for the full session, with admin auth headers."""
+    from app.services.token_service import TokenService
+    # Create token for the test admin created in setup_test_database
+    token = TokenService.create_access_token(
+        user_id="a2222222-2222-2222-2222-222222222222",
+        session_id="a3333333-3333-3333-3333-333333333333",
+        token_version=1,
+        role="admin"
+    )
+    c = TestClient(app)
+    c.headers.update({
+        "Authorization": f"Bearer {token}",
+        "X-Organization-Id": "a1111111-1111-1111-1111-111111111111"
+    })
+    return c
 
 
 @pytest.fixture
@@ -132,3 +174,4 @@ def sample_evaluator(db_session):
     yield e
     db_session.delete(e)
     db_session.commit()
+

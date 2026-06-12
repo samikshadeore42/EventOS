@@ -22,13 +22,18 @@ from app.api.evaluator_routes import router as evaluator_router
 from app.api.event_routes import router as event_router
 from app.api.comms_routes import router as comms_router
 from app.api.mentor_routes import router as mentor_router
-from app.api.admin_routes import router as admin_router
+# admin_router removed as per Phase 1
 from app.api.demo_admin_routes import router as demo_admin_router
 from app.api.event_state_routes import router as event_state_router
 from app.api.submission_routes import router as submission_router
 
 from app.api.auth import router as auth_router
 from app.api.organization_routes import router as organization_router
+
+from fastapi import Depends
+from app.core.auth_deps import RequireOrganizationRole
+
+legacy_dependency = [Depends(RequireOrganizationRole('owner', 'admin'))]
 
 app = FastAPI(
     title="EventOS API",
@@ -48,22 +53,23 @@ app.add_middleware(
 # Register API routers
 app.include_router(auth_router)
 app.include_router(organization_router)
-app.include_router(solver_router)
-app.include_router(approval_router)
-app.include_router(anomaly_router)
-app.include_router(portal_router)
+
+app.include_router(solver_router, dependencies=legacy_dependency)
+app.include_router(approval_router, dependencies=legacy_dependency)
+app.include_router(anomaly_router, dependencies=legacy_dependency)
+app.include_router(participant_router, dependencies=legacy_dependency)
+app.include_router(leaderboard_router, dependencies=legacy_dependency)
+app.include_router(evaluator_router, dependencies=legacy_dependency)
+app.include_router(event_router, dependencies=legacy_dependency)
+app.include_router(comms_router, dependencies=legacy_dependency)
+
 app.include_router(evaluation_router)
-app.include_router(participant_router)
-app.include_router(leaderboard_router)
-app.include_router(ai_router)
-app.include_router(evaluator_router)
-app.include_router(event_router)
-app.include_router(comms_router)
-app.include_router(mentor_router)
-app.include_router(admin_router)
-app.include_router(demo_admin_router)
-app.include_router(event_state_router)
 app.include_router(submission_router)
+app.include_router(portal_router)
+app.include_router(mentor_router)
+app.include_router(ai_router)
+app.include_router(event_state_router)
+app.include_router(demo_admin_router)
 
 @app.on_event("startup")
 async def startup():

@@ -14,8 +14,10 @@ FROM_NAME = os.getenv("SENDGRID_FROM_NAME", "EventOS Operations")
 EMAIL_DELIVERY_MODE = os.getenv("EMAIL_DELIVERY_MODE", "mock").lower()
 EMAIL_SENDGRID_FALLBACK_TO_MOCK = os.getenv("EMAIL_SENDGRID_FALLBACK_TO_MOCK", "false").lower() == "true"
 
-# Initialize Jinja2 environment to load templates from our directory
-env = Environment(loader=FileSystemLoader("app/templates/emails"))
+import os
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+TEMPLATE_DIR = os.path.join(BASE_DIR, "templates", "emails")
+env = Environment(loader=FileSystemLoader(TEMPLATE_DIR))
 
 class EmailService:
     @staticmethod

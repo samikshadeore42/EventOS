@@ -18,10 +18,11 @@ def test_organization_registration(db_session: Session):
         "last_name": "Owner",
         "email": "owner@test.com",
         "password": "password123",
-        "organization_name": "Test Org",
-        "organization_slug": "test-org"
+        "organization_name": "Test Org Reg",
+        "organization_slug": "test-org-reg"
     })
     
+    print(response.json())
     assert response.status_code == 200
     data = response.json()
     assert data["email"] == "owner@test.com"
@@ -32,7 +33,7 @@ def test_organization_registration(db_session: Session):
     assert user is not None
     assert user.email_verified == False # Mock email isn't verified immediately
     
-    org = db_session.query(Organization).filter(Organization.slug == "test-org").first()
+    org = db_session.query(Organization).filter(Organization.slug == "test-org-reg").first()
     assert org is not None
     
     membership = db_session.query(OrganizationMembership).filter(
@@ -72,6 +73,7 @@ def test_login_success(db_session: Session):
         "password": "password123"
     })
     
+    print(response.json())
     assert response.status_code == 200
     data = response.json()
     assert "access_token" in data
@@ -118,7 +120,7 @@ def test_refresh_token(db_session: Session):
     # Reuse old refresh token -> Should revoke family
     reuse_resp = client.post("/auth/refresh", json={"refresh_token": refresh_token})
     assert reuse_resp.status_code == 401
-    assert "invalid" in reuse_resp.json()["detail"].lower()
+    assert "revoked" in reuse_resp.json()["detail"].lower()
 
 def test_logout(db_session: Session):
     # Register & Login

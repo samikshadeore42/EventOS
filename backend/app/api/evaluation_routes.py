@@ -11,6 +11,7 @@ from app.models.evaluation import Evaluation, Evaluator
 from app.services.score_service import ScoreService
 from app.models.assignment import EvaluatorTeamAssignment
 from app.core.security import generate_score_hash
+from app.core.auth_deps import RequireOrganizationRole
 from app.schemas.evaluation_schemas import (
     ScoreSubmissionRequest,
     ScoreUpdateRequest,
@@ -125,6 +126,7 @@ def update_scorecard(
 @router.get(
     "/team/{team_id}",
     summary="Get all scorecards for a specific team",
+    dependencies=[Depends(RequireOrganizationRole('owner', 'admin'))]
 )
 def get_team_scorecards(team_id: UUID, db: Session = Depends(get_db)):
     scorecards = ScoreService.get_team_scorecards(team_id, db)
@@ -147,6 +149,7 @@ def get_team_scorecards(team_id: UUID, db: Session = Depends(get_db)):
 @router.get(
     "/flagged",
     summary="Get all flagged scorecards pending admin review",
+    dependencies=[Depends(RequireOrganizationRole('owner', 'admin'))]
 )
 def get_flagged_scorecards(db: Session = Depends(get_db)):
     flagged = ScoreService.get_flagged_scorecards(db)
@@ -171,6 +174,7 @@ def get_flagged_scorecards(db: Session = Depends(get_db)):
     "/flags/{evaluation_id}/clear",
     response_model=EvaluationResponse,
     summary="Admin clears an anomaly flag after manual review",
+    dependencies=[Depends(RequireOrganizationRole('owner', 'admin'))]
 )
 def clear_flag(evaluation_id: UUID, db: Session = Depends(get_db)):
     """
@@ -186,7 +190,8 @@ def clear_flag(evaluation_id: UUID, db: Session = Depends(get_db)):
     description=(
         "Returns weighted average scores per team. "
         "Teams with active flags are included but marked as not leaderboard-ready."
-    )
+    ),
+    dependencies=[Depends(RequireOrganizationRole('owner', 'admin'))]
 )
 def get_leaderboard(db: Session = Depends(get_db)):
     return ScoreService.consolidate_all_teams(db)
@@ -194,7 +199,8 @@ def get_leaderboard(db: Session = Depends(get_db)):
 
 @router.get(
     "/audit-integrity", 
-    summary="Run a cryptographic audit on all scores to detect database tampering"
+    summary="Run a cryptographic audit on all scores to detect database tampering",
+    dependencies=[Depends(RequireOrganizationRole('owner', 'admin'))]
 )
 def audit_score_integrity(db: Session = Depends(get_db)):
     """

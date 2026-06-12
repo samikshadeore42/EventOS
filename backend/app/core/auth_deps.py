@@ -80,11 +80,16 @@ class RequireOrganizationRole:
 
     def __call__(
         self,
-        organization_id: uuid.UUID,
+        organization_id: uuid.UUID | None = None,
+        x_organization_id: uuid.UUID | None = Header(None, alias="X-Organization-Id"),
         user: User = Depends(get_current_user),
         db: Session = Depends(get_db)
     ) -> OrganizationMembership:
-        membership = OrganizationService.get_membership(db, organization_id, user.id)
+        target_org_id = organization_id or x_organization_id
+        if not target_org_id:
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Organization ID is required")
+            
+        membership = OrganizationService.get_membership(db, target_org_id, user.id)
         
         if not membership:
             raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Access denied. Not a member of this organization.")
