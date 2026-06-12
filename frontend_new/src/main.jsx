@@ -13,6 +13,8 @@ import MentorPortal from './views/MentorPortal'
 import LandingPage from './views/LandingPage'
 import AdminLogin from './views/AdminLogin'
 import AdminSignup from './views/AdminSignup'
+import { NotificationProvider } from './context/NotificationContext'
+import DemoNotificationPage from './views/DemoNotificationPage'
 
 
 const queryClient = new QueryClient({
@@ -37,23 +39,27 @@ function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
-        <BrowserRouter>
-          <Routes>
-            <Route path="/judge" element={<JudgePortal />} />
-            <Route path="/participant" element={<ParticipantPortal />} />
-            <Route path="/mentor" element={<MentorPortal />} />
-            
-            <Route path="/admin" element={
-                <ProtectedAdminRoute>
-                    <AdminDashboard />
-                </ProtectedAdminRoute>
-            } />
-            <Route path="/admin/login" element={<AdminLogin />} />
-            <Route path="/admin/signup" element={<AdminSignup />} />
+        <NotificationProvider>
+          <BrowserRouter>
+            <Routes>
+              <Route path="/judge" element={<JudgePortal />} />
+              <Route path="/participant" element={<ParticipantPortal />} />
+              <Route path="/mentor" element={<MentorPortal />} />
+              
+              <Route path="/admin" element={
+                  <ProtectedAdminRoute>
+                      <AdminDashboard />
+                  </ProtectedAdminRoute>
+              } />
+              <Route path="/admin/login" element={<AdminLogin />} />
+              <Route path="/admin/signup" element={<AdminSignup />} />
+              
+              <Route path="/notifications/demo" element={<DemoNotificationPage />} />
 
-            <Route path="/" element={<LandingPage />} />
-          </Routes>
-        </BrowserRouter>
+              <Route path="/" element={<LandingPage />} />
+            </Routes>
+          </BrowserRouter>
+        </NotificationProvider>
       </AuthProvider>
     </QueryClientProvider>
   )

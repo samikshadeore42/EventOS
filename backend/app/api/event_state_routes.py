@@ -36,6 +36,9 @@ def next_stage_endpoint(db: Session = Depends(get_db)):
         return {"current_stage": state.current_stage,"message": "Advanced to next stage"}
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
+    except Exception as e:
+        import traceback
+        raise HTTPException(status_code=500, detail=traceback.format_exc())
 
 @router.post("/previous")
 def previous_stage_endpoint(db: Session = Depends(get_db)):
@@ -47,5 +50,9 @@ def previous_stage_endpoint(db: Session = Depends(get_db)):
 
 @router.post("/reset")
 def reset_stage_endpoint(db: Session = Depends(get_db)):
-    state = reset_stage(db)
-    return {"current_stage": state.current_stage, "message": "Event reset to registration"}
+    try:
+        state = reset_stage(db)
+        return {"current_stage": state.current_stage, "message": "Event reset to registration"}
+    except Exception as e:
+        import traceback
+        raise HTTPException(status_code=500, detail=traceback.format_exc())

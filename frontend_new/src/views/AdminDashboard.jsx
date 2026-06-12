@@ -16,6 +16,7 @@ import {
 } from 'lucide-react'
 import EventOSLogo from '../components/EventOSLogo'
 import PipelineStepper from '../components/PipelineStepper'
+import { NotificationBell } from '../components/NotificationBell'
 import {
   participantsApi,
   solverApi,
@@ -2473,7 +2474,7 @@ export default function AdminDashboard() {
   return (
     <div className="min-h-screen bg-slate-50">
       {/* Top bar */}
-      <header className="glass-card border-b border-slate-200 px-6 py-4 flex items-center justify-between">
+      <header className="relative z-50 glass-card border-b border-slate-200 px-6 py-4 flex items-center justify-between">
         <div className="flex items-center gap-4">
           <EventOSLogo className="text-indigo-600" size={48} />
           <div className="border-l border-slate-200 pl-4">
@@ -2481,11 +2482,12 @@ export default function AdminDashboard() {
             <p className="text-xs font-medium text-slate-500">WiSE@TI Hackathon</p>
           </div>
         </div>
-        <div className="flex items-center gap-3 text-xs text-slate-500">
+        <div className="flex items-center gap-4 text-xs text-slate-500">
           <span className="flex items-center gap-1">
             <span className="w-2 h-2 rounded-full bg-teal-500 inline-block animate-pulse" />
             System Online
           </span>
+          <NotificationBell />
         </div>
       </header>
 

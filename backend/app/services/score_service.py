@@ -19,6 +19,9 @@ from app.models.participant import Team
 from app.schemas.evaluation_schemas import TeamScoreSummary
 from app.services.anomaly_detector import AnomalyDetector, build_panel_from_dicts
 from app.core.security import generate_score_hash
+from app.services.notification_service import NotificationService
+from app.schemas.notification import NotificationCreate
+import logging
 
 GRADING_CRITERIA = {
     "technical_depth": 0.35,
@@ -80,6 +83,20 @@ class ScoreService:
         # Run anomaly detection — this may update is_flagged
         ScoreService.run_anomaly_detection_for_team(team_id, db)
         db.refresh(evaluation)
+        
+        try:
+            evaluator = db.query(Evaluator).filter(Evaluator.id == evaluator_uuid).first()
+            evaluator_name = f"{evaluator.first_name} {evaluator.last_name}" if evaluator else "A judge"
+            NotificationService.create_notification(
+                db, 
+                NotificationCreate(
+                    user_id="all",
+                    message=f"{evaluator_name} submitted a scorecard for team '{team.team_name}'.",
+                    type="score_update"
+                )
+            )
+        except Exception as e:
+            logging.error(f"Failed to send score update notification: {e}")
 
         return evaluation
 

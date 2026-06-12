@@ -6,9 +6,12 @@ import io
 from fastapi import UploadFile, HTTPException
 from sqlalchemy.orm import Session
 
-from app.models.participant import Participant
+from app.models.participant import Participant, Team
 from app.models.evaluation import Evaluator
 from app.models.project_submission import ProjectSubmission
+from app.services.notification_service import NotificationService
+from app.schemas.notification import NotificationCreate
+import logging
 
 UPLOAD_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "uploads", "project_submissions"))
 MAX_FILE_SIZE = 50 * 1024 * 1024  # 50MB
@@ -75,7 +78,7 @@ class ProjectSubmissionService:
             existing_sub.content_type = upload_file.content_type
             db.commit()
             db.refresh(existing_sub)
-            return existing_sub
+            ret_sub = existing_sub
         else:
             new_sub = ProjectSubmission(
                 team_id=participant.team_id,
@@ -89,7 +92,23 @@ class ProjectSubmissionService:
             db.add(new_sub)
             db.commit()
             db.refresh(new_sub)
-            return new_sub
+            ret_sub = new_sub
+
+        try:
+            team = db.query(Team).filter(Team.id == participant.team_id).first()
+            team_name = team.team_name if team else str(participant.team_id)
+            NotificationService.create_notification(
+                db, 
+                NotificationCreate(
+                    user_id="all",
+                    message=f"Team '{team_name}' submitted their project zip archive.",
+                    type="system"
+                )
+            )
+        except Exception as e:
+            logging.error(f"Failed to send project submission notification: {e}")
+
+        return ret_sub
 
     @staticmethod
     def get_team_submission(db: Session, team_id: str):

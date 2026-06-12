@@ -9,6 +9,9 @@ from fastapi import HTTPException
 
 from app.models.mentor import Mentor, MentorAssignment, MentorSession, MentorFeedback
 from app.models.participant import Participant, Team
+from app.services.notification_service import NotificationService
+from app.schemas.notification import NotificationCreate
+import logging
 from app.schemas.mentor_schemas import (
     MentorCreate, MentorUpdate, MentorOut,
     MentorAssignmentCreate, MentorAssignmentOut,
@@ -114,6 +117,19 @@ class MentorService:
         db.add(assignment)
         db.commit()
         db.refresh(assignment)
+
+        try:
+            NotificationService.create_notification(
+                db, 
+                NotificationCreate(
+                    user_id="all",
+                    message=f"Mentor {mentor.first_name} {mentor.last_name} was assigned to team '{team.team_name}'.",
+                    type="system"
+                )
+            )
+        except Exception as e:
+            logging.error(f"Failed to send mentor assignment notification: {e}")
+
         return assignment
 
     @staticmethod
