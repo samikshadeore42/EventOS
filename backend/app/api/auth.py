@@ -215,10 +215,20 @@ def resend_verification(data: ResendVerificationRequest, db: Session = Depends(g
 def forgot_password(data: ForgotPasswordRequest, db: Session = Depends(get_db)):
     user = AuthService.get_user_by_email(db, data.email)
     if user and user.is_active:
+        # Invalidate older tokens
+        for old_token in user.password_reset_tokens:
+            if old_token.is_valid:
+                old_token.used_at = datetime.now(timezone.utc)
+        
         raw_token = AuthService.generate_password_reset(db, user.id)
         AuditService.log_action(db, "user.password_reset_requested", actor_user_id=user.id)
         db.commit()
-        # TODO: send email
+
+        from app.tasks.communications import send_password_reset_email
+        import os
+        frontend_url = os.getenv("FRONTEND_BASE_URL", "http://localhost:5173")
+        reset_link = f"{frontend_url}/auth/reset-password?token={raw_token}"
+        send_password_reset_email.delay(user.email, user.first_name, reset_link)
     
     return {"message": "If an account exists for that email, a reset link has been sent."}
 
@@ -231,8 +241,7 @@ def reset_password(data: ResetPasswordRequest, db: Session = Depends(get_db)):
         raise HTTPException(status_code=400, detail={"code": "INVALID_TOKEN", "message": "Invalid token."})
     if prt.used_at:
         raise HTTPException(status_code=400, detail={"code": "TOKEN_USED", "message": "Token already used."})
-    expires_at = prt.expires_at.replace(tzinfo=timezone.utc) if prt.expires_at.tzinfo is None else prt.expires_at
-    if expires_at < datetime.now(timezone.utc):
+    if not prt.is_valid:
         raise HTTPException(status_code=400, detail={"code": "TOKEN_EXPIRED", "message": "Token expired."})
         
     user = prt.user
