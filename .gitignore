@@ -31,3 +31,14 @@ backend/test.db
 .vscode/
 .idea/
 *.swp
+
+#Record
+phase0-artifacts/
+backups/
+backend/.venv/
+backend/.venv-phase0/
+backend/htmlcov/
+backend/.coverage
+frontend_new/coverage/
+frontend_new/playwright-report/
+frontend_new/test-results/

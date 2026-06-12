@@ -80,7 +80,7 @@ def send_daily_evaluation_reminder():
             </p>
             </body></html>
             """
-            result = EmailService._send_email(
+            result = EmailService.send_email(
                 to_email=evaluator.email,
                 subject="⏰ Reminder: You have pending evaluations — WiSE@TI",
                 html_content=html

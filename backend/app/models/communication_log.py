@@ -20,5 +20,6 @@ class CommunicationLog(Base):
     success:         Mapped[bool]  = mapped_column(Boolean,     default=False)
     error_message:   Mapped[str | None] = mapped_column(Text,   nullable=True)
     message_id:      Mapped[str | None] = mapped_column(String(200), nullable=True)  # SendGrid msg ID
+    idempotency_key: Mapped[str | None] = mapped_column(String(255), nullable=True, unique=True, index=True)
     sent_at:         Mapped[datetime]   = mapped_column(DateTime(timezone=True),
         default=lambda: datetime.now(timezone.utc))
