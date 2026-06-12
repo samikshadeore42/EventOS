@@ -28,7 +28,7 @@ jobs:
         image: postgres:16-alpine
         env:
           POSTGRES_USER: eventos_ci
-          POSTGRES_PASSWORD: eventos_ci
+          POSTGRES_HOST_AUTH_METHOD: trust
           POSTGRES_DB: eventos_ci
         ports:
           - 5432:5432
@@ -50,7 +50,7 @@ jobs:
 
     env:
       ENVIRONMENT: test
-      DATABASE_URL: postgresql://eventos_ci:eventos_ci@localhost:5432/eventos_ci
+      DATABASE_URL: postgresql://eventos_ci@localhost:5432/eventos_ci
       REDIS_URL: redis://localhost:6379/0
       CELERY_BROKER_URL: redis://localhost:6379/0
       CELERY_RESULT_BACKEND: redis://localhost:6379/0
@@ -61,8 +61,8 @@ jobs:
       SENDGRID_FROM_NAME: EventOS CI
       GOOGLE_API_KEY: ""
       GEMINI_API_KEY: ""
-      SECRET_KEY: phase0-ci-test-secret
-      JWT_SECRET_KEY: phase0-ci-test-secret
+      SECRET_KEY: "phase0-${{ github.run_id }}-${{ github.run_attempt }}"
+      JWT_SECRET_KEY: "phase0-jwt-${{ github.run_id }}-${{ github.run_attempt }}"
       FRONTEND_BASE_URL: http://localhost:5173
 
     steps:
@@ -134,15 +134,15 @@ jobs:
     timeout-minutes: 20
 
     env:
-      DATABASE_URL: postgresql://eventos_ci:eventos_ci@postgres:5432/eventos_ci
+      DATABASE_URL: postgresql://eventos_ci@postgres:5432/eventos_ci
       REDIS_URL: redis://redis:6379/0
       EMAIL_DELIVERY_MODE: mock
       EMAIL_SENDGRID_FALLBACK_TO_MOCK: "false"
       SENDGRID_API_KEY: ""
       GOOGLE_API_KEY: ""
       GEMINI_API_KEY: ""
-      SECRET_KEY: phase0-ci-test-secret
-      JWT_SECRET_KEY: phase0-ci-test-secret
+      SECRET_KEY: "phase0-${{ github.run_id }}-${{ github.run_attempt }}"
+      JWT_SECRET_KEY: "phase0-jwt-${{ github.run_id }}-${{ github.run_attempt }}"
       FRONTEND_BASE_URL: http://localhost:5173
 
     steps:
