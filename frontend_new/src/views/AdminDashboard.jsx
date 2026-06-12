@@ -16,6 +16,7 @@ import {
 } from 'lucide-react'
 import EventOSLogo from '../components/EventOSLogo'
 import PipelineStepper from '../components/PipelineStepper'
+import OrgSwitcher from '../components/OrgSwitcher'
 import {
   participantsApi,
   solverApi,
@@ -2481,11 +2482,12 @@ export default function AdminDashboard() {
             <p className="text-xs font-medium text-slate-500">WiSE@TI Hackathon</p>
           </div>
         </div>
-        <div className="flex items-center gap-3 text-xs text-slate-500">
-          <span className="flex items-center gap-1">
+        <div className="flex items-center gap-3">
+          <span className="flex items-center gap-1 text-xs text-slate-500">
             <span className="w-2 h-2 rounded-full bg-teal-500 inline-block animate-pulse" />
-            System Online
+            Online
           </span>
+          <OrgSwitcher />
         </div>
       </header>
 
