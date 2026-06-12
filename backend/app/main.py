@@ -27,6 +27,9 @@ from app.api.demo_admin_routes import router as demo_admin_router
 from app.api.event_state_routes import router as event_state_router
 from app.api.submission_routes import router as submission_router
 
+from app.api.auth import router as auth_router
+from app.api.organization_routes import router as organization_router
+
 app = FastAPI(
     title="EventOS API",
     description="Intelligent Event Orchestration System — WiSE@TI",
@@ -43,6 +46,8 @@ app.add_middleware(
 )
 
 # Register API routers
+app.include_router(auth_router)
+app.include_router(organization_router)
 app.include_router(solver_router)
 app.include_router(approval_router)
 app.include_router(anomaly_router)
