@@ -13,7 +13,8 @@ name: Phase 0 CI
 permissions:
   contents: read
 
-concurrency:
+concurrency:git log -1 --oneline
+git status --short
   group: phase0-ci-${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
@@ -80,6 +81,7 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           python -m pip install -r backend/requirements.txt
+          python -m pip install pytest pytest-env
 
       - name: Compile backend
         run: python -m compileall -q backend/app
@@ -147,6 +149,9 @@ jobs:
     steps:
       - name: Check out repository
         uses: actions/checkout@v6
+
+      - name: Prepare Docker CI environment
+        run: cp .env.example backend/.env
 
       - name: Validate Docker Compose
         run: docker compose config --quiet
