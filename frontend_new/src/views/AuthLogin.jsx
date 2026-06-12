@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate, Link, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { Loader2, Lock, Mail } from 'lucide-react';
 import EventOSLogo from '../components/EventOSLogo';
@@ -12,6 +12,7 @@ export default function AuthLogin() {
   const [error, setError] = useState(null);
   const [verificationRequired, setVerificationRequired] = useState(false);
   const [resendSuccess, setResendSuccess] = useState(false);
+  const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const { setAuthTokens } = useAuth();
 
@@ -32,7 +33,8 @@ export default function AuthLogin() {
         password: formData.password
       });
       setAuthTokens(res.access_token, res.refresh_token);
-      navigate('/admin'); // Redirect back to Stage 1 dashboard
+      const redirectUrl = searchParams.get('redirect') || '/admin';
+      navigate(redirectUrl);
     } catch (err) {
       const msg = err.message || '';
       if (msg.includes('EMAIL_VERIFICATION_REQUIRED') || msg.includes('verify your email')) {
