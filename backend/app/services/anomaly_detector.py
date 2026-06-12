@@ -46,6 +46,7 @@ class ScoreEntry:
     judge_name:              str
     judge_institution:       str
     team_id:                 str
+    team_name:               str
     team_member_institutions: set        # for COI detection
     scores:                  Dict[str, float]   # {"criterion": score}
 
@@ -174,7 +175,7 @@ class ZScoreDetector:
                             metric=float(z),
                             threshold=threshold,
                             explanation=(
-                                f"Judge {entry.judge_name} scored team {team_id} "
+                                f"Judge {entry.judge_name} scored team '{entry.team_name}' "
                                 f"{s:.2f} on '{criterion}' — panel mean is "
                                 f"{mean:.2f} (z={z:.2f}σ, threshold {threshold:.1f}σ)."
                             ),
@@ -240,7 +241,7 @@ class EuclideanDivergenceDetector:
                         threshold=threshold,
                         explanation=(
                             f"Judge {entry.judge_name}'s overall score vector for "
-                            f"team {team_id} diverges from the panel by "
+                            f"team '{entry.team_name}' diverges from the panel by "
                             f"{distance:.2f} (weighted Euclidean), threshold {threshold:.1f}."
                         ),
                     ))
@@ -380,7 +381,7 @@ class ConflictOfInterestDetector:
                         threshold=bias_threshold,
                         explanation=(
                             f"Judge {entry.judge_name} ({entry.judge_institution}) "
-                            f"shares an institution with a member of team {team_id} "
+                            f"shares an institution with a member of team '{entry.team_name}' "
                             f"and scored them {judge_mean_for_team:.2f} vs panel "
                             f"mean {panel_mean:.2f} (bias +{bias:.2f}, threshold "
                             f"+{bias_threshold:.1f})."
@@ -509,6 +510,7 @@ def build_panel_from_dicts(
             judge_name=               r["judge_name"],
             judge_institution=        r["judge_institution"],
             team_id=                  r["team_id"],
+            team_name=                r.get("team_name", r["team_id"]),
             team_member_institutions= set(r["team_member_institutions"]),
             scores=                   r["scores"],
         )

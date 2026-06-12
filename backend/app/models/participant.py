@@ -41,6 +41,7 @@ class Participant(Base):
     # Email communication tracking
     email_verified:    Mapped[bool]    = mapped_column(Boolean, default=False)
     welcome_email_sent: Mapped[bool]   = mapped_column(Boolean, default=False)
+    team_link_sent:    Mapped[bool]    = mapped_column(Boolean, default=False, server_default='false')
 
     progression_confirmed: Mapped[bool | None] = mapped_column(Boolean, nullable=True)
     

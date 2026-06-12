@@ -141,6 +141,9 @@ export const approvalsApi = {
 
   bulk: (decision, notes = '') =>
     api.post('/approvals/bulk-decision', { decision, notes }),
+
+  publish: () =>
+    api.post('/approvals/publish'),
 }
 
 // ── Evaluators ────────────────────────────────────────────────────────────

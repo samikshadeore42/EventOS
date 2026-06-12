@@ -344,9 +344,9 @@ function ParticipantsTab() {
       <div className="glass-card rounded-xl border border-slate-200 overflow-hidden">
         <table className="w-full text-sm">
           <thead>
-            <tr className="bg-slate-800/40 border-b border-slate-700/50 text-left">
-              {['Name', 'Institution', 'Skills (avg)', 'Team', 'Invitation Status', ''].map((h) => (
-                <th key={h} className="px-4 py-3 text-xs font-medium text-slate-400 uppercase tracking-wide">{h}</th>
+            <tr className="bg-slate-50 border-b border-slate-200 text-left">
+              {['Name', 'Institution', 'Skills (avg)', 'Team', 'Team Link Status', ''].map((h) => (
+                <th key={h} className="px-4 py-3 text-xs font-medium text-slate-500 uppercase tracking-wide">{h}</th>
               ))}
             </tr>
           </thead>
@@ -361,7 +361,7 @@ function ParticipantsTab() {
                     ))}
                   </tr>
                 ))
-              : data?.participants.map((p) => {
+              : data?.participants && data.participants.length > 0 ? data.participants.map((p) => {
                   const skills = Object.values(p.skill_vector || {})
                   const avg = skills.length
                     ? (skills.reduce((a, b) => a + b, 0) / skills.length).toFixed(1)
@@ -383,13 +383,17 @@ function ParticipantsTab() {
                       <td className="px-4 py-3">
                         {p.team_name
                           ? <Badge colour="teal">{p.team_name}</Badge>
-                          : <span className="text-xs text-slate-500">Unassigned</span>
+                          : p.team_status === "pending_approval"
+                            ? <Badge colour="amber">Pending Approval</Badge>
+                            : <span className="text-xs text-slate-500">Unassigned</span>
                         }
                       </td>
                       <td className="px-4 py-3">
-                        {p.progression_confirmed === true && <Badge colour="green">Confirmed</Badge>}
-                        {p.progression_confirmed === false && <Badge colour="red">Declined</Badge>}
-                        {p.progression_confirmed === null && <Badge colour="amber">No Response</Badge>}
+                        {p.team_link_sent ? (
+                          <Badge colour="green">Email Sent</Badge>
+                        ) : (
+                          <Badge colour="slate">Not Sent</Badge>
+                        )}
                       </td>
                       <td className="px-4 py-3 text-right">
                         <button
@@ -405,7 +409,13 @@ function ParticipantsTab() {
                       </td>
                     </tr>
                   )
-                })
+                }) : (
+                  <tr>
+                    <td colSpan="6" className="px-4 py-8 text-center text-sm text-slate-500">
+                      {search || teamFilter !== '' ? "No participants found matching the current filters." : "No participants registered yet."}
+                    </td>
+                  </tr>
+                )
             }
           </tbody>
         </table>
@@ -744,6 +754,11 @@ function ApprovalsTab() {
     queryFn:  approvalsApi.pending,
     refetchInterval: 10_000,
   })
+  const { data: allTeams } = useQuery({
+    queryKey: ['all-teams'],
+    queryFn: approvalsApi.all,
+    refetchInterval: 10_000,
+  })
   const { data: detail } = useQuery({
     queryKey: ['team-detail', expanded],
     queryFn:  () => approvalsApi.detail(expanded),
@@ -761,8 +776,37 @@ function ApprovalsTab() {
   })
   const bulkMutation = useMutation({
     mutationFn: (decision) => approvalsApi.bulk(decision),
-    onSuccess:  () => qc.invalidateQueries({ queryKey: ['pending-approvals'] }),
+    onSuccess:  () => {
+      qc.invalidateQueries({ queryKey: ['pending-approvals'] })
+      qc.invalidateQueries({ queryKey: ['all-teams'] })
+    },
   })
+  const publishMutation = useMutation({
+    mutationFn: () => approvalsApi.publish(),
+    onSuccess: (res) => {
+      alert(res.message)
+      qc.invalidateQueries({ queryKey: ['pending-approvals'] })
+      qc.invalidateQueries({ queryKey: ['all-teams'] })
+      qc.invalidateQueries({ queryKey: ['comms-log'] })
+      qc.invalidateQueries({ queryKey: ['participants'] })
+      qc.invalidateQueries({ queryKey: ['roster-summary'] })
+    },
+    onError: (err) => alert(err.message)
+  })
+
+  const teamsResponse = allTeams
+  const normalizedAllTeams = Array.isArray(teamsResponse)
+    ? teamsResponse
+    : Array.isArray(teamsResponse?.teams)
+      ? teamsResponse.teams
+      : Array.isArray(teamsResponse?.data)
+        ? teamsResponse.data
+        : []
+
+  const activeTeams = normalizedAllTeams.filter(t => t.approval_status !== 'superseded')
+  const hasRejected = activeTeams.some(t => t.approval_status === 'rejected')
+  const allApproved = activeTeams.length > 0 && activeTeams.every(t => t.approval_status === 'approved')
+  const hasPublished = activeTeams.length > 0 && activeTeams.every(t => t.approval_status === 'published')
 
   return (
     <div>
@@ -795,6 +839,63 @@ function ApprovalsTab() {
           </div>
         )}
       </div>
+
+      {/* Global Status Banner */}
+      {activeTeams.length > 0 && !hasPublished && (
+        <div className={`mb-6 p-4 rounded-xl border ${hasRejected ? 'bg-red-50 border-red-200' : allApproved ? 'bg-teal-50 border-teal-200' : 'bg-slate-50 border-slate-200'}`}>
+          {hasRejected && (
+            <div className="flex items-start gap-3">
+              <AlertTriangle className="text-red-500 shrink-0 mt-0.5" size={20} />
+              <div>
+                <h3 className="text-sm font-bold text-red-900">Formation Rejected</h3>
+                <p className="text-xs text-red-700 mt-1">One or more teams in this formation have been rejected. You cannot publish this formation. Please go to the <strong>Teams</strong> tab and rerun the solver to generate a new valid lineup.</p>
+              </div>
+            </div>
+          )}
+          {allApproved && (
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <CheckSquare className="text-teal-600 shrink-0" size={20} />
+                <div>
+                  <h3 className="text-sm font-bold text-teal-900">All Teams Approved</h3>
+                  <p className="text-xs text-teal-700 mt-1">The formation is fully approved. Publish now to make teams visible and dispatch assignment emails.</p>
+                </div>
+              </div>
+              <button
+                onClick={() => {
+                  if (window.confirm("Publish formation? Participants will be notified via email immediately.")) {
+                    publishMutation.mutate()
+                  }
+                }}
+                disabled={publishMutation.isPending}
+                className="flex items-center gap-2 text-sm px-4 py-2 rounded-lg bg-teal-600 text-white hover:bg-teal-700 disabled:opacity-50 font-semibold shadow-sm"
+              >
+                {publishMutation.isPending ? <Loader2 size={16} className="animate-spin" /> : <Send size={16} />}
+                Publish Formation
+              </button>
+            </div>
+          )}
+          {!hasRejected && !allApproved && (
+            <div className="flex items-start gap-3">
+              <Loader2 className="text-slate-400 shrink-0 mt-0.5 animate-spin" size={20} />
+              <div>
+                <h3 className="text-sm font-bold text-slate-800">Formation in Review</h3>
+                <p className="text-xs text-slate-600 mt-1">Review all pending teams. All teams must be approved before the formation can be published to participants.</p>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+
+      {hasPublished && (
+        <div className="mb-6 p-4 rounded-xl bg-indigo-50 border border-indigo-200 flex items-start gap-3">
+          <Check className="text-indigo-600 shrink-0 mt-0.5" size={20} />
+          <div>
+            <h3 className="text-sm font-bold text-indigo-900">Formation Published</h3>
+            <p className="text-xs text-indigo-700 mt-1">This formation has been fully published. Participants have been notified and can view their teams.</p>
+          </div>
+        </div>
+      )}
 
       {isLoading && (
         <div className="space-y-3">
@@ -1243,8 +1344,8 @@ function LeaderboardTab() {
               <div key={sc.id} className="flex items-start gap-3 glass-card rounded-lg p-3 border border-amber-100">
                 <div className="flex-1 min-w-0">
                   <p className="text-xs font-medium text-slate-800">
-                    Evaluator <span className="font-mono">{sc.evaluator_id.slice(0,8)}…</span>
-                    {' → '}Team <span className="font-mono">{sc.team_id.slice(0,8)}…</span>
+                    Evaluator <span className="font-semibold text-slate-900">{sc.evaluator_name}</span>
+                    {' → '}Team <span className="font-semibold text-slate-900">{sc.team_name}</span>
                   </p>
                   <p className="text-xs text-red-600 mt-0.5 leading-relaxed">{sc.flag_reason}</p>
                   {sc.anomaly_score != null && (
@@ -1981,7 +2082,7 @@ function AnomalyTab() {
     )
   }
 
-  const flaggedTeams = data?.teams || []
+  const flaggedTeams = data?.scorecards || []
   const totalFlagged = data?.total_flagged || 0
 
   return (
@@ -2062,7 +2163,7 @@ function AnomalyTab() {
           </div>
         ) : (
           flaggedTeams.map(team => (
-            <div key={team.team_id} className="glass-card p-5 rounded-xl border border-red-200 flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div key={team.id} className="glass-card p-5 rounded-xl border border-red-200 flex flex-col md:flex-row md:items-center justify-between gap-4">
               <div className="flex-1">
                 <div className="flex items-center gap-2 mb-2">
                   <h4 className="font-bold text-slate-900 text-lg">{team.team_name}</h4>
@@ -2109,7 +2210,7 @@ function AnomalyTab() {
               
               <div className="flex flex-col gap-2 min-w-[160px]">
                 <button 
-                  onClick={() => { if(window.confirm(`Override flag for ${team.team_name}?`)) overrideMutation.mutate(team.team_id) }}
+                  onClick={() => { if(window.confirm(`Override flag for ${team.team_name}?`)) overrideMutation.mutate(team.id) }}
                   disabled={overrideMutation.isPending}
                   className="btn-secondary px-4 py-2 rounded-lg text-sm flex justify-center items-center gap-2 border-indigo-200 hover:border-indigo-400/60"
                 >

@@ -116,36 +116,11 @@ class ApprovalService:
             db.commit()
             db.refresh(team)
 
-            # Enqueue team assignment emails for all members
-            emails_queued = False
-            if members:
-                from app.tasks.communications import send_batch_emails
-                recipient_list = [
-                    {
-                        "email":        m.email,
-                        "name":         f"{m.first_name} {m.last_name}",
-                        "team_name":    team.team_name,
-                        "team_members": [
-                            f"{x.first_name} {x.last_name}"
-                            for x in members if x.id != m.id
-                        ],
-                        "rationale": team.rationale or "",
-                    }
-                    for m in members
-                ]
-                send_batch_emails.delay(
-                    recipient_list=recipient_list,
-                    template="team_assignment",
-                    event_name="WiSE@TI Hackathon"
-                )
-                emails_queued = True
-
             return {
                 "team":          team,
                 "decision":      decision,
-                "emails_queued": emails_queued,
-                "message":       f"Team '{team.team_name}' approved. "
-                                 f"{'Assignment emails queued.' if emails_queued else ''}"
+                "emails_queued": False,
+                "message":       f"Team '{team.team_name}' approved. Formation must be fully published to send emails."
             }
 
         else:  # REJECT
@@ -218,8 +193,59 @@ class ApprovalService:
 
         db.commit()
 
-        # Enqueue all emails in a single Celery task (efficient batch)
-        emails_queued = False
+        return {
+            "total_teams":   len(pending_teams),
+            "approved":      approved_count,
+            "rejected":      rejected_count,
+            "emails_queued": False,
+            "message":       f"Bulk {decision.value}: "
+                             f"{approved_count} approved, {rejected_count} rejected. Publish formation to send emails."
+        }
+    @staticmethod
+    def publish_formation(db: Session) -> dict:
+        """
+        Validates that all currently active teams are approved, and that all participants
+        are assigned to a team. If valid, marks all teams as published and sends emails.
+        """
+        from app.models.participant import Participant
+        current_teams = db.query(Team).filter(Team.approval_status.in_(["pending", "approved", "rejected"])).all()
+        
+        if not current_teams:
+            return {"success": False, "message": "No active team formation found."}
+            
+        unapproved = [t for t in current_teams if t.approval_status != "approved"]
+        if unapproved:
+            return {
+                "success": False, 
+                "message": f"Cannot publish. {len(unapproved)} teams are still pending or rejected."
+            }
+            
+        total_participants = db.query(Participant).count()
+        assigned_participants = db.query(Participant).filter(Participant.team_id.isnot(None)).count()
+        if assigned_participants < total_participants:
+            return {
+                "success": False,
+                "message": f"Cannot publish. Only {assigned_participants}/{total_participants} participants are assigned to teams."
+            }
+
+        all_email_recipients = []
+        for team in current_teams:
+            team.approval_status = "published"
+            members = ApprovalService.get_team_members(team.id, db)
+            for m in members:
+                all_email_recipients.append({
+                    "email":        m.email,
+                    "name":         f"{m.first_name} {m.last_name}",
+                    "team_name":    team.team_name,
+                    "team_members": [
+                        f"{x.first_name} {x.last_name}"
+                        for x in members if x.id != m.id
+                    ],
+                    "rationale": team.rationale or "",
+                })
+        
+        db.commit()
+
         if all_email_recipients:
             from app.tasks.communications import send_batch_emails
             send_batch_emails.delay(
@@ -227,13 +253,8 @@ class ApprovalService:
                 template="team_assignment",
                 event_name="WiSE@TI Hackathon"
             )
-            emails_queued = True
-
+            
         return {
-            "total_teams":   len(pending_teams),
-            "approved":      approved_count,
-            "rejected":      rejected_count,
-            "emails_queued": emails_queued,
-            "message":       f"Bulk {decision.value}: "
-                             f"{approved_count} approved, {rejected_count} rejected."
+            "success": True,
+            "message": f"Formation published successfully. {len(all_email_recipients)} assignment emails queued."
         }

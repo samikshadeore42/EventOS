@@ -47,12 +47,16 @@ def send_registration_email(self, to_email: str, participant_name: str, event_na
     `bind=True` gives us access to `self` for retries.
     """
     try:
+        norm_email = to_email.strip().lower()
+        idem_key = f"{self.request.id}:registration:{norm_email}"
+
         result = EmailService.send_registration_confirmation(
             to_email=to_email,
             participant_name=participant_name,
             event_name=event_name,
+            idempotency_key=idem_key
         )
-        if not result["success"]:
+        if not result.get("success"):
             # Trigger a retry if SendGrid failed
             raise Exception(result.get("error", "Unknown SendGrid error"))
         return result
@@ -74,15 +78,20 @@ def send_batch_emails(self, recipient_list: list, template: str, event_name: str
     Celery task: send emails to multiple participants at once.
     recipient_list = [{"email": "x@y.com", "name": "Priya", ...}, ...]
     """
-    results = {"sent": 0, "failed": 0, "simulated": 0, "errors": []}
+    results = {"sent": 0, "failed": 0, "simulated": 0, "skipped": 0, "errors": []}
+    failed_recipients = []
 
     for recipient in recipient_list:
         try:
+            norm_email = recipient["email"].strip().lower()
+            idem_key = f"{self.request.id}:{template}:{norm_email}"
+
             if template == "registration":
                 result = EmailService.send_registration_confirmation(
                     to_email=recipient["email"],
                     participant_name=recipient["name"],
                     event_name=event_name,
+                    idempotency_key=idem_key
                 )
             elif template == "team_assignment":
                 result = EmailService.send_team_assignment(
@@ -92,22 +101,45 @@ def send_batch_emails(self, recipient_list: list, template: str, event_name: str
                     team_members=recipient["team_members"],
                     rationale=recipient.get("rationale", ""),
                     event_name=event_name,
+                    idempotency_key=idem_key
                 )
             else:
                 result = {"success": False, "error": f"Unknown template: {template}"}
 
-            if result["success"]:
-                if result.get("simulated"):
+            if result.get("success"):
+                if result.get("skipped"):
+                    results["skipped"] += 1
+                elif result.get("simulated"):
                     results["simulated"] += 1
                 else:
                     results["sent"] += 1
+
+                # Update participant DB for team links
+                if template == "team_assignment":
+                    from app.core.database import SessionLocal
+                    from app.models.participant import Participant
+                    with SessionLocal() as db:
+                        participant = db.query(Participant).filter(Participant.email == recipient["email"]).first()
+                        if participant:
+                            participant.team_link_sent = True
+                            db.commit()
+
             else:
                 results["failed"] += 1
                 results["errors"].append({"email": recipient["email"], "error": result.get("error")})
+                failed_recipients.append(recipient)
 
         except Exception as e:
             results["failed"] += 1
             results["errors"].append({"email": recipient["email"], "error": str(e)})
+            failed_recipients.append(recipient)
+
+    if failed_recipients:
+        raise self.retry(
+            kwargs={"recipient_list": failed_recipients, "template": template, "event_name": event_name},
+            exc=Exception(f"Batch had {len(failed_recipients)} failures, retrying..."),
+            countdown=60 * (self.request.retries + 1)
+        )
 
     return results
 
@@ -122,30 +154,46 @@ def send_batch_emails(self, recipient_list: list, template: str, event_name: str
     default_retry_delay=120,
 )
 def send_access_links(self, links: list, role: str, stage: str):
-    results = {"queued": len(links), "sent": 0, "failed": 0, "simulated": 0, "errors": []}
+    results = {"queued": len(links), "sent": 0, "failed": 0, "simulated": 0, "skipped": 0, "errors": []}
+    failed_links = []
 
     for link in links:
         try:
+            norm_email = link["email"].strip().lower()
+            idem_key = f"{self.request.id}:access_link:{role}:{stage}:{norm_email}"
+
             result = EmailService.send_access_link(
                 to_email=link["email"],
                 recipient_name=link["name"],
                 role=role,
                 stage=stage,
                 portal_url=link["portal_url"],
-                expires_in="48 hours"
+                expires_in="48 hours",
+                idempotency_key=idem_key
             )
 
-            if result["success"]:
-                if result.get("simulated"):
+            if result.get("success"):
+                if result.get("skipped"):
+                    results["skipped"] += 1
+                elif result.get("simulated"):
                     results["simulated"] += 1
                 else:
                     results["sent"] += 1
             else:
                 results["failed"] += 1
                 results["errors"].append({"email": link["email"], "error": result.get("error")})
+                failed_links.append(link)
 
         except Exception as e:
             results["failed"] += 1
             results["errors"].append({"email": link["email"], "error": str(e)})
+            failed_links.append(link)
+
+    if failed_links:
+        raise self.retry(
+            kwargs={"links": failed_links, "role": role, "stage": stage},
+            exc=Exception(f"Access links had {len(failed_links)} failures, retrying..."),
+            countdown=60 * (self.request.retries + 1)
+        )
 
     return results
