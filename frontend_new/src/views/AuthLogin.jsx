@@ -13,7 +13,7 @@ export default function AuthLogin() {
   const [verificationRequired, setVerificationRequired] = useState(false);
   const [resendSuccess, setResendSuccess] = useState(false);
   const navigate = useNavigate();
-  const { setToken } = useAuth();
+  const { setAuthTokens } = useAuth();
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -31,7 +31,7 @@ export default function AuthLogin() {
         email: emailPayload,
         password: formData.password
       });
-      setToken(res.access_token);
+      setAuthTokens(res.access_token, res.refresh_token);
       navigate('/admin'); // Redirect back to Stage 1 dashboard
     } catch (err) {
       const msg = err.message || '';

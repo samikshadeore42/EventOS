@@ -70,6 +70,19 @@ export function AuthProvider({ children }) {
     }
   }, [])
 
+  // Listen for forced logout from the refresh interceptor
+  useEffect(() => {
+    const handleForcedLogout = () => {
+      setTokenState(null)
+      setPayload(null)
+      setActiveOrganization(null)
+      setAvailableOrganizations([])
+      setActiveMembership(null)
+    }
+    window.addEventListener('auth:logout', handleForcedLogout)
+    return () => window.removeEventListener('auth:logout', handleForcedLogout)
+  }, [])
+
   // Load organizations after login
   const loadOrganizations = useCallback(async () => {
     try {
@@ -109,6 +122,7 @@ export function AuthProvider({ children }) {
     if (!newToken) {
       tokenStorage.clear()
       orgStorage.clear()
+      sessionStorage.removeItem('eventos_refresh_token')
       setTokenState(null)
       setPayload(null)
       setActiveOrganization(null)
@@ -121,6 +135,22 @@ export function AuthProvider({ children }) {
     tokenStorage.set(newToken)
     setTokenState(newToken)
     setPayload(decoded)
+  }, [])
+
+  // Store both access + refresh tokens (called after login/refresh)
+  const setAuthTokens = useCallback((accessToken, refreshToken) => {
+    if (refreshToken) {
+      sessionStorage.setItem('eventos_refresh_token', refreshToken)
+    }
+    // Delegate to setToken for access token
+    if (accessToken) {
+      const decoded = decodePayload(accessToken)
+      if (decoded && !isExpired(decoded)) {
+        tokenStorage.set(accessToken)
+        setTokenState(accessToken)
+        setPayload(decoded)
+      }
+    }
   }, [])
 
   // Switch active organization
@@ -139,6 +169,7 @@ export function AuthProvider({ children }) {
     }
     tokenStorage.clear()
     orgStorage.clear()
+    sessionStorage.removeItem('eventos_refresh_token')
     setTokenState(null)
     setPayload(null)
     setActiveOrganization(null)
@@ -167,6 +198,7 @@ export function AuthProvider({ children }) {
         authenticated,
         isAdmin,
         setToken,
+        setAuthTokens,
         logout,
         // Organization
         activeOrganization,

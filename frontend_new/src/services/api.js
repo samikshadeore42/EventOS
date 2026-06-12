@@ -66,18 +66,69 @@ api.interceptors.request.use(
 )
 
 // ── Response interceptor ─────────────────────────────────────────────────
-// Unwraps .data so callers get the payload directly (not the Axios response shell).
-// Normalises error messages to a plain Error instance.
+// 1. Unwraps .data so callers get the payload directly (not the Axios response shell).
+// 2. On 401 — attempts a single-flight token refresh, then retries the original request.
+// 3. Normalises error messages to a plain Error instance.
+let refreshPromise = null
+
 api.interceptors.response.use(
   (response) => response.data,
-  (error) => {
+  async (error) => {
+    const originalRequest = error.config
+    const status = error.response?.status
+
+    // Auto-refresh on 401 (not for auth endpoints themselves)
+    if (status === 401 && !originalRequest._retry && !isPublicAuthPath(originalRequest.url) && originalRequest.url !== '/auth/refresh') {
+      originalRequest._retry = true
+
+      // Single-flight: only one refresh at a time
+      if (!refreshPromise) {
+        const refreshToken = sessionStorage.getItem('eventos_refresh_token')
+        if (refreshToken) {
+          refreshPromise = api.post('/auth/refresh', { refresh_token: refreshToken })
+            .then((data) => {
+              sessionStorage.setItem(SESSION_KEY, data.access_token)
+              if (data.refresh_token) {
+                sessionStorage.setItem('eventos_refresh_token', data.refresh_token)
+              }
+              return data.access_token
+            })
+            .catch((refreshError) => {
+              // Refresh failed — clear all auth state
+              sessionStorage.removeItem(SESSION_KEY)
+              sessionStorage.removeItem('eventos_refresh_token')
+              sessionStorage.removeItem(ORG_KEY)
+              window.dispatchEvent(new Event('auth:logout'))
+              return Promise.reject(refreshError)
+            })
+            .finally(() => { refreshPromise = null })
+        }
+      }
+
+      if (refreshPromise) {
+        try {
+          const newToken = await refreshPromise
+          originalRequest.headers['Authorization'] = `Bearer ${newToken}`
+          return api(originalRequest)
+        } catch {
+          // Refresh failed, fall through to error
+        }
+      }
+    }
+
+    // Extract error detail (supports structured {code, message} and string detail)
     const detail = error.response?.data?.detail
-    const message =
-      typeof detail === 'string'
-        ? detail
-        : Array.isArray(detail)
-        ? detail.map((d) => d.msg).join('; ')
-        : error.message || 'An unexpected error occurred'
+    let message
+    if (typeof detail === 'object' && detail !== null && !Array.isArray(detail)) {
+      // Structured error like {code: "EMAIL_VERIFICATION_REQUIRED", message: "..."}
+      message = detail.message || detail.code || JSON.stringify(detail)
+    } else if (typeof detail === 'string') {
+      message = detail
+    } else if (Array.isArray(detail)) {
+      message = detail.map((d) => d.msg).join('; ')
+    } else {
+      message = error.message || 'An unexpected error occurred'
+    }
     return Promise.reject(new Error(message))
   }
 )
