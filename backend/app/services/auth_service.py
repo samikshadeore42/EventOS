@@ -26,8 +26,10 @@ class AuthService:
         if not user.is_active:
             return False
 
-        if user.locked_until and user.locked_until > now:
-            return False # Still locked
+        if user.locked_until:
+            locked_until = user.locked_until.replace(tzinfo=timezone.utc) if user.locked_until.tzinfo is None else user.locked_until
+            if locked_until > now:
+                return False # Still locked
 
         # Check password
         if not verify_password(plain_password, user.password_hash):
