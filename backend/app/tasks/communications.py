@@ -197,3 +197,53 @@ def send_access_links(self, links: list, role: str, stage: str):
         )
 
     return results
+
+
+@celery_app.task(
+    bind=True,
+    base=EmailTask,
+    queue="notifications",
+    name="app.tasks.communications.send_email_verification_email",
+    max_retries=3,
+)
+def send_email_verification_email(self, to_email: str, recipient_name: str, verification_link: str):
+    try:
+        norm_email = to_email.strip().lower()
+        idem_key = f"{self.request.id}:email_verification:{norm_email}"
+
+        result = EmailService.send_email_verification(
+            to_email=to_email,
+            recipient_name=recipient_name,
+            verification_link=verification_link,
+            idempotency_key=idem_key
+        )
+        if not result.get("success"):
+            raise Exception(result.get("error", "Unknown SendGrid error"))
+        return result
+    except Exception as exc:
+        raise self.retry(exc=exc, countdown=60 * (self.request.retries + 1))
+
+
+@celery_app.task(
+    bind=True,
+    base=EmailTask,
+    queue="notifications",
+    name="app.tasks.communications.send_password_reset_email",
+    max_retries=3,
+)
+def send_password_reset_email(self, to_email: str, recipient_name: str, reset_link: str):
+    try:
+        norm_email = to_email.strip().lower()
+        idem_key = f"{self.request.id}:password_reset:{norm_email}"
+
+        result = EmailService.send_password_reset(
+            to_email=to_email,
+            recipient_name=recipient_name,
+            reset_link=reset_link,
+            idempotency_key=idem_key
+        )
+        if not result.get("success"):
+            raise Exception(result.get("error", "Unknown SendGrid error"))
+        return result
+    except Exception as exc:
+        raise self.retry(exc=exc, countdown=60 * (self.request.retries + 1))

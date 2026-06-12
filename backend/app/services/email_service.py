@@ -266,5 +266,36 @@ class EmailService:
                     idempotency_key=idempotency_key
                 )
             except Exception as e:
-                print(f"Failed to render participant template: {e}")
                 return {"success": False, "error": str(e)}
+
+    @staticmethod
+    def send_email_verification(to_email: str, recipient_name: str, verification_link: str, idempotency_key: str = None) -> dict:
+        """Sends an email verification link."""
+        html_content = f"""
+        <p>Hi {recipient_name},</p>
+        <p>Please verify your email address by clicking the link below:</p>
+        <p><a href="{verification_link}">Verify Email</a></p>
+        <p>If you did not request this, please ignore this email.</p>
+        """
+        subject = "Please verify your email address"
+        return EmailService.send_email(
+            to_email, subject, html_content,
+            recipient_name=recipient_name, template="email_verification", stage="auth",
+            idempotency_key=idempotency_key
+        )
+
+    @staticmethod
+    def send_password_reset(to_email: str, recipient_name: str, reset_link: str, idempotency_key: str = None) -> dict:
+        """Sends a password reset link."""
+        html_content = f"""
+        <p>Hi {recipient_name},</p>
+        <p>You requested a password reset. Click the link below to reset your password:</p>
+        <p><a href="{reset_link}">Reset Password</a></p>
+        <p>If you did not request this, please ignore this email.</p>
+        """
+        subject = "Password Reset Request"
+        return EmailService.send_email(
+            to_email, subject, html_content,
+            recipient_name=recipient_name, template="password_reset", stage="auth",
+            idempotency_key=idempotency_key
+        )

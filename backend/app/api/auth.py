@@ -62,7 +62,12 @@ def register_organization(data: OwnerRegistrationRequest, request: Request, db: 
         db.commit()
         db.refresh(new_user)
         
-        # TODO: Queue email in mock mode during tests (Step 16)
+        # Queue email in mock mode during tests (Step 16)
+        from app.tasks.communications import send_email_verification_email
+        import os
+        frontend_url = os.getenv("FRONTEND_BASE_URL", "http://localhost:5173")
+        verification_link = f"{frontend_url}/auth/verify-email?token={raw_token}"
+        send_email_verification_email.delay(new_user.email, new_user.first_name, verification_link)
         
         return new_user
 
@@ -174,6 +179,37 @@ def verify_email(token: str, db: Session = Depends(get_db)):
     vt.used_at = datetime.now(timezone.utc)
     db.commit()
     return {"status": "verified"}
+
+from pydantic import BaseModel, EmailStr
+
+class ResendVerificationRequest(BaseModel):
+    email: EmailStr
+
+@router.post("/resend-verification")
+def resend_verification(data: ResendVerificationRequest, db: Session = Depends(get_db)):
+    user = AuthService.get_user_by_email(db, data.email)
+    if not user:
+        return {"message": "If this email is registered, a new verification link has been sent."}
+
+    if user.email_verified:
+        return {"message": "If this email is registered, a new verification link has been sent."}
+
+    # Invalidate older pending tokens safely (by marking used or expired, or let them just expire)
+    for old_token in user.email_verification_tokens:
+        if old_token.is_valid:
+            old_token.used_at = datetime.now(timezone.utc) # Mark used to invalidate
+
+    raw_token = AuthService.generate_email_verification(db, user.id)
+    AuditService.log_action(db, "user.verification_resent", actor_user_id=user.id)
+    db.commit()
+
+    from app.tasks.communications import send_email_verification_email
+    import os
+    frontend_url = os.getenv("FRONTEND_BASE_URL", "http://localhost:5173")
+    verification_link = f"{frontend_url}/auth/verify-email?token={raw_token}"
+    send_email_verification_email.delay(user.email, user.first_name, verification_link)
+
+    return {"message": "If this email is registered, a new verification link has been sent."}
 
 @router.post("/forgot-password")
 def forgot_password(data: ForgotPasswordRequest, db: Session = Depends(get_db)):
