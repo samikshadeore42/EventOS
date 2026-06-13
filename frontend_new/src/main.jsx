@@ -19,17 +19,6 @@ import AuthResetPasswordConfirm from './views/AuthResetPasswordConfirm'
 import AuthAcceptInvitation from './views/AuthAcceptInvitation'
 import { queryClient } from './queryClient'
 
-
-export const queryClient = new QueryClient({
-  defaultOptions: {
-    queries: {
-      retry: 1,
-      staleTime: 30_000,
-      refetchOnWindowFocus: false,
-    },
-  },
-})
-
 function ProtectedAdminRoute({ children }) {
     const { authenticated, isPortalUser, activeOrganization, activeMembership, orgsLoaded } = useAuth();
 
