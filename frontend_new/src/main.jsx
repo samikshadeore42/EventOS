@@ -17,6 +17,7 @@ import AuthForgotPassword from './views/AuthForgotPassword'
 import AuthResetPasswordConfirm from './views/AuthResetPasswordConfirm'
 import AuthAcceptInvitation from './views/AuthAcceptInvitation'
 import { queryClient } from './queryClient'
+import { QueryClientProvider } from '@tanstack/react-query'
 
 function ProtectedAdminRoute({ children }) {
     const { authenticated, isPortalUser, activeOrganization, activeMembership, orgsLoaded } = useAuth();
