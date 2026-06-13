@@ -9,7 +9,7 @@ import {
 } from 'react'
 import { tokenStorage, orgStorage, authApi } from '../services/api'
 
-import { queryClient } from '../main'
+import { queryClient } from '../queryClient'
 
 // ── JWT helpers ────────────────────────────────────────────────────────────
 function decodePayload(token) {

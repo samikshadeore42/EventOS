@@ -17,6 +17,7 @@ import AuthVerifyEmail from './views/AuthVerifyEmail'
 import AuthForgotPassword from './views/AuthForgotPassword'
 import AuthResetPasswordConfirm from './views/AuthResetPasswordConfirm'
 import AuthAcceptInvitation from './views/AuthAcceptInvitation'
+import { queryClient } from './queryClient'
 
 
 export const queryClient = new QueryClient({
