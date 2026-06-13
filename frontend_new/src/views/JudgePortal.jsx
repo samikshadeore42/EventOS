@@ -265,7 +265,7 @@ function TeamSubmissionSection({ teamId }) {
   const sub = data?.submission
 
   return (
-    <div className="mb-4 bg-white rounded-xl border border-slate-200 p-5 shadow-sm">
+    <div className="mb-4 premium-card p-5">
       <p className="text-xs font-bold text-slate-500 uppercase tracking-wide mb-3 flex items-center gap-1.5">
         <ClipboardList size={12} /> Submissions
       </p>
@@ -559,7 +559,7 @@ export default function JudgePortal() {
 
               {/* Grading guide */}
               {teams.length > 0 && criteria.length > 0 && (
-                <div className="mt-8 text-left bg-white rounded-xl border border-slate-200 p-5 shadow-sm">
+                <div className="mt-8 text-left premium-card p-5">
                   <p className="text-xs font-bold text-slate-500 uppercase tracking-wide mb-3">
                     Grading Criteria & Weights
                   </p>
@@ -581,7 +581,7 @@ export default function JudgePortal() {
 
           {/* AI Rubric — shows above scoring form when team is selected */}
             {selectedTeam && (
-              <div className="mb-4 bg-white rounded-xl border border-slate-200 p-5 shadow-sm">
+              <div className="mb-4 premium-card p-5">
                 <p className="text-xs font-bold text-slate-500 uppercase tracking-wide mb-3 flex items-center gap-1.5">
                   <Wand2 size={12} /> AI Scoring Guide
                 </p>

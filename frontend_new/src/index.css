@@ -36,6 +36,16 @@
   .glass-card {
     @apply bg-white/70 backdrop-blur-lg border border-slate-200/50 shadow-md hover:shadow-indigo-500/15 hover:border-indigo-400/40 transition-all duration-300;
   }
+  .premium-card {
+    @apply relative overflow-hidden bg-gradient-to-br from-white to-slate-50/50 rounded-2xl border border-slate-200 shadow-[0_2px_12px_rgba(0,0,0,0.03)] hover:shadow-[0_20px_40px_rgba(109,40,217,0.12)] hover:-translate-y-1 hover:border-violet-200 transition-all duration-500;
+  }
+  .premium-card::before {
+    content: "";
+    @apply absolute top-0 left-0 w-full h-1.5 bg-gradient-to-r from-[#6D28D9] to-[#8B5CF6] opacity-30 transition-opacity duration-500;
+  }
+  .premium-card:hover::before {
+    @apply opacity-100;
+  }
   .text-gradient {
     @apply bg-clip-text text-transparent bg-gradient-to-r from-indigo-600 via-purple-600 to-sky-600;
   }
@@ -81,4 +91,9 @@
     transform: scale(1.15);
     @apply shadow-[0_0_15px_rgba(79,70,229,0.5)];
   }
+}
+
+@keyframes shimmer {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(300%); }
 }

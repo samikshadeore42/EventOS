@@ -34,18 +34,27 @@ import {
 // ── Shared micro-components ────────────────────────────────────────────────
 
 function StatCard({ label, value, sub, colour = 'indigo' }) {
-  const bg = {
-    indigo: 'bg-indigo-50 text-indigo-700 border border-indigo-100',
-    teal:   'bg-teal-50 text-teal-700 border border-teal-100',
-    amber:  'bg-amber-50 text-amber-700 border border-amber-100',
-    red:    'bg-red-50 text-red-700 border border-red-100',
-  }[colour] ?? 'bg-indigo-50 text-indigo-700 border border-indigo-100'
+  // Map standard colors to rich, premium variants
+  const styles = {
+    indigo: { bg: 'bg-violet-50/80', text: 'text-[#6D28D9]', border: 'border-violet-100', shadow: 'shadow-[0_2px_10px_rgba(109,40,217,0.12)]', topBorder: 'from-[#6D28D9] to-[#8B5CF6]' },
+    teal:   { bg: 'bg-teal-50/80', text: 'text-teal-700', border: 'border-teal-100', shadow: 'shadow-[0_2px_10px_rgba(20,184,166,0.12)]', topBorder: 'from-teal-400 to-teal-600' },
+    amber:  { bg: 'bg-amber-50/80', text: 'text-amber-700', border: 'border-amber-100', shadow: 'shadow-[0_2px_10px_rgba(245,158,11,0.12)]', topBorder: 'from-amber-400 to-amber-500' },
+    red:    { bg: 'bg-red-50/80', text: 'text-red-700', border: 'border-red-100', shadow: 'shadow-[0_2px_10px_rgba(239,68,68,0.12)]', topBorder: 'from-red-400 to-red-600' },
+  }[colour] ?? { bg: 'bg-violet-50/80', text: 'text-[#6D28D9]', border: 'border-violet-100', shadow: 'shadow-[0_2px_10px_rgba(109,40,217,0.12)]', topBorder: 'from-[#6D28D9] to-[#8B5CF6]' };
 
   return (
-    <div className="glass-card rounded-xl border border-slate-200 p-5">
-      <p className="text-xs font-medium text-slate-500 uppercase tracking-wide mb-1">{label}</p>
-      <p className={`text-2xl font-bold px-2 py-0.5 rounded inline-block ${bg}`}>{value ?? '—'}</p>
-      {sub && <p className="text-xs text-slate-500 mt-1">{sub}</p>}
+    <div className="relative overflow-hidden bg-gradient-to-br from-white to-slate-50/50 rounded-2xl border border-slate-200 p-6 shadow-[0_2px_12px_rgba(0,0,0,0.03)] hover:shadow-xl hover:-translate-y-1 hover:border-slate-300 transition-all duration-300 group">
+      {/* Persistent top gradient line */}
+      <div className={`absolute top-0 left-0 w-full h-1 bg-gradient-to-r ${styles.topBorder} opacity-30 group-hover:opacity-100 transition-opacity duration-300`} />
+      
+      <p className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-4">{label}</p>
+      
+      {/* Stylized number container */}
+      <div className={`inline-flex items-center justify-center px-4 py-2 rounded-xl border ${styles.bg} ${styles.border} ${styles.shadow} transition-all duration-300 group-hover:scale-105 group-hover:shadow-md`}>
+        <span className={`text-3xl font-black ${styles.text}`}>{value ?? '—'}</span>
+      </div>
+      
+      {sub && <p className="text-xs text-slate-500 mt-4 font-medium">{sub}</p>}
     </div>
   )
 }
@@ -90,8 +99,10 @@ function OverviewTab() {
 
       <div className="grid lg:grid-cols-2 gap-6">
         {/* Institution breakdown */}
-        <div className="glass-card rounded-xl border border-slate-200 p-5">
+        <div className="relative overflow-hidden bg-gradient-to-br from-white to-slate-50/50 rounded-2xl border border-slate-200 p-6 shadow-[0_2px_12px_rgba(0,0,0,0.03)] hover:shadow-xl hover:-translate-y-1 hover:border-slate-300 transition-all duration-300 group">
+          <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-[#6D28D9] to-[#8B5CF6] opacity-30 group-hover:opacity-100 transition-opacity duration-300" />
           <SectionTitle>Institutions</SectionTitle>
+          <p className="text-xs text-slate-500 mb-4 -mt-2">Distribution of registered participants across universities and organizations.</p>
           {summary?.institution_counts
             ? Object.entries(summary.institution_counts)
                 .sort(([, a], [, b]) => b - a)
@@ -112,7 +123,8 @@ function OverviewTab() {
         </div>
 
         {/* Mini leaderboard */}
-        <div className="glass-card rounded-xl border border-slate-200 p-5">
+        <div className="relative overflow-hidden bg-gradient-to-br from-white to-slate-50/50 rounded-2xl border border-slate-200 p-6 shadow-[0_2px_12px_rgba(0,0,0,0.03)] hover:shadow-xl hover:-translate-y-1 hover:border-slate-300 transition-all duration-300 group">
+          <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-[#6D28D9] to-[#8B5CF6] opacity-30 group-hover:opacity-100 transition-opacity duration-300" />
           <SectionTitle>Top Teams</SectionTitle>
           {lb?.leaderboard?.length
             ? lb.leaderboard.slice(0, 6).map((team) => (
@@ -131,7 +143,8 @@ function OverviewTab() {
       </div>
 
       {/* Recent comms */}
-      <div className="mt-6 glass-card rounded-xl border border-slate-200 p-5">
+      <div className="mt-6 relative overflow-hidden bg-gradient-to-br from-white to-slate-50/50 rounded-2xl border border-slate-200 p-6 shadow-[0_2px_12px_rgba(0,0,0,0.03)] hover:shadow-xl hover:-translate-y-1 hover:border-slate-300 transition-all duration-300 group">
+        <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-[#6D28D9] to-[#8B5CF6] opacity-30 group-hover:opacity-100 transition-opacity duration-300" />
         <SectionTitle>Recent Communications</SectionTitle>
         {commsData?.logs?.length
           ? <div className="space-y-2">
@@ -2422,16 +2435,16 @@ function DemoControlsTab() {
 
 // ── MAIN DASHBOARD ─────────────────────────────────────────────────────────
 const TABS = [
-  { key: 'overview',        label: 'Overview',       Icon: LayoutDashboard },
-  { key: 'participants',    label: 'Participants',    Icon: Users },
-  { key: 'teams',           label: 'Team Formation', Icon: GitBranch },
-  { key: 'approvals',       label: 'Approvals',      Icon: CheckSquare },
-  { key: 'evaluators',      label: 'Evaluators',     Icon: UserCheck },
-  { key: 'leaderboard',     label: 'Leaderboard',    Icon: Trophy },
-  { key: 'communications',  label: 'Communications', Icon: Mail },
-  { key: 'mentorops',       label: 'Mentor Ops',     Icon: Target },
-  { key: 'anomaly',         label: 'Anomaly Scanner',Icon: Activity },
-  { key: 'democontrols',    label: 'Demo Controls',  Icon: AlertTriangle },
+  { key: 'overview',        label: 'Overview',       Icon: LayoutDashboard, desc: 'High-level command center and system analytics' },
+  { key: 'participants',    label: 'Participants',    Icon: Users, desc: 'Manage roster, skills, and portal access' },
+  { key: 'teams',           label: 'Team Formation', Icon: GitBranch, desc: 'Run AI algorithms to generate team drafts' },
+  { key: 'approvals',       label: 'Approvals',      Icon: CheckSquare, desc: 'Review and finalize drafted teams' },
+  { key: 'evaluators',      label: 'Evaluators',     Icon: UserCheck, desc: 'Assign judges and manage rubrics' },
+  { key: 'leaderboard',     label: 'Leaderboard',    Icon: Trophy, desc: 'Live scoring and event standings' },
+  { key: 'communications',  label: 'Communications', Icon: Mail, desc: 'Automated email dispatch logs' },
+  { key: 'mentorops',       label: 'Mentor Ops',     Icon: Target, desc: 'Monitor team velocity and mentor syncs' },
+  { key: 'anomaly',         label: 'Anomaly Scanner',Icon: Activity, desc: 'Detect grading bias and statistical variants' },
+  { key: 'democontrols',    label: 'Demo Controls',  Icon: AlertTriangle, desc: 'Reset databases and simulate event states' },
 ]
 
 const VALID_TABS = TABS.map(t => t.key)
@@ -2495,22 +2508,69 @@ export default function AdminDashboard() {
         {/* Pipeline stepper — always visible */}
         <PipelineStepper showAdvanceButton className="mb-6" />
 
-        {/* Tab navigation */}
-        <div className="flex gap-1 mb-6 glass-card rounded-xl border border-slate-200 p-1 overflow-x-auto">
-          {TABS.map(({ key, label, Icon }) => (
-            <button
-              key={key}
-              onClick={() => setActiveTab(key)}
-              className={`flex items-center gap-1.5 text-sm px-3 py-2 rounded-lg whitespace-nowrap transition-colors ${
-                activeTab === key
-                  ? 'btn-primary text-white font-medium'
-                  : 'text-slate-600 hover:bg-slate-200'
-              }`}
-            >
-              <Icon size={14} />
-              {label}
-            </button>
-          ))}
+        {/* Command Center Tiles */}
+        <div className="mb-10">
+          {/* Hero Tile: Overview */}
+          <div className="mb-4">
+            {TABS.filter(t => t.key === 'overview').map(({ key, label, Icon, desc }) => (
+              <button
+                key={key}
+                onClick={() => setActiveTab(key)}
+                className={`w-full text-left p-6 rounded-2xl border transition-all duration-300 flex items-center gap-4 group ${
+                  activeTab === key
+                    ? 'bg-gradient-to-r from-[#6D28D9] to-[#8B5CF6] border-transparent text-white shadow-[0_10px_25px_rgba(109,40,217,0.3)]'
+                    : 'bg-white border-slate-200 text-slate-700 hover:border-[#A78BFA] hover:shadow-lg'
+                }`}
+              >
+                <div className={`p-4 rounded-xl transition-colors ${activeTab === key ? 'bg-white/20' : 'bg-[#F8FAFC] text-[#6D28D9] group-hover:bg-violet-50'}`}>
+                  <Icon size={28} />
+                </div>
+                <div>
+                  <h3 className="text-xl font-bold tracking-tight">{label}</h3>
+                  <p className={`text-sm mt-1 font-medium ${activeTab === key ? 'text-violet-100' : 'text-slate-500'}`}>{desc}</p>
+                </div>
+              </button>
+            ))}
+          </div>
+          
+          {/* 3x3 Grid for remaining modules */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {TABS.filter(t => t.key !== 'overview').map(({ key, label, Icon, desc }) => (
+              <button
+                key={key}
+                onClick={() => setActiveTab(key)}
+                className={`relative text-left p-5 rounded-2xl border transition-all duration-300 flex flex-col justify-center overflow-hidden group ${
+                  activeTab === key
+                    ? 'bg-gradient-to-br from-[#6D28D9] to-[#8B5CF6] border-transparent text-white shadow-[0_10px_25px_rgba(109,40,217,0.3)] transform -translate-y-1'
+                    : 'bg-gradient-to-br from-white to-slate-50/50 border-slate-200 shadow-[0_2px_12px_rgba(0,0,0,0.03)] text-slate-700 hover:border-violet-200 hover:shadow-xl hover:-translate-y-1'
+                }`}
+              >
+                {activeTab !== key && (
+                   <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-[#6D28D9] to-[#8B5CF6] opacity-30 group-hover:opacity-100 transition-opacity duration-300" />
+                )}
+                
+                <div className="flex items-start justify-between gap-4 relative z-10 w-full">
+                  <div className="flex gap-4">
+                    <div className={`p-3 rounded-xl transition-all duration-300 shrink-0 shadow-sm ${activeTab === key ? 'bg-white/20 text-white shadow-none' : 'bg-violet-50 border border-violet-100 text-[#6D28D9] group-hover:bg-[#6D28D9] group-hover:text-white group-hover:border-transparent group-hover:scale-105'}`}>
+                      <Icon size={22} />
+                    </div>
+                    <div>
+                      <h3 className="text-base font-bold leading-tight mb-1">{label}</h3>
+                      <p className={`text-xs leading-relaxed pr-2 ${activeTab === key ? 'text-violet-100' : 'text-slate-500 group-hover:text-slate-700'}`}>
+                        {desc}
+                      </p>
+                    </div>
+                  </div>
+                  
+                  {activeTab !== key && (
+                    <div className="mt-1 opacity-0 group-hover:opacity-100 -translate-x-2 group-hover:translate-x-0 transition-all duration-300 text-[#6D28D9] shrink-0">
+                      <ChevronRight size={18} />
+                    </div>
+                  )}
+                </div>
+              </button>
+            ))}
+          </div>
         </div>
 
         {/* Tab content */}

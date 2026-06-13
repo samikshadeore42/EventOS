@@ -60,7 +60,7 @@ function EventTimeline({ timeline }) {
   if (!timeline?.length) return null
 
   return (
-    <div className="glass-card rounded-2xl border border-slate-200 p-6 mb-6">
+    <div className="premium-card p-6 mb-6">
       <h2 className="text-sm font-semibold text-slate-800 mb-5">Your Event Journey</h2>
 
       <div className="relative">
@@ -163,7 +163,7 @@ function TeamRevealSection({ teamName, rationale, teammates }) {
 
       {/* AI rationale accordion */}
       {rationale && (
-        <div className="glass-card rounded-2xl border border-slate-200 mb-4 overflow-hidden">
+        <div className="premium-card mb-4 overflow-hidden">
           <button
             onClick={() => setRationaleOpen((o) => !o)}
             className="w-full flex items-center justify-between px-5 py-4 hover:bg-slate-50 transition-colors"
@@ -187,7 +187,7 @@ function TeamRevealSection({ teamName, rationale, teammates }) {
 
       {/* Teammates */}
       {teammates?.length > 0 && (
-        <div className="glass-card rounded-2xl border border-slate-200 p-5">
+        <div className="premium-card p-5">
           <div className="flex items-center gap-2 mb-4">
             <Users size={16} className="text-indigo-600" />
             <h3 className="text-sm font-bold text-slate-800">
@@ -232,7 +232,7 @@ function MentorInfoSection({ mentorData }) {
   return (
     <div className="mb-6 space-y-4">
       {/* Your Mentor card */}
-      <div className="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm">
+      <div className="premium-card p-5">
         <div className="flex items-center gap-2 mb-4">
           <UserCheck size={16} className="text-teal-600" />
           <h3 className="text-sm font-bold text-slate-800">Your Mentor</h3>
@@ -268,7 +268,7 @@ function MentorInfoSection({ mentorData }) {
       </div>
 
       {/* Next meeting */}
-      <div className="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm">
+      <div className="premium-card p-5">
         <div className="flex items-center gap-2 mb-4">
           <Video size={16} className="text-indigo-600" />
           <h3 className="text-sm font-bold text-slate-800">Next Mentor Meeting</h3>
@@ -299,7 +299,7 @@ function MentorInfoSection({ mentorData }) {
 
       {/* Visible feedback */}
       {mentorData.visible_feedback?.length > 0 && (
-        <div className="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm">
+        <div className="premium-card p-5">
           <div className="flex items-center gap-2 mb-4">
             <MessageSquare size={16} className="text-teal-600" />
             <h3 className="text-sm font-bold text-slate-800">Mentor Feedback</h3>
@@ -322,7 +322,7 @@ function MentorInfoSection({ mentorData }) {
 
       {/* Action items */}
       {mentorData.action_items?.length > 0 && (
-        <div className="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm">
+        <div className="premium-card p-5">
           <div className="flex items-center gap-2 mb-4">
             <ClipboardList size={16} className="text-amber-600" />
             <h3 className="text-sm font-bold text-slate-800">Action Items</h3>
@@ -352,7 +352,7 @@ function KeyDatesCard({ stage }) {
   ]
 
   return (
-    <div className="glass-card rounded-2xl border border-slate-200 p-5 mb-6">
+    <div className="premium-card p-5 mb-6">
       <div className="flex items-center gap-2 mb-4">
         <CalendarDays size={16} className="text-indigo-600" />
         <h3 className="text-sm font-bold text-slate-800">Key Dates</h3>
@@ -430,7 +430,7 @@ function ProjectSubmissionSection() {
   }
 
   return (
-    <div className="glass-card rounded-2xl border border-slate-200 p-6 mb-6">
+    <div className="premium-card p-6 mb-6">
        <div className="flex items-center gap-2 mb-4">
          <Send size={16} className="text-indigo-600" />
          <h3 className="text-sm font-bold text-slate-800">Submit Final Project (ZIP, max 50MB)</h3>
@@ -543,7 +543,7 @@ function PortalSkeleton() {
         <div className="h-8 w-56 bg-slate-200 rounded animate-pulse mx-auto mb-2" />
         <div className="h-3 w-40 bg-slate-200 rounded animate-pulse mx-auto" />
       </div>
-      <div className="glass-card rounded-2xl border border-slate-200 p-6 mb-4">
+      <div className="premium-card p-6 mb-4">
         <div className="h-4 w-32 bg-slate-200 rounded animate-pulse mb-5" />
         {[1,2,3,4].map(i => (
           <div key={i} className="flex items-center gap-4 mb-5">

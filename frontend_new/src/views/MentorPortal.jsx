@@ -59,7 +59,7 @@ function StatCard({ label, value, icon: Icon, colour = 'indigo' }) {
   }[colour] ?? 'bg-indigo-50 text-indigo-700 border-indigo-100'
 
   return (
-    <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-4">
+    <div className="premium-card p-4">
       <div className="flex items-center gap-2 mb-2">
         <Icon size={14} className="text-slate-400" />
         <p className="text-xs font-bold text-slate-500 uppercase tracking-wide">{label}</p>
@@ -89,7 +89,7 @@ function ScheduleMeetingForm({ teamId, onSuccess }) {
   })
 
   return (
-    <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-5">
+    <div className="premium-card p-5">
       <h3 className="text-sm font-bold text-slate-800 mb-4 flex items-center gap-2">
         <Calendar size={14} className="text-indigo-600" /> Schedule Meeting
       </h3>
@@ -179,7 +179,7 @@ function DailyProgressForm({ teamId, members, onSuccess }) {
   )
 
   return (
-    <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-5">
+    <div className="premium-card p-5">
       <h3 className="text-sm font-bold text-slate-800 mb-4 flex items-center gap-2">
         <MessageSquare size={14} className="text-indigo-600" /> Submit Feedback
       </h3>
@@ -260,7 +260,7 @@ function TeamCard({ team }) {
   })
 
   return (
-    <div className="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
+    <div className="premium-card">
       <div className="flex items-center gap-3 px-4 py-3 cursor-pointer hover:bg-slate-50 transition-colors" onClick={() => setExpanded(!expanded)}>
         <div className="w-10 h-10 rounded-lg bg-indigo-50 border border-indigo-100 text-indigo-700 flex items-center justify-center font-bold text-sm shrink-0">
           {initials(team.team_name)}
@@ -476,7 +476,7 @@ export default function MentorPortal() {
               {[1,2].map(i => <div key={i} className="h-16 bg-slate-200 rounded-xl animate-pulse" />)}
             </div>
           ) : teams.length === 0 ? (
-            <div className="text-center py-16 bg-white rounded-xl border border-slate-200 shadow-sm">
+            <div className="text-center py-16 premium-card">
               <Users size={36} className="mx-auto mb-3 text-slate-300" />
               <p className="text-sm text-slate-500 font-bold">No teams assigned yet</p>
               <p className="text-xs text-slate-400 mt-1 font-medium">The committee will assign you to teams soon.</p>
