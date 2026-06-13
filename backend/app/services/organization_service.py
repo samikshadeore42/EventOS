@@ -1,6 +1,7 @@
 from sqlalchemy.orm import Session
 from app.models.organization import Organization
 from app.models.organization_membership import OrganizationMembership
+from datetime import datetime, timezone
 import uuid
 from typing import List, Optional
 import re
@@ -38,7 +39,8 @@ class OrganizationService:
             organization_id=organization_id,
             user_id=user_id,
             role=role,
-            status="active"
+            status="active",
+            joined_at=datetime.now(timezone.utc)
         )
         db.add(membership)
         db.flush()

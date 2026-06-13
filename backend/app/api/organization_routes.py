@@ -175,6 +175,7 @@ def invite_admin(
     inviter = db.query(User).filter(User.id == current_membership.user_id).first()
     frontend_base = os.getenv("FRONTEND_BASE_URL", "http://localhost:5173")
     invite_link = f"{frontend_base}/auth/accept-invitation?token={raw_token}"
+    email_queued = True
     try:
         from app.tasks.communications import send_invitation_email
         send_invitation_email.delay(
@@ -184,10 +185,20 @@ def invite_admin(
             data.role,
             invite_link
         )
-    except Exception:
-        pass  # Email failure should not block invitation creation
+    except Exception as e:
+        email_queued = False
+        AuditService.log_action(
+            db,
+            "invitation.email_enqueue_failed",
+            actor_user_id=current_membership.user_id,
+            organization_id=organization_id,
+            metadata={"error": str(e), "email": data.email}
+        )
+        db.commit()
 
-    return invitation
+    response_data = InvitationResponse.model_validate(invitation).model_dump()
+    response_data["email_queued"] = email_queued
+    return response_data
 
 @router.get("/{organization_id}/invitations", response_model=list[InvitationResponse])
 def list_invitations(

@@ -56,10 +56,14 @@ export default function SettingsTab() {
 
   const inviteMutation = useMutation({
     mutationFn: (data) => organizationsApi.invite(orgId, data),
-    onSuccess: () => {
+    onSuccess: (data) => {
       qc.invalidateQueries({ queryKey: ['org-invitations', orgId] })
       setInviteEmail('')
       setShowInviteForm(false)
+
+      if (data?.email_queued === false) {
+        alert('Invitation created, but the email could not be queued for delivery. The recipient may not receive it — consider resending or sharing the link manually.')
+      }
     },
     onError: (err) => alert("Error: " + err.message)
   })
@@ -83,6 +87,7 @@ export default function SettingsTab() {
   // State
   const [orgName, setOrgName] = useState(activeOrganization?.name || '')
   const [orgDesc, setOrgDesc] = useState(activeOrganization?.description || '')
+
   const [showInviteForm, setShowInviteForm] = useState(false)
   const [inviteEmail, setInviteEmail] = useState('')
   const [inviteRole, setInviteRole] = useState('admin')
@@ -169,7 +174,7 @@ export default function SettingsTab() {
                   </td>
 
                   <td className="px-4 py-3 text-xs text-slate-500">
-                    {new Date(m.joined_at).toLocaleDateString()}
+                    {m.joined_at ? new Date(m.joined_at).toLocaleDateString() : '—'}
                   </td>
 
                   <td className="px-4 py-3">

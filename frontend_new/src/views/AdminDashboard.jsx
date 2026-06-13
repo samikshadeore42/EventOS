@@ -1,7 +1,7 @@
 // src/views/AdminDashboard.jsx
 // Committee command-centre. Seven tabs, all fully wired to backend endpoints.
 // Dependencies: @tanstack/react-query, lucide-react, ../services/api, ../components/PipelineStepper
-
+import { useAuth } from '../context/AuthContext'
 import jsPDF from 'jspdf'
 import autoTable from 'jspdf-autotable'
 import { useState, useRef, useCallback } from 'react'
@@ -2449,6 +2449,7 @@ function getInitialAdminTab() {
 }
 
 export default function AdminDashboard() {
+  const { activeOrganization } = useAuth()
   const [activeTab, setActiveTabState] = useState(getInitialAdminTab)
 
   const setActiveTab = (tab) => {
@@ -2471,7 +2472,7 @@ export default function AdminDashboard() {
     mentorops:      <MentorOpsTab />,
     anomaly:        <AnomalyTab />,
     democontrols:   <DemoControlsTab />,
-    settings:       <SettingsTab />,
+    settings:       <SettingsTab key={activeOrganization?.id || 'no-org'} />,
   }
 
   return (

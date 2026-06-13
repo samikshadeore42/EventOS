@@ -57,6 +57,7 @@ class InvitationResponse(BaseModel):
     role: str
     status: str
     expires_at: datetime
+    email_queued: Optional[bool] = None
     
     class Config:
         from_attributes = True
