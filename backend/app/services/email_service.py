@@ -14,8 +14,10 @@ FROM_NAME = os.getenv("SENDGRID_FROM_NAME", "EventOS Operations")
 EMAIL_DELIVERY_MODE = os.getenv("EMAIL_DELIVERY_MODE", "mock").lower()
 EMAIL_SENDGRID_FALLBACK_TO_MOCK = os.getenv("EMAIL_SENDGRID_FALLBACK_TO_MOCK", "false").lower() == "true"
 
-# Initialize Jinja2 environment to load templates from our directory
-env = Environment(loader=FileSystemLoader("app/templates/emails"))
+import os
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+TEMPLATE_DIR = os.path.join(BASE_DIR, "templates", "emails")
+env = Environment(loader=FileSystemLoader(TEMPLATE_DIR))
 
 class EmailService:
     @staticmethod
@@ -49,10 +51,16 @@ class EmailService:
 
             result = {}
             is_mock = (EMAIL_DELIVERY_MODE == "mock")
-            if not is_mock and (not SENDGRID_API_KEY or SENDGRID_API_KEY.startswith("SG.your_")):
-                # Fallback to mock if sendgrid is requested but key is missing/invalid
-                is_mock = True
-                print("[EmailService] Warning: SENDGRID_API_KEY missing or invalid. Falling back to MOCK mode.")
+            sendgrid_key_invalid = (not SENDGRID_API_KEY or SENDGRID_API_KEY.startswith("SG.your_"))
+
+            if not is_mock and sendgrid_key_invalid:
+                if EMAIL_SENDGRID_FALLBACK_TO_MOCK:
+                    is_mock = True
+                    print("[EmailService] Warning: SENDGRID_API_KEY missing or invalid. Falling back to MOCK mode.")
+                else:
+                    raise RuntimeError(
+                        "EMAIL_DELIVERY_MODE=sendgrid but SENDGRID_API_KEY is missing/invalid, "
+                        "and EMAIL_SENDGRID_FALLBACK_TO_MOCK is disabled. Refusing to silently fake delivery.")
 
             # 1. Dispatch Email
             if is_mock:
@@ -266,5 +274,54 @@ class EmailService:
                     idempotency_key=idempotency_key
                 )
             except Exception as e:
-                print(f"Failed to render participant template: {e}")
                 return {"success": False, "error": str(e)}
+
+    @staticmethod
+    def send_email_verification(to_email: str, recipient_name: str, verification_link: str, idempotency_key: str = None) -> dict:
+        """Sends an email verification link."""
+        html_content = f"""
+        <p>Hi {recipient_name},</p>
+        <p>Please verify your email address by clicking the link below:</p>
+        <p><a href="{verification_link}">Verify Email</a></p>
+        <p>If you did not request this, please ignore this email.</p>
+        """
+        subject = "Please verify your email address"
+        return EmailService.send_email(
+            to_email, subject, html_content,
+            recipient_name=recipient_name, template="email_verification", stage="auth",
+            idempotency_key=idempotency_key
+        )
+
+    @staticmethod
+    def send_password_reset(to_email: str, recipient_name: str, reset_link: str, idempotency_key: str = None) -> dict:
+        """Sends a password reset link."""
+        html_content = f"""
+        <p>Hi {recipient_name},</p>
+        <p>You requested a password reset. Click the link below to reset your password:</p>
+        <p><a href="{reset_link}">Reset Password</a></p>
+        <p>If you did not request this, please ignore this email.</p>
+        """
+        subject = "Password Reset Request"
+        return EmailService.send_email(
+            to_email, subject, html_content,
+            recipient_name=recipient_name, template="password_reset", stage="auth",
+            idempotency_key=idempotency_key
+        )
+
+    @staticmethod
+    def send_admin_invitation(to_email: str, organization_name: str, inviter_name: str, role: str, invite_link: str, idempotency_key: str = None) -> dict:
+        """Sends an admin invitation email."""
+        html_content = f"""
+        <p>Hi,</p>
+        <p><strong>{inviter_name}</strong> has invited you to join <strong>{organization_name}</strong> as a <strong>{role}</strong> on EventOS.</p>
+        <p>Click the link below to accept the invitation:</p>
+        <p><a href="{invite_link}">Accept Invitation</a></p>
+        <p>This invitation will expire in 48 hours.</p>
+        <p>If you did not expect this invitation, please ignore this email.</p>
+        """
+        subject = f"You're invited to join {organization_name} on EventOS"
+        return EmailService.send_email(
+            to_email, subject, html_content,
+            recipient_name=to_email, template="admin_invitation", stage="auth",
+            idempotency_key=idempotency_key
+        )

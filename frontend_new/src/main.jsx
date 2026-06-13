@@ -6,31 +6,35 @@ import ConfigureEvent from './views/ConfigureEvent'
 import ReactDOM from 'react-dom/client'
 import './index.css'
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { AuthProvider, useAuth } from './context/AuthContext'
 import AdminDashboard from './views/AdminDashboard' 
 import JudgePortal from './views/JudgePortal'
 import ParticipantPortal from './views/ParticipantPortal'
 import MentorPortal from './views/MentorPortal'
 import LandingPage from './views/LandingPage'
-import AdminLogin from './views/AdminLogin'
-import AdminSignup from './views/AdminSignup'
-
-
-const queryClient = new QueryClient({
-  defaultOptions: {
-    queries: {
-      retry: 1,
-      staleTime: 30_000,
-      refetchOnWindowFocus: false,
-    },
-  },
-})
+import AuthLogin from './views/AuthLogin'
+import AuthRegister from './views/AuthRegister'
+import AuthVerifyEmail from './views/AuthVerifyEmail'
+import AuthForgotPassword from './views/AuthForgotPassword'
+import AuthResetPasswordConfirm from './views/AuthResetPasswordConfirm'
+import AuthAcceptInvitation from './views/AuthAcceptInvitation'
+import { queryClient } from './queryClient'
+import { QueryClientProvider } from '@tanstack/react-query'
 
 function ProtectedAdminRoute({ children }) {
-    const { role } = useAuth();
-    if (!role) return <Navigate to="/admin/login" replace />;
-    if (role !== 'admin') return <Navigate to={`/${role}`} replace />;
+    const { authenticated, isPortalUser, activeOrganization, activeMembership, orgsLoaded } = useAuth();
+
+    if (!authenticated) return <Navigate to="/auth/login" replace />;
+    if (isPortalUser) return <Navigate to="/" replace />;
+
+    if (!orgsLoaded) {
+        return <div className="flex items-center justify-center h-screen text-slate-400">Loading...</div>;
+    }
+
+    if (!activeOrganization || !activeMembership) {
+        return <Navigate to="/" replace />;
+    }
+
     return children;
 }
 
@@ -50,8 +54,15 @@ function App() {
                     <AdminDashboard />
                 </ProtectedAdminRoute>
             } />
-            <Route path="/admin/login" element={<AdminLogin />} />
-            <Route path="/admin/signup" element={<AdminSignup />} />
+            <Route path="/admin/login" element={<Navigate to="/auth/login" replace />} />
+            <Route path="/admin/signup" element={<Navigate to="/auth/register" replace />} />
+            
+            <Route path="/auth/login" element={<AuthLogin />} />
+            <Route path="/auth/register" element={<AuthRegister />} />
+            <Route path="/auth/verify-email" element={<AuthVerifyEmail />} />
+            <Route path="/auth/forgot-password" element={<AuthForgotPassword />} />
+            <Route path="/auth/reset-password" element={<AuthResetPasswordConfirm />} />
+            <Route path="/auth/accept-invitation" element={<AuthAcceptInvitation />} />
 
             <Route path="/" element={<LandingPage />} />
           </Routes>
