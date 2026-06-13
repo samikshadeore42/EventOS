@@ -122,15 +122,29 @@ def test_refresh_token(db_session: Session):
         "password": "password123", "organization_name": "Ref Org", "organization_slug": "ref-org"
     })
     _verify_user(db_session, "ref@test.com")
-    login_resp = client.post("/auth/login", json={"email": "ref@test.com", "password": "password123"})
-    refresh_token = login_resp.json()["refresh_token"]
-    
-    refresh_resp = client.post("/auth/refresh", json={"refresh_token": refresh_token})
+
+    login_resp = client.post("/auth/login", json={
+        "email": "ref@test.com",
+        "password": "password123"
+    })
+
+    assert login_resp.status_code == 200
+    assert login_resp.json()["refresh_token"] is None
+
+    old_refresh_token = client.cookies.get("eventos_refresh_token")
+    assert old_refresh_token is not None
+
+    refresh_resp = client.post("/auth/refresh", json={})
     assert refresh_resp.status_code == 200
-    new_refresh = refresh_resp.json()["refresh_token"]
-    assert new_refresh != refresh_token
-    
-    reuse_resp = client.post("/auth/refresh", json={"refresh_token": refresh_token})
+    assert refresh_resp.json()["refresh_token"] is None
+
+    new_refresh_token = client.cookies.get("eventos_refresh_token")
+    assert new_refresh_token is not None
+    assert new_refresh_token != old_refresh_token
+
+    client.cookies.set("eventos_refresh_token", old_refresh_token, path="/auth")
+
+    reuse_resp = client.post("/auth/refresh", json={})
     assert reuse_resp.status_code == 401
     assert "revoked" in reuse_resp.json()["detail"].lower()
 

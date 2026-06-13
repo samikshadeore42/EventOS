@@ -67,3 +67,10 @@ class InvitationPreview(BaseModel):
     role: str
     email: str
     expires_at: datetime
+
+class OrganizationWithMembership(BaseModel):
+    organization: OrganizationResponse
+    membership: MembershipResponse
+
+    class Config:
+        from_attributes = True

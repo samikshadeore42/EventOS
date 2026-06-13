@@ -2,7 +2,9 @@ import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
+import os
 
+os.environ["REFRESH_COOKIE_SECURE"] = "false"
 from app.main import app
 from app.core.database import Base, get_db
 

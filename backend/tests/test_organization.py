@@ -42,14 +42,14 @@ def test_list_my_organizations(db_session: Session):
     assert resp.status_code == 200
     data = resp.json()
     assert len(data) == 1
-    assert data[0]["slug"] == "listorgs-org"
+    assert data[0]["organization"]["slug"] == "listorgs-org"
 
 def test_cross_organization_access_denied(db_session: Session):
     token1 = create_auth_user(client, "cross1")
     token2 = create_auth_user(client, "cross2")
     
     resp1 = client.get("/organizations", headers={"Authorization": f"Bearer {token1}"})
-    org1_id = resp1.json()[0]["id"]
+    org1_id = resp1.json()[0]["organization"]["id"]
     
     resp_cross = client.get(f"/organizations/{org1_id}", headers={"Authorization": f"Bearer {token2}"})
     assert resp_cross.status_code == 403
@@ -57,7 +57,7 @@ def test_cross_organization_access_denied(db_session: Session):
 def test_invite_admin(db_session: Session):
     token1 = create_auth_user(client, "inviter")
     resp1 = client.get("/organizations", headers={"Authorization": f"Bearer {token1}"})
-    org1_id = resp1.json()[0]["id"]
+    org1_id = resp1.json()[0]["organization"]["id"]
     
     invite_resp = client.post(f"/organizations/{org1_id}/invitations", json={
         "email": "invited@test.com",
@@ -73,7 +73,7 @@ def test_invite_admin(db_session: Session):
 def test_accept_invitation(db_session: Session):
     token1 = create_auth_user(client, "orgowner")
     resp1 = client.get("/organizations", headers={"Authorization": f"Bearer {token1}"})
-    org1_id = resp1.json()[0]["id"]
+    org1_id = resp1.json()[0]["organization"]["id"]
     
     client.post(f"/organizations/{org1_id}/invitations", json={
         "email": "orginvited@test.com",
@@ -107,7 +107,7 @@ def test_accept_invitation(db_session: Session):
 def test_update_organization(db_session: Session):
     token = create_auth_user(client, "updater")
     resp = client.get("/organizations", headers={"Authorization": f"Bearer {token}"})
-    org_id = resp.json()[0]["id"]
+    org_id = resp.json()[0]["organization"]["id"]
     
     update_resp = client.patch(f"/organizations/{org_id}", json={
         "name": "Updated Org Name",
@@ -124,7 +124,7 @@ def test_update_organization_non_member_denied(db_session: Session):
     token2 = create_auth_user(client, "updother")
     
     resp1 = client.get("/organizations", headers={"Authorization": f"Bearer {token1}"})
-    org1_id = resp1.json()[0]["id"]
+    org1_id = resp1.json()[0]["organization"]["id"]
     
     update_resp = client.patch(f"/organizations/{org1_id}", json={"name": "Hacked"}, headers={"Authorization": f"Bearer {token2}"})
     assert update_resp.status_code == 403
@@ -135,7 +135,7 @@ def test_invitation_dispatches_email(role, db_session: Session):
     
     token = create_auth_user(client, f"emailinv{role}")
     resp = client.get("/organizations", headers={"Authorization": f"Bearer {token}"})
-    org_id = resp.json()[0]["id"]
+    org_id = resp.json()[0]["organization"]["id"]
     
     with patch("app.tasks.communications.send_invitation_email.delay") as mock_delay:
         invite_resp = client.post(f"/organizations/{org_id}/invitations", json={

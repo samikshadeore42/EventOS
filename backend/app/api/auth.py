@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, status, Request
+from fastapi import APIRouter, Depends, HTTPException, Request, Response
 from sqlalchemy.orm import Session
 from sqlalchemy.exc import IntegrityError
 from app.core.database import get_db
@@ -15,10 +15,12 @@ from app.services.token_service import TokenService
 from app.models.auth_tokens import UserSession, EmailVerificationToken, PasswordResetToken
 from app.core.security import get_password_hash
 import uuid
+import os
 from datetime import datetime, timezone
 from app.core.rate_limit import limiter
 
 router = APIRouter(prefix="/auth", tags=["Authentication"])
+REFRESH_COOKIE_SECURE = os.getenv("REFRESH_COOKIE_SECURE", "true").lower() == "true"
 
 @router.post("/register-organization", response_model=UserResponse)
 def register_organization(data: OwnerRegistrationRequest, request: Request, db: Session = Depends(get_db)):
@@ -83,7 +85,7 @@ import app.models.user
 
 @router.post("/login", response_model=TokenPairResponse)
 @limiter.limit("10/minute")
-def login(data: LoginRequest, request: Request, db: Session = Depends(get_db)):
+def login(data: LoginRequest, request: Request, response: Response, db: Session = Depends(get_db)):
     user = AuthService.get_user_by_email(db, data.email)
     if not user:
         raise HTTPException(status_code=401, detail="Invalid email or password")
@@ -110,12 +112,26 @@ def login(data: LoginRequest, request: Request, db: Session = Depends(get_db)):
     
     AuditService.log_action(db, "user.login_succeeded", actor_user_id=user.id, ip_address=request.client.host if request.client else None)
     db.commit()
+    
+    response.set_cookie(
+        key="eventos_refresh_token",
+        value=refresh_token,
+        httponly=True,
+        secure=REFRESH_COOKIE_SECURE,
+        samesite="strict",
+        path="/auth",
+        max_age=60 * 60 * 24 * 30,
+    )
 
-    return {"access_token": access_token, "refresh_token": refresh_token, "token_type": "bearer"}
+    return {"access_token": access_token, "refresh_token": None, "token_type": "bearer"}
 
 @router.post("/refresh", response_model=TokenPairResponse)
-def refresh(data: RefreshRequest, db: Session = Depends(get_db)):
-    token_hash = TokenService.hash_token(data.refresh_token)
+def refresh(data: RefreshRequest, request: Request, response: Response, db: Session = Depends(get_db)):
+    refresh_token = request.cookies.get("eventos_refresh_token")
+    if not refresh_token:
+        raise HTTPException(status_code=401, detail="Refresh token missing")
+
+    token_hash = TokenService.hash_token(refresh_token)
     session = db.query(UserSession).filter(UserSession.refresh_token_hash == token_hash).first()
     
     if not session:
@@ -138,12 +154,27 @@ def refresh(data: RefreshRequest, db: Session = Depends(get_db)):
     # Rotate
     new_session, new_refresh_token = SessionService.rotate_refresh_token(db, session)
     access_token = TokenService.create_access_token(user.id, new_session.id, user.token_version)
+
+    response.set_cookie(
+        key="eventos_refresh_token",
+        value=new_refresh_token,
+        httponly=True,
+        secure=REFRESH_COOKIE_SECURE,
+        samesite="strict",
+        path="/auth",
+        max_age=60 * 60 * 24 * 30,
+    )
     
     db.commit()
-    return {"access_token": access_token, "refresh_token": new_refresh_token, "token_type": "bearer"}
+    return {
+        "access_token": access_token,
+        "refresh_token": None,
+        "token_type": "bearer"
+    }
 
 @router.post("/logout")
-def logout(db: Session = Depends(get_db), session_id: str = Depends(get_current_session_id), user: app.models.user.User = Depends(get_current_user)):
+def logout(response: Response, db: Session = Depends(get_db), session_id: str = Depends(get_current_session_id), user: app.models.user.User = Depends(get_current_user)):
+    response.delete_cookie("eventos_refresh_token", path="/auth")
     try:
         session_uuid = uuid.UUID(session_id)
     except ValueError:

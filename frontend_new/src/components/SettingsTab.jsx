@@ -69,10 +69,11 @@ export default function SettingsTab() {
     onSuccess: () => qc.invalidateQueries({ queryKey: ['org-invitations', orgId] })
   })
 
-  const removeMemberMutation = useMutation({
-    mutationFn: (memberId) => organizationsApi.removeMember(orgId, memberId),
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['org-members', orgId] })
-  })
+  const setMemberStatusMutation = useMutation({
+  mutationFn: ({ memberId, status }) => organizationsApi.setMemberStatus(orgId, memberId, status),
+  onSuccess: () => qc.invalidateQueries({ queryKey: ['org-members', orgId] }),
+  onError: (err) => alert("Error: " + err.message)
+})
 
   const updateRoleMutation = useMutation({
     mutationFn: ({ memberId, role }) => organizationsApi.updateMemberRole(orgId, memberId, role),
@@ -131,20 +132,27 @@ export default function SettingsTab() {
                 <th className="px-4 py-3 text-xs font-medium text-slate-500 uppercase tracking-wide">User</th>
                 <th className="px-4 py-3 text-xs font-medium text-slate-500 uppercase tracking-wide">Role</th>
                 <th className="px-4 py-3 text-xs font-medium text-slate-500 uppercase tracking-wide">Joined</th>
+                <th className="px-4 py-3 text-xs font-medium text-slate-500 uppercase tracking-wide">Status</th>
                 <th className="px-4 py-3 text-right"></th>
               </tr>
             </thead>
+
             <tbody>
               {loadingMembers ? (
-                <tr><td colSpan="4" className="p-4 text-center text-slate-500"><Loader2 size={16} className="animate-spin inline" /></td></tr>
+                <tr>
+                  <td colSpan="5" className="p-4 text-center text-slate-500">
+                    <Loader2 size={16} className="animate-spin inline" />
+                  </td>
+                </tr>
               ) : members?.map(m => (
                 <tr key={m.membership_id} className="border-b border-slate-200 last:border-0 hover:bg-slate-50">
                   <td className="px-4 py-3">
                     <p className="font-medium text-slate-900">{m.first_name} {m.last_name}</p>
                     <p className="text-xs text-slate-500">{m.email}</p>
                   </td>
+
                   <td className="px-4 py-3">
-                    <select 
+                    <select
                       value={m.role}
                       onChange={e => {
                         if (window.confirm(`Change role to ${e.target.value}?`)) {
@@ -152,25 +160,59 @@ export default function SettingsTab() {
                         }
                       }}
                       className="text-xs border border-slate-200 rounded px-2 py-1 bg-white focus:outline-none"
-                      disabled={m.role === 'owner'} // Don't let owner be demoted easily here
+                      disabled={m.role === 'owner'}
                     >
                       <option value="owner" disabled>Owner</option>
                       <option value="admin">Admin</option>
                       <option value="member">Member</option>
                     </select>
                   </td>
+
                   <td className="px-4 py-3 text-xs text-slate-500">
                     {new Date(m.joined_at).toLocaleDateString()}
                   </td>
-                  <td className="px-4 py-3 text-right">
-                    {m.role !== 'owner' && (
-                      <button 
+
+                  <td className="px-4 py-3">
+                    <Badge colour={m.status === 'active' ? 'green' : m.status === 'suspended' ? 'amber' : 'red'}>
+                      {m.status}
+                    </Badge>
+                  </td>
+
+                  <td className="px-4 py-3 text-right space-x-2">
+                    {m.role !== 'owner' && m.status === 'active' && (
+                      <button
                         onClick={() => {
-                          if(window.confirm('Remove this member?')) removeMemberMutation.mutate(m.membership_id)
+                          if (window.confirm('Suspend this member?')) {
+                            setMemberStatusMutation.mutate({ memberId: m.membership_id, status: 'suspended' })
+                          }
+                        }}
+                        className="text-xs text-amber-600 hover:text-amber-800"
+                      >
+                        Suspend
+                      </button>
+                    )}
+
+                    {m.role !== 'owner' && m.status === 'suspended' && (
+                      <button
+                        onClick={() => {
+                          setMemberStatusMutation.mutate({ memberId: m.membership_id, status: 'active' })
+                        }}
+                        className="text-xs text-green-600 hover:text-green-800"
+                      >
+                        Reactivate
+                      </button>
+                    )}
+
+                    {m.role !== 'owner' && m.status !== 'revoked' && (
+                      <button
+                        onClick={() => {
+                          if (window.confirm('Revoke this member? They will lose access to this organization.')) {
+                            setMemberStatusMutation.mutate({ memberId: m.membership_id, status: 'revoked' })
+                          }
                         }}
                         className="text-xs text-red-500 hover:text-red-700"
                       >
-                        Remove
+                        Revoke
                       </button>
                     )}
                   </td>

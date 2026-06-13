@@ -4,7 +4,7 @@ from app.core.database import get_db
 from app.core.auth_deps import get_current_user, RequireOrganizationRole
 from app.schemas.organization import (
     OrganizationResponse, OrganizationUpdate, MembershipResponse, MemberDetailResponse,
-    InvitationCreate, InvitationResponse, InvitationPreview
+    InvitationCreate, InvitationResponse, InvitationPreview, OrganizationWithMembership
 )
 from app.models.organization import Organization
 from app.models.organization_membership import OrganizationMembership
@@ -20,13 +20,16 @@ import os
 
 router = APIRouter(prefix="/organizations", tags=["Organizations"])
 
-@router.get("", response_model=list[OrganizationResponse])
+@router.get("", response_model=list[OrganizationWithMembership])
 def list_my_organizations(db: Session = Depends(get_db), user = Depends(get_current_user)):
-    orgs = db.query(Organization).join(OrganizationMembership).filter(
+    memberships = db.query(OrganizationMembership).join(Organization).filter(
         OrganizationMembership.user_id == user.id,
         OrganizationMembership.status == 'active'
     ).all()
-    return orgs
+    return [
+        {"organization": m.organization, "membership": m}
+        for m in memberships
+    ]
 
 @router.get("/{organization_id}", response_model=OrganizationResponse)
 def get_organization(
@@ -126,7 +129,7 @@ def change_member_status(
     db: Session = Depends(get_db),
     current_membership = Depends(RequireOrganizationRole('owner', 'admin'))
 ):
-    if status not in ['active', 'suspended']:
+    if status not in ['active', 'suspended', 'revoked']:
         raise HTTPException(400, "Invalid status")
 
     target = db.query(OrganizationMembership).filter(

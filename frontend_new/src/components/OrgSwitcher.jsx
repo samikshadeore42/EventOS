@@ -5,6 +5,7 @@ import { useState, useRef, useEffect } from 'react'
 import { useAuth } from '../context/AuthContext'
 import { Building, ChevronDown, LogOut } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
+import { useQueryClient } from '@tanstack/react-query'
 
 export default function OrgSwitcher() {
   const {
@@ -15,7 +16,7 @@ export default function OrgSwitcher() {
     payload,
   } = useAuth()
   const navigate = useNavigate()
-
+  const qc = useQueryClient()
   const [open, setOpen] = useState(false)
   const ref = useRef(null)
 
@@ -61,7 +62,11 @@ export default function OrgSwitcher() {
               {availableOrganizations.map((org) => (
                 <button
                   key={org.id}
-                  onClick={() => { switchOrganization(org); setOpen(false) }}
+                  onClick={() => {
+                    switchOrganization(org)
+                    qc.clear()
+                    setOpen(false)
+                  }}
                   className={`w-full text-left px-3 py-2 text-sm flex items-center gap-2 hover:bg-slate-50 transition-colors ${
                     activeOrganization?.id === org.id ? 'bg-indigo-50 text-indigo-700 font-medium' : 'text-slate-700'
                   }`}

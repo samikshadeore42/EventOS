@@ -141,7 +141,6 @@ export function AuthProvider({ children }) {
     if (!newToken) {
       tokenStorage.clear()
       orgStorage.clear()
-      sessionStorage.removeItem('eventos_refresh_token')
       setTokenState(null)
       setPayload(null)
       setActiveOrganization(null)
@@ -157,10 +156,7 @@ export function AuthProvider({ children }) {
   }, [])
 
   // Store both access + refresh tokens (called after login/refresh)
-  const setAuthTokens = useCallback((accessToken, refreshToken) => {
-    if (refreshToken) {
-      sessionStorage.setItem('eventos_refresh_token', refreshToken)
-    }
+  const setAuthTokens = useCallback((accessToken) => {
     // Delegate to setToken for access token
     if (accessToken) {
       const decoded = decodePayload(accessToken)
@@ -188,7 +184,6 @@ export function AuthProvider({ children }) {
     }
     tokenStorage.clear()
     orgStorage.clear()
-    sessionStorage.removeItem('eventos_refresh_token')
     setTokenState(null)
     setPayload(null)
     setActiveOrganization(null)

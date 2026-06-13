@@ -11,6 +11,7 @@ const ORG_KEY = 'eventos_active_org_id'
 // ── Axios instance ─────────────────────────────────────────────────────────
 const api = axios.create({
   baseURL: BASE_URL,
+  withCredentials: true,
   timeout: 30_000,
   headers: { 'Content-Type': 'application/json' },
 })
@@ -83,26 +84,22 @@ api.interceptors.response.use(
 
       // Single-flight: only one refresh at a time
       if (!refreshPromise) {
-        const refreshToken = sessionStorage.getItem('eventos_refresh_token')
-        if (refreshToken) {
-          refreshPromise = api.post('/auth/refresh', { refresh_token: refreshToken })
-            .then((data) => {
-              sessionStorage.setItem(SESSION_KEY, data.access_token)
-              if (data.refresh_token) {
-                sessionStorage.setItem('eventos_refresh_token', data.refresh_token)
-              }
-              return data.access_token
-            })
-            .catch((refreshError) => {
-              // Refresh failed — clear all auth state
-              sessionStorage.removeItem(SESSION_KEY)
-              sessionStorage.removeItem('eventos_refresh_token')
-              sessionStorage.removeItem(ORG_KEY)
-              window.dispatchEvent(new Event('auth:logout'))
-              return Promise.reject(refreshError)
-            })
-            .finally(() => { refreshPromise = null })
-        }
+        refreshPromise = api.post('/auth/refresh', {})
+          .then((res) => {
+            const data = res?.data || res
+            sessionStorage.setItem(SESSION_KEY, data.access_token)
+            return data.access_token
+          })
+          .catch((refreshError) => {
+            // Refresh failed — clear local auth state
+            sessionStorage.removeItem(SESSION_KEY)
+            sessionStorage.removeItem(ORG_KEY)
+            window.dispatchEvent(new Event('auth:logout'))
+            return Promise.reject(refreshError)
+          })
+          .finally(() => {
+            refreshPromise = null
+          })
       }
 
       if (refreshPromise) {
@@ -198,8 +195,8 @@ export const organizationsApi = {
   updateMemberRole: (orgId, memberId, role) =>
     api.patch(`/organizations/${orgId}/members/${memberId}/role`, undefined, { params: { role } }),
     
-  removeMember: (orgId, memberId) =>
-    api.delete(`/organizations/${orgId}/members/${memberId}`),
+  setMemberStatus: (orgId, memberId, status) =>
+    api.patch(`/organizations/${orgId}/members/${memberId}/status`, undefined, { params: { status } }),
     
   invitations: (id) =>
     api.get(`/organizations/${id}/invitations`),
