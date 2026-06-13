@@ -14,6 +14,107 @@ import EventOSLogo from '../components/EventOSLogo'
 import { portalApi, mentorApi, submissionsApi } from '../services/api'
 import { useAuth } from '../context/AuthContext'
 
+// ── Daily Update Form ──────────────────────────────────────────────────────
+function DailyUpdateForm({ token }) {
+  const [what, setWhat]             = useState('')
+  const [blockers, setBlockers]     = useState('')
+  const [hours, setHours]           = useState('')
+  const [submitting, setSubmitting] = useState(false)
+  const [submitted, setSubmitted]   = useState(false)
+  const [error, setError]           = useState('')
+
+  async function handleSubmit() {
+    if (!what.trim()) return
+    setSubmitting(true)
+    setError('')
+    try {
+      const res = await fetch(
+        `http://localhost:8000/daily-updates/submit?token=${token}`,
+        {
+          method:  'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body:    JSON.stringify({
+            what_i_built: what,
+            blockers:     blockers || null,
+            hours_worked: hours ? parseInt(hours) : null,
+          }),
+        }
+      )
+      if (!res.ok) {
+        const err = await res.json()
+        throw new Error(err.detail || 'Submission failed')
+      }
+      setSubmitted(true)
+    } catch (e) {
+      setError(e.message)
+    } finally {
+      setSubmitting(false)
+    }
+  }
+
+  if (submitted) {
+    return (
+      <div className="bg-green-50 border border-green-200 rounded-xl p-4">
+        <p className="text-green-700 font-medium">✓ Daily update submitted!</p>
+        <p className="text-green-600 text-sm mt-1">Your mentor and organizers can see your progress.</p>
+      </div>
+    )
+  }
+
+  return (
+    <div className="bg-white border border-slate-200 rounded-xl p-5">
+      <h3 className="font-semibold text-slate-800 mb-3">Today's Progress Update</h3>
+      <div className="space-y-3">
+        <div>
+          <label className="block text-sm font-medium text-slate-600 mb-1">
+            What did you build today? *
+          </label>
+          <textarea
+            className="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-blue-500"
+            rows={3}
+            placeholder="Implemented the login flow, fixed the API integration..."
+            value={what}
+            onChange={e => setWhat(e.target.value)}
+          />
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-slate-600 mb-1">
+            Any blockers? (optional)
+          </label>
+          <input
+            className="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            placeholder="Stuck on Docker networking..."
+            value={blockers}
+            onChange={e => setBlockers(e.target.value)}
+          />
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-slate-600 mb-1">
+            Hours worked today (optional)
+          </label>
+          <input
+            type="number" min="0" max="24"
+            className="w-32 border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            placeholder="4"
+            value={hours}
+            onChange={e => setHours(e.target.value)}
+          />
+        </div>
+        {error && <p className="text-red-500 text-sm">{error}</p>}
+        <button
+          onClick={handleSubmit}
+          disabled={submitting || !what.trim()}
+          className="bg-blue-600 hover:bg-blue-500 disabled:opacity-40 text-white px-5 py-2 rounded-lg text-sm font-medium transition-colors"
+        >
+          {submitting ? 'Submitting...' : 'Submit Update'}
+        </button>
+      </div>
+    </div>
+  )
+}
+
+// ── Helpers ────────────────────────────────────────────────────────────────
+
 // ── Helpers ────────────────────────────────────────────────────────────────
 
 function initials(name = '') {
@@ -780,6 +881,8 @@ export default function ParticipantPortal() {
                 />
               : <AwaitingCard />
             }
+
+            {team_assigned && <DailyUpdateForm token={urlToken} />}
 
             {team_assigned && (stage === 'evaluation' || stage === 'results') && <ProjectSubmissionSection />}
 

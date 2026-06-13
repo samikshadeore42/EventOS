@@ -63,5 +63,10 @@ celery_app.conf.beat_schedule = {
         "task":     "app.tasks.scheduler.send_daily_evaluation_reminder",
         "schedule": crontab(hour=9, minute=0),
     },
+
+    "health-dashboard-refresh": {
+    "task":     "app.tasks.scheduler.refresh_health_dashboard",
+    "schedule": crontab(minute=0),   # every hour
+    },
 }
 

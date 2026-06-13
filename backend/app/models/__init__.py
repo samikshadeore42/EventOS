@@ -12,5 +12,7 @@ from app.models import event_state
 from app.models.event_state import EventState
 from app.models.assignment import EvaluatorTeamAssignment
 from app.models.project_submission import ProjectSubmission
+from app.models import daily_update  # noqa
+from app.models.daily_update import DailyUpdate
 
-__all__ = ["Participant", "Team", "Mentor", "MentorAssignment", "MentorSession", "MentorFeedback", "Employee", "Admin", "EventState", "ProjectSubmission"]
+__all__ = ["Participant", "Team", "Mentor", "MentorAssignment", "MentorSession", "MentorFeedback", "Employee", "Admin", "EventState", "ProjectSubmission", "DailyUpdate"]

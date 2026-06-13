@@ -125,3 +125,86 @@ def run_anomaly_sweep():
         raise
     finally:
         db.close()
+
+@celery_app.task(
+    name="app.tasks.scheduler.refresh_health_dashboard",
+    queue="algorithms",
+)
+def refresh_health_dashboard():
+    """
+    Scheduled task: runs every hour.
+    Recomputes team risk scores and writes to Redis cache.
+    Also sends reminder emails to participants missing updates.
+    """
+    from app.services.health_service import compute_all_teams_risk
+    from app.models.daily_update import DailyUpdate
+    from app.models.participant import Participant, Team
+    from app.core.redis_client import get_redis
+    from app.services.email_service import EmailService
+    from datetime import date
+    import json
+
+    db = SessionLocal()
+    try:
+        # Refresh risk cache
+        results = compute_all_teams_risk(db)
+        r = get_redis()
+        r.set("health:all_teams", json.dumps(results), ex=60 * 60)
+
+        critical_count = sum(
+            1 for t in results if t["risk_level"] == "critical"
+        )
+        print(
+            f"[HEALTH] Refreshed {len(results)} teams. "
+            f"{critical_count} critical."
+        )
+
+        # Send reminders to participants who missed today's update
+        today = date.today()
+        approved_teams = db.query(Team).filter(Team.is_approved == True).all()
+        reminders_sent = 0
+
+        for team in approved_teams:
+            members = db.query(Participant).filter(
+                Participant.team_id == team.id
+            ).all()
+            for member in members:
+                already_submitted = db.query(DailyUpdate).filter(
+                    DailyUpdate.participant_id == member.id,
+                    DailyUpdate.update_date == today,
+                ).first()
+                if not already_submitted:
+                    html = f"""
+                    <!DOCTYPE html><html><body style="font-family:Arial;max-width:600px;margin:40px auto;padding:24px">
+                    <h2 style="color:#2563eb">EventOS — Daily Update Reminder</h2>
+                    <p>Hi {member.first_name},</p>
+                    <p>You haven't submitted your daily progress update today yet.</p>
+                    <p>Log in to your participant portal and let your team and mentors know
+                       what you've built today.</p>
+                    <p style="color:#6b7280;font-size:13px">
+                      Consistent updates help mentors support your team. Missing updates
+                      will flag your team as at-risk on the organizer dashboard.
+                    </p>
+                    </body></html>
+                    """
+                    result = EmailService.send_email(
+                        to_email=member.email,
+                        subject="📋 Daily update reminder — EventOS",
+                        html_content=html,
+                    )
+                    if result.get("success"):
+                        reminders_sent += 1
+
+        print(f"[HEALTH] Sent {reminders_sent} daily update reminders.")
+        return {
+            "teams_processed": len(results),
+            "critical_count":  critical_count,
+            "reminders_sent":  reminders_sent,
+        }
+
+    except Exception as e:
+        print(f"[HEALTH] refresh_health_dashboard failed: {e}")
+        raise
+    finally:
+        db.close()
+
