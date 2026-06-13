@@ -8,6 +8,11 @@ from app.models import evaluation
 from app.models import event_config       
 from app.models import communication_log
 from app.models import mentor
+# At the top with other imports:
+from app.api.daily_update_routes import router as daily_update_router
+from app.api.health_routes import router as health_router
+
+
 
 # Route Imports
 from app.api.solver_routes import router as solver_router
@@ -59,6 +64,8 @@ app.include_router(admin_router)
 app.include_router(demo_admin_router)
 app.include_router(event_state_router)
 app.include_router(submission_router)
+app.include_router(daily_update_router)
+app.include_router(health_router)
 
 @app.on_event("startup")
 async def startup():

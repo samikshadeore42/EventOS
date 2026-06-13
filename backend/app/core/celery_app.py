@@ -17,6 +17,7 @@ celery_app = Celery(
         "app.tasks.solver",
         "app.tasks.anomaly",
         "app.tasks.ai_tasks",
+        "app.tasks.scheduler",
     ]
 )
 

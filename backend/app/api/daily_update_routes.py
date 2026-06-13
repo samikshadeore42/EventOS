@@ -1,6 +1,8 @@
 # backend/app/api/daily_update_routes.py
 from datetime import date, datetime, timezone
 from uuid import UUID
+from app.core.redis_client import get_redis
+import json
 
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
@@ -69,6 +71,10 @@ def submit_update(
         existing.submitted_at = datetime.now(timezone.utc)
         db.commit()
         db.refresh(existing)
+        try:
+            get_redis().delete("health:all_teams")
+        except Exception:
+            pass
         update = existing
     else:
         update = DailyUpdate(
@@ -83,6 +89,11 @@ def submit_update(
         db.add(update)
         db.commit()
         db.refresh(update)
+        try:
+            get_redis().delete("health:all_teams")
+        except Exception:
+            pass
+        update = existing
 
     return DailyUpdateResponse(
         id             = str(update.id),
