@@ -28,6 +28,7 @@ from app.schemas.mentor_schemas import (
 )
 
 router = APIRouter(tags=["Mentor Operations"])
+portal_router = APIRouter(tags=["Mentor Portal"])
 
 
 # ── Helper: extract mentor_id from token ───────────────────────────────────
@@ -123,7 +124,7 @@ def get_team_mentor(team_id: UUID, db: Session = Depends(get_db)):
 # MENTOR PORTAL (token-authenticated)
 # ═══════════════════════════════════════════════════════════════════════════
 
-@router.get("/mentor-portal/me", summary="Mentor: get own profile + stats")
+@portal_router.get("/mentor-portal/me", summary="Mentor: get own profile + stats")
 def mentor_portal_me(
     token: str = Query(..., description="Mentor JWT"),
     db: Session = Depends(get_db),
@@ -132,7 +133,7 @@ def mentor_portal_me(
     return MentorService.get_mentor_portal_me(db, mentor_id).model_dump()
 
 
-@router.get("/mentor-portal/teams", summary="Mentor: list assigned teams")
+@portal_router.get("/mentor-portal/teams", summary="Mentor: list assigned teams")
 def mentor_portal_teams(
     token: str = Query(..., description="Mentor JWT"),
     db: Session = Depends(get_db),
@@ -142,7 +143,7 @@ def mentor_portal_teams(
     return {"teams": [t.model_dump() for t in teams]}
 
 
-@router.post("/mentor-portal/sessions", summary="Mentor: schedule a meeting", status_code=201)
+@portal_router.post("/mentor-portal/sessions", summary="Mentor: schedule a meeting", status_code=201)
 def mentor_create_session(
     data: MentorSessionCreate,
     token: str = Query(..., description="Mentor JWT"),
@@ -153,7 +154,7 @@ def mentor_create_session(
     return MentorSessionOut.model_validate(session).model_dump()
 
 
-@router.patch("/mentor-portal/sessions/{session_id}", summary="Mentor: update a session")
+@portal_router.patch("/mentor-portal/sessions/{session_id}", summary="Mentor: update a session")
 def mentor_update_session(
     session_id: UUID,
     data: MentorSessionUpdate,
@@ -165,7 +166,7 @@ def mentor_update_session(
     return MentorSessionOut.model_validate(session).model_dump()
 
 
-@router.post("/mentor-portal/feedback", summary="Mentor: submit feedback", status_code=201)
+@portal_router.post("/mentor-portal/feedback", summary="Mentor: submit feedback", status_code=201)
 def mentor_submit_feedback(
     data: MentorFeedbackCreate,
     token: str = Query(..., description="Mentor JWT"),
@@ -176,7 +177,7 @@ def mentor_submit_feedback(
     return MentorFeedbackOut.model_validate(feedback).model_dump()
 
 
-@router.get("/mentor-portal/feedback/team/{team_id}", summary="Mentor: get feedback for team")
+@portal_router.get("/mentor-portal/feedback/team/{team_id}", summary="Mentor: get feedback for team")
 def mentor_team_feedback(
     team_id: UUID,
     token: str = Query(..., description="Mentor JWT"),
@@ -276,7 +277,7 @@ def generate_ai_summary(data: AISummaryRequest, db: Session = Depends(get_db)):
 # PARTICIPANT MENTOR DATA
 # ═══════════════════════════════════════════════════════════════════════════
 
-@router.get(
+@portal_router.get(
     "/participant-mentor-info",
     summary="Participant-safe mentor data (mentor name, next meeting, visible feedback)",
 )

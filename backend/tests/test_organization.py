@@ -74,31 +74,50 @@ def test_accept_invitation(db_session: Session):
     token1 = create_auth_user(client, "orgowner")
     resp1 = client.get("/organizations", headers={"Authorization": f"Bearer {token1}"})
     org1_id = resp1.json()[0]["organization"]["id"]
-    
-    client.post(f"/organizations/{org1_id}/invitations", json={
-        "email": "orginvited@test.com",
-        "role": "admin"
-    }, headers={"Authorization": f"Bearer {token1}"})
-    
-    from app.models.auth_tokens import AdminInvitation
-    
+
+    client.post(
+        f"/organizations/{org1_id}/invitations",
+        json={
+            "email": "orginvited@test.com",
+            "role": "admin",
+        },
+        headers={"Authorization": f"Bearer {token1}"},
+    )
+
     # Create User 3 and get their token
     token3 = create_auth_user(client, "inv_target")
-    
+
     # Use InvitationService to create an invitation with a raw token we can use
     from app.services.invitation_service import InvitationService
-    
+
     inv_user = db_session.query(User).filter(User.email == "inv_target@test.com").first()
     orgowner_user = db_session.query(User).filter(User.email == "orgowner@test.com").first()
-    
-    inv, raw_token = InvitationService.create_invitation(db_session, uuid.UUID(org1_id), inv_user.email, "admin", orgowner_user.id)
+
+    inv, raw_token = InvitationService.create_invitation(
+        db_session,
+        uuid.UUID(org1_id),
+        inv_user.email,
+        "admin",
+        orgowner_user.id,
+    )
     db_session.commit()
-    
-    accept_resp = client.post(f"/organizations/auth/invitations/{raw_token}/accept", headers={"Authorization": f"Bearer {token3}"})
+
+    # Old route should now be removed/dead
+    old_accept_resp = client.post(
+        f"/organizations/auth/invitations/{raw_token}/accept",
+        headers={"Authorization": f"Bearer {token3}"},
+    )
+    assert old_accept_resp.status_code == 404
+
+    # New correct route should work
+    accept_resp = client.post(
+        f"/auth/invitations/{raw_token}/accept",
+        headers={"Authorization": f"Bearer {token3}"},
+    )
     if accept_resp.status_code != 200:
         print(accept_resp.json())
     assert accept_resp.status_code == 200
-    
+
     # Verify User 3 has access to Org 1
     orgs_resp = client.get("/organizations", headers={"Authorization": f"Bearer {token3}"})
     orgs = orgs_resp.json()

@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState} from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { organizationsApi } from '../services/api'
 import { useAuth } from '../context/AuthContext'
@@ -87,6 +87,15 @@ export default function SettingsTab() {
   // State
   const [orgName, setOrgName] = useState(activeOrganization?.name || '')
   const [orgDesc, setOrgDesc] = useState(activeOrganization?.description || '')
+  const [syncedOrgId, setSyncedOrgId] = useState(activeOrganization?.id)
+
+  // Re-sync form fields whenever the active organization changes.
+  // Done during render (not in an effect) to avoid an extra render pass.
+  if (activeOrganization?.id !== syncedOrgId) {
+    setSyncedOrgId(activeOrganization?.id)
+    setOrgName(activeOrganization?.name || '')
+    setOrgDesc(activeOrganization?.description || '')
+  }
 
   const [showInviteForm, setShowInviteForm] = useState(false)
   const [inviteEmail, setInviteEmail] = useState('')

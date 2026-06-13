@@ -43,7 +43,7 @@ api.interceptors.request.use(
 
     // Attach organization context for admin API calls (not public auth)
     if (!isPublicAuthPath(config.url)) {
-      const orgId = sessionStorage.getItem(ORG_KEY)
+      const orgId = localStorage.getItem(ORG_KEY)
       if (orgId) {
         config.headers['X-Organization-Id'] = orgId
       }
@@ -93,7 +93,7 @@ api.interceptors.response.use(
           .catch((refreshError) => {
             // Refresh failed — clear local auth state
             sessionStorage.removeItem(SESSION_KEY)
-            sessionStorage.removeItem(ORG_KEY)
+            localStorage.removeItem(ORG_KEY)
             window.dispatchEvent(new Event('auth:logout'))
             return Promise.reject(refreshError)
           })
@@ -139,9 +139,9 @@ export const tokenStorage = {
 
 // ── Organization helpers (used by AuthContext) ────────────────────────────
 export const orgStorage = {
-  get:    ()       => sessionStorage.getItem(ORG_KEY),
-  set:    (orgId)  => sessionStorage.setItem(ORG_KEY, orgId),
-  clear:  ()       => sessionStorage.removeItem(ORG_KEY),
+  get:    ()       => localStorage.getItem(ORG_KEY),
+  set:    (orgId)  => localStorage.setItem(ORG_KEY, orgId),
+  clear:  ()       => localStorage.removeItem(ORG_KEY),
 }
 
 // ═════════════════════════════════════════════════════════════════════════
@@ -207,11 +207,26 @@ export const organizationsApi = {
   revokeInvitation: (orgId, invId) =>
     api.delete(`/organizations/${orgId}/invitations/${invId}`),
     
-  previewInvitation: (token) =>
-    api.get(`/organizations/preview-invitation?token=${token}`),
-    
-  acceptInvitation: (data) =>
-    api.post(`/organizations/accept-invitation`, data),
+  preview: (token) =>
+    api.get(`/auth/invitations/${token}`),
+
+  accept: (token) =>
+    api.post(`/auth/invitations/${token}/accept`),
+
+  registerViaInvitation: (token, data) =>
+    api.post(`/auth/invitations/${token}/register`, data),
+}
+
+// ── Invitations (public auth routes) ───────────────────────────────────────
+export const invitationsApi = {
+  preview: (token) =>
+    api.get(`/auth/invitations/${token}`),
+
+  accept: (token) =>
+    api.post(`/auth/invitations/${token}/accept`),
+
+  registerViaInvitation: (token, data) =>
+    api.post(`/auth/invitations/${token}/register`, data),
 }
 
 // ── Participants ──────────────────────────────────────────────────────────

@@ -12,6 +12,7 @@ import sqlalchemy as sa
 from sqlalchemy.dialects import postgresql
 import uuid
 from datetime import datetime, timezone
+import os
 
 # revision identifiers, used by Alembic.
 revision: str = '0940abbefebb'
@@ -160,12 +161,14 @@ def upgrade() -> None:
         }
     )
 
-    # Fetch existing Admins
+    # Fetch existing Admins, deterministically ordered so the first row
+    # (creation order, tie-broken by username) consistently becomes the owner.
     admins = connection.execute(
         sa.text("""
             SELECT a.id as admin_id, a.username, a.hashed_password, a.employee_id, e.name as employee_name
             FROM admins a
             LEFT JOIN employees e ON a.employee_id = e.employee_id
+            ORDER BY a.created_at ASC, a.username ASC
         """)
     ).fetchall()
 
@@ -200,8 +203,13 @@ def upgrade() -> None:
             }
         )
 
-        # First admin becomes owner, rest become admin
-        role = "owner" if idx == 0 else "admin"
+        # First admin (by deterministic order) becomes owner, unless an explicit
+        # PRIMARY_ADMIN_USERNAME env var names a different admin as owner.
+        primary_admin = os.environ.get("PHASE1_PRIMARY_ADMIN_USERNAME")
+        if primary_admin:
+            role = "owner" if admin_row.username == primary_admin else "admin"
+        else:
+            role = "owner" if idx == 0 else "admin"
 
         connection.execute(
             sa.text("""

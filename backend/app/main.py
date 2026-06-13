@@ -22,7 +22,7 @@ from app.api.ai_routes import router as ai_router
 from app.api.evaluator_routes import router as evaluator_router
 from app.api.event_routes import router as event_router
 from app.api.comms_routes import router as comms_router
-from app.api.mentor_routes import router as mentor_router
+from app.api.mentor_routes import router as mentor_router, portal_router as mentor_portal_router
 # admin_router removed as per Phase 1
 from app.api.demo_admin_routes import router as demo_admin_router
 from app.api.event_state_routes import router as event_state_router
@@ -81,6 +81,7 @@ app.include_router(evaluation_router)
 app.include_router(submission_router)
 app.include_router(portal_router)
 app.include_router(mentor_router, dependencies=legacy_dependency)
+app.include_router(mentor_portal_router)
 app.include_router(ai_router, dependencies=legacy_dependency)
 app.include_router(event_state_router, dependencies=legacy_dependency)
 app.include_router(demo_admin_router, dependencies=legacy_dependency)

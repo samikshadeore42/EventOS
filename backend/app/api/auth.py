@@ -13,11 +13,21 @@ from app.services.session_service import SessionService
 from app.services.audit_service import AuditService
 from app.services.token_service import TokenService
 from app.models.auth_tokens import UserSession, EmailVerificationToken, PasswordResetToken
+from app.models.organization import Organization
+from app.models.auth_tokens import AdminInvitation
+from app.services.invitation_service import InvitationService
+from app.schemas.organization import InvitationPreview
 from app.core.security import get_password_hash
 import uuid
 import os
 from datetime import datetime, timezone
 from app.core.rate_limit import limiter
+from app.schemas.auth import (
+    OwnerRegistrationRequest, LoginRequest, TokenPairResponse,
+    RefreshRequest, ForgotPasswordRequest, ResetPasswordRequest, UserResponse,
+    InvitationRegistrationRequest
+)
+
 
 router = APIRouter(prefix="/auth", tags=["Authentication"])
 REFRESH_COOKIE_SECURE = os.getenv("REFRESH_COOKIE_SECURE", "true").lower() == "true"
@@ -118,7 +128,7 @@ def login(data: LoginRequest, request: Request, response: Response, db: Session 
         value=refresh_token,
         httponly=True,
         secure=REFRESH_COOKIE_SECURE,
-        samesite="strict",
+        samesite="lax",
         path="/auth",
         max_age=60 * 60 * 24 * 30,
     )
@@ -160,7 +170,7 @@ def refresh(data: RefreshRequest, request: Request, response: Response, db: Sess
         value=new_refresh_token,
         httponly=True,
         secure=REFRESH_COOKIE_SECURE,
-        samesite="strict",
+        samesite="lax",
         path="/auth",
         max_age=60 * 60 * 24 * 30,
     )
@@ -293,3 +303,113 @@ def reset_password(data: ResetPasswordRequest, db: Session = Depends(get_db)):
     db.commit()
     return {"status": "success"}
 
+
+@router.get("/invitations/{token}", response_model=InvitationPreview)
+def preview_invitation(token: str, db: Session = Depends(get_db)):
+    invitation = InvitationService.get_invitation_by_token(db, token)
+    if not invitation:
+        raise HTTPException(400, {"code": "INVALID_TOKEN", "message": "Invalid token."})
+    expires_at = invitation.expires_at.replace(tzinfo=timezone.utc) if invitation.expires_at.tzinfo is None else invitation.expires_at
+    if invitation.status != 'pending' or expires_at < datetime.now(timezone.utc):
+        raise HTTPException(400, {"code": "TOKEN_EXPIRED", "message": "Invitation is expired or no longer valid."})
+
+    inviter = db.query(app.models.user.User).filter(app.models.user.User.id == invitation.invited_by_user_id).first()
+
+    return {
+        "organization_name": invitation.organization.name,
+        "inviter_name": f"{inviter.first_name} {inviter.last_name}" if inviter else None,
+        "role": invitation.role,
+        "email": invitation.email,
+        "expires_at": invitation.expires_at,
+        "has_account": AuthService.get_user_by_email(db, invitation.email) is not None,
+    }
+
+
+@router.post("/invitations/{token}/accept")
+def accept_invitation(token: str, db: Session = Depends(get_db), user: app.models.user.User = Depends(get_current_user)):
+    invitation = InvitationService.get_invitation_by_token(db, token)
+    if not invitation:
+        raise HTTPException(400, {"code": "INVALID_TOKEN", "message": "Invalid token."})
+    expires_at = invitation.expires_at.replace(tzinfo=timezone.utc) if invitation.expires_at.tzinfo is None else invitation.expires_at
+    if invitation.status != 'pending' or expires_at < datetime.now(timezone.utc):
+        raise HTTPException(400, {"code": "TOKEN_EXPIRED", "message": "Invitation is expired or no longer valid."})
+
+    if AuthService.normalize_email(user.email) != AuthService.normalize_email(invitation.email):
+        raise HTTPException(403, "Invitation email does not match logged-in user.")
+
+    existing = OrganizationService.get_membership(db, invitation.organization_id, user.id)
+    if existing:
+        if existing.status == 'active':
+            InvitationService.accept_invitation(db, invitation)
+            db.commit()
+            return {"status": "success"}
+        else:
+            raise HTTPException(400, "Membership exists but is not active.")
+
+    OrganizationService.create_membership(db, invitation.organization_id, user.id, invitation.role)
+    InvitationService.accept_invitation(db, invitation)
+    AuditService.log_action(db, "invitation.accepted", actor_user_id=user.id, organization_id=invitation.organization_id)
+    db.commit()
+    return {"status": "success"}
+
+
+@router.post("/invitations/{token}/register", response_model=TokenPairResponse)
+@limiter.limit("10/minute")
+def register_via_invitation(
+    token: str,
+    data: InvitationRegistrationRequest,
+    request: Request,
+    response: Response,
+    db: Session = Depends(get_db),
+):
+    """Create an account for an invited (not-yet-registered) user, join the
+    invited organization directly (no new org created), and log them in."""
+    invitation = InvitationService.get_invitation_by_token(db, token)
+    if not invitation:
+        raise HTTPException(400, {"code": "INVALID_TOKEN", "message": "Invalid token."})
+    expires_at = invitation.expires_at.replace(tzinfo=timezone.utc) if invitation.expires_at.tzinfo is None else invitation.expires_at
+    if invitation.status != 'pending' or expires_at < datetime.now(timezone.utc):
+        raise HTTPException(400, {"code": "TOKEN_EXPIRED", "message": "Invitation is expired or no longer valid."})
+
+    if AuthService.get_user_by_email(db, invitation.email):
+        raise HTTPException(400, "An account with this email already exists. Please sign in to accept this invitation instead.")
+
+    new_user = app.models.user.User(
+        first_name=data.first_name,
+        last_name=data.last_name,
+        email=AuthService.normalize_email(invitation.email),
+        password_hash=get_password_hash(data.password),
+        email_verified=True,
+        email_verified_at=datetime.now(timezone.utc),
+    )
+    db.add(new_user)
+    db.flush()
+
+    OrganizationService.create_membership(db, invitation.organization_id, new_user.id, invitation.role)
+    InvitationService.accept_invitation(db, invitation)
+
+    AuditService.log_action(
+        db, action="user.registered_via_invitation", actor_user_id=new_user.id,
+        organization_id=invitation.organization_id,
+        ip_address=request.client.host if request.client else None,
+    )
+    db.commit()
+    db.refresh(new_user)
+
+    session, refresh_token = SessionService.create_session(db, new_user.id, ip_address=request.client.host if request.client else None)
+    access_token = TokenService.create_access_token(new_user.id, session.id, new_user.token_version)
+
+    AuditService.log_action(db, "user.login_succeeded", actor_user_id=new_user.id, ip_address=request.client.host if request.client else None)
+    db.commit()
+
+    response.set_cookie(
+        key="eventos_refresh_token",
+        value=refresh_token,
+        httponly=True,
+        secure=REFRESH_COOKIE_SECURE,
+        samesite="lax",
+        path="/auth",
+        max_age=60 * 60 * 24 * 30,
+    )
+
+    return {"access_token": access_token, "refresh_token": None, "token_type": "bearer"}

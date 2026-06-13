@@ -68,6 +68,7 @@ class InvitationPreview(BaseModel):
     role: str
     email: str
     expires_at: datetime
+    has_account: bool = True
 
 class OrganizationWithMembership(BaseModel):
     organization: OrganizationResponse

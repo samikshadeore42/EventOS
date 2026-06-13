@@ -3,18 +3,19 @@ import { useSearchParams, Link, useNavigate } from 'react-router-dom';
 import { Loader2, CheckCircle, XCircle, AlertTriangle, Building } from 'lucide-react';
 import EventOSLogo from '../components/EventOSLogo';
 import { useAuth } from '../context/AuthContext';
-import api from '../services/api';
+import { invitationsApi } from '../services/api';
 
 export default function AuthAcceptInvitation() {
   const [searchParams] = useSearchParams();
   const token = searchParams.get('token');
   const navigate = useNavigate();
-  const { authenticated } = useAuth();
-
+  const { authenticated, setAuthTokens, loadOrganizations } = useAuth();
   const [status, setStatus] = useState(() => token ? 'loading' : 'invalid');
   const [preview, setPreview] = useState(null);
   const [error, setError] = useState(null);
   const [accepting, setAccepting] = useState(false);
+  const [showCreateAccount, setShowCreateAccount] = useState(false);
+  const [form, setForm] = useState({ first_name: '', last_name: '', password: '' });
 
   // Load invitation preview
   useEffect(() => {
@@ -22,7 +23,7 @@ export default function AuthAcceptInvitation() {
 
     (async () => {
       try {
-        const res = await api.get(`/organizations/auth/invitations/${token}`);
+        const res = await invitationsApi.preview(token);
         setPreview(res);
         setStatus('ready');
       } catch (err) {
@@ -38,17 +39,35 @@ export default function AuthAcceptInvitation() {
 
   const handleAccept = async () => {
     if (!authenticated) {
-      // Redirect to login with return URL
-      navigate(`/auth/login?redirect=/auth/accept-invitation?token=${encodeURIComponent(token)}`);
+      if (preview?.has_account) {
+        navigate(`/auth/login?redirect=/auth/accept-invitation?token=${encodeURIComponent(token)}`);
+      } else {
+        setShowCreateAccount(true);
+      }
       return;
     }
     setAccepting(true);
     setError(null);
     try {
-      await api.post(`/organizations/auth/invitations/${token}/accept`);
+      await invitationsApi.accept(token);
       setStatus('accepted');
     } catch (err) {
       setError(err.message || 'Failed to accept invitation.');
+    } finally {
+      setAccepting(false);
+    }
+  };
+
+  const handleCreateAccount = async () => {
+    setAccepting(true);
+    setError(null);
+    try {
+      const data = await invitationsApi.registerViaInvitation(token, form);
+      setAuthTokens(data.access_token);
+      await loadOrganizations();
+      window.location.href = '/admin';
+    } catch (err) {
+      setError(err.message || 'Failed to create account.');
     } finally {
       setAccepting(false);
     }
@@ -84,14 +103,62 @@ export default function AuthAcceptInvitation() {
                 {error}
               </div>
             )}
-            <button
-              onClick={handleAccept}
-              disabled={accepting}
-              className="w-full flex justify-center py-2.5 px-4 border border-indigo-400/20 rounded-lg shadow-lg shadow-indigo-500/25 text-sm font-medium text-white bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 focus:outline-none transition-all disabled:opacity-50"
-            >
-              {accepting ? <Loader2 className="animate-spin h-5 w-5" /> : 
-                (authenticated ? 'Accept Invitation' : 'Sign in to Accept')}
-            </button>
+
+            {!showCreateAccount ? (
+              <>
+                <button
+                  onClick={handleAccept}
+                  disabled={accepting}
+                  className="w-full flex justify-center py-2.5 px-4 border border-indigo-400/20 rounded-lg shadow-lg shadow-indigo-500/25 text-sm font-medium text-white bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 focus:outline-none transition-all disabled:opacity-50"
+                >
+                  {accepting ? <Loader2 className="animate-spin h-5 w-5" /> :
+                    (authenticated ? 'Accept Invitation' : (preview?.has_account ? 'Sign in to Accept' : 'Create Account & Join'))}
+                </button>
+                {!authenticated && preview?.has_account && (
+                  <p className="text-xs text-slate-400 mt-3">
+                    Don&apos;t have an account?{' '}
+                    <button onClick={() => setShowCreateAccount(true)} className="text-indigo-600 hover:underline">
+                      Create one for {preview?.email}
+                    </button>
+                  </p>
+                )}
+              </>
+            ) : (
+              <div className="space-y-3 text-left">
+                <p className="text-xs text-slate-500 mb-2">Creating account for <strong>{preview?.email}</strong></p>
+                <input
+                  type="text"
+                  placeholder="First name"
+                  value={form.first_name}
+                  onChange={e => setForm(f => ({ ...f, first_name: e.target.value }))}
+                  className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                />
+                <input
+                  type="text"
+                  placeholder="Last name"
+                  value={form.last_name}
+                  onChange={e => setForm(f => ({ ...f, last_name: e.target.value }))}
+                  className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                />
+                <input
+                  type="password"
+                  placeholder="Password (min 8 characters)"
+                  value={form.password}
+                  onChange={e => setForm(f => ({ ...f, password: e.target.value }))}
+                  className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                />
+                <button
+                  onClick={handleCreateAccount}
+                  disabled={accepting || !form.first_name || !form.last_name || form.password.length < 8}
+                  className="w-full flex justify-center py-2.5 px-4 rounded-lg shadow-lg shadow-indigo-500/25 text-sm font-medium text-white bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 disabled:opacity-50"
+                >
+                  {accepting ? <Loader2 className="animate-spin h-5 w-5" /> : 'Create Account & Join'}
+                </button>
+                <button onClick={() => setShowCreateAccount(false)} className="text-xs text-slate-400 hover:underline w-full text-center">
+                  Back
+                </button>
+              </div>
+            )}
           </div>
         );
       case 'accepted':

@@ -9,6 +9,8 @@ import {
 } from 'react'
 import { tokenStorage, orgStorage, authApi } from '../services/api'
 
+import { queryClient } from '../main'
+
 // ── JWT helpers ────────────────────────────────────────────────────────────
 function decodePayload(token) {
   try {
@@ -173,6 +175,9 @@ export function AuthProvider({ children }) {
     setActiveOrganization(org)
     setActiveMembership(membershipsByOrgId[org.id] || null)
     orgStorage.set(org.id)
+    // Drop all cached query data so the new organization's screens
+    // don't briefly show the previous organization's data.
+    queryClient.clear()
   }, [membershipsByOrgId])
 
   // Logout — call backend then clear local state

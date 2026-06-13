@@ -7,7 +7,7 @@ This document outlines the deployment and rollback procedures for Stage 2 Phase 
 ### Prerequisites
 1. Ensure the PostgreSQL database is backed up.
    ```bash
-   docker exec -t EventOS_postgres pg_dumpall -c -U postgres > dump_before_phase1.sql
+   docker exec -t EventOS_postgres pg_dumpall -c -U EventOS_user > dump_before_phase1.sql
    ```
 2. Ensure you are on the `stage2/org-admin-auth` branch.
 
@@ -25,8 +25,8 @@ alembic upgrade head
 ### 2. Verify Database Migration
 Verify that the `users` and `organizations` tables have been populated correctly with legacy admin data.
 ```bash
-docker exec -it EventOS_postgres psql -U postgres -d eventos -c "SELECT email, is_active FROM users;"
-docker exec -it EventOS_postgres psql -U postgres -d eventos -c "SELECT name, slug FROM organizations;"
+docker exec -it EventOS_postgres psql -U EventOS_user -d EventOS_db -c "SELECT email, is_active FROM users;"
+docker exec -it EventOS_postgres psql -U EventOS_user -d EventOS_db -c "SELECT name, slug FROM organizations;"
 ```
 
 ### 3. Deploy Application Services
