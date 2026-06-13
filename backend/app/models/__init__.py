@@ -14,3 +14,10 @@ from app.models.assignment import EvaluatorTeamAssignment
 from app.models.project_submission import ProjectSubmission
 
 __all__ = ["Participant", "Team", "Mentor", "MentorAssignment", "MentorSession", "MentorFeedback", "Employee", "Admin", "EventState", "ProjectSubmission"]
+
+# Phase 1 Models
+from app.models.organization import Organization
+from app.models.user import User
+from app.models.organization_membership import OrganizationMembership
+from app.models.auth_tokens import AdminInvitation, UserSession, EmailVerificationToken, PasswordResetToken
+from app.models.audit import AuditLog

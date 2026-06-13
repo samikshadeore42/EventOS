@@ -6,18 +6,32 @@ import axios from 'axios'
 
 const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000'
 const SESSION_KEY = 'eventos_token'
+const ORG_KEY = 'eventos_active_org_id'
 
 // ── Axios instance ─────────────────────────────────────────────────────────
 const api = axios.create({
   baseURL: BASE_URL,
+  withCredentials: true,
   timeout: 30_000,
   headers: { 'Content-Type': 'application/json' },
 })
 
+// Public auth paths that should NOT receive organization headers
+const PUBLIC_AUTH_PATHS = [
+  '/auth/login', '/auth/register-organization', '/auth/forgot-password',
+  '/auth/reset-password', '/auth/verify-email', '/auth/resend-verification',
+  '/auth/refresh', '/auth/invitations',
+]
+
+function isPublicAuthPath(url) {
+  return PUBLIC_AUTH_PATHS.some((p) => url?.startsWith(p))
+}
+
 // ── Request interceptor ───────────────────────────────────────────────────
-// Reads the JWT from sessionStorage and injects it two ways:
-//   1. Authorization: Bearer <token>  — for all requests (future-proofs admin auth)
-//   2. ?token= query param            — for portal/evaluation routes (current backend contract)
+// Injects:
+//   1. Authorization: Bearer <token> — for authenticated requests
+//   2. X-Organization-Id             — for org-scoped admin requests
+//   3. ?token= query param           — for portal/evaluation routes
 api.interceptors.request.use(
   (config) => {
     const token = sessionStorage.getItem(SESSION_KEY)
@@ -26,6 +40,14 @@ api.interceptors.request.use(
     // Always attach as Bearer header
     config.headers = config.headers ?? {}
     config.headers['Authorization'] = `Bearer ${token}`
+
+    // Attach organization context for admin API calls (not public auth)
+    if (!isPublicAuthPath(config.url)) {
+      const orgId = localStorage.getItem(ORG_KEY)
+      if (orgId) {
+        config.headers['X-Organization-Id'] = orgId
+      }
+    }
 
     // Also inject as query param for the two portal-facing endpoint groups
     const needsQueryToken =
@@ -45,18 +67,65 @@ api.interceptors.request.use(
 )
 
 // ── Response interceptor ─────────────────────────────────────────────────
-// Unwraps .data so callers get the payload directly (not the Axios response shell).
-// Normalises error messages to a plain Error instance.
+// 1. Unwraps .data so callers get the payload directly (not the Axios response shell).
+// 2. On 401 — attempts a single-flight token refresh, then retries the original request.
+// 3. Normalises error messages to a plain Error instance.
+let refreshPromise = null
+
 api.interceptors.response.use(
   (response) => response.data,
-  (error) => {
+  async (error) => {
+    const originalRequest = error.config
+    const status = error.response?.status
+
+    // Auto-refresh on 401 (not for auth endpoints themselves)
+    if (status === 401 && !originalRequest._retry && !isPublicAuthPath(originalRequest.url) && originalRequest.url !== '/auth/refresh') {
+      originalRequest._retry = true
+
+      // Single-flight: only one refresh at a time
+      if (!refreshPromise) {
+        refreshPromise = api.post('/auth/refresh', {})
+          .then((res) => {
+            const data = res?.data || res
+            sessionStorage.setItem(SESSION_KEY, data.access_token)
+            return data.access_token
+          })
+          .catch((refreshError) => {
+            // Refresh failed — clear local auth state
+            sessionStorage.removeItem(SESSION_KEY)
+            localStorage.removeItem(ORG_KEY)
+            window.dispatchEvent(new Event('auth:logout'))
+            return Promise.reject(refreshError)
+          })
+          .finally(() => {
+            refreshPromise = null
+          })
+      }
+
+      if (refreshPromise) {
+        try {
+          const newToken = await refreshPromise
+          originalRequest.headers['Authorization'] = `Bearer ${newToken}`
+          return api(originalRequest)
+        } catch {
+          // Refresh failed, fall through to error
+        }
+      }
+    }
+
+    // Extract error detail (supports structured {code, message} and string detail)
     const detail = error.response?.data?.detail
-    const message =
-      typeof detail === 'string'
-        ? detail
-        : Array.isArray(detail)
-        ? detail.map((d) => d.msg).join('; ')
-        : error.message || 'An unexpected error occurred'
+    let message
+    if (typeof detail === 'object' && detail !== null && !Array.isArray(detail)) {
+      // Structured error like {code: "EMAIL_VERIFICATION_REQUIRED", message: "..."}
+      message = detail.message || detail.code || JSON.stringify(detail)
+    } else if (typeof detail === 'string') {
+      message = detail
+    } else if (Array.isArray(detail)) {
+      message = detail.map((d) => d.msg).join('; ')
+    } else {
+      message = error.message || 'An unexpected error occurred'
+    }
     return Promise.reject(new Error(message))
   }
 )
@@ -68,9 +137,97 @@ export const tokenStorage = {
   clear:  ()      => sessionStorage.removeItem(SESSION_KEY),
 }
 
+// ── Organization helpers (used by AuthContext) ────────────────────────────
+export const orgStorage = {
+  get:    ()       => localStorage.getItem(ORG_KEY),
+  set:    (orgId)  => localStorage.setItem(ORG_KEY, orgId),
+  clear:  ()       => localStorage.removeItem(ORG_KEY),
+}
+
 // ═════════════════════════════════════════════════════════════════════════
 // DOMAIN API MODULES
 // ═════════════════════════════════════════════════════════════════════════
+
+// ── Authentication ────────────────────────────────────────────────────────
+export const authApi = {
+  login: (data) =>
+    api.post('/auth/login', data),
+
+  registerOrganization: (data) =>
+    api.post('/auth/register-organization', data),
+
+  verifyEmail: (token) =>
+    api.post(`/auth/verify-email?token=${encodeURIComponent(token)}`),
+
+  resendVerification: (data) =>
+    api.post('/auth/resend-verification', data),
+
+  forgotPassword: (data) =>
+    api.post('/auth/forgot-password', data),
+
+  resetPassword: (data) =>
+    api.post('/auth/reset-password', data),
+
+  refresh: (data) =>
+    api.post('/auth/refresh', data),
+
+  logout: () =>
+    api.post('/auth/logout'),
+
+  logoutAll: () =>
+    api.post('/auth/logout-all'),
+
+  me: () =>
+    api.get('/auth/me'),
+
+  myOrganizations: () =>
+    api.get('/organizations'),
+}
+
+// ── Organizations ─────────────────────────────────────────────────────────
+export const organizationsApi = {
+  update: (id, data) =>
+    api.patch(`/organizations/${id}`, data),
+    
+  members: (id) =>
+    api.get(`/organizations/${id}/members`),
+    
+  updateMemberRole: (orgId, memberId, role) =>
+    api.patch(`/organizations/${orgId}/members/${memberId}/role`, undefined, { params: { role } }),
+    
+  setMemberStatus: (orgId, memberId, status) =>
+    api.patch(`/organizations/${orgId}/members/${memberId}/status`, undefined, { params: { status } }),
+    
+  invitations: (id) =>
+    api.get(`/organizations/${id}/invitations`),
+    
+  invite: (id, data) =>
+    api.post(`/organizations/${id}/invitations`, data),
+    
+  revokeInvitation: (orgId, invId) =>
+    api.delete(`/organizations/${orgId}/invitations/${invId}`),
+    
+  preview: (token) =>
+    api.get(`/auth/invitations/${token}`),
+
+  accept: (token) =>
+    api.post(`/auth/invitations/${token}/accept`),
+
+  registerViaInvitation: (token, data) =>
+    api.post(`/auth/invitations/${token}/register`, data),
+}
+
+// ── Invitations (public auth routes) ───────────────────────────────────────
+export const invitationsApi = {
+  preview: (token) =>
+    api.get(`/auth/invitations/${token}`),
+
+  accept: (token) =>
+    api.post(`/auth/invitations/${token}/accept`),
+
+  registerViaInvitation: (token, data) =>
+    api.post(`/auth/invitations/${token}/register`, data),
+}
 
 // ── Participants ──────────────────────────────────────────────────────────
 export const participantsApi = {

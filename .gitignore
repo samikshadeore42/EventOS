@@ -42,3 +42,5 @@ backend/.coverage
 frontend_new/coverage/
 frontend_new/playwright-report/
 frontend_new/test-results/
+phase1-artifacts/
+backend/.venv-phase1/
