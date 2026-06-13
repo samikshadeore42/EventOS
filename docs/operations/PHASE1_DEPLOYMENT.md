@@ -7,7 +7,7 @@ This document outlines the deployment and rollback procedures for Stage 2 Phase 
 ### Prerequisites
 1. Ensure the PostgreSQL database is backed up.
    ```bash
-   docker exec -t eventos_db pg_dumpall -c -U postgres > dump_before_phase1.sql
+   docker exec -t EventOS_postgres pg_dumpall -c -U postgres > dump_before_phase1.sql
    ```
 2. Ensure you are on the `stage2/org-admin-auth` branch.
 
@@ -25,14 +25,14 @@ alembic upgrade head
 ### 2. Verify Database Migration
 Verify that the `users` and `organizations` tables have been populated correctly with legacy admin data.
 ```bash
-docker exec -it eventos_db psql -U postgres -d eventos -c "SELECT email, is_active FROM users;"
-docker exec -it eventos_db psql -U postgres -d eventos -c "SELECT name, slug FROM organizations;"
+docker exec -it EventOS_postgres psql -U postgres -d eventos -c "SELECT email, is_active FROM users;"
+docker exec -it EventOS_postgres psql -U postgres -d eventos -c "SELECT name, slug FROM organizations;"
 ```
 
 ### 3. Deploy Application Services
 Restart the backend and frontend to apply the new token structure and routing.
 ```bash
-docker compose up -d --build backend frontend
+docker compose up -d --build backend
 ```
 
 ### 4. Verification Testing
@@ -63,14 +63,14 @@ Downgrade the Alembic schema to the revision directly preceding Phase 1.
 ```bash
 source .venv-phase0/bin/activate
 cd backend
-alembic downgrade 21de10214c77
+alembic downgrade b8dec86e469e
 ```
 *(Note: Replace `21de10214c77` with the exact revision hash prior to Phase 1's `0940abbefebb`)*
 
 ### 3. Restart Application Services
 Rebuild and start the Stage 1 containers.
 ```bash
-docker compose up -d --build backend frontend
+docker compose up -d --build backend
 ```
 
 ### 4. Verify Rollback

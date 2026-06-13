@@ -1,5 +1,6 @@
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, Depends, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
+from app.core.auth_deps import RequireOrganizationRole
 from app.core.database import engine, Base
 from app.services.task_tracker import TaskTracker
 from app.core.redis_client import ping_redis
@@ -61,6 +62,8 @@ app.add_middleware(
     allow_headers=["*", "X-Organization-Id"],
 )
 
+DEBUG_ROUTES_ENABLED = os.getenv("ENABLE_DEBUG_ROUTES", "false").lower() == "true"
+
 # Register API routers
 app.include_router(auth_router)
 app.include_router(organization_router)
@@ -107,7 +110,9 @@ def get_task_status(task_id: str):
     return status
 
 @app.post("/debug/run-solver")
-def debug_run_solver():
+def debug_run_solver(membership = Depends(RequireOrganizationRole('owner', 'admin'))):
+    if not DEBUG_ROUTES_ENABLED:
+        raise HTTPException(status_code=404, detail="Not found")
     from app.tasks.solver import run_team_formation
     from app.schemas.participant import MOCK_ROSTER
 

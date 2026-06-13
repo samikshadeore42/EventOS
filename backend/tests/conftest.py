@@ -5,6 +5,7 @@ from sqlalchemy.orm import sessionmaker
 import os
 
 os.environ["REFRESH_COOKIE_SECURE"] = "false"
+os.environ["ENABLE_DEBUG_ROUTES"] = "true"
 from app.main import app
 from app.core.database import Base, get_db
 

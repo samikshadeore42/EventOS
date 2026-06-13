@@ -51,10 +51,16 @@ class EmailService:
 
             result = {}
             is_mock = (EMAIL_DELIVERY_MODE == "mock")
-            if not is_mock and (not SENDGRID_API_KEY or SENDGRID_API_KEY.startswith("SG.your_")):
-                # Fallback to mock if sendgrid is requested but key is missing/invalid
-                is_mock = True
-                print("[EmailService] Warning: SENDGRID_API_KEY missing or invalid. Falling back to MOCK mode.")
+            sendgrid_key_invalid = (not SENDGRID_API_KEY or SENDGRID_API_KEY.startswith("SG.your_"))
+
+            if not is_mock and sendgrid_key_invalid:
+                if EMAIL_SENDGRID_FALLBACK_TO_MOCK:
+                    is_mock = True
+                    print("[EmailService] Warning: SENDGRID_API_KEY missing or invalid. Falling back to MOCK mode.")
+                else:
+                    raise RuntimeError(
+                        "EMAIL_DELIVERY_MODE=sendgrid but SENDGRID_API_KEY is missing/invalid, "
+                        "and EMAIL_SENDGRID_FALLBACK_TO_MOCK is disabled. Refusing to silently fake delivery.")
 
             # 1. Dispatch Email
             if is_mock:
