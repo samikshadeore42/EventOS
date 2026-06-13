@@ -23,6 +23,7 @@ redis==5.0.4
 langchain==0.3.25
 langchain-core==0.3.59
 langchain-google-genai==2.1.4
+langgraph==0.2.55    
 
 # Utilities
 python-jose[cryptography]==3.3.0

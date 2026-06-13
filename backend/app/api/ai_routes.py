@@ -218,3 +218,36 @@ def get_ai_result(task_id: str):
 
     # Fallback — task_type not recognized, return raw result
     return result
+
+# ── 6. POST /ai/configure-event ──────────────────────────────────────
+
+from app.schemas.langgraph_schemas import ConfigureEventRequest, ConfigureEventResponse
+from app.services.langgraph_agent import run_agent_turn
+
+
+@router.post(
+    "/configure-event",
+    response_model=ConfigureEventResponse,
+    summary="LangGraph agent: configure an event through natural conversation",
+    description=(
+        "Multi-turn conversational agent. Committee member describes their event "
+        "in plain English. Agent asks clarifying questions for any missing fields "
+        "and returns is_complete=True with the structured config JSON when done. "
+        "Conversation history is stored in Redis by session_id."
+    ),
+)
+def configure_event(body: ConfigureEventRequest):
+    try:
+        result = run_agent_turn(
+            message    = body.message,
+            session_id = body.session_id,
+        )
+        return ConfigureEventResponse(
+            reply       = result["reply"],
+            is_complete = result["is_complete"],
+            config      = result["config"],
+        )
+    except RuntimeError as e:
+        raise HTTPException(status_code=503, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Agent error: {str(e)}")
