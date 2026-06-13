@@ -81,3 +81,52 @@ def update_rules(body: dict, db: Session = Depends(get_db)):
     config.distribution_rules = updated
     db.commit()
     return {"message": "Rules updated.", "distribution_rules": config.distribution_rules}
+
+# ── POST /events/create-from-config ──────────────────────────────────
+# Called by the frontend after the LangGraph agent returns is_complete=True.
+# Takes the structured config JSON and saves it to the event_config table.
+
+from app.schemas.langgraph_schemas import EventConfig as LangGraphEventConfig
+
+@router.post(
+    "/create-from-config",
+    summary="Save LangGraph-generated event config to the database",
+)
+def create_event_from_config(
+    body: LangGraphEventConfig,
+    db: Session = Depends(get_db),
+):
+    config = db.query(EventConfig).first()
+    if not config:
+        config = EventConfig()
+        db.add(config)
+
+    # Write all 7 fields from the agent's output
+    config.event_name     = body.event_name
+    config.current_stage  = "registration"   # always start at registration
+
+    # Store the agent fields that don't have dedicated columns in JSONB
+    config.distribution_rules = {
+        # Keep existing solver fields with defaults
+        "team_size":           body.team_size,
+        "k_min":               body.team_size - 1,
+        "k_max":               body.team_size + 1,
+        "max_per_institution": 1,
+        "skill_balance":       True,
+        # Store the extra agent fields here
+        "rounds":              body.rounds,
+        "stages":              body.stages,
+        "scoring_weights":     body.scoring_weights,
+        "elimination":         body.elimination,
+        "approval_gates":      body.approval_gates,
+    }
+
+    db.commit()
+    db.refresh(config)
+
+    return {
+        "event_id":    str(config.id),
+        "event_name":  config.event_name,
+        "status":      "created",
+        "message":     f"Event '{config.event_name}' saved successfully.",
+    }

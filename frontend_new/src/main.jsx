@@ -1,6 +1,8 @@
 // src/main.jsx
 /* eslint-disable react-refresh/only-export-components */
 import React from 'react'
+import ConfigureEvent from './views/ConfigureEvent'
+
 import ReactDOM from 'react-dom/client'
 import './index.css'
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
@@ -46,7 +48,7 @@ function App() {
             <Route path="/judge" element={<JudgePortal />} />
             <Route path="/participant" element={<ParticipantPortal />} />
             <Route path="/mentor" element={<MentorPortal />} />
-            
+            <Route path="/configure" element={<ConfigureEvent />} />
             <Route path="/admin" element={
                 <ProtectedAdminRoute>
                     <AdminDashboard />
