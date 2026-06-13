@@ -20,9 +20,13 @@ function Navbar() {
           <Link to="/participant" className="text-slate-600 hover:text-cyan-600 transition-colors">Participant</Link>
           <Link to="/mentor" className="text-slate-600 hover:text-blue-600 transition-colors">Mentor</Link>
           <Link to="/judge" className="text-slate-600 hover:text-indigo-600 transition-colors">Judge</Link>
-          <Link to="/admin" className="px-4 py-2 bg-indigo-600 text-white border border-indigo-700 rounded hover:bg-indigo-700 transition-all ml-2">
-            Admin Console
-          </Link>
+            <Link
+              to="/admin"
+              className="px-4 py-2 bg-indigo-600 text-white border border-indigo-700 rounded hover:bg-indigo-700 transition-all"
+            >
+              Admin Console
+            </Link>
+
         </div>
       </div>
     </nav>
