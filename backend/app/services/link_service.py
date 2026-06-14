@@ -1,9 +1,6 @@
 # File: backend/app/services/link_service.py
-# Responsible for:
-#   1. Generating secure portal URLs for participants and evaluators
-#   2. Resolving portal access (decode token → load the right view)
-
 import os
+import uuid
 from datetime import timedelta
 from uuid import UUID
 from sqlalchemy.orm import Session
@@ -19,8 +16,6 @@ from app.schemas.portal_schemas import (
     TeamMemberPortalView,
 )
 
-
-# BASE_URL = os.getenv("BASE_URL", "http://localhost:8000")
 FRONTEND_URL = (
     os.getenv("FRONTEND_BASE_URL")
     or os.getenv("FRONTEND_URL")
@@ -31,17 +26,21 @@ FRONTEND_URL = (
 class LinkService:
     @staticmethod
     def generate_participant_link(
+        event_id:       uuid.UUID,
         participant_id: str,
         stage:          str    = "evaluation",
         expires_days:   int    = 7
     ) -> dict:
+        # 1. Embed event_id deeply into the JWT payload
         token      = create_access_token(
             subject=participant_id,
             role="participant",
             stage=stage,
+            event_id=str(event_id), # <-- Security constraint
             expires_in=timedelta(days=expires_days)
         )
-        portal_url = f"{FRONTEND_URL}/participant?token={token}"
+        # 2. Add event_id to the frontend URL route
+        portal_url = f"{FRONTEND_URL}/events/{event_id}/participant?token={token}"
         return {
             "entity_id":  participant_id,
             "role":       "participant",
@@ -52,6 +51,7 @@ class LinkService:
 
     @staticmethod
     def generate_evaluator_link(
+        event_id:     uuid.UUID,
         evaluator_id: str,
         stage:        str = "evaluation",
         expires_days: int = 7
@@ -60,9 +60,11 @@ class LinkService:
             subject=evaluator_id,
             role="evaluator",
             stage=stage,
+            event_id=str(event_id), # <-- Security constraint
             expires_in=timedelta(days=expires_days)
         )
-        portal_url = f"{FRONTEND_URL}/judge?token={token}"
+        # 2. Add event_id to the frontend URL route
+        portal_url = f"{FRONTEND_URL}/events/{event_id}/judge?token={token}"
         return {
             "entity_id":  evaluator_id,
             "role":       "evaluator",
@@ -73,13 +75,15 @@ class LinkService:
 
     @staticmethod
     def generate_all_participant_links(
+        event_id: uuid.UUID,
         db: Session,
         stage: str = "evaluation"
     ) -> list[dict]:
-        participants = db.query(Participant).all()
+        # Scope participants to the event
+        participants = db.query(Participant).filter(Participant.event_id == event_id).all()
         return [
             {
-                **LinkService.generate_participant_link(str(p.id), stage),
+                **LinkService.generate_participant_link(event_id, str(p.id), stage),
                 "email": p.email,
                 "name":  f"{p.first_name} {p.last_name}",
             }
@@ -88,13 +92,18 @@ class LinkService:
 
     @staticmethod
     def generate_all_evaluator_links(
+        event_id: uuid.UUID,
         db: Session,
         stage: str = "evaluation"
     ) -> list[dict]:
-        evaluators = db.query(Evaluator).filter(Evaluator.is_active == True).all()
+        # Scope evaluators to the event
+        evaluators = db.query(Evaluator).filter(
+            Evaluator.event_id == event_id,
+            Evaluator.is_active == True
+        ).all()
         return [
             {
-                **LinkService.generate_evaluator_link(str(e.id), stage),
+                **LinkService.generate_evaluator_link(event_id, str(e.id), stage),
                 "email": e.email,
                 "name":  f"{e.first_name} {e.last_name}",
             }
@@ -103,6 +112,7 @@ class LinkService:
 
     @staticmethod
     def generate_mentor_link(
+        event_id:     uuid.UUID,
         mentor_id: str,
         stage:        str = "mentoring",
         expires_days: int = 7
@@ -111,9 +121,10 @@ class LinkService:
             subject=mentor_id,
             role="mentor",
             stage=stage,
+            event_id=str(event_id), # <-- Security constraint
             expires_in=timedelta(days=expires_days)
         )
-        portal_url = f"{FRONTEND_URL}/mentor?token={token}"
+        portal_url = f"{FRONTEND_URL}/events/{event_id}/mentor?token={token}"
         return {
             "entity_id":  mentor_id,
             "role":       "mentor",
@@ -123,18 +134,20 @@ class LinkService:
         }
 
     @staticmethod
-    def send_mentor_access_link(mentor_id: str, db: Session) -> dict:
-        """Generate + email a magic link to a mentor using the existing email system."""
+    def send_mentor_access_link(event_id: uuid.UUID, mentor_id: str, db: Session) -> dict:
         from app.services.email_service import EmailService
 
-        mentor = db.query(Mentor).filter(Mentor.id == mentor_id).first()
+        mentor = db.query(Mentor).filter(
+            Mentor.id == mentor_id,
+            Mentor.event_id == event_id
+        ).first()
         if not mentor:
-            raise HTTPException(status_code=404, detail="Mentor not found.")
+            raise HTTPException(status_code=404, detail="Mentor not found in this event.")
 
-        # Count assigned teams
         team_count = db.query(MentorAssignment).filter(
             MentorAssignment.mentor_id == mentor.id,
             MentorAssignment.is_active == True,
+            # Note: Assuming assignments cascade or are similarly scoped
         ).count()
 
         if team_count == 0:
@@ -143,7 +156,12 @@ class LinkService:
                 detail="Assign this mentor to at least one team before sending a portal link."
             )
 
-        link_data = LinkService.generate_mentor_link(str(mentor.id))
+        link_data = LinkService.generate_mentor_link(event_id, str(mentor.id))
+
+        # Dynamically fetch event name
+        from app.models.event import Event
+        event_obj = db.query(Event).filter(Event.id == event_id).first()
+        event_name = event_obj.name if event_obj else "EventOS Hackathon"
 
         result = EmailService.send_access_link(
             to_email=mentor.email,
@@ -152,6 +170,7 @@ class LinkService:
             stage="mentoring",
             portal_url=link_data["portal_url"],
             expires_in=link_data["expires_in"],
+            event_name=event_name # Inject event name into email
         )
 
         is_success = result.get("success", False)
@@ -177,13 +196,17 @@ class LinkService:
 
     @staticmethod
     def generate_all_mentor_links(
+        event_id: uuid.UUID,
         db: Session,
         stage: str = "mentoring"
     ) -> list[dict]:
-        mentors = db.query(Mentor).filter(Mentor.is_active == True).all()
+        mentors = db.query(Mentor).filter(
+            Mentor.event_id == event_id,
+            Mentor.is_active == True
+        ).all()
         return [
             {
-                **LinkService.generate_mentor_link(str(m.id), stage),
+                **LinkService.generate_mentor_link(event_id, str(m.id), stage),
                 "email": m.email,
                 "name":  f"{m.first_name} {m.last_name}",
             }
@@ -191,23 +214,32 @@ class LinkService:
         ]
 
     @classmethod
-    def resolve_portal_access(cls, token: str, db: Session) -> dict:
+    def resolve_portal_access(cls, url_event_id: uuid.UUID, token: str, db: Session) -> dict:
         payload = decode_access_token(token)
         role    = payload.get("role")
         subject = parse_uuid_subject(get_token_subject(payload), "portal subject")
         stage   = payload.get("stage", "unknown")
+        token_event_id = payload.get("event_id")
+
+        # 3. CRITICAL SECURITY CHECK: Ensure token isn't being used across boundaries
+        if str(token_event_id) != str(url_event_id):
+            raise HTTPException(
+                status_code=403, 
+                detail="Token mismatch. This access link belongs to a different event."
+            )
 
         if role == "participant":
-            return cls._load_participant_view(subject, stage, db)
+            return cls._load_participant_view(url_event_id, subject, stage, db)
         elif role == "evaluator":
-            return cls._load_evaluator_view(subject, stage, db)
+            return cls._load_evaluator_view(url_event_id, subject, stage, db)
         elif role == "mentor":
-            return cls._load_mentor_view(subject, stage, db)
+            return cls._load_mentor_view(url_event_id, subject, stage, db)
         else:
             raise HTTPException(status_code=400, detail=f"Unknown token role: {role}")
 
     @staticmethod
     def _load_participant_view(
+        event_id:       uuid.UUID,
         participant_id: str,
         stage:          str,
         db:             Session
@@ -216,7 +248,8 @@ class LinkService:
         current_stage = get_event_state(db).current_stage
 
         participant = db.query(Participant).filter(
-            Participant.id == participant_id
+            Participant.id == participant_id,
+            Participant.event_id == event_id
         ).first()
 
         if not participant:
@@ -243,7 +276,7 @@ class LinkService:
         total_score = None
         if current_stage == "results" and team:
             from app.services.score_service import ScoreService
-            leaderboard_data = ScoreService.consolidate_all_teams(db).get("leaderboard", [])
+            leaderboard_data = ScoreService.consolidate_all_teams(event_id, db).get("leaderboard", [])
             for entry in leaderboard_data:
                 if str(entry["team_id"]) == str(team.id):
                     rank = entry.get("rank")
@@ -273,12 +306,14 @@ class LinkService:
 
     @staticmethod
     def _load_evaluator_view(
+        event_id:     uuid.UUID,
         evaluator_id: str,
         stage:        str,
         db:           Session
     ) -> dict:
         evaluator = db.query(Evaluator).filter(
-            Evaluator.id == evaluator_id
+            Evaluator.id == evaluator_id,
+            Evaluator.event_id == event_id
         ).first()
 
         if not evaluator:
@@ -288,9 +323,9 @@ class LinkService:
         from app.models.evaluation import Evaluation
         from app.models.assignment import EvaluatorTeamAssignment
 
-        # Only load teams assigned to THIS evaluator
         assignments = db.query(EvaluatorTeamAssignment).filter(
-            EvaluatorTeamAssignment.evaluator_id == evaluator_id
+            EvaluatorTeamAssignment.evaluator_id == evaluator_id,
+            EvaluatorTeamAssignment.event_id == event_id
         ).all()
         assigned_team_ids = [a.team_id for a in assignments]
 
@@ -300,7 +335,8 @@ class LinkService:
             assigned_teams = []
 
         submitted = db.query(Evaluation).filter(
-            Evaluation.evaluator_id == evaluator_id
+            Evaluation.evaluator_id == evaluator_id,
+            Evaluation.event_id == event_id
         ).all()
         submitted_team_ids = {str(e.team_id) for e in submitted}
 
@@ -322,8 +358,8 @@ class LinkService:
             assigned_teams  = teams_data,
             grading_criteria = [
                 {"key": "technical_depth",  "label": "Technical Depth",  "max": 10, "weight": 0.35},
-                {"key": "innovation",       "label": "Innovation",        "max": 10, "weight": 0.25},
-                {"key": "presentation",     "label": "Presentation",      "max": 10, "weight": 0.20},
+                {"key": "innovation",       "label": "Innovation",       "max": 10, "weight": 0.25},
+                {"key": "presentation",     "label": "Presentation",     "max": 10, "weight": 0.20},
                 {"key": "feasibility",      "label": "Feasibility",       "max": 10, "weight": 0.20},
             ],
             submitted_count = len(submitted_team_ids),
@@ -332,16 +368,20 @@ class LinkService:
 
     @staticmethod
     def _load_mentor_view(
+        event_id:  uuid.UUID,
         mentor_id: str,
         stage:     str,
         db:        Session
     ) -> dict:
-        mentor = db.query(Mentor).filter(Mentor.id == mentor_id).first()
+        mentor = db.query(Mentor).filter(
+            Mentor.id == mentor_id,
+            Mentor.event_id == event_id
+        ).first()
         if not mentor:
             raise HTTPException(status_code=404, detail="Mentor not found.")
 
         from app.services.mentor_service import MentorService
-        portal_me = MentorService.get_mentor_portal_me(db, mentor.id)
+        portal_me = MentorService.get_mentor_portal_me(event_id, db, mentor.id)
 
         return {
             "role": "mentor",

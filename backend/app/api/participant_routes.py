@@ -7,6 +7,7 @@ from sqlalchemy.orm import Session
 import io
 
 from app.core.database import get_db
+from app.services.event_scope import ScopedEventService, get_event_scope  # <-- Import the Bouncer
 from app.services.participant_service import ParticipantService
 from app.schemas.participant_crud_schemas import (
     ParticipantCreateRequest,
@@ -20,8 +21,8 @@ from app.schemas.participant_crud_schemas import (
     ProgressionConfirmRequest,
 )
 
-router = APIRouter(prefix="/participants", tags=["Participants"])
-
+# 1. Update Prefix to enforce event_id in the URL
+router = APIRouter(prefix="/events/{event_id}/participants", tags=["Participants"])
 
 # ── GET /participants — paginated list ───────────────────────────────
 
@@ -38,7 +39,8 @@ def list_participants(
     page_size:      int         = Query(default=20, ge=1, le=100),
     sort_by:        ParticipantSortField = Query(default=ParticipantSortField.CREATED_AT),
     sort_desc:      bool        = Query(default=True),
-    db:             Session     = Depends(get_db),
+    # 2. Inject the Event Scope
+    scope:          ScopedEventService = Depends(get_event_scope),
 ):
     filters = ParticipantFilter(
         institution   = institution,
@@ -49,7 +51,8 @@ def list_participants(
         sort_by       = sort_by,
         sort_desc     = sort_desc,
     )
-    return ParticipantService.list_participants(filters, db)
+    # Pass event_id and scoped DB to the service
+    return ParticipantService.list_participants(scope.event_id, filters, scope.db)
 
 
 # ── GET /participants/roster/summary ─────────────────────────────────
@@ -59,12 +62,8 @@ def list_participants(
     response_model=RosterSummary,
     summary="Aggregated roster stats for the admin dashboard",
 )
-def get_roster_summary(db: Session = Depends(get_db)):
-    """
-    Returns institution breakdown, skill averages, and assignment counts.
-    Called by the dashboard header cards.
-    """
-    return ParticipantService.get_roster_summary(db)
+def get_roster_summary(scope: ScopedEventService = Depends(get_event_scope)):
+    return ParticipantService.get_roster_summary(scope.event_id, scope.db)
 
 
 # ── GET /participants/csv-template — downloadable CSV template ────────
@@ -73,11 +72,7 @@ def get_roster_summary(db: Session = Depends(get_db)):
     "/csv-template",
     summary="Download a blank CSV template for roster upload",
 )
-def download_csv_template():
-    """
-    Returns a downloadable CSV with the correct headers.
-    Organizers fill this in and upload via POST /participants/upload.
-    """
+def download_csv_template(scope: ScopedEventService = Depends(get_event_scope)):
     template = (
         "first_name,last_name,email,institution,"
         "python,ml,frontend,embedded,hardware,dsp\n"
@@ -100,16 +95,11 @@ def download_csv_template():
     response_model=CSVUploadResponse,
     status_code=201,
     summary="Upload a CSV roster file",
-    description=(
-        "Parses a CSV file and bulk-registers participants. "
-        "Download the template from GET /participants/csv-template. "
-        "Set upsert=true to update existing participants by email."
-    )
 )
 def upload_csv(
     file:   UploadFile = File(..., description="CSV file with participant roster"),
     upsert: bool       = Query(default=False, description="Update existing participants by email"),
-    db:     Session    = Depends(get_db),
+    scope:  ScopedEventService = Depends(get_event_scope),
 ):
     if not file.filename or not file.filename.endswith(".csv"):
         raise HTTPException(
@@ -124,7 +114,7 @@ def upload_csv(
             detail="File too large. Maximum size is 5MB."
         )
 
-    return ParticipantService.process_csv_upload(content, upsert, db)
+    return ParticipantService.process_csv_upload(scope.event_id, content, upsert, scope.db)
 
 
 # ── GET /participants/{id} — single participant ───────────────────────
@@ -136,15 +126,20 @@ def upload_csv(
 )
 def get_participant(
     participant_id: uuid.UUID,
-    db:             Session = Depends(get_db),
+    scope:          ScopedEventService = Depends(get_event_scope),
 ):
-    p = ParticipantService.get_by_id(participant_id, db)
+    p = ParticipantService.get_by_id(scope.event_id, participant_id, scope.db)
     data = ParticipantResponse.model_validate(p)
 
-    # Enrich with team name if assigned and published
+    # Enrich with team name securely
     if p.team_id:
         from app.models.participant import Team
-        team = db.query(Team).filter(Team.id == p.team_id).first()
+        # Add event_id safety net here too
+        team = scope.db.query(Team).filter(
+            Team.id == p.team_id, 
+            Team.event_id == scope.event_id
+        ).first()
+        
         if team and team.approval_status == "published":
             data.team_name = team.team_name
         else:
@@ -162,22 +157,22 @@ def get_participant(
     summary="Register a single participant",
 )
 def create_participant(
-    body: ParticipantCreateRequest,
-    db:   Session = Depends(get_db),
+    body:  ParticipantCreateRequest,
+    scope: ScopedEventService = Depends(get_event_scope),
 ):
-    p    = ParticipantService.create(body, db)
+    p    = ParticipantService.create(scope.event_id, body, scope.db)
     data = ParticipantResponse.model_validate(p)
 
-    # Queue welcome email via Celery
+    # 3. Dynamic email adaptation!
     try:
         from app.tasks.communications import send_registration_email
         send_registration_email.delay(
             to_email         = p.email,
             participant_name = f"{p.first_name} {p.last_name}",
-            event_name       = "WiSE@TI Hackathon"
+            event_name       = scope.event.name  # Dynamically pull the event name!
         )
     except Exception:
-        pass  # email failure never blocks registration
+        pass  
 
     return data
 
@@ -192,9 +187,9 @@ def create_participant(
 def update_participant(
     participant_id: uuid.UUID,
     body:           ParticipantUpdateRequest,
-    db:             Session = Depends(get_db),
+    scope:          ScopedEventService = Depends(get_event_scope),
 ):
-    p = ParticipantService.update(participant_id, body, db)
+    p = ParticipantService.update(scope.event_id, participant_id, body, scope.db)
     return ParticipantResponse.model_validate(p)
 
 
@@ -203,17 +198,12 @@ def update_participant(
 @router.delete(
     "/{participant_id}",
     summary="Delete a participant",
-    description=(
-        "Removes a participant from the roster. "
-        "If they are assigned to a team, team_id is set to NULL on the team side "
-        "via the FK cascade defined in the model."
-    )
 )
 def delete_participant(
     participant_id: uuid.UUID,
-    db:             Session = Depends(get_db),
+    scope:          ScopedEventService = Depends(get_event_scope),
 ):
-    return ParticipantService.delete(participant_id, db)
+    return ParticipantService.delete(scope.event_id, participant_id, scope.db)
 
 
 @router.post(
@@ -224,7 +214,7 @@ def delete_participant(
 def confirm_progression(
     participant_id: uuid.UUID,
     body:           ProgressionConfirmRequest,
-    db:             Session = Depends(get_db),
+    scope:          ScopedEventService = Depends(get_event_scope),
 ):
-    p = ParticipantService.confirm_progression(participant_id, body.confirmed, db)
+    p = ParticipantService.confirm_progression(scope.event_id, participant_id, body.confirmed, scope.db)
     return ParticipantResponse.model_validate(p)

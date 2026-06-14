@@ -1,21 +1,11 @@
 # File: backend/app/api/solver_routes.py
-#
-# CONCEPT: These routes are the HTTP interface to your Celery solver.
-#
-# POST /solver/run      → enqueue a solver task, return task_id immediately
-# GET  /solver/drafts/{task_id}  → fetch completed teams from a solver run
-# GET  /solver/status/{task_id}  → proxy to the task tracker (convenience)
-#
-# The flow is always:
-#   1. Client calls POST /solver/run          → gets task_id back
-#   2. Client polls GET /tasks/{task_id}/status  → waits for "success"
-#   3. Client calls GET /solver/drafts/{task_id} → gets the actual teams
 
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
 from app.core.database import get_db
 from app.core.redis_client import get_redis
+from app.services.event_scope import ScopedEventService, get_event_scope  # <-- 1. Import the Bouncer
 from app.models.participant import Participant
 from app.schemas.solver_schemas import (
     SolverRunRequest,
@@ -31,7 +21,8 @@ from app.tasks.solver import run_team_formation
 
 import json
 
-router = APIRouter(prefix="/solver", tags=["Solver"])
+# 2. Update Prefix to enforce event_id in the URL
+router = APIRouter(prefix="/events/{event_id}/solver", tags=["Solver"])
 
 
 # ── POST /solver/run ──────────────────────────────────────────────────
@@ -39,50 +30,33 @@ router = APIRouter(prefix="/solver", tags=["Solver"])
 @router.post(
     "/run",
     response_model=SolverRunResponse,
-    status_code=202,    # 202 Accepted = "I got your request, working on it"
+    status_code=202,
     summary="Trigger team formation solver",
-    description=(
-        "Enqueues a Celery solver task and returns a task_id immediately. "
-        "Poll GET /tasks/{task_id}/status to track progress. "
-        "Fetch results with GET /solver/drafts/{task_id} once status is 'success'."
-    )
 )
 def run_solver(
-    body: SolverRunRequest,
-    db:   Session = Depends(get_db)
+    body:  SolverRunRequest,
+    scope: ScopedEventService = Depends(get_event_scope) # <-- 3. Inject Scope
 ):
-    """
-    Triggers the CSP team formation solver.
-
-    If `use_mock_data=True` is set in config, uses the MOCK_ROSTER
-    from schemas — useful while the FS CRUD endpoints are not yet ready.
-    Otherwise, loads all participants from the database.
-    """
     config = body.config
 
-    # ── Load roster ───────────────────────────────────────────────────
+    # ── Load roster securely ──────────────────────────────────────────
     if config.use_mock_data:
-        # Fallback to mock data — does not require FS CRUD to be done
         roster = []
         for i, p in enumerate(MOCK_ROSTER * max(1, config.num_teams)):
             entry = dict(p)
             entry["id"]    = f"mock-{i}"
             entry["email"] = f"mock{i}@test.com"
             roster.append(entry)
-        # Trim to a sensible size
         max_participants = config.k_max * config.num_teams
         roster = roster[:max_participants]
     else:
-        # Load from database
-        participants = db.query(Participant).all()
+        # 4. CRITICAL: Only load participants for THIS event
+        participants = scope.db.query(Participant).filter(Participant.event_id == scope.event_id).all()
+        
         if not participants:
             raise HTTPException(
                 status_code=422,
-                detail=(
-                    "No participants found in the database. "
-                    "Either import a roster first, or set use_mock_data=true "
-                    "in the request body to use mock data."
-                )
+                detail="No participants found in this event. Import a roster first, or set use_mock_data=true."
             )
         roster = [
             {
@@ -96,7 +70,7 @@ def run_solver(
             for p in participants
         ]
 
-    # ── Validate config feasibility before enqueueing ─────────────────
+    # ── Validate config feasibility ───────────────────────────────────
     n            = len(roster)
     min_needed   = config.k_min * config.num_teams
     max_capacity = config.k_max * config.num_teams
@@ -104,18 +78,12 @@ def run_solver(
     if n < min_needed:
         raise HTTPException(
             status_code=422,
-            detail=(
-                f"Not enough participants ({n}) for {config.num_teams} teams "
-                f"with minimum size {config.k_min}. Need at least {min_needed}."
-            )
+            detail=f"Not enough participants ({n}) for {config.num_teams} teams with minimum size {config.k_min}. Need at least {min_needed}."
         )
     if n > max_capacity:
         raise HTTPException(
             status_code=422,
-            detail=(
-                f"Too many participants ({n}) for {config.num_teams} teams "
-                f"with maximum size {config.k_max}. Max capacity is {max_capacity}."
-            )
+            detail=f"Too many participants ({n}) for {config.num_teams} teams with maximum size {config.k_max}. Max capacity is {max_capacity}."
         )
 
     # ── Enqueue Celery task ───────────────────────────────────────────
@@ -123,18 +91,27 @@ def run_solver(
     from app.models.participant import Team
     from app.services.approval_service import ApprovalService
 
-    event_state = db.query(EventState).first()
+    # 5. Securely scope EventState to this event
+    # (Assuming event_state table has been updated to have event_id, otherwise we rely strictly on Teams)
+    event_state = scope.db.query(EventState).filter(getattr(EventState, "event_id", scope.event_id) == scope.event_id).first()
     if not event_state:
         event_state = EventState()
-        db.add(event_state)
-        db.commit()
-        db.refresh(event_state)
+        if hasattr(event_state, 'event_id'):
+            event_state.event_id = scope.event_id
+        scope.db.add(event_state)
+        scope.db.commit()
+        scope.db.refresh(event_state)
 
     excluded = list(event_state.rejected_teams) if event_state.rejected_teams else []
 
-    currently_rejected = db.query(Team).filter(Team.approval_status == "rejected").all()
+    # 6. Securely fetch currently rejected teams for THIS event
+    currently_rejected = scope.db.query(Team).filter(
+        Team.event_id == scope.event_id, 
+        Team.approval_status == "rejected"
+    ).all()
+    
     for t in currently_rejected:
-        members = ApprovalService.get_team_members(t.id, db)
+        members = ApprovalService.get_team_members(scope.event_id, t.id, scope.db)
         member_ids = sorted([str(m.id) for m in members])
         if member_ids not in excluded:
             excluded.append(member_ids)
@@ -152,11 +129,8 @@ def run_solver(
 
     return SolverRunResponse(
         task_id=task.id,
-        status_url=f"/tasks/{task.id}/status",
-        message=(
-            f"Solver enqueued for {n} participants → {config.num_teams} teams. "
-            f"Poll status_url for live progress."
-        )
+        status_url=f"/events/{scope.event_id}/solver/status/{task.id}",
+        message=f"Solver enqueued for {n} participants → {config.num_teams} teams. Poll status_url for live progress."
     )
 
 
@@ -166,49 +140,29 @@ def run_solver(
     "/drafts/{task_id}",
     response_model=DraftLineupsResponse,
     summary="Fetch draft team lineups from a completed solver run",
-    description=(
-        "Returns the draft teams produced by a solver run. "
-        "Only available after the task status is 'success'. "
-        "Returns 404 if task is not found and 425 if task is still running."
-    )
 )
-def get_draft_lineups(task_id: str):
-    """
-    Fetches the result of a completed solver task from Redis.
-    The result was stored by the Celery task on completion.
-    """
+def get_draft_lineups(
+    task_id: str,
+    scope:   ScopedEventService = Depends(get_event_scope)
+):
     status = TaskTracker.get_status(task_id)
 
-    # ── Guard clauses — check task state before returning data ────────
     if not status:
-        raise HTTPException(
-            status_code=404,
-            detail=f"No task found with id '{task_id}'. It may have expired."
-        )
+        raise HTTPException(status_code=404, detail=f"No task found with id '{task_id}'. It may have expired.")
 
     if status["status"] == "running" or status["status"] == "pending":
         raise HTTPException(
-            status_code=425,    # 425 Too Early
-            detail=(
-                f"Solver is still running (progress: {status['progress']}/{status['total_steps']}). "
-                f"Poll /tasks/{task_id}/status and retry when status is 'success'."
-            )
+            status_code=425,
+            detail=f"Solver is still running. Poll status and retry when status is 'success'."
         )
 
     if status["status"] == "failed":
-        raise HTTPException(
-            status_code=500,
-            detail=f"Solver task failed: {status.get('error', 'Unknown error')}"
-        )
+        raise HTTPException(status_code=500, detail=f"Solver task failed: {status.get('error', 'Unknown error')}")
 
     result = status.get("result")
     if not result:
-        raise HTTPException(
-            status_code=500,
-            detail="Solver completed but result data is missing. This is unexpected."
-        )
+        raise HTTPException(status_code=500, detail="Solver completed but result data is missing.")
 
-    # ── Parse and return ──────────────────────────────────────────────
     raw_teams = result.get("teams", [])
     evaluation = result.get("evaluation", {})
 
@@ -244,43 +198,47 @@ def get_draft_lineups(task_id: str):
 @router.get(
     "/status/{task_id}",
     summary="Convenience proxy to task status",
-    description="Same as GET /tasks/{task_id}/status but namespaced under /solver."
 )
-def get_solver_status(task_id: str):
-    """Proxy to the task tracker — keeps solver-related polling under /solver."""
+def get_solver_status(
+    task_id: str,
+    scope:   ScopedEventService = Depends(get_event_scope)
+):
     status = TaskTracker.get_status_with_logs(task_id)
     if not status:
         raise HTTPException(status_code=404, detail=f"Task '{task_id}' not found.")
     return status
 
 
-@router.post("/commit/{task_id}",
-    summary="Persist solver draft lineups into the teams table (triggers approval queue)")
-def commit_solver_results(task_id: str, db: Session = Depends(get_db)):
-    """
-    Takes a completed solver run and writes the draft teams to the DB.
-    After this, they appear in GET /approvals/pending for committee review.
-    """
+@router.post("/commit/{task_id}", summary="Persist solver draft lineups into the teams table")
+def commit_solver_results(
+    task_id: str, 
+    scope:   ScopedEventService = Depends(get_event_scope)
+):
     from app.models.participant import Team, Participant
     from app.models.event_state import EventState
     from app.services.approval_service import ApprovalService
 
     status = TaskTracker.get_status(task_id)
     if not status or status["status"] != "success":
-        raise HTTPException(status_code=425,
-            detail="Solver task not complete. Check status first.")
+        raise HTTPException(status_code=425, detail="Solver task not complete. Check status first.")
 
-    event_state = db.query(EventState).first()
+    event_state = scope.db.query(EventState).filter(getattr(EventState, "event_id", scope.event_id) == scope.event_id).first()
     if not event_state:
         event_state = EventState()
-        db.add(event_state)
+        if hasattr(event_state, 'event_id'):
+            event_state.event_id = scope.event_id
+        scope.db.add(event_state)
 
-    current_teams = db.query(Team).filter(Team.approval_status.in_(["pending", "approved", "rejected"])).all()
+    # 7. Securely scope current teams and reset their status
+    current_teams = scope.db.query(Team).filter(
+        Team.event_id == scope.event_id,
+        Team.approval_status.in_(["pending", "approved", "rejected"])
+    ).all()
     
-    new_rejected = list(event_state.rejected_teams) if event_state.rejected_teams else []
+    new_rejected = list(event_state.rejected_teams) if getattr(event_state, 'rejected_teams', None) else []
     for t in current_teams:
         if t.approval_status == "rejected":
-            members = ApprovalService.get_team_members(t.id, db)
+            members = ApprovalService.get_team_members(scope.event_id, t.id, scope.db)
             member_ids = sorted([str(m.id) for m in members])
             if member_ids not in new_rejected:
                 new_rejected.append(member_ids)
@@ -293,27 +251,32 @@ def commit_solver_results(task_id: str, db: Session = Depends(get_db)):
     created_teams = []
     for t in teams_data:
         fallback_rationale = "This team combines strengths in Python, frontend, AI/ML, and design while respecting team size and institution constraints."
-        rationale = t.get("rationale", fallback_rationale)
-        if not rationale:
-            rationale = fallback_rationale
+        rationale = t.get("rationale", fallback_rationale) or fallback_rationale
 
+        # 8. Create new Team securely bound to the event
         team = Team(
+            event_id=scope.event_id, 
             team_name=t["team_name"],
             rationale=rationale,
             is_approved=False,
             approval_status="pending"
         )
-        db.add(team)
-        db.flush()   # get the team.id before committing
+        scope.db.add(team)
+        scope.db.flush()   # get the team.id before committing
+        
         for member in t["members"]:
-            participant = db.query(Participant).filter(
-                Participant.id == member["id"]
+            # 9. Securely update Participant ensuring they belong to this event
+            participant = scope.db.query(Participant).filter(
+                Participant.id == member["id"],
+                Participant.event_id == scope.event_id
             ).first()
             if participant:
                 participant.team_id = team.id
+                
         created_teams.append({"team_id": str(team.id), "team_name": team.team_name})
-    db.commit()
+        
+    scope.db.commit()
     return {
-        "message": f"{len(created_teams)} teams committed to DB. Check /approvals/pending.",
+        "message": f"{len(created_teams)} teams committed to DB for this event. Check /approvals/pending.",
         "teams":   created_teams
     }

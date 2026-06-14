@@ -1,19 +1,15 @@
 # File: backend/app/models/mentor.py
-# Mentor operations data models:
-#   Mentor           — a domain expert assigned to guide teams
-#   MentorAssignment — links a mentor to a team (one active primary per team)
-#   MentorSession    — scheduled meetings between mentor and team
-#   MentorFeedback   — daily progress & individual feedback from mentor
-
 import uuid
 from datetime import datetime, timezone
-from sqlalchemy import String, Boolean, DateTime, ForeignKey, Float, Text, Index
+from sqlalchemy import String, Boolean, DateTime, ForeignKey, Float, Text, Index, UniqueConstraint
 from sqlalchemy.dialects.postgresql import UUID, JSONB
 from sqlalchemy.orm import Mapped, mapped_column, relationship
+
 from app.core.database import Base
+from app.models.mixins import EventScopedMixin  # <-- 1. Import the Mixin
 
-
-class Mentor(Base):
+# 2. Add EventScopedMixin
+class Mentor(EventScopedMixin, Base):
     __tablename__ = "mentors"
 
     id: Mapped[uuid.UUID] = mapped_column(
@@ -21,8 +17,10 @@ class Mentor(Base):
     )
     first_name: Mapped[str] = mapped_column(String(50), nullable=False)
     last_name: Mapped[str] = mapped_column(String(50), nullable=False)
+    
+    # 3. CRITICAL: Removed unique=True. Uniqueness is now scoped per-event in __table_args__
     email: Mapped[str] = mapped_column(
-        String(255), nullable=False, unique=True, index=True
+        String(255), nullable=False, index=True
     )
     organization: Mapped[str | None] = mapped_column(String(100), nullable=True)
     expertise_areas: Mapped[dict] = mapped_column(JSONB, nullable=False, default=list)
@@ -35,6 +33,11 @@ class Mentor(Base):
         DateTime(timezone=True),
         default=lambda: datetime.now(timezone.utc),
         onupdate=lambda: datetime.now(timezone.utc),
+    )
+
+    __table_args__ = (
+        # 4. Enforce that a mentor can only register ONCE per event
+        UniqueConstraint("email", "event_id", name="uq_mentor_email_event"),
     )
 
     # Relationships
@@ -52,7 +55,8 @@ class Mentor(Base):
         return f"<Mentor {self.first_name} {self.last_name} | {self.email}>"
 
 
-class MentorAssignment(Base):
+# 5. Add EventScopedMixin to Assignments
+class MentorAssignment(EventScopedMixin, Base):
     __tablename__ = "mentor_assignments"
 
     id: Mapped[uuid.UUID] = mapped_column(
@@ -87,7 +91,8 @@ class MentorAssignment(Base):
         return f"<MentorAssignment mentor={self.mentor_id} team={self.team_id} active={self.is_active}>"
 
 
-class MentorSession(Base):
+# 6. Add EventScopedMixin to Sessions
+class MentorSession(EventScopedMixin, Base):
     __tablename__ = "mentor_sessions"
 
     id: Mapped[uuid.UUID] = mapped_column(
@@ -131,7 +136,8 @@ class MentorSession(Base):
         return f"<MentorSession {self.title} | {self.status}>"
 
 
-class MentorFeedback(Base):
+# 7. Add EventScopedMixin to Feedback
+class MentorFeedback(EventScopedMixin, Base):
     __tablename__ = "mentor_feedback"
 
     id: Mapped[uuid.UUID] = mapped_column(

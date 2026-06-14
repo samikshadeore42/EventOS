@@ -1,8 +1,4 @@
 # File: backend/app/services/participant_service.py
-#
-# All participant business logic lives here.
-# Routes call this — they never touch the DB directly.
-# Keeps routes thin and this layer testable.
 
 import csv
 import io
@@ -26,39 +22,39 @@ from app.schemas.participant_crud_schemas import (
     SkillSummary,
 )
 
-# These column names are NOT skill columns — everything else in the CSV is
 RESERVED_COLUMNS = {"first_name", "last_name", "email", "institution"}
-
 
 class ParticipantService:
 
     # ── Read ──────────────────────────────────────────────────────────
 
     @staticmethod
-    def get_by_id(participant_id: uuid.UUID, db: Session) -> Participant:
-        p = db.query(Participant).filter(Participant.id == participant_id).first()
+    def get_by_id(event_id: uuid.UUID, participant_id: uuid.UUID, db: Session) -> Participant:
+        p = db.query(Participant).filter(
+            Participant.id == participant_id,
+            Participant.event_id == event_id  # <-- 1. Enforce Event Isolation
+        ).first()
         if not p:
             raise HTTPException(status_code=404, detail="Participant not found.")
         return p
 
     @staticmethod
-    def get_by_email(email: str, db: Session) -> Optional[Participant]:
+    def get_by_email(event_id: uuid.UUID, email: str, db: Session) -> Optional[Participant]:
         return db.query(Participant).filter(
-            func.lower(Participant.email) == email.lower()
+            func.lower(Participant.email) == email.lower(),
+            Participant.event_id == event_id  # <-- Enforce Event Isolation
         ).first()
 
     @staticmethod
     def list_participants(
-        filters: ParticipantFilter,
-        db:      Session
+        event_id: uuid.UUID,
+        filters:  ParticipantFilter,
+        db:       Session
     ) -> PaginatedParticipants:
-        """
-        Filtered, sorted, paginated participant list.
-        All filters are optional and combinable.
-        """
-        query = db.query(Participant)
+        
+        # Base query now heavily restricted to the current event
+        query = db.query(Participant).filter(Participant.event_id == event_id)
 
-        # Apply filters
         if filters.institution:
             query = query.filter(
                 func.lower(Participant.institution).contains(
@@ -83,26 +79,26 @@ class ParticipantService:
                 )
             )
 
-        # Count before pagination
         total = query.count()
 
-        # Apply sort
         sort_col = getattr(Participant, filters.sort_by.value)
         if filters.sort_desc:
             query = query.order_by(sort_col.desc())
         else:
             query = query.order_by(sort_col.asc())
 
-        # Apply pagination
         offset = (filters.page - 1) * filters.page_size
         participants = query.offset(offset).limit(filters.page_size).all()
 
-        # Enrich with team names in one query (avoids N+1)
         team_ids = {p.team_id for p in participants if p.team_id}
         teams    = {}
         if team_ids:
-            team_rows = db.query(Team).filter(Team.id.in_(team_ids)).all()
-            teams     = {str(t.id): t for t in team_rows}
+            # Safely fetch teams, ensuring they also belong to this event
+            team_rows = db.query(Team).filter(
+                Team.id.in_(team_ids),
+                Team.event_id == event_id
+            ).all()
+            teams = {str(t.id): t for t in team_rows}
 
         import math
         rows = []
@@ -133,19 +129,19 @@ class ParticipantService:
     # ── Create ────────────────────────────────────────────────────────
 
     @staticmethod
-    def create(body: ParticipantCreateRequest, db: Session) -> Participant:
-        # Email uniqueness check with a clear error message
-        existing = ParticipantService.get_by_email(body.email, db)
+    def create(event_id: uuid.UUID, body: ParticipantCreateRequest, db: Session) -> Participant:
+        existing = ParticipantService.get_by_email(event_id, body.email, db)
         if existing:
             raise HTTPException(
                 status_code=409,
                 detail=(
-                    f"A participant with email '{body.email}' already exists "
+                    f"A participant with email '{body.email}' already exists in this event "
                     f"(id: {existing.id}). Use PATCH to update them."
                 )
             )
 
         participant = Participant(
+            event_id     = event_id, # <-- Bind to event
             first_name   = body.first_name.strip(),
             last_name    = body.last_name.strip(),
             email        = body.email.lower().strip(),
@@ -161,17 +157,17 @@ class ParticipantService:
 
     @staticmethod
     def update(
+        event_id:       uuid.UUID,
         participant_id: uuid.UUID,
         body:           ParticipantUpdateRequest,
         db:             Session
     ) -> Participant:
-        p = ParticipantService.get_by_id(participant_id, db)
+        p = ParticipantService.get_by_id(event_id, participant_id, db)
 
         if body.first_name  is not None: p.first_name  = body.first_name.strip()
         if body.last_name   is not None: p.last_name   = body.last_name.strip()
         if body.institution is not None: p.institution = body.institution.strip()
         if body.skill_vector is not None:
-            # Merge skills — don't replace entirely, just update provided keys
             updated          = dict(p.skill_vector)
             updated.update(body.skill_vector)
             p.skill_vector   = updated
@@ -182,11 +178,12 @@ class ParticipantService:
 
     @staticmethod
     def confirm_progression(
+        event_id:       uuid.UUID,
         participant_id: uuid.UUID,
         confirmed:      bool,
         db:             Session
     )-> Participant:
-        p=ParticipantService.get_by_id(participant_id, db)
+        p=ParticipantService.get_by_id(event_id, participant_id, db)
         p.progression_confirmed = confirmed
         db.commit()
         db.refresh(p)
@@ -195,8 +192,8 @@ class ParticipantService:
     # ── Delete ────────────────────────────────────────────────────────
 
     @staticmethod
-    def delete(participant_id: uuid.UUID, db: Session) -> dict:
-        p = ParticipantService.get_by_id(participant_id, db)
+    def delete(event_id: uuid.UUID, participant_id: uuid.UUID, db: Session) -> dict:
+        p = ParticipantService.get_by_id(event_id, participant_id, db)
         db.delete(p)
         db.commit()
         return {
@@ -209,50 +206,30 @@ class ParticipantService:
 
     @staticmethod
     def process_csv_upload(
+        event_id:     uuid.UUID,
         file_content: bytes,
         upsert:       bool,
         db:           Session
     ) -> CSVUploadResponse:
-        """
-        Parses a CSV roster file and bulk-inserts participants.
-
-        upsert=True  → update existing participants by email
-        upsert=False → skip rows where email already exists
-
-        Skill columns are auto-detected: any column not in RESERVED_COLUMNS
-        is treated as a skill name.
-
-        Validation errors per row are collected and returned —
-        one bad row never blocks the rest of the file.
-        """
         try:
-            text   = file_content.decode("utf-8-sig")   # strip BOM if present
+            text   = file_content.decode("utf-8-sig")  
             reader = csv.DictReader(io.StringIO(text))
         except Exception as e:
-            raise HTTPException(
-                status_code=400,
-                detail=f"Could not parse file as CSV: {e}"
-            )
+            raise HTTPException(status_code=400, detail=f"Could not parse file as CSV: {e}")
 
         if not reader.fieldnames:
             raise HTTPException(status_code=400, detail="CSV file is empty.")
 
-        # Normalise headers to lowercase + strip whitespace
         headers = [h.lower().strip() for h in reader.fieldnames]
-
-        # Validate required columns
         required = {"first_name", "last_name", "email", "institution"}
         missing  = required - set(headers)
+        
         if missing:
             raise HTTPException(
                 status_code=422,
-                detail=(
-                    f"CSV is missing required columns: {', '.join(sorted(missing))}. "
-                    f"Found columns: {', '.join(headers)}"
-                )
+                detail=f"CSV is missing required columns: {', '.join(sorted(missing))}."
             )
 
-        # Detect skill columns — everything that isn't a reserved column
         skill_columns = [h for h in headers if h not in RESERVED_COLUMNS]
 
         results  = []
@@ -261,20 +238,15 @@ class ParticipantService:
         skipped  = 0
         errors   = 0
 
-        for row_num, raw_row in enumerate(reader, start=2):  # start=2 (row 1 = header)
-            # Normalise keys
+        for row_num, raw_row in enumerate(reader, start=2):
             row = {k.lower().strip(): v.strip() for k, v in raw_row.items() if k}
 
             email = row.get("email", "").lower().strip()
             if not email:
-                results.append(CSVRowResult(
-                    row=row_num, email="(empty)", status="error",
-                    error="Email is required"
-                ))
+                results.append(CSVRowResult(row=row_num, email="(empty)", status="error", error="Email is required"))
                 errors += 1
                 continue
 
-            # Build skill vector from detected skill columns
             skill_vector = {}
             parse_error  = None
             for skill in skill_columns:
@@ -292,27 +264,20 @@ class ParticipantService:
                     break
 
             if parse_error:
-                results.append(CSVRowResult(
-                    row=row_num, email=email, status="error", error=parse_error
-                ))
+                results.append(CSVRowResult(row=row_num, email=email, status="error", error=parse_error))
                 errors += 1
                 continue
 
-            # Validate required fields
             first_name  = row.get("first_name", "").strip()
             last_name   = row.get("last_name", "").strip()
             institution = row.get("institution", "").strip()
 
             if not all([first_name, last_name, institution]):
-                results.append(CSVRowResult(
-                    row=row_num, email=email, status="error",
-                    error="first_name, last_name, and institution are required"
-                ))
+                results.append(CSVRowResult(row=row_num, email=email, status="error", error="first_name, last_name, and institution are required"))
                 errors += 1
                 continue
 
-            # Check for existing participant
-            existing = ParticipantService.get_by_email(email, db)
+            existing = ParticipantService.get_by_email(event_id, email, db)
 
             if existing:
                 if upsert:
@@ -320,17 +285,14 @@ class ParticipantService:
                     existing.last_name    = last_name
                     existing.institution  = institution
                     existing.skill_vector = skill_vector
-                    db.commit()
                     results.append(CSVRowResult(row=row_num, email=email, status="updated"))
                     updated += 1
                 else:
-                    results.append(CSVRowResult(
-                        row=row_num, email=email, status="skipped",
-                        error="Email already exists (use upsert=true to update)"
-                    ))
+                    results.append(CSVRowResult(row=row_num, email=email, status="skipped", error="Email already exists (use upsert=true to update)"))
                     skipped += 1
             else:
                 participant = Participant(
+                    event_id     = event_id, # <-- Bind to event
                     first_name   = first_name,
                     last_name    = last_name,
                     email        = email,
@@ -341,15 +303,11 @@ class ParticipantService:
                 results.append(CSVRowResult(row=row_num, email=email, status="created"))
                 created += 1
 
-        # Commit all successful inserts in one transaction
         try:
             db.commit()
         except Exception as e:
             db.rollback()
-            raise HTTPException(
-                status_code=500,
-                detail=f"Database error during bulk insert: {e}"
-            )
+            raise HTTPException(status_code=500, detail=f"Database error during bulk insert: {e}")
 
         return CSVUploadResponse(
             total_rows   = len(results),
@@ -359,42 +317,35 @@ class ParticipantService:
             errors       = errors,
             rows         = results,
             sample_skills = skill_columns,
-            message      = (
-                f"Upload complete: {created} created, {updated} updated, "
-                f"{skipped} skipped, {errors} errors."
-            )
+            message      = f"Upload complete: {created} created, {updated} updated, {skipped} skipped, {errors} errors."
         )
 
     # ── Roster Summary ────────────────────────────────────────────────
 
     @staticmethod
-    def get_roster_summary(db: Session) -> RosterSummary:
-        """
-        Aggregated stats for the admin dashboard header cards.
-        Uses indexed queries only — no full table scans.
-        """
-        total       = db.query(func.count(Participant.id)).scalar() or 0
+    def get_roster_summary(event_id: uuid.UUID, db: Session) -> RosterSummary:
+        # Base count now scoped
+        total       = db.query(func.count(Participant.id)).filter(Participant.event_id == event_id).scalar() or 0
+        
         assigned    = db.query(func.count(Participant.id)).outerjoin(Team, Participant.team_id == Team.id).filter(
+            Participant.event_id == event_id,
             Participant.team_id.isnot(None),
             Team.approval_status == "published"
         ).scalar() or 0
+        
         unassigned  = total - assigned
 
-        # Institution breakdown — uses institution column directly
         inst_rows   = db.query(
             Participant.institution,
             func.count(Participant.id).label("count")
-        ).group_by(Participant.institution).order_by(
+        ).filter(Participant.event_id == event_id).group_by(Participant.institution).order_by(
             func.count(Participant.id).desc()
         ).all()
 
         institution_counts = {row.institution: row.count for row in inst_rows}
         institutions       = list(institution_counts.keys())
 
-        # Skill summary — load all skill vectors, aggregate in Python
-        # (JSONB aggregation in Postgres requires complex SQL;
-        #  Python is fast enough for ≤200 participants)
-        all_participants  = db.query(Participant.skill_vector).all()
+        all_participants  = db.query(Participant.skill_vector).filter(Participant.event_id == event_id).all()
         skill_aggregates: dict[str, list[float]] = {}
 
         for (sv,) in all_participants:
@@ -414,6 +365,7 @@ class ParticipantService:
             if scores
         ]
 
+        # Update frontend URL dynamically for the CSV template
         return RosterSummary(
             total_participants  = total,
             assigned_to_team    = assigned,
@@ -421,5 +373,5 @@ class ParticipantService:
             institutions        = institutions,
             institution_counts  = institution_counts,
             skill_summary       = skill_summary,
-            csv_template_url    = "/participants/csv-template",
+            csv_template_url    = f"/events/{event_id}/participants/csv-template",
         )
