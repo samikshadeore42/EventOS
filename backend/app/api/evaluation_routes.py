@@ -6,6 +6,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 
 from app.core.database import get_db
+from app.services.event_scope import ScopedEventService, get_event_scope  # <-- Import Bouncer
 from app.core.security import decode_access_token, parse_uuid_subject
 from app.models.evaluation import Evaluation, Evaluator
 from app.services.score_service import ScoreService
@@ -17,31 +18,27 @@ from app.schemas.evaluation_schemas import (
     EvaluationResponse,
 )
 
-router = APIRouter(prefix="/evaluations", tags=["Evaluations"])
+# 1. Update Prefix
+router = APIRouter(prefix="/events/{event_id}/evaluations", tags=["Evaluations"])
 
 @router.post(
     "",
     response_model=EvaluationResponse,
     status_code=201,
     summary="Submit a scorecard for a team",
-    description=(
-        "Evaluator submits multi-criteria scores for an approved team. "
-        "The evaluator is identified via their JWT token (not request body). "
-        "Anomaly detection runs automatically after submission."
-    )
 )
 def submit_scorecard(
     body:        ScoreSubmissionRequest,
     token:       str     = Query(..., description="Evaluator's JWT from their portal link"),
-    db:          Session = Depends(get_db)
+    scope:       ScopedEventService = Depends(get_event_scope)
 ):
-    """
-    Score submission endpoint.
-    Evaluator JWT is read from the query param (same link they clicked).
-    This ensures the evaluator_id cannot be spoofed in the request body.
-    """
-    # Validate token and extract evaluator identity
     payload = decode_access_token(token)
+    token_event_id = payload.get("event_id")
+
+    # 2. Cryptographic event boundary check
+    if str(token_event_id) != str(scope.event_id):
+        raise HTTPException(status_code=403, detail="Token mismatch. This link belongs to a different event.")
+
     if payload.get("role") != "evaluator":
         raise HTTPException(
             status_code=403,
@@ -50,28 +47,36 @@ def submit_scorecard(
 
     evaluator_id = parse_uuid_subject(payload.get("sub"), "evaluator ID")
 
-    # Verify evaluator exists in DB
-    evaluator = db.query(Evaluator).filter(Evaluator.id == evaluator_id).first()
+    # 3. Verify evaluator exists in THIS event
+    evaluator = scope.db.query(Evaluator).filter(
+        Evaluator.id == evaluator_id,
+        Evaluator.event_id == scope.event_id
+    ).first()
+    
     if not evaluator:
-        raise HTTPException(status_code=404, detail="Evaluator not found in database.")
+        raise HTTPException(status_code=404, detail="Evaluator not found in this event.")
     if not evaluator.is_active:
         raise HTTPException(status_code=403, detail="Your evaluator account is inactive.")
 
-    assigned = db.query(EvaluatorTeamAssignment).filter_by(
+    # 4. Verify assignment exists in THIS event
+    assigned = scope.db.query(EvaluatorTeamAssignment).filter_by(
         evaluator_id=evaluator_id,
-        team_id=body.team_id
+        team_id=body.team_id,
+        event_id=scope.event_id
     ).first()
     
     if not assigned:
         raise HTTPException(
             status_code=403,
-            detail="Access Denied:You are not assigned to evaluate this team."
+            detail="Access Denied: You are not assigned to evaluate this team."
         )
+        
     return ScoreService.submit_scorecard(
+        event_id=scope.event_id, # Pass boundary down
         evaluator_id=evaluator_id,
         team_id=body.team_id,
         scores=body.scores,
-        db=db
+        db=scope.db
     )
 
 @router.patch(
@@ -83,13 +88,14 @@ def update_scorecard(
     evaluation_id: UUID,
     body:          ScoreUpdateRequest,
     token:         str     = Query(..., description="Evaluator's JWT"),
-    db:            Session = Depends(get_db)
+    scope:         ScopedEventService = Depends(get_event_scope)
 ):
-    """
-    Evaluator updates their own scorecard.
-    Re-runs anomaly detection after update.
-    """
     payload      = decode_access_token(token)
+    token_event_id = payload.get("event_id")
+
+    if str(token_event_id) != str(scope.event_id):
+        raise HTTPException(status_code=403, detail="Token mismatch.")
+
     if payload.get("role") != "evaluator":
         raise HTTPException(
             status_code=403,
@@ -98,9 +104,10 @@ def update_scorecard(
 
     evaluator_id = parse_uuid_subject(payload.get("sub"), "evaluator ID")
 
-    evaluation = db.query(Evaluation).filter(
+    evaluation = scope.db.query(Evaluation).filter(
         Evaluation.id           == evaluation_id,
-        Evaluation.evaluator_id == evaluator_id   # can only update own scorecard
+        Evaluation.evaluator_id == evaluator_id,
+        Evaluation.event_id     == scope.event_id
     ).first()
 
     if not evaluation:
@@ -110,14 +117,12 @@ def update_scorecard(
         )
 
     evaluation.scores = body.scores
-    
     evaluation.score_hash = generate_score_hash(evaluator_id, evaluation.team_id, body.scores)
-    db.commit()
-    db.refresh(evaluation)
+    scope.db.commit()
+    scope.db.refresh(evaluation)
 
-    # Re-run anomaly detection with updated scores
-    ScoreService.run_anomaly_detection_for_team(evaluation.team_id, db)
-    db.refresh(evaluation)
+    ScoreService.run_anomaly_detection_for_team(scope.event_id, evaluation.team_id, scope.db)
+    scope.db.refresh(evaluation)
 
     return evaluation
 
@@ -126,8 +131,8 @@ def update_scorecard(
     "/team/{team_id}",
     summary="Get all scorecards for a specific team",
 )
-def get_team_scorecards(team_id: UUID, db: Session = Depends(get_db)):
-    scorecards = ScoreService.get_team_scorecards(team_id, db)
+def get_team_scorecards(team_id: UUID, scope: ScopedEventService = Depends(get_event_scope)):
+    scorecards = ScoreService.get_team_scorecards(scope.event_id, team_id, scope.db)
     return {
         "team_id":   str(team_id),
         "count":     len(scorecards),
@@ -148,8 +153,8 @@ def get_team_scorecards(team_id: UUID, db: Session = Depends(get_db)):
     "/flagged",
     summary="Get all flagged scorecards pending admin review",
 )
-def get_flagged_scorecards(db: Session = Depends(get_db)):
-    flagged = ScoreService.get_flagged_scorecards(db)
+def get_flagged_scorecards(scope: ScopedEventService = Depends(get_event_scope)):
+    flagged = ScoreService.get_flagged_scorecards(scope.event_id, scope.db)
     return {
         "total_flagged": len(flagged),
         "scorecards": [
@@ -172,36 +177,25 @@ def get_flagged_scorecards(db: Session = Depends(get_db)):
     response_model=EvaluationResponse,
     summary="Admin clears an anomaly flag after manual review",
 )
-def clear_flag(evaluation_id: UUID, db: Session = Depends(get_db)):
-    """
-    Once admin reviews and accepts a flagged scorecard,
-    this clears the flag so it counts toward the leaderboard.
-    """
-    return ScoreService.clear_flag(evaluation_id, db)
+def clear_flag(evaluation_id: UUID, scope: ScopedEventService = Depends(get_event_scope)):
+    return ScoreService.clear_flag(scope.event_id, evaluation_id, scope.db)
 
 
 @router.get(
     "/leaderboard",
     summary="Get consolidated team leaderboard",
-    description=(
-        "Returns weighted average scores per team. "
-        "Teams with active flags are included but marked as not leaderboard-ready."
-    )
 )
-def get_leaderboard(db: Session = Depends(get_db)):
-    return ScoreService.consolidate_all_teams(db)
+def get_leaderboard(scope: ScopedEventService = Depends(get_event_scope)):
+    return ScoreService.consolidate_all_teams(scope.event_id, scope.db)
 
 
 @router.get(
     "/audit-integrity", 
     summary="Run a cryptographic audit on all scores to detect database tampering"
 )
-def audit_score_integrity(db: Session = Depends(get_db)):
-    """
-    Scans the database and recalculates the SHA-256 hash for every scorecard.
-    If the recalculated hash doesn't match the stored score_hash, tampering occurred.
-    """
-    evaluations = db.query(Evaluation).all()
+def audit_score_integrity(scope: ScopedEventService = Depends(get_event_scope)):
+    # Scope the audit to just THIS event
+    evaluations = scope.db.query(Evaluation).filter(Evaluation.event_id == scope.event_id).all()
     tampered_records = []
     audited_count = 0
     
@@ -230,5 +224,5 @@ def audit_score_integrity(db: Session = Depends(get_db)):
         "is_secure": is_secure,
         "total_audited": audited_count,
         "tampered_records": tampered_records,
-        "message": "Zero-Trust Audit Complete. All signatures match." if is_secure else f"ALERT: {len(tampered_records)} tampered records found!"
+        "message": "Zero-Trust Audit Complete. All signatures match." if is_secure else f"ALERT: {len(tampered_records)} tampered records found in this event!"
     }

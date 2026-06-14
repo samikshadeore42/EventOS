@@ -5,11 +5,13 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
 from app.core.database import get_db
+from app.services.event_scope import ScopedEventService, get_event_scope  # <-- Import Bouncer
 from app.models.evaluation import Evaluation, Evaluator
 from app.models.participant import Team
 from app.services.score_service import ScoreService
 
-router = APIRouter(prefix="/leaderboard", tags=["Leaderboard"])
+# 1. Update Prefix
+router = APIRouter(prefix="/events/{event_id}/leaderboard", tags=["Leaderboard"])
 
 
 # ── GET /leaderboard — full ranked leaderboard ────────────────────────
@@ -17,14 +19,9 @@ router = APIRouter(prefix="/leaderboard", tags=["Leaderboard"])
 @router.get(
     "",
     summary="Get the full ranked team leaderboard",
-    description=(
-        "Returns teams ranked by weighted score. "
-        "Teams with active anomaly flags are listed but not ranked "
-        "until flags are cleared by admin."
-    )
 )
-def get_leaderboard(db: Session = Depends(get_db)):
-    return ScoreService.consolidate_all_teams(db)
+def get_leaderboard(scope: ScopedEventService = Depends(get_event_scope)):
+    return ScoreService.consolidate_all_teams(scope.event_id, scope.db)
 
 
 # ── GET /leaderboard/anomalies — all flagged scorecards ───────────────
@@ -33,16 +30,24 @@ def get_leaderboard(db: Session = Depends(get_db)):
     "/anomalies",
     summary="Get all anomaly-flagged scorecards pending admin review",
 )
-def get_anomalies(db: Session = Depends(get_db)):
-    flagged = ScoreService.get_flagged_scorecards(db)
+def get_anomalies(scope: ScopedEventService = Depends(get_event_scope)):
+    flagged = ScoreService.get_flagged_scorecards(scope.event_id, scope.db)
     
-    # Fetch team names for the flagged scorecards
     team_ids = {sc.team_id for sc in flagged}
-    teams = {t.id: t for t in db.query(Team).filter(Team.id.in_(team_ids)).all()} if team_ids else {}
+    teams = {
+        t.id: t for t in scope.db.query(Team).filter(
+            Team.id.in_(team_ids),
+            Team.event_id == scope.event_id
+        ).all()
+    } if team_ids else {}
     
-    # Fetch evaluator names
     evaluator_ids = {sc.evaluator_id for sc in flagged}
-    evaluators = {e.id: e for e in db.query(Evaluator).filter(Evaluator.id.in_(evaluator_ids)).all()} if evaluator_ids else {}
+    evaluators = {
+        e.id: e for e in scope.db.query(Evaluator).filter(
+            Evaluator.id.in_(evaluator_ids),
+            Evaluator.event_id == scope.event_id
+        ).all()
+    } if evaluator_ids else {}
     
     return {
         "total_flagged": len(flagged),
@@ -73,16 +78,11 @@ def get_anomalies(db: Session = Depends(get_db)):
 @router.post(
     "/anomalies/{evaluation_id}/override",
     summary="Admin overrides an anomaly flag — includes scorecard in leaderboard",
-    description=(
-        "After manual review, admin clears the flag. "
-        "The scorecard then counts toward the team's final score."
-    )
 )
-def override_anomaly(evaluation_id: UUID, db: Session = Depends(get_db)):
-    evaluation = ScoreService.clear_flag(evaluation_id, db)
+def override_anomaly(evaluation_id: UUID, scope: ScopedEventService = Depends(get_event_scope)):
+    evaluation = ScoreService.clear_flag(scope.event_id, evaluation_id, scope.db)
 
-    # Re-run consolidation so leaderboard reflects the change immediately
-    ScoreService.run_anomaly_detection_for_team(evaluation.team_id, db)
+    ScoreService.run_anomaly_detection_for_team(scope.event_id, evaluation.team_id, scope.db)
 
     return {
         "message":       "Flag cleared. Scorecard now counts toward leaderboard.",
@@ -97,10 +97,9 @@ def override_anomaly(evaluation_id: UUID, db: Session = Depends(get_db)):
 @router.post(
     "/anomalies/override-all",
     summary="Admin bulk-clears all anomaly flags",
-    description="Use with caution — clears ALL flags without individual review."
 )
-def override_all_anomalies(db: Session = Depends(get_db)):
-    flagged = ScoreService.get_flagged_scorecards(db)
+def override_all_anomalies(scope: ScopedEventService = Depends(get_event_scope)):
+    flagged = ScoreService.get_flagged_scorecards(scope.event_id, scope.db)
     if not flagged:
         return {"message": "No flagged scorecards to clear.", "cleared": 0}
 
@@ -111,11 +110,10 @@ def override_all_anomalies(db: Session = Depends(get_db)):
         sc.anomaly_score = None
         cleared_team_ids.add(sc.team_id)
 
-    db.commit()
+    scope.db.commit()
 
-    # Re-run anomaly detection for all affected teams
     for team_id in cleared_team_ids:
-        ScoreService.run_anomaly_detection_for_team(team_id, db)
+        ScoreService.run_anomaly_detection_for_team(scope.event_id, team_id, scope.db)
 
     return {
         "message": f"Cleared {len(flagged)} flags across {len(cleared_team_ids)} teams.",

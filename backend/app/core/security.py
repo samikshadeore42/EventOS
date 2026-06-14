@@ -26,16 +26,18 @@ class TokenRole:
 def create_access_token(
     subject:    str,              
     role:       str,              
-    stage:      str,              
+    stage:      str,
+    event_id:   str, # <-- 1. Require event_id
     expires_in: timedelta = timedelta(days=7)
 ) -> str:
     now     = datetime.now(timezone.utc)
     payload = {
-        "sub":   subject,          
-        "role":  role,             
-        "stage": stage,            
-        "iat":   now,             
-        "exp":   now + expires_in,
+        "sub":      subject,          
+        "role":     role,             
+        "stage":    stage, 
+        "event_id": event_id, # <-- 2. Cryptographically bind it to the payload           
+        "iat":      now,             
+        "exp":      now + expires_in,
     }
     return jwt.encode(payload, SECRET_KEY, algorithm=ALGORITHM)
 

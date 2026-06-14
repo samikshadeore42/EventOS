@@ -47,6 +47,8 @@ class Participant(EventScopedMixin,Base):
         onupdate=lambda: datetime.now(timezone.utc)
     )
     
+    event: Mapped["Event"] = relationship("Event", back_populates="participants")
+    
     __table_args__ = (
         Index("ix_participants_inst_team_id","institution", "team_id"),
         UniqueConstraint("email", name="uq_participant_email_event"),
@@ -73,5 +75,6 @@ class Team(EventScopedMixin,Base):
 
     members: Mapped[list["Participant"]] = relationship("Participant", backref="team")
 
+    event: Mapped["Event"]=relationship("Event", back_populates="teams")
     def __repr__(self):
         return f"<Team {self.team_name} | status={self.approval_status} | approved={self.is_approved}>"

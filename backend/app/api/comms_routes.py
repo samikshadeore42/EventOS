@@ -1,13 +1,16 @@
 # File: backend/app/api/comms_routes.py
+import uuid
 from fastapi import APIRouter, Depends, Query
 from sqlalchemy.orm import Session
 from app.core.database import get_db
+from app.services.event_scope import ScopedEventService, get_event_scope  # <-- Import Bouncer
 from app.models.communication_log import CommunicationLog
 from pydantic import BaseModel
 import os
 from app.services.email_service import EmailService
 
-router = APIRouter(prefix="/communications", tags=["Communication Log"])
+# Update Prefix
+router = APIRouter(prefix="/events/{event_id}/communications", tags=["Communication Log"])
 
 
 @router.get("", summary="Get all communication log entries")
@@ -16,9 +19,11 @@ def get_communication_log(
     success:  bool | None = Query(default=None),
     page:     int = Query(default=1, ge=1),
     page_size: int = Query(default=50, ge=1, le=200),
-    db: Session = Depends(get_db),
+    scope: ScopedEventService = Depends(get_event_scope),
 ):
-    query = db.query(CommunicationLog).order_by(CommunicationLog.sent_at.desc())
+    # Securely scope logs to this specific event
+    query = scope.db.query(CommunicationLog).filter(CommunicationLog.event_id == scope.event_id).order_by(CommunicationLog.sent_at.desc())
+    
     if template:
         query = query.filter(CommunicationLog.template == template)
     if success is not None:
@@ -47,7 +52,7 @@ def get_communication_log(
     }
 
 @router.get("/diagnostics", summary="Get email delivery diagnostics")
-def get_email_diagnostics():
+def get_email_diagnostics(scope: ScopedEventService = Depends(get_event_scope)):
     mode = os.getenv("EMAIL_DELIVERY_MODE", "mock").lower()
     api_key = os.getenv("SENDGRID_API_KEY") or ""
     from_email = os.getenv("SENDGRID_FROM_EMAIL")
@@ -101,20 +106,23 @@ class TestEmailRequest(BaseModel):
     recipient_name: str = "Test User"
 
 @router.post("/test-email", summary="Send a test email to verify delivery")
-def test_email(req: TestEmailRequest):
+def test_email(req: TestEmailRequest, scope: ScopedEventService = Depends(get_event_scope)):
     html_content = f"""
     <h2>Hello {req.recipient_name},</h2>
-    <p>This is a test email from EventOS.</p>
+    <p>This is a test email from {scope.event.name}.</p>
     <p>If you are seeing this, your email delivery pipeline is configured correctly.</p>
     """
     
+    # Pass event_id and event_name down to EmailService to ensure logs are tied to this event
     result = EmailService.send_email(
+        event_id=scope.event_id,
         to_email=req.to_email,
-        subject="EventOS Test Email",
+        subject=f"{scope.event.name} Test Email",
         html_content=html_content,
         recipient_name=req.recipient_name,
         template="test_email",
-        stage="system"
+        stage="system",
+        event_name=scope.event.name
     )
     
     return result
@@ -124,7 +132,7 @@ class PreflightRequest(BaseModel):
     recipient_name: str | None = None
 
 @router.post("/preflight-sendgrid", summary="Preflight check for SendGrid configuration")
-def preflight_sendgrid(req: PreflightRequest):
+def preflight_sendgrid(req: PreflightRequest, scope: ScopedEventService = Depends(get_event_scope)):
     mode = os.getenv("EMAIL_DELIVERY_MODE", "mock").lower()
     from_email = os.getenv("SENDGRID_FROM_EMAIL")
     
@@ -139,12 +147,14 @@ def preflight_sendgrid(req: PreflightRequest):
         
     html_content = "<p>Preflight test email</p>"
     result = EmailService.send_email(
+        event_id=scope.event_id,
         to_email=req.to_email,
-        subject="EventOS Preflight Test",
+        subject=f"{scope.event.name} Preflight Test",
         html_content=html_content,
         recipient_name=req.recipient_name or "Test",
         template="test_email",
-        stage="system"
+        stage="system",
+        event_name=scope.event.name
     )
     
     if result.get("success"):
