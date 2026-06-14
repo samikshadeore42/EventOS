@@ -65,9 +65,29 @@ def setup_test_database():
     user_session = UserSession(id=session_id, user_id=user_id, refresh_token_hash="hash", token_family_id="fam", expires_at=datetime.now(timezone.utc) + timedelta(days=1), created_at=datetime.now(timezone.utc))
     
     # CLAUDE'S FIX: Inject the global event
-    event = Event(id=TEST_EVENT_ID, organization_id=org_id, name="Test Event", slug="test-event", event_type="hackathon", status=EventStatus.ACTIVE, created_at=datetime.now(timezone.utc), updated_at=datetime.now(timezone.utc))
+    event = Event(
+        id=TEST_EVENT_ID,
+        organization_id=org_id,
+        name="Test Event",
+        slug="test-event",
+        event_type="hackathon",
+        active_capabilities=["teams", "mentors", "evaluators", "submissions", "weighted_scoring", "leaderboard"],
+        status=EventStatus.ACTIVE,
+        created_at=datetime.now(timezone.utc),
+        updated_at=datetime.now(timezone.utc),
+    )
     
     db.add_all([org, user, membership, user_session, event])
+    from app.models.template import Template
+    
+    templates = [
+        Template(key="generic_competitive_event", name="Generic Competitive Event", event_type_label="generic_competitive_event", version=1, is_system_template=True, default_capabilities=["teams", "evaluators", "submissions", "weighted_scoring"], suggested_stages=[], required_roles=[]),
+        Template(key="hackathon", name="Hackathon", event_type_label="hackathon", version=1, is_system_template=True, default_capabilities=["teams", "mentors", "evaluators", "submissions", "weighted_scoring"], suggested_stages=[], required_roles=[]),
+        Template(key="coding_contest", name="Coding Contest", event_type_label="coding_contest", version=1, is_system_template=True, default_capabilities=["submissions", "live_scoring", "evaluators", "leaderboard"], suggested_stages=[], required_roles=[]),
+        Template(key="case_competition", name="Case Competition", event_type_label="case_competition", version=1, is_system_template=True, default_capabilities=["teams", "submissions", "presentation_evaluation", "evaluators", "weighted_scoring"], suggested_stages=[], required_roles=[]),
+        Template(key="sports_tournament", name="Sports Tournament", event_type_label="sports_tournament", version=1, is_system_template=True, default_capabilities=["teams", "matches", "fixtures", "elimination", "live_scoring"], suggested_stages=[], required_roles=[]),
+    ]
+    db.add_all(templates)
     db.commit()
     db.close()
     yield

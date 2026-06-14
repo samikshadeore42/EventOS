@@ -50,12 +50,12 @@ class Participant(EventScopedMixin,Base):
     event: Mapped["Event"] = relationship("Event", back_populates="participants")
     
     __table_args__ = (
-        Index("ix_participants_inst_team_id","institution", "team_id"),
-        UniqueConstraint("email", name="uq_participant_email_event"),
+        Index("ix_participants_inst_team_id", "institution", "team_id"),
+        UniqueConstraint("email", "event_id", name="uq_participant_email_event"),
         Index(
             "ix_participants_skill_vector_gin",
             "skill_vector",
-            postgresql_using="gin"
+            postgresql_using="gin",
         ),
     )
 

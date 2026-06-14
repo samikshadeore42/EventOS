@@ -5,6 +5,7 @@ from sqlalchemy.orm import Session
 
 from app.core.database import get_db
 from app.core.redis_client import get_redis
+from app.core.capabilities import require_capability
 from app.services.event_scope import ScopedEventService, get_event_scope  # <-- 1. Import the Bouncer
 from app.models.participant import Participant
 from app.schemas.solver_schemas import (
@@ -35,7 +36,7 @@ router = APIRouter(prefix="/events/{event_id}/solver", tags=["Solver"])
 )
 def run_solver(
     body:  SolverRunRequest,
-    scope: ScopedEventService = Depends(get_event_scope) # <-- 3. Inject Scope
+    scope: ScopedEventService = Depends(require_capability("teams"))
 ):
     config = body.config
 
@@ -212,7 +213,7 @@ def get_solver_status(
 @router.post("/commit/{task_id}", summary="Persist solver draft lineups into the teams table")
 def commit_solver_results(
     task_id: str, 
-    scope:   ScopedEventService = Depends(get_event_scope)
+    scope: ScopedEventService = Depends(require_capability("teams"))
 ):
     from app.models.participant import Team, Participant
     from app.models.event_state import EventState

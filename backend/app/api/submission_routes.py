@@ -4,7 +4,8 @@ from fastapi import APIRouter, Depends, HTTPException, UploadFile, File
 from fastapi.responses import FileResponse
 from sqlalchemy.orm import Session
 from app.core.database import get_db
-from app.services.event_scope import ScopedEventService, get_event_scope  # <-- Import Bouncer
+from app.core.capabilities import require_capability
+from app.services.event_scope import ScopedEventService
 from app.core.security import decode_access_token, get_token_subject, parse_uuid_subject
 from app.models.participant import Participant
 from app.models.evaluation import Evaluator
@@ -14,7 +15,7 @@ from app.services.project_submission_service import ProjectSubmissionService
 router = APIRouter(prefix="/events/{event_id}/submissions", tags=["Submissions"])
 
 @router.post("/participant/project")
-def submit_project(token: str, file: UploadFile = File(...), scope: ScopedEventService = Depends(get_event_scope)):
+def submit_project(token: str, file: UploadFile = File(...), scope: ScopedEventService = Depends(require_capability("submissions"))):
     payload = decode_access_token(token)
     role = payload.get("role")
     token_event_id = payload.get("event_id")
@@ -55,7 +56,7 @@ def submit_project(token: str, file: UploadFile = File(...), scope: ScopedEventS
     }
 
 @router.get("/participant/project")
-def get_participant_project(token: str, scope: ScopedEventService = Depends(get_event_scope)):
+def get_participant_project(token: str, scope: ScopedEventService = Depends(require_capability("submissions"))):
     payload = decode_access_token(token)
     role = payload.get("role")
     token_event_id = payload.get("event_id")
@@ -101,7 +102,7 @@ def get_participant_project(token: str, scope: ScopedEventService = Depends(get_
     }
 
 @router.get("/team/{team_id}")
-def get_team_submission_judge(team_id: UUID, token: str, scope: ScopedEventService = Depends(get_event_scope)):
+def get_team_submission_judge(team_id: UUID, token: str, scope: ScopedEventService = Depends(require_capability("submissions"))):
     payload = decode_access_token(token)
     role = payload.get("role")
     token_event_id = payload.get("event_id")
@@ -141,7 +142,7 @@ def get_team_submission_judge(team_id: UUID, token: str, scope: ScopedEventServi
     }
 
 @router.get("/team/{team_id}/download")
-def download_team_submission(team_id: UUID, token: str, scope: ScopedEventService = Depends(get_event_scope)):
+def download_team_submission(team_id: UUID, token: str, scope: ScopedEventService = Depends(require_capability("submissions"))):
     payload = decode_access_token(token)
     role = payload.get("role")
     token_event_id = payload.get("event_id")
