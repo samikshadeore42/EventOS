@@ -1,7 +1,7 @@
 # backend/app/models/event.py
 import uuid
 from datetime import datetime, timezone
-from sqlalchemy import String, Boolean, DateTime, Text
+from sqlalchemy import String, Boolean, DateTime, Text, Integer, ForeignKey
 from sqlalchemy.dialects.postgresql import UUID, JSONB
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from app.core.database import Base
@@ -35,8 +35,13 @@ class Event(Base):
 
     # Template linkage
     event_type: Mapped[str] = mapped_column(String(50), default="hackathon")
-    
-    # Enabled capabilities and rules (Native Postgres JSONB!)
+    template_id: Mapped[uuid.UUID | None] = mapped_column(
+        UUID(as_uuid=True), 
+        ForeignKey("templates.id", ondelete="SET NULL"), 
+        nullable=True
+    )
+    template_version: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    active_capabilities: Mapped[list] = mapped_column(JSONB, nullable=False, default=list)
     configuration: Mapped[dict] = mapped_column(JSONB, nullable=False, default=dict)
 
     status: Mapped[str] = mapped_column(String(30), default=EventStatus.DRAFT)
