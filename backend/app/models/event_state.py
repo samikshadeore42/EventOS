@@ -4,8 +4,9 @@ from sqlalchemy import String, Boolean, DateTime
 from sqlalchemy.dialects.postgresql import UUID, JSONB
 from sqlalchemy.orm import Mapped, mapped_column
 from app.core.database import Base
+from app.models.mixins import EventScopedMixin
 
-class EventState(Base):
+class EventState(Base, EventScopedMixin):
     __tablename__ = "event_state"
     
     id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)

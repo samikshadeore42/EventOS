@@ -245,7 +245,7 @@ class LinkService:
         db:             Session
     ) -> dict:
         from app.services.event_state_service import get_event_state
-        current_stage = get_event_state(db).current_stage
+        current_stage = get_event_state(event_id, db).current_stage
 
         participant = db.query(Participant).filter(
             Participant.id == participant_id,
