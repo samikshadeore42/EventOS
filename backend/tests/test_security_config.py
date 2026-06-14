@@ -69,7 +69,7 @@ def test_expired_token_is_rejected():
             import app.core.security as security_module
         
         # Create an expired token
-        token = security_module.create_access_token("test", "admin", "eval", expires_in=timedelta(seconds=-1))
+        token = security_module.create_access_token("test", "admin", "eval", expires_in=timedelta(seconds=-1), event_id="test-event")
         
         with pytest.raises(HTTPException) as excinfo:
             security_module.decode_access_token(token)
