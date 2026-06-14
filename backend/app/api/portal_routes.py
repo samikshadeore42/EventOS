@@ -1,16 +1,15 @@
 # File: backend/app/api/portal_routes.py
 
 import os
-from fastapi import HTTPException
-from fastapi import APIRouter, Depends, Query
-from sqlalchemy.orm import Session
-from app.core.database import get_db
+from fastapi import APIRouter, Depends, Query, HTTPException
 from app.core.security import create_access_token
+from app.services.event_scope import ScopedEventService, get_event_scope  # <-- 1. Import Bouncer
 from app.services.link_service import LinkService
 from app.core.auth_deps import RequireOrganizationRole
 from datetime import timedelta
 
-router = APIRouter(prefix="/portal", tags=["Portal"])
+# FIXED: Added prefix back to lock down this router!
+router = APIRouter(prefix="/events/{event_id}/portal", tags=["Portal"])
 DEBUG_ROUTES_ENABLED = os.getenv("ENABLE_DEBUG_ROUTES", "false").lower() == "true"
 
 
@@ -26,9 +25,10 @@ DEBUG_ROUTES_ENABLED = os.getenv("ENABLE_DEBUG_ROUTES", "false").lower() == "tru
 )
 def portal_access(
     token: str     = Query(..., description="Signed JWT from email link"),
-    db:    Session = Depends(get_db)
+    scope: ScopedEventService = Depends(get_event_scope)  # <-- 3. Inject Scope
 ):
-    return LinkService.resolve_portal_access(token=token, db=db)
+    # Pass event_id down to ensure the token actually belongs to this specific event
+    return LinkService.resolve_portal_access(scope.event_id, token=token, db=scope.db)
 
 
 @router.post(
@@ -37,33 +37,40 @@ def portal_access(
     description="Admin triggers this to generate + email access links to everyone.",
 )
 def generate_and_dispatch_links(
-    
     role:  str = Query(..., description="participant or evaluator"),
     stage: str = Query(default="evaluation", description="current event stage"),
     send_emails: bool = Query(default=True, description="whether to dispatch emails now"),
-    db:    Session = Depends(get_db),
-    membership = Depends(RequireOrganizationRole('owner', 'admin'))
+    scope: ScopedEventService = Depends(get_event_scope), # <-- FIXED: Added our Phase 2 dependency
+    membership = Depends(RequireOrganizationRole('owner', 'admin')) # <-- Awesome Phase 1 teammate dependency!
 ):
     if not DEBUG_ROUTES_ENABLED:
         raise HTTPException(status_code=404, detail="Not found")
     from app.tasks.communications import send_access_links
 
     if role == "participant":
-        links = LinkService.generate_all_participant_links(db, stage)
+        # Pass event_id down to the service layer
+        links = LinkService.generate_all_participant_links(scope.event_id, scope.db, stage)
         if not links:
             return {
                 "generated": 0,
                 "emails_queued": False,
-                "message": "No participants found. Upload roster before dispatching links."
+                "message": "No participants found in this event. Upload roster before dispatching links."
             }
     elif role == "evaluator":
-        links = LinkService.generate_all_evaluator_links(db, stage)
+        # Pass event_id down to the service layer
+        links = LinkService.generate_all_evaluator_links(scope.event_id, scope.db, stage)
     else:
         raise HTTPException(status_code=400, detail="role must be 'participant' or 'evaluator'")
 
     task_id = None
     if send_emails and links:
-        task = send_access_links.delay(links=links, role=role, stage=stage)
+        # 4. Dynamically inject the event name into the email dispatcher!
+        task = send_access_links.delay(
+            links=links, 
+            role=role, 
+            stage=stage,
+            event_name=scope.event.name
+        )
         task_id = task.id
 
     message = "Generated links but dispatch skipped."
@@ -77,7 +84,7 @@ def generate_and_dispatch_links(
         "emails_queued": bool(send_emails and links),
         "task_id":      task_id,
         "message":      message,
-        "preview":      links[:2] if links else [],   # show first 2 for debug
+        "preview":      links[:2] if links else [],   
     }
 
 
@@ -89,19 +96,22 @@ def generate_and_dispatch_links(
 def debug_generate_test_link(
     role: str = Query(default="participant"),
     stage: str = Query(default="evaluation"),
-    membership = Depends(RequireOrganizationRole('owner', 'admin'))
+    scope: ScopedEventService = Depends(get_event_scope), # <-- FIXED: Added our Phase 2 dependency
+    membership = Depends(RequireOrganizationRole('owner', 'admin')) # <-- Awesome Phase 1 teammate dependency!
 ):
     if not DEBUG_ROUTES_ENABLED:
         raise HTTPException(status_code=404, detail="Not found")
     import uuid
+    # 5. Embed the event_id directly into the debug token
     token = create_access_token(
         subject=str(uuid.uuid4()),
         role=role,
         stage=stage,
+        event_id=str(scope.event_id),
         expires_in=timedelta(hours=1)
     )
     return {
         "token":      token,
-        "portal_url": f"http://localhost:8000/portal/access?token={token}",
-        "note":       "This is a debug token with a random UUID subject. Portal will return 404 since the entity doesn't exist in DB."
+        "portal_url": f"http://localhost:8000/events/{scope.event_id}/portal/access?token={token}",
+        "note":       "This is a debug token. Portal will return 404 since the entity doesn't exist in DB."
     }

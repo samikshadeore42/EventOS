@@ -1,17 +1,6 @@
 # File: backend/app/api/anomaly_routes.py
-#
-# HTTP interface to the anomaly detector.
-#
-# POST /anomalies/detect              → enqueue detection, return task_id
-# GET  /anomalies/report/{task_id}    → fetch completed report
-# GET  /anomalies/status/{task_id}    → proxy to task tracker (convenience)
-#
-# Flow:
-#   1. Client calls POST /anomalies/detect           → gets task_id
-#   2. Client polls GET /tasks/{task_id}/status      → waits for "success"
-#   3. Client calls GET /anomalies/report/{task_id}  → gets the full report
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Depends
 
 from app.schemas.anomaly_schemas import (
     AnomalyDetectionRequest,
@@ -19,11 +8,12 @@ from app.schemas.anomaly_schemas import (
     AnomalyReportResponse,
     AnomalyOut,
 )
+from app.services.event_scope import ScopedEventService, get_event_scope  # <-- Import Bouncer
 from app.services.task_tracker import TaskTracker
 from app.tasks.anomaly import run_anomaly_detection
 
-
-router = APIRouter(prefix="/anomalies", tags=["Anomaly Detection"])
+# 1. Update Prefix
+router = APIRouter(prefix="/events/{event_id}/anomalies", tags=["Anomaly Detection"])
 
 
 # ── POST /anomalies/detect ────────────────────────────────────────────
@@ -31,22 +21,15 @@ router = APIRouter(prefix="/anomalies", tags=["Anomaly Detection"])
 @router.post(
     "/detect",
     response_model=AnomalyDetectionResponse,
-    status_code=202,    # 202 Accepted = "I got your request, working on it"
+    status_code=202, 
     summary="Run anomaly detection on a panel of evaluator scores",
-    description=(
-        "Enqueues an anomaly detection task. Returns task_id immediately. "
-        "Poll GET /tasks/{task_id}/status for progress. "
-        "Fetch the full report with GET /anomalies/report/{task_id} once status is 'success'."
-    ),
 )
-def detect_anomalies(body: AnomalyDetectionRequest):
-    """
-    Runs all four detection methods (z-score, divergence, consistency, COI)
-    on the submitted panel. Configurable thresholds via `config`.
-    """
+def detect_anomalies(
+    body:  AnomalyDetectionRequest,
+    scope: ScopedEventService = Depends(get_event_scope) # <-- Add Scope
+):
     expected_criteria = set(body.criteria)
 
-    # ── Cross-entry validation — every entry must score exactly the criteria
     for i, e in enumerate(body.entries):
         if set(e.scores.keys()) != expected_criteria:
             raise HTTPException(
@@ -58,7 +41,6 @@ def detect_anomalies(body: AnomalyDetectionRequest):
                 ),
             )
 
-    # ── Weights, if given, must match criteria keys
     if body.weights is not None and set(body.weights.keys()) != expected_criteria:
         raise HTTPException(
             status_code=422,
@@ -68,7 +50,6 @@ def detect_anomalies(body: AnomalyDetectionRequest):
             ),
         )
 
-    # ── Serialize entries for Celery (must be JSON-safe — no Pydantic models) ─
     entries_payload = [
         {
             "judge_id":                 e.judge_id,
@@ -83,7 +64,7 @@ def detect_anomalies(body: AnomalyDetectionRequest):
 
     config_payload = body.config.model_dump()
 
-    # ── Enqueue Celery task ───────────────────────────────────────────
+    # Pass the event context into the task if you later want to store reports in DB
     task = run_anomaly_detection.delay(
         entries_payload,
         body.criteria,
@@ -96,7 +77,7 @@ def detect_anomalies(body: AnomalyDetectionRequest):
 
     return AnomalyDetectionResponse(
         task_id=task.id,
-        status_url=f"/tasks/{task.id}/status",
+        status_url=f"/events/{scope.event_id}/anomalies/status/{task.id}", # <-- Correct nested status URL
         message=(
             f"Anomaly detection enqueued for {len(body.entries)} score entries "
             f"({num_judges} judges × {num_teams} teams). "
@@ -111,17 +92,13 @@ def detect_anomalies(body: AnomalyDetectionRequest):
     "/report/{task_id}",
     response_model=AnomalyReportResponse,
     summary="Fetch the anomaly report from a completed detection run",
-    description=(
-        "Returns the full anomaly report. Only available after the task "
-        "status is 'success'. Returns 404 if task is not found and 425 if "
-        "the task is still running."
-    ),
 )
-def get_anomaly_report(task_id: str):
-    """Fetches a completed detection result from the task tracker."""
+def get_anomaly_report(
+    task_id: str,
+    scope:   ScopedEventService = Depends(get_event_scope)
+):
     status = TaskTracker.get_status(task_id)
 
-    # ── Guard clauses — check task state before returning data ────────
     if not status:
         raise HTTPException(
             status_code=404,
@@ -130,11 +107,11 @@ def get_anomaly_report(task_id: str):
 
     if status["status"] in ("running", "pending"):
         raise HTTPException(
-            status_code=425,    # 425 Too Early
+            status_code=425,
             detail=(
                 f"Detection still running "
                 f"(progress: {status['progress']}/{status['total_steps']}). "
-                f"Poll /tasks/{task_id}/status and retry when status is 'success'."
+                f"Poll status_url and retry when status is 'success'."
             ),
         )
 
@@ -151,7 +128,6 @@ def get_anomaly_report(task_id: str):
             detail="Detection completed but result data is missing. This is unexpected.",
         )
 
-    # ── Parse and return ──────────────────────────────────────────────
     return AnomalyReportResponse(
         task_id=task_id,
         total_anomalies=       result["total_anomalies"],
@@ -167,10 +143,11 @@ def get_anomaly_report(task_id: str):
 @router.get(
     "/status/{task_id}",
     summary="Convenience proxy to task status",
-    description="Same as GET /tasks/{task_id}/status but namespaced under /anomalies.",
 )
-def get_anomaly_status(task_id: str):
-    """Proxy to the task tracker — keeps anomaly-related polling under /anomalies."""
+def get_anomaly_status(
+    task_id: str,
+    scope:   ScopedEventService = Depends(get_event_scope)
+):
     status = TaskTracker.get_status_with_logs(task_id)
     if not status:
         raise HTTPException(status_code=404, detail=f"Task '{task_id}' not found.")
