@@ -1,5 +1,6 @@
 # File: backend/app/services/email_service.py
 import os
+import uuid
 from sendgrid import SendGridAPIClient
 from sendgrid.helpers.mail import Mail
 from dotenv import load_dotenv
@@ -22,15 +23,17 @@ env = Environment(loader=FileSystemLoader(TEMPLATE_DIR))
 class EmailService:
     @staticmethod
     def send_email(
+        event_id: uuid.UUID, # <-- 1. Require event_id
         to_email: str,
         subject: str,
         html_content: str,
         recipient_name: str = None,
         template: str = "email",
         stage: str = "system",
-        idempotency_key: str = None
+        idempotency_key: str = None,
+        event_name: str = "EventOS Hackathon" 
     ) -> dict:
-        """Core method to dispatch via SendGrid or Mock, and log to DB."""
+        """Core method to dispatch via SendGrid or Mock, and log securely to DB."""
         import time
         from app.core.database import SessionLocal
         from app.models.communication_log import CommunicationLog
@@ -39,8 +42,10 @@ class EmailService:
         try:
             existing_log = None
             if idempotency_key:
+                # 2. Scope the idempotency check
                 existing_log = db.query(CommunicationLog).filter(
-                    CommunicationLog.idempotency_key == idempotency_key
+                    CommunicationLog.idempotency_key == idempotency_key,
+                    CommunicationLog.event_id == event_id 
                 ).first()
                 if existing_log and existing_log.success:
                     return {
@@ -64,7 +69,7 @@ class EmailService:
 
             # 1. Dispatch Email
             if is_mock:
-                print(f"[MOCK EMAIL] To: {to_email} | Subject: {subject}")
+                print(f"[MOCK EMAIL - {event_name}] To: {to_email} | Subject: {subject}")
                 result = {
                     "success": True,
                     "dev": True,
@@ -138,7 +143,7 @@ class EmailService:
                             "error": error_msg
                         }
 
-            # 2. Log to Database
+            # 2. Log securely to Database
             if existing_log:
                 existing_log.recipient_email = to_email
                 existing_log.recipient_name = recipient_name or to_email
@@ -150,6 +155,7 @@ class EmailService:
                 existing_log.message_id = result.get("message_id")
             else:
                 log = CommunicationLog(
+                    event_id=event_id, # <-- 3. Bind to the event
                     recipient_email=to_email,
                     recipient_name=recipient_name or to_email,
                     template=template,
@@ -173,7 +179,7 @@ class EmailService:
         return result
 
     @staticmethod
-    def send_registration_confirmation(to_email: str, participant_name: str, event_name: str, idempotency_key: str = None) -> dict:
+    def send_registration_confirmation(event_id: uuid.UUID, to_email: str, participant_name: str, event_name: str, idempotency_key: str = None) -> dict:
         """Renders and sends the registration template."""
         template = env.get_template("registration.html")
         html_content = template.render(
@@ -183,13 +189,13 @@ class EmailService:
         )
         subject = f"Welcome to {event_name}! Registration Confirmed"
         return EmailService.send_email(
-            to_email, subject, html_content,
+            event_id, to_email, subject, html_content,
             recipient_name=participant_name, template="registration", stage="registration",
-            idempotency_key=idempotency_key
+            idempotency_key=idempotency_key, event_name=event_name
         )
 
     @staticmethod
-    def send_team_assignment(to_email: str, participant_name: str, team_name: str, team_members: list, rationale: str, event_name: str, idempotency_key: str = None) -> dict:
+    def send_team_assignment(event_id: uuid.UUID, to_email: str, participant_name: str, team_name: str, team_members: list, rationale: str, event_name: str, idempotency_key: str = None) -> dict:
         """Renders and sends the team assignment template."""
         template = env.get_template("team_assignment.html")
         html_content = template.render(
@@ -202,14 +208,14 @@ class EmailService:
         )
         subject = f"You have been assigned to {team_name}!"
         return EmailService.send_email(
-            to_email, subject, html_content,
+            event_id, to_email, subject, html_content,
             recipient_name=participant_name, template="team_assignment", stage="team_formation",
-            idempotency_key=idempotency_key
+            idempotency_key=idempotency_key, event_name=event_name
         )
 
     @staticmethod
-    def send_access_link(to_email: str, recipient_name: str, role: str, stage: str, portal_url: str, expires_in: str, idempotency_key: str = None) -> dict:
-        """Sends a magic access link using the custom SendGrid Dynamic Template."""
+    def send_access_link(event_id: uuid.UUID, to_email: str, recipient_name: str, role: str, stage: str, portal_url: str, expires_in: str, event_name: str = "EventOS Hackathon", idempotency_key: str = None) -> dict:
+        """Sends a magic access link using dynamic event names."""
         import os
         from sendgrid import SendGridAPIClient
 
@@ -223,14 +229,14 @@ class EmailService:
                     evaluator_name=first_name,
                     portal_url=portal_url,
                     expires_in=expires_in,
-                    event_name="EventOS Hackathon"
+                    event_name=event_name
                 )
-                subject = "Your EventOS Judge Portal Access"
+                subject = f"Your {event_name} Judge Portal Access"
 
                 return EmailService.send_email(
-                    to_email,subject,html_content,
+                    event_id, to_email, subject, html_content,
                     recipient_name=recipient_name, template="evaluator_link", stage=stage,
-                    idempotency_key=idempotency_key
+                    idempotency_key=idempotency_key, event_name=event_name
                 )
 
             except Exception as e:
@@ -244,14 +250,14 @@ class EmailService:
                     mentor_name=first_name,
                     portal_url=portal_url,
                     expires_in=expires_in,
-                    event_name="WiSE@TI Hackathon"
+                    event_name=event_name
                 )
-                subject = "Your WiSE@TI Mentor Portal Access"
+                subject = f"Your {event_name} Mentor Portal Access"
 
                 return EmailService.send_email(
-                    to_email, subject, html_content,
+                    event_id, to_email, subject, html_content,
                     recipient_name=recipient_name, template="mentor_link", stage=stage,
-                    idempotency_key=idempotency_key
+                    idempotency_key=idempotency_key, event_name=event_name
                 )
             except Exception as e:
                 print(f"Failed to render mentor template: {e}")
@@ -264,20 +270,20 @@ class EmailService:
                     participant_name=first_name,
                     portal_url=portal_url,
                     expires_in=expires_in,
-                    event_name="EventOS Hackathon"
+                    event_name=event_name
                 )
-                subject = "Your EventOS Participant Portal Access"
+                subject = f"Your {event_name} Participant Portal Access"
 
                 return EmailService.send_email(
-                    to_email, subject, html_content,
+                    event_id, to_email, subject, html_content,
                     recipient_name=recipient_name, template="participant_link", stage=stage,
-                    idempotency_key=idempotency_key
+                    idempotency_key=idempotency_key, event_name=event_name
                 )
             except Exception as e:
                 return {"success": False, "error": str(e)}
 
     @staticmethod
-    def send_email_verification(to_email: str, recipient_name: str, verification_link: str, idempotency_key: str = None) -> dict:
+    def send_email_verification(event_id: uuid.UUID, to_email: str, recipient_name: str, verification_link: str, idempotency_key: str = None) -> dict:
         """Sends an email verification link."""
         html_content = f"""
         <p>Hi {recipient_name},</p>
@@ -287,13 +293,13 @@ class EmailService:
         """
         subject = "Please verify your email address"
         return EmailService.send_email(
-            to_email, subject, html_content,
+            event_id, to_email, subject, html_content,
             recipient_name=recipient_name, template="email_verification", stage="auth",
             idempotency_key=idempotency_key
         )
 
     @staticmethod
-    def send_password_reset(to_email: str, recipient_name: str, reset_link: str, idempotency_key: str = None) -> dict:
+    def send_password_reset(event_id: uuid.UUID, to_email: str, recipient_name: str, reset_link: str, idempotency_key: str = None) -> dict:
         """Sends a password reset link."""
         html_content = f"""
         <p>Hi {recipient_name},</p>
@@ -303,13 +309,13 @@ class EmailService:
         """
         subject = "Password Reset Request"
         return EmailService.send_email(
-            to_email, subject, html_content,
+            event_id, to_email, subject, html_content,
             recipient_name=recipient_name, template="password_reset", stage="auth",
             idempotency_key=idempotency_key
         )
 
     @staticmethod
-    def send_admin_invitation(to_email: str, organization_name: str, inviter_name: str, role: str, invite_link: str, idempotency_key: str = None) -> dict:
+    def send_admin_invitation(event_id: uuid.UUID, to_email: str, organization_name: str, inviter_name: str, role: str, invite_link: str, idempotency_key: str = None) -> dict:
         """Sends an admin invitation email."""
         html_content = f"""
         <p>Hi,</p>
@@ -321,7 +327,7 @@ class EmailService:
         """
         subject = f"You're invited to join {organization_name} on EventOS"
         return EmailService.send_email(
-            to_email, subject, html_content,
+            event_id, to_email, subject, html_content,
             recipient_name=to_email, template="admin_invitation", stage="auth",
             idempotency_key=idempotency_key
         )

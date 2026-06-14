@@ -1,4 +1,4 @@
-from pydantic import BaseModel, EmailStr, Field
+from pydantic import BaseModel, EmailStr, Field, ConfigDict
 from typing import Optional, List
 from datetime import datetime
 import uuid
@@ -22,8 +22,7 @@ class OrganizationResponse(BaseModel):
     is_active: bool
     created_at: datetime
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 class MembershipResponse(BaseModel):
     id: uuid.UUID
@@ -33,8 +32,7 @@ class MembershipResponse(BaseModel):
     status: str
     joined_at: Optional[datetime]
     
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 class MemberDetailResponse(BaseModel):
     membership_id: uuid.UUID
@@ -59,8 +57,7 @@ class InvitationResponse(BaseModel):
     expires_at: datetime
     email_queued: Optional[bool] = None
     
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 class InvitationPreview(BaseModel):
     organization_name: str
@@ -74,5 +71,4 @@ class OrganizationWithMembership(BaseModel):
     organization: OrganizationResponse
     membership: MembershipResponse
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)

@@ -1,3 +1,4 @@
+# File: backend/app/services/project_submission_service.py
 import os
 import shutil
 import uuid
@@ -16,7 +17,6 @@ MAX_FILE_SIZE = 50 * 1024 * 1024  # 50MB
 class ProjectSubmissionService:
     @staticmethod
     def validate_zip_upload(file: UploadFile):
-        # Case-insensitive extension check
         if not (file.filename or "").lower().endswith(".zip"):
             raise HTTPException(status_code=400, detail="Only .zip project files are allowed.")
         
@@ -30,7 +30,6 @@ class ProjectSubmissionService:
         if size > MAX_FILE_SIZE:
             raise HTTPException(status_code=400, detail="Project ZIP must be under 50MB.")
 
-        # Verify the file is a genuine ZIP archive
         if not zipfile.is_zipfile(file.file):
             file.file.seek(0)
             raise HTTPException(status_code=400, detail="Uploaded file is not a valid ZIP archive.")
@@ -47,23 +46,29 @@ class ProjectSubmissionService:
             pass
 
     @staticmethod
-    def save_team_submission(db: Session, participant: Participant, upload_file: UploadFile):
+    def save_team_submission(event_id: uuid.UUID, db: Session, participant: Participant, upload_file: UploadFile):
         if not participant.team_id:
             raise HTTPException(status_code=422, detail="You must be assigned to a team before submitting a project.")
 
         file_size = ProjectSubmissionService.validate_zip_upload(upload_file)
 
-        os.makedirs(UPLOAD_DIR, exist_ok=True)
+        # 1. Scope upload directory by event to prevent cross-event file collisions
+        event_upload_dir = os.path.join(UPLOAD_DIR, str(event_id))
+        os.makedirs(event_upload_dir, exist_ok=True)
         
         ext = ".zip"
         unique_id = f"{participant.team_id}_{uuid.uuid4().hex}"
         stored_filename = f"{unique_id}{ext}"
-        file_path = os.path.join(UPLOAD_DIR, stored_filename)
+        file_path = os.path.join(event_upload_dir, stored_filename)
 
         with open(file_path, "wb") as f:
             shutil.copyfileobj(upload_file.file, f)
             
-        existing_sub = db.query(ProjectSubmission).filter(ProjectSubmission.team_id == participant.team_id).first()
+        # 2. Scope the database query to the event
+        existing_sub = db.query(ProjectSubmission).filter(
+            ProjectSubmission.team_id == participant.team_id,
+            ProjectSubmission.event_id == event_id 
+        ).first()
         
         if existing_sub:
             ProjectSubmissionService.delete_submission_file_safely(existing_sub.file_path)
@@ -78,6 +83,7 @@ class ProjectSubmissionService:
             return existing_sub
         else:
             new_sub = ProjectSubmission(
+                event_id=event_id, # 3. Bind the new row to the event
                 team_id=participant.team_id,
                 uploaded_by_participant_id=participant.id,
                 original_filename=upload_file.filename,
@@ -92,31 +98,46 @@ class ProjectSubmissionService:
             return new_sub
 
     @staticmethod
-    def get_team_submission(db: Session, team_id: str):
-        return db.query(ProjectSubmission).filter(ProjectSubmission.team_id == team_id).first()
+    def get_team_submission(event_id: uuid.UUID, db: Session, team_id: str):
+        # Scope to event
+        return db.query(ProjectSubmission).filter(
+            ProjectSubmission.team_id == team_id,
+            ProjectSubmission.event_id == event_id
+        ).first()
 
     @staticmethod
-    def get_download_file_for_evaluator(db: Session, evaluator: Evaluator, team_id: str):
+    def get_download_file_for_evaluator(event_id: uuid.UUID, db: Session, evaluator: Evaluator, team_id: str):
         if not evaluator or not evaluator.is_active:
             raise HTTPException(status_code=403, detail="Evaluator not active.")
             
         from app.models.participant import Team
         from app.models.assignment import EvaluatorTeamAssignment
         
-        team = db.query(Team).filter(Team.id == team_id).first()
-        if not team:
-            raise HTTPException(status_code=404, detail="Team not found.")
+        # Scope team to event
+        team = db.query(Team).filter(
+            Team.id == team_id,
+            Team.event_id == event_id
+        ).first()
         
-        # Only allow download if this evaluator is assigned to this team
+        if not team:
+            raise HTTPException(status_code=404, detail="Team not found in this event.")
+        
+        # Scope assignment to event
         assignment = db.query(EvaluatorTeamAssignment).filter_by(
             evaluator_id=evaluator.id,
-            team_id=team_id
+            team_id=team_id,
+            event_id=event_id
         ).first()
         
         if not assignment:
             raise HTTPException(status_code=403, detail="Not authorized to access this team's submission. You are not assigned to this team.")
             
-        submission = db.query(ProjectSubmission).filter(ProjectSubmission.team_id == team_id).first()
+        # Scope submission to event
+        submission = db.query(ProjectSubmission).filter(
+            ProjectSubmission.team_id == team_id,
+            ProjectSubmission.event_id == event_id
+        ).first()
+        
         if not submission:
             raise HTTPException(status_code=404, detail="No project submission found for this team.")
             

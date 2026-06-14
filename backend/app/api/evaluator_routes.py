@@ -5,12 +5,14 @@ from sqlalchemy.orm import Session
 from pydantic import BaseModel, EmailStr, Field
 from typing import Optional, List
 from app.core.database import get_db
+from app.services.event_scope import ScopedEventService, get_event_scope  # <-- Import Bouncer
 from app.models.evaluation import Evaluator
 from app.services.link_service import LinkService
 from app.models.assignment import EvaluatorTeamAssignment
 from app.schemas.evaluation_schemas import EvaluatorAssignmentRequest
 
-router = APIRouter(prefix="/evaluators", tags=["Evaluators"])
+# 1. Update Prefix
+router = APIRouter(prefix="/events/{event_id}/evaluators", tags=["Evaluators"])
 
 
 class EvaluatorCreate(BaseModel):
@@ -34,24 +36,31 @@ class EvaluatorResponse(BaseModel):
 
 
 @router.get("", summary="List all evaluators")
-def list_evaluators(db: Session = Depends(get_db)):
-    evaluators = db.query(Evaluator).order_by(Evaluator.created_at.desc()).all()
+def list_evaluators(scope: ScopedEventService = Depends(get_event_scope)):
+    # Scope query to event
+    evaluators = scope.db.query(Evaluator).filter(
+        Evaluator.event_id == scope.event_id
+    ).order_by(Evaluator.created_at.desc()).all()
+    
     return {
         "total": len(evaluators),
         "evaluators": [EvaluatorResponse.model_validate(e) for e in evaluators]
     }
 
 
-@router.post("", status_code=201, response_model=EvaluatorResponse,
-             summary="Register a new evaluator/judge")
-def create_evaluator(body: EvaluatorCreate, db: Session = Depends(get_db)):
-    existing = db.query(Evaluator).filter(
-        Evaluator.email == body.email.lower()
+@router.post("", status_code=201, response_model=EvaluatorResponse, summary="Register a new evaluator/judge")
+def create_evaluator(body: EvaluatorCreate, scope: ScopedEventService = Depends(get_event_scope)):
+    existing = scope.db.query(Evaluator).filter(
+        Evaluator.email == body.email.lower(),
+        Evaluator.event_id == scope.event_id # Scope uniqueness to the event
     ).first()
+    
     if existing:
         raise HTTPException(status_code=409,
-            detail=f"Evaluator with email '{body.email}' already exists.")
+            detail=f"Evaluator with email '{body.email}' already exists in this event.")
+            
     e = Evaluator(
+        event_id=scope.event_id, # Bind to event
         first_name=body.first_name.strip(),
         last_name=body.last_name.strip(),
         email=body.email.lower().strip(),
@@ -59,78 +68,90 @@ def create_evaluator(body: EvaluatorCreate, db: Session = Depends(get_db)):
         passed_out_institution=body.passed_out_institution,
         is_active=True,
     )
-    db.add(e)
-    db.commit()
-    db.refresh(e)
+    scope.db.add(e)
+    scope.db.commit()
+    scope.db.refresh(e)
     return e
 
 
-@router.get("/{evaluator_id}", response_model=EvaluatorResponse,
-            summary="Get a single evaluator")
-def get_evaluator(evaluator_id: uuid.UUID, db: Session = Depends(get_db)):
-    e = db.query(Evaluator).filter(Evaluator.id == evaluator_id).first()
+@router.get("/{evaluator_id}", response_model=EvaluatorResponse, summary="Get a single evaluator")
+def get_evaluator(evaluator_id: uuid.UUID, scope: ScopedEventService = Depends(get_event_scope)):
+    e = scope.db.query(Evaluator).filter(
+        Evaluator.id == evaluator_id,
+        Evaluator.event_id == scope.event_id
+    ).first()
     if not e:
         raise HTTPException(status_code=404, detail="Evaluator not found.")
     return e
 
 
-@router.patch("/{evaluator_id}", response_model=EvaluatorResponse,
-              summary="Update an evaluator")
+@router.patch("/{evaluator_id}", response_model=EvaluatorResponse, summary="Update an evaluator")
 def update_evaluator(
     evaluator_id: uuid.UUID,
     body: dict,
-    db: Session = Depends(get_db)
+    scope: ScopedEventService = Depends(get_event_scope)
 ):
-    e = db.query(Evaluator).filter(Evaluator.id == evaluator_id).first()
+    e = scope.db.query(Evaluator).filter(
+        Evaluator.id == evaluator_id,
+        Evaluator.event_id == scope.event_id
+    ).first()
     if not e:
         raise HTTPException(status_code=404, detail="Evaluator not found.")
+        
     for field, val in body.items():
         if hasattr(e, field):
             setattr(e, field, val)
-    db.commit()
-    db.refresh(e)
+    scope.db.commit()
+    scope.db.refresh(e)
     return e
 
 
 @router.delete("/{evaluator_id}", summary="Remove an evaluator")
-def delete_evaluator(evaluator_id: uuid.UUID, db: Session = Depends(get_db)):
-    e = db.query(Evaluator).filter(Evaluator.id == evaluator_id).first()
+def delete_evaluator(evaluator_id: uuid.UUID, scope: ScopedEventService = Depends(get_event_scope)):
+    e = scope.db.query(Evaluator).filter(
+        Evaluator.id == evaluator_id,
+        Evaluator.event_id == scope.event_id
+    ).first()
     if not e:
         raise HTTPException(status_code=404, detail="Evaluator not found.")
-    db.delete(e)
-    db.commit()
+    scope.db.delete(e)
+    scope.db.commit()
     return {"deleted": True, "id": str(evaluator_id)}
 
 
-@router.post("/{evaluator_id}/send-access-link",
-             summary="Generate and email an access link to this evaluator")
+@router.post("/{evaluator_id}/send-access-link", summary="Generate and email an access link to this evaluator")
 def send_evaluator_link(
     evaluator_id: uuid.UUID,
     stage: str = "evaluation",
-    db: Session = Depends(get_db)
+    scope: ScopedEventService = Depends(get_event_scope)
 ):
-    e = db.query(Evaluator).filter(Evaluator.id == evaluator_id).first()
+    e = scope.db.query(Evaluator).filter(
+        Evaluator.id == evaluator_id,
+        Evaluator.event_id == scope.event_id
+    ).first()
     if not e:
         raise HTTPException(status_code=404, detail="Evaluator not found.")
 
-    link_data = LinkService.generate_evaluator_link(str(evaluator_id), stage)
+    link_data = LinkService.generate_evaluator_link(scope.event_id, str(evaluator_id), stage)
     
     from app.services.email_service import EmailService
     result = EmailService.send_access_link(
+        event_id=scope.event_id,
         to_email=e.email,
         recipient_name=f"{e.first_name} {e.last_name}",
         role="evaluator",
         stage=stage,
         portal_url=link_data["portal_url"],
-        expires_in=link_data["expires_in"]
+        expires_in=link_data["expires_in"],
+        event_name=scope.event.name
     )
     
     if result.get("success", False):
         e.access_link_sent = True
-        db.commit()
+        scope.db.commit()
     else:
         e.access_link_sent = False
-        db.commit()
+        scope.db.commit()
         raise HTTPException(
             status_code=502,
             detail=f"Email delivery failed: {result.get('error', 'Unknown error')}"
@@ -146,15 +167,25 @@ def send_evaluator_link(
     }
 
 @router.get("/{evaluator_id}/assignments", summary="Get teams assigned to an evaluator")
-def get_evaluator_assignments(evaluator_id: uuid.UUID, db: Session = Depends(get_db)):
-    e = db.query(Evaluator).filter(Evaluator.id == evaluator_id).first()
+def get_evaluator_assignments(evaluator_id: uuid.UUID, scope: ScopedEventService = Depends(get_event_scope)):
+    e = scope.db.query(Evaluator).filter(
+        Evaluator.id == evaluator_id,
+        Evaluator.event_id == scope.event_id
+    ).first()
     if not e:
         raise HTTPException(status_code=404, detail="Evaluator not found.")
     
     from app.models.participant import Team
-    assignments = db.query(EvaluatorTeamAssignment).filter_by(evaluator_id=evaluator_id).all()
+    assignments = scope.db.query(EvaluatorTeamAssignment).filter_by(
+        evaluator_id=evaluator_id,
+        event_id=scope.event_id
+    ).all()
+    
     team_ids = [a.team_id for a in assignments]
-    teams = db.query(Team).filter(Team.id.in_(team_ids)).all() if team_ids else []
+    teams = scope.db.query(Team).filter(
+        Team.id.in_(team_ids),
+        Team.event_id == scope.event_id
+    ).all() if team_ids else []
     
     return {
         "evaluator_id": str(evaluator_id),
@@ -171,11 +202,14 @@ def _normalize_institution(value):
 @router.post("/assign", summary="Assign an evaluator to specific teams")
 def assign_evaluator(
     payload: EvaluatorAssignmentRequest,
-    db: Session = Depends(get_db)
+    scope: ScopedEventService = Depends(get_event_scope)
 ):
     from app.models.participant import Team
     
-    evaluator = db.query(Evaluator).filter(Evaluator.id == payload.evaluator_id).first()
+    evaluator = scope.db.query(Evaluator).filter(
+        Evaluator.id == payload.evaluator_id,
+        Evaluator.event_id == scope.event_id
+    ).first()
     if not evaluator:
         raise HTTPException(status_code=404, detail="Evaluator not found.")
         
@@ -183,9 +217,12 @@ def assign_evaluator(
     
     # Validation Phase
     for t_id in payload.team_ids:
-        team = db.query(Team).filter(Team.id == t_id).first()
+        team = scope.db.query(Team).filter(
+            Team.id == t_id,
+            Team.event_id == scope.event_id
+        ).first()
         if not team:
-            raise HTTPException(status_code=404, detail=f"Team {t_id} not found.")
+            raise HTTPException(status_code=404, detail=f"Team {t_id} not found in this event.")
             
         # Check conflict of interest
         if eval_inst:
@@ -197,18 +234,22 @@ def assign_evaluator(
                 )
 
     # Modification Phase
-    db.query(EvaluatorTeamAssignment).filter_by(evaluator_id=payload.evaluator_id).delete()
+    scope.db.query(EvaluatorTeamAssignment).filter_by(
+        evaluator_id=payload.evaluator_id,
+        event_id=scope.event_id
+    ).delete()
     
     for t_id in payload.team_ids:
         new_assignment = EvaluatorTeamAssignment(
+            event_id=scope.event_id, # Bind to event
             evaluator_id=payload.evaluator_id,
             team_id=t_id
         )
-        db.add(new_assignment)
+        scope.db.add(new_assignment)
         
-    db.commit()
+    scope.db.commit()
     
     return {
         "status":"success",
-        "message": f"Evaluator {payload.evaluator_id} assigned to {len(payload.team_ids)} teams."
+        "message": f"Evaluator {payload.evaluator_id} assigned to {len(payload.team_ids)} teams in this event."
     }

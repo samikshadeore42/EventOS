@@ -1,14 +1,6 @@
 # File: backend/app/services/approval_service.py
-#
-# CONCEPT: The service layer sits between routes and the database.
-# Routes handle HTTP concerns (parsing request, returning response).
-# Services handle business logic (what should actually happen).
-#
-# This separation means:
-# - Routes stay short and readable
-# - Business logic is testable without spinning up HTTP
-# - Multiple routes can reuse the same service method
 
+import uuid
 from uuid import UUID
 from sqlalchemy.orm import Session
 from fastapi import HTTPException
@@ -22,25 +14,26 @@ class ApprovalService:
     # ── Read operations ───────────────────────────────────────────────
 
     @staticmethod
-    def get_all_teams(db: Session) -> list[Team]:
+    def get_all_teams(event_id: uuid.UUID, db: Session) -> list[Team]:
         """Returns all teams ordered by creation time."""
-        return db.query(Team).order_by(Team.created_at).all()
+        return db.query(Team).filter(Team.event_id == event_id).order_by(Team.created_at).all()
 
     @staticmethod
-    def get_pending_teams(db: Session) -> list[Team]:
+    def get_pending_teams(event_id: uuid.UUID, db: Session) -> list[Team]:
         """
         Fetches all unapproved teams waiting for administrative validation.
         Ordered oldest-to-newest to ensure fair triage queues.
         """
         return (
             db.query(Team)
+            .filter(Team.event_id == event_id) # <-- 1. Scope to event
             .filter(Team.approval_status == "pending")
             .order_by(Team.created_at)
             .all()
         )
 
     @staticmethod
-    def get_member_counts_batch(team_ids: list, db: Session) -> dict:
+    def get_member_counts_batch(event_id: uuid.UUID, team_ids: list, db: Session) -> dict:
         """
         OPTIMIZED: Returns a dictionary mapping {team_id_string: member_count_integer} 
         for a batch list of targeted team IDs using a single SQL GROUP BY query.
@@ -54,6 +47,7 @@ class ApprovalService:
         rows = (
             db.query(Participant.team_id, func.count(Participant.id).label("cnt"))
             .filter(Participant.team_id.in_(team_ids))
+            .filter(Participant.event_id == event_id) # <-- 2. Scope to event
             .group_by(Participant.team_id)
             .all()
         )
@@ -62,25 +56,25 @@ class ApprovalService:
         
             
     @staticmethod
-    def get_team_by_id(team_id: UUID, db: Session) -> Team:
+    def get_team_by_id(event_id: uuid.UUID, team_id: UUID, db: Session) -> Team:
         """
         Fetches a single team by ID.
         Raises 404 if not found — so routes don't need to check themselves.
         """
-        team = db.query(Team).filter(Team.id == team_id).first()
+        team = db.query(Team).filter(Team.id == team_id, Team.event_id == event_id).first()
         if not team:
             raise HTTPException(
                 status_code=404,
-                detail=f"Team '{team_id}' not found"
+                detail=f"Team '{team_id}' not found in this event."
             )
         return team
 
     @staticmethod
-    def get_team_members(team_id: UUID, db: Session) -> list[Participant]:
+    def get_team_members(event_id: uuid.UUID, team_id: UUID, db: Session) -> list[Participant]:
         """Returns all participants assigned to a team."""
         return (
             db.query(Participant)
-            .filter(Participant.team_id == team_id)
+            .filter(Participant.team_id == team_id, Participant.event_id == event_id)
             .all()
         )
 
@@ -88,6 +82,7 @@ class ApprovalService:
 
     @staticmethod
     def process_decision(
+        event_id: uuid.UUID,
         team_id:  UUID,
         decision: ApprovalDecision,
         notes:    str | None,
@@ -95,20 +90,9 @@ class ApprovalService:
     ) -> dict:
         """
         Core approval logic. Called by the single-team approval route.
-
-        On APPROVE:
-          - Sets team.is_approved = True
-          - Enqueues team assignment emails via Celery
-          - Returns emails_queued = True
-
-        On REJECT:
-          - Sets team.is_approved = False  (stays unapproved)
-          - Stores rejection notes in team.rationale
-          - Does NOT send emails
-          - Returns emails_queued = False
         """
-        team    = ApprovalService.get_team_by_id(team_id, db)
-        members = ApprovalService.get_team_members(team_id, db)
+        team    = ApprovalService.get_team_by_id(event_id, team_id, db)
+        members = ApprovalService.get_team_members(event_id, team_id, db)
 
         if decision == ApprovalDecision.APPROVE:
             team.is_approved = True
@@ -127,7 +111,6 @@ class ApprovalService:
             team.is_approved = False
             team.approval_status = "rejected"
             if notes:
-                # Store rejection reason in rationale field for admin reference
                 team.rationale = f"[REJECTED] {notes}"
             db.commit()
             db.refresh(team)
@@ -142,6 +125,7 @@ class ApprovalService:
 
     @staticmethod
     def process_bulk_decision(
+        event_id: uuid.UUID,
         decision: ApprovalDecision,
         notes:    str | None,
         db:       Session
@@ -150,7 +134,7 @@ class ApprovalService:
         Approves or rejects ALL pending teams in one operation.
         Used by the "Approve All" button on the dashboard.
         """
-        pending_teams = ApprovalService.get_pending_teams(db)
+        pending_teams = ApprovalService.get_pending_teams(event_id, db)
 
         if not pending_teams:
             return {
@@ -166,7 +150,7 @@ class ApprovalService:
         all_email_recipients = []
 
         for team in pending_teams:
-            members = ApprovalService.get_team_members(team.id, db)
+            members = ApprovalService.get_team_members(event_id, team.id, db)
 
             if decision == ApprovalDecision.APPROVE:
                 team.is_approved = True
@@ -201,14 +185,20 @@ class ApprovalService:
             "message":       f"Bulk {decision.value}: "
                              f"{approved_count} approved, {rejected_count} rejected. Publish formation to send emails."
         }
+        
     @staticmethod
-    def publish_formation(db: Session) -> dict:
+    def publish_formation(event_id: uuid.UUID, db: Session) -> dict:
         """
         Validates that all currently active teams are approved, and that all participants
         are assigned to a team. If valid, marks all teams as published and sends emails.
         """
         from app.models.participant import Participant
-        current_teams = db.query(Team).filter(Team.approval_status.in_(["pending", "approved", "rejected"])).all()
+        
+        # 3. Securely scope the current teams
+        current_teams = db.query(Team).filter(
+            Team.event_id == event_id, 
+            Team.approval_status.in_(["pending", "approved", "rejected"])
+        ).all()
         
         if not current_teams:
             return {"success": False, "message": "No active team formation found."}
@@ -220,8 +210,13 @@ class ApprovalService:
                 "message": f"Cannot publish. {len(unapproved)} teams are still pending or rejected."
             }
             
-        total_participants = db.query(Participant).count()
-        assigned_participants = db.query(Participant).filter(Participant.team_id.isnot(None)).count()
+        # 4. Securely scope the participant validation counts
+        total_participants = db.query(Participant).filter(Participant.event_id == event_id).count()
+        assigned_participants = db.query(Participant).filter(
+            Participant.event_id == event_id, 
+            Participant.team_id.isnot(None)
+        ).count()
+        
         if assigned_participants < total_participants:
             return {
                 "success": False,
@@ -231,7 +226,7 @@ class ApprovalService:
         all_email_recipients = []
         for team in current_teams:
             team.approval_status = "published"
-            members = ApprovalService.get_team_members(team.id, db)
+            members = ApprovalService.get_team_members(event_id, team.id, db)
             for m in members:
                 all_email_recipients.append({
                     "email":        m.email,
@@ -247,11 +242,16 @@ class ApprovalService:
         db.commit()
 
         if all_email_recipients:
+            # Dynamically fetch event name to inject into the email
+            from app.models.event import Event
+            event = db.query(Event).filter(Event.id == event_id).first()
+            event_name = event.name if event else "EventOS Hackathon"
+
             from app.tasks.communications import send_batch_emails
             send_batch_emails.delay(
                 recipient_list=all_email_recipients,
                 template="team_assignment",
-                event_name="WiSE@TI Hackathon"
+                event_name=event_name  # <-- 5. Dynamic Email Titles
             )
             
         return {
