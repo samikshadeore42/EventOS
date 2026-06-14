@@ -27,7 +27,8 @@ from app.api.mentor_routes import router as mentor_router, portal_router as ment
 from app.api.demo_admin_routes import router as demo_admin_router
 from app.api.event_state_routes import router as event_state_router
 from app.api.submission_routes import router as submission_router
-
+from app.db.seed_templates import seed_templates
+from contextlib import asynccontextmanager
 from app.api.auth import router as auth_router
 from app.api.organization_routes import router as organization_router
 
@@ -45,6 +46,27 @@ app = FastAPI(
 from slowapi.errors import RateLimitExceeded
 from slowapi import _rate_limit_exceeded_handler
 from app.core.rate_limit import limiter
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # Startup logic
+    print("Initializing EventOS...")
+    redis_ok = ping_redis()
+    
+    # Ensure this exact line is present:
+    seed_templates()  
+    
+    print(f"Redis status: {'Connected' if redis_ok else 'Not Connected'}")
+    yield
+    # Shutdown logic
+    print("EventOS shutting down")
+
+app = FastAPI(
+    title="EventOS API",
+    description="Intelligent Event Orchestration System — WiSE@TI",
+    version="1.0.0",
+    lifespan=lifespan
+)
 
 app.state.limiter = limiter
 app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
@@ -85,12 +107,6 @@ app.include_router(mentor_portal_router)
 app.include_router(ai_router, dependencies=legacy_dependency)
 app.include_router(event_state_router, dependencies=legacy_dependency)
 app.include_router(demo_admin_router, dependencies=legacy_dependency)
-
-@app.on_event("startup")
-async def startup():
-    redis_ok = ping_redis()
-    print("EventOS API started")
-    print(f"{'OK' if redis_ok else 'FAIL'} Redis: {'Connected' if redis_ok else 'Not Connected'}")
 
 @app.get("/health")
 def health_check():

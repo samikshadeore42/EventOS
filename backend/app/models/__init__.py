@@ -16,6 +16,7 @@ from app.models.user import User
 from app.models.organization_membership import OrganizationMembership
 from app.models.auth_tokens import AdminInvitation, UserSession, EmailVerificationToken, PasswordResetToken
 from app.models.audit import AuditLog
+from app.models.template import Template
 
 # Combined __all__ list (Includes everything from both phases)
 __all__ = [
@@ -26,5 +27,6 @@ __all__ = [
     # Phase 1 Models
     "Employee", "Admin", "Organization", "User", "OrganizationMembership", 
     "AdminInvitation", "UserSession", "EmailVerificationToken", 
-    "PasswordResetToken", "AuditLog"
+    "PasswordResetToken", "AuditLog",
+    "Template"
 ]
