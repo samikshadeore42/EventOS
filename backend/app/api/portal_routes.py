@@ -1,15 +1,16 @@
 # File: backend/app/api/portal_routes.py
 
+import os
 from fastapi import APIRouter, Depends, Query, HTTPException
-from sqlalchemy.orm import Session
-from app.core.database import get_db
 from app.core.security import create_access_token
 from app.services.event_scope import ScopedEventService, get_event_scope  # <-- 1. Import Bouncer
 from app.services.link_service import LinkService
+from app.core.auth_deps import RequireOrganizationRole
 from datetime import timedelta
 
-# 2. Update Prefix to enforce event_id in the URL
+# FIXED: Added prefix back to lock down this router!
 router = APIRouter(prefix="/events/{event_id}/portal", tags=["Portal"])
+DEBUG_ROUTES_ENABLED = os.getenv("ENABLE_DEBUG_ROUTES", "false").lower() == "true"
 
 
 @router.get(
@@ -39,8 +40,11 @@ def generate_and_dispatch_links(
     role:  str = Query(..., description="participant or evaluator"),
     stage: str = Query(default="evaluation", description="current event stage"),
     send_emails: bool = Query(default=True, description="whether to dispatch emails now"),
-    scope: ScopedEventService = Depends(get_event_scope)  # <-- Inject Scope
+    scope: ScopedEventService = Depends(get_event_scope), # <-- FIXED: Added our Phase 2 dependency
+    membership = Depends(RequireOrganizationRole('owner', 'admin')) # <-- Awesome Phase 1 teammate dependency!
 ):
+    if not DEBUG_ROUTES_ENABLED:
+        raise HTTPException(status_code=404, detail="Not found")
     from app.tasks.communications import send_access_links
 
     if role == "participant":
@@ -87,13 +91,16 @@ def generate_and_dispatch_links(
 @router.post(
     "/debug/generate-test-link",
     tags=["Debug"],
-    summary="Generate a single test JWT link (debug only)",
+    summary="Generate a single test JWT link (debug only, admin-only)",
 )
 def debug_generate_test_link(
     role: str = Query(default="participant"),
     stage: str = Query(default="evaluation"),
-    scope: ScopedEventService = Depends(get_event_scope)  # <-- Inject Scope
+    scope: ScopedEventService = Depends(get_event_scope), # <-- FIXED: Added our Phase 2 dependency
+    membership = Depends(RequireOrganizationRole('owner', 'admin')) # <-- Awesome Phase 1 teammate dependency!
 ):
+    if not DEBUG_ROUTES_ENABLED:
+        raise HTTPException(status_code=404, detail="Not found")
     import uuid
     # 5. Embed the event_id directly into the debug token
     token = create_access_token(

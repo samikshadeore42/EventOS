@@ -1,17 +1,30 @@
 # File: backend/app/models/__init__.py
-from app.models import participant   
-from app.models import evaluation    
+
+# Existing imports
+from app.models import participant, evaluation, event_config, communication_log, mentor, admin, event_state
 from app.models.participant import Participant, Team
-from app.models import event_config 
-from app.models import communication_log
-from app.models import mentor  # noqa
 from app.models.mentor import Mentor, MentorAssignment, MentorSession, MentorFeedback
-from app.models import admin # noqa
 from app.models.admin import Employee, Admin
-from app.models import event_state
 from app.models.event_state import EventState
 from app.models.assignment import EvaluatorTeamAssignment
 from app.models.project_submission import ProjectSubmission
 from app.models.event import Event
 
-__all__ = ["Participant", "Team", "Mentor", "MentorAssignment", "MentorSession", "MentorFeedback", "Employee", "Admin", "EventState", "ProjectSubmission","Event"]
+# Phase 1 Models
+from app.models.organization import Organization
+from app.models.user import User
+from app.models.organization_membership import OrganizationMembership
+from app.models.auth_tokens import AdminInvitation, UserSession, EmailVerificationToken, PasswordResetToken
+from app.models.audit import AuditLog
+
+# Combined __all__ list (Includes everything from both phases)
+__all__ = [
+    # Phase 2 Models
+    "Participant", "Team", "Mentor", "MentorAssignment", "MentorSession", 
+    "MentorFeedback", "EventState", "ProjectSubmission", "Event",
+    
+    # Phase 1 Models
+    "Employee", "Admin", "Organization", "User", "OrganizationMembership", 
+    "AdminInvitation", "UserSession", "EmailVerificationToken", 
+    "PasswordResetToken", "AuditLog"
+]

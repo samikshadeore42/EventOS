@@ -1,5 +1,6 @@
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, Depends, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
+from app.core.auth_deps import RequireOrganizationRole
 from app.core.database import engine, Base
 from app.services.task_tracker import TaskTracker
 from app.core.redis_client import ping_redis
@@ -21,11 +22,19 @@ from app.api.ai_routes import router as ai_router
 from app.api.evaluator_routes import router as evaluator_router
 from app.api.event_routes import router as event_router
 from app.api.comms_routes import router as comms_router
-from app.api.mentor_routes import router as mentor_router
-from app.api.admin_routes import router as admin_router
+from app.api.mentor_routes import router as mentor_router, portal_router as mentor_portal_router
+# admin_router removed as per Phase 1
 from app.api.demo_admin_routes import router as demo_admin_router
 from app.api.event_state_routes import router as event_state_router
 from app.api.submission_routes import router as submission_router
+
+from app.api.auth import router as auth_router
+from app.api.organization_routes import router as organization_router
+
+from fastapi import Depends
+from app.core.auth_deps import RequireOrganizationRole
+
+legacy_dependency = [Depends(RequireOrganizationRole('owner', 'admin'))]
 
 app = FastAPI(
     title="EventOS API",
@@ -33,32 +42,49 @@ app = FastAPI(
     version="1.0.0",
 )
 
-# Added ports 5174 and 5175 here to prevent silent CORS blocks!
+from slowapi.errors import RateLimitExceeded
+from slowapi import _rate_limit_exceeded_handler
+from app.core.rate_limit import limiter
+
+app.state.limiter = limiter
+app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
+
+# CORS: use explicit origins from env (comma-separated), fallback to dev defaults
+import os
+_cors_origins_str = os.getenv("CORS_ALLOWED_ORIGINS", "http://localhost:5173,http://localhost:5174,http://localhost:5175,http://localhost:3000")
+_cors_origins = [o.strip() for o in _cors_origins_str.split(",") if o.strip()]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=_cors_origins,
     allow_credentials=True,
     allow_methods=["*"],
-    allow_headers=["*"],
+    allow_headers=["*", "X-Organization-Id"],
 )
 
+DEBUG_ROUTES_ENABLED = os.getenv("ENABLE_DEBUG_ROUTES", "false").lower() == "true"
+
 # Register API routers
-app.include_router(solver_router)
-app.include_router(approval_router)
-app.include_router(anomaly_router)
-app.include_router(portal_router)
+app.include_router(auth_router)
+app.include_router(organization_router)
+
+app.include_router(solver_router, dependencies=legacy_dependency)
+app.include_router(approval_router, dependencies=legacy_dependency)
+app.include_router(anomaly_router, dependencies=legacy_dependency)
+app.include_router(participant_router, dependencies=legacy_dependency)
+app.include_router(leaderboard_router, dependencies=legacy_dependency)
+app.include_router(evaluator_router, dependencies=legacy_dependency)
+app.include_router(event_router, dependencies=legacy_dependency)
+app.include_router(comms_router, dependencies=legacy_dependency)
+
 app.include_router(evaluation_router)
-app.include_router(participant_router)
-app.include_router(leaderboard_router)
-app.include_router(ai_router)
-app.include_router(evaluator_router)
-app.include_router(event_router)
-app.include_router(comms_router)
-app.include_router(mentor_router)
-app.include_router(admin_router)
-app.include_router(demo_admin_router)
-app.include_router(event_state_router)
 app.include_router(submission_router)
+app.include_router(portal_router)
+app.include_router(mentor_router, dependencies=legacy_dependency)
+app.include_router(mentor_portal_router)
+app.include_router(ai_router, dependencies=legacy_dependency)
+app.include_router(event_state_router, dependencies=legacy_dependency)
+app.include_router(demo_admin_router, dependencies=legacy_dependency)
 
 @app.on_event("startup")
 async def startup():
@@ -85,7 +111,9 @@ def get_task_status(task_id: str):
     return status
 
 @app.post("/debug/run-solver")
-def debug_run_solver():
+def debug_run_solver(membership = Depends(RequireOrganizationRole('owner', 'admin'))):
+    if not DEBUG_ROUTES_ENABLED:
+        raise HTTPException(status_code=404, detail="Not found")
     from app.tasks.solver import run_team_formation
     from app.schemas.participant import MOCK_ROSTER
 

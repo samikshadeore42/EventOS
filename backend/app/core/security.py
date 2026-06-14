@@ -12,7 +12,14 @@ from uuid import UUID
 
 load_dotenv()
 
-SECRET_KEY = os.getenv("SECRET_KEY", "dev-secret-change-in-production")
+JWT_SECRET_KEY = os.getenv("JWT_SECRET_KEY")
+
+if not JWT_SECRET_KEY and os.getenv("TESTING") != "true":
+    raise ValueError("FATAL: JWT_SECRET_KEY environment variable must be set securely.")
+
+if not JWT_SECRET_KEY:
+    JWT_SECRET_KEY = "test-secret"
+
 ALGORITHM  = os.getenv("ALGORITHM", "HS256")
 
 
@@ -39,12 +46,12 @@ def create_access_token(
         "iat":      now,             
         "exp":      now + expires_in,
     }
-    return jwt.encode(payload, SECRET_KEY, algorithm=ALGORITHM)
+    return jwt.encode(payload, JWT_SECRET_KEY, algorithm=ALGORITHM)
 
 
 def decode_access_token(token: str) -> dict:
     try:
-        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        payload = jwt.decode(token, JWT_SECRET_KEY, algorithms=[ALGORITHM])
         return payload
     except JWTError as e:
         raise HTTPException(

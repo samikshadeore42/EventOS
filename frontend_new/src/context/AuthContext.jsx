@@ -7,7 +7,9 @@ import {
   useState,
   useCallback,
 } from 'react'
-import { tokenStorage } from '../services/api'
+import { tokenStorage, orgStorage, authApi } from '../services/api'
+
+import { queryClient } from '../queryClient'
 
 // ── JWT helpers ────────────────────────────────────────────────────────────
 function decodePayload(token) {
@@ -57,6 +59,13 @@ export function AuthProvider({ children }) {
     return p && !isExpired(p) ? p : null
   })
 
+  // Organization state
+  const [activeOrganization, setActiveOrganization] = useState(null)
+  const [availableOrganizations, setAvailableOrganizations] = useState([])
+  const [activeMembership, setActiveMembership] = useState(null)
+  const [membershipsByOrgId, setMembershipsByOrgId] = useState({})
+  const [orgsLoaded, setOrgsLoaded] = useState(false)
+
   // On mount: clear token from URL bar if it was present
   useEffect(() => {
     const params = new URLSearchParams(window.location.search)
@@ -65,12 +74,80 @@ export function AuthProvider({ children }) {
     }
   }, [])
 
+  // Listen for forced logout from the refresh interceptor
+  useEffect(() => {
+    const handleForcedLogout = () => {
+      setTokenState(null)
+      setPayload(null)
+      setActiveOrganization(null)
+      setAvailableOrganizations([])
+      setActiveMembership(null)
+    }
+    window.addEventListener('auth:logout', handleForcedLogout)
+    return () => window.removeEventListener('auth:logout', handleForcedLogout)
+  }, [])
+
+  // Load organizations after login
+  const loadOrganizations = useCallback(async () => {
+    setOrgsLoaded(false)
+    try {
+      const result = await authApi.myOrganizations()
+        const list = Array.isArray(result) ? result : []
+
+      const orgList = list.map((r) => r.organization)
+      setAvailableOrganizations(orgList)
+
+      const membershipMap = {}
+      list.forEach((r) => {
+        membershipMap[r.organization.id] = r.membership
+      })  
+      setMembershipsByOrgId(membershipMap)
+
+      const savedOrgId = orgStorage.get()
+      const restoredIdx = list.findIndex(
+        (r) => r.organization.id === savedOrgId
+      )
+      const activeIdx = restoredIdx >= 0 ? restoredIdx : 0
+      const activeEntry = list[activeIdx] || null
+
+      if (activeEntry) {
+        setActiveOrganization(activeEntry.organization)
+        setActiveMembership(activeEntry.membership)
+        orgStorage.set(activeEntry.organization.id)
+      } else {
+        setActiveOrganization(null)
+        setActiveMembership(null)
+      }
+    } catch {
+      // User may be a portal user without org membership — that's fine
+      setAvailableOrganizations([])
+      setMembershipsByOrgId({})
+      setActiveOrganization(null)
+      setActiveMembership(null)
+    } finally {
+      setOrgsLoaded(true)
+    }
+  }, [])
+
+  // Auto-load orgs when we have a valid non-portal token
+  useEffect(() => {
+    if (token && payload && !isExpired(payload) && payload.typ === 'access') {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      loadOrganizations()
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [token])
+
   // Expose a setter so portal pages can manually call setToken when needed
   const setToken = useCallback((newToken) => {
     if (!newToken) {
       tokenStorage.clear()
+      orgStorage.clear()
       setTokenState(null)
       setPayload(null)
+      setActiveOrganization(null)
+      setAvailableOrganizations([])
+      setActiveMembership(null)
       return
     }
     const decoded = decodePayload(newToken)
@@ -80,10 +157,43 @@ export function AuthProvider({ children }) {
     setPayload(decoded)
   }, [])
 
-  const logout = useCallback(() => {
+  // Store both access + refresh tokens (called after login/refresh)
+  const setAuthTokens = useCallback((accessToken) => {
+    // Delegate to setToken for access token
+    if (accessToken) {
+      const decoded = decodePayload(accessToken)
+      if (decoded && !isExpired(decoded)) {
+        tokenStorage.set(accessToken)
+        setTokenState(accessToken)
+        setPayload(decoded)
+      }
+    }
+  }, [])
+
+  // Switch active organization
+  const switchOrganization = useCallback((org) => {
+    setActiveOrganization(org)
+    setActiveMembership(membershipsByOrgId[org.id] || null)
+    orgStorage.set(org.id)
+    // Drop all cached query data so the new organization's screens
+    // don't briefly show the previous organization's data.
+    queryClient.clear()
+  }, [membershipsByOrgId])
+
+  // Logout — call backend then clear local state
+  const logout = useCallback(async () => {
+    try {
+      await authApi.logout()
+    } catch {
+      // Backend may already be unreachable — clear local state anyway
+    }
     tokenStorage.clear()
+    orgStorage.clear()
     setTokenState(null)
     setPayload(null)
+    setActiveOrganization(null)
+    setAvailableOrganizations([])
+    setActiveMembership(null)
   }, [])
 
   // Derived values every consumer needs
@@ -92,6 +202,8 @@ export function AuthProvider({ children }) {
   const activeStage    = payload?.stage ?? null
   const isPortalUser   = role === 'evaluator' || role === 'participant' || role === 'mentor'
   const authenticated  = !!(token && payload && !isExpired(payload))
+  const isAdmin        = !!(activeOrganization && activeMembership && 
+                           (activeMembership.role === 'owner' || activeMembership.role === 'admin'))
 
   return (
     <AuthContext.Provider
@@ -103,8 +215,17 @@ export function AuthProvider({ children }) {
         activeStage,
         isPortalUser,
         authenticated,
+        isAdmin,
         setToken,
+        setAuthTokens,
         logout,
+        // Organization
+        activeOrganization,
+        availableOrganizations,
+        activeMembership,
+        switchOrganization,
+        loadOrganizations,
+        orgsLoaded,
       }}
     >
       {children}

@@ -5,7 +5,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import axios from 'axios';
 
 // Mock the components directly if testing exact logic is complex or use realistic mocks.
-import AdminLogin from '../views/AdminLogin';
+import AuthLogin from '../views/AuthLogin';
 import AdminDashboard from '../views/AdminDashboard';
 import ParticipantPortal from '../views/ParticipantPortal';
 import MentorPortal from '../views/MentorPortal';
@@ -66,21 +66,21 @@ describe('EventOS Stage-1 Regression Tests', () => {
   });
 
   it('1. Admin login form renders', () => {
-    renderWithProviders(<AdminLogin />);
-    expect(screen.getByPlaceholderText('misha')).toBeInTheDocument();
+    renderWithProviders(<AuthLogin />);
+    expect(screen.getByPlaceholderText('you@example.com (or username)')).toBeInTheDocument();
     expect(screen.getByPlaceholderText('••••••••')).toBeInTheDocument();
   });
 
   it('2. Invalid admin input or authentication failure shows a safe message', async () => {
     axios.post.mockRejectedValueOnce(new Error('Invalid credentials'));
-    renderWithProviders(<AdminLogin />);
+    renderWithProviders(<AuthLogin />);
     
-    fireEvent.change(screen.getByPlaceholderText('misha'), { target: { value: 'admin' } });
+    fireEvent.change(screen.getByPlaceholderText('you@example.com (or username)'), { target: { value: 'admin' } });
     fireEvent.change(screen.getByPlaceholderText('••••••••'), { target: { value: 'wrong' } });
-    fireEvent.click(screen.getByRole('button', { name: /log in/i }));
+    fireEvent.click(screen.getByRole('button', { name: /sign in/i }));
     
     await waitFor(() => {
-      expect(screen.getByText(/Login failed/i)).toBeInTheDocument();
+      expect(screen.getByText(/Invalid credentials/i)).toBeInTheDocument();
     });
   });
 

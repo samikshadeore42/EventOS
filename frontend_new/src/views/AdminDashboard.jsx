@@ -1,7 +1,7 @@
 // src/views/AdminDashboard.jsx
 // Committee command-centre. Seven tabs, all fully wired to backend endpoints.
 // Dependencies: @tanstack/react-query, lucide-react, ../services/api, ../components/PipelineStepper
-
+import { useAuth } from '../context/AuthContext'
 import jsPDF from 'jspdf'
 import autoTable from 'jspdf-autotable'
 import { useState, useRef, useCallback } from 'react'
@@ -12,10 +12,12 @@ import {
   Play, Loader2, Check, X, AlertTriangle,
   ChevronDown, ChevronRight, Wand2,
   BarChart2, MessageSquare, Activity, Target, Calendar,
-  Send, Copy, Trash2, Plus, Shield, ShieldAlert, ShieldCheck, FileText,
+  Send, Copy, Trash2, Plus, Shield, ShieldAlert, ShieldCheck, FileText, Settings,
 } from 'lucide-react'
 import EventOSLogo from '../components/EventOSLogo'
 import PipelineStepper from '../components/PipelineStepper'
+import OrgSwitcher from '../components/OrgSwitcher'
+import SettingsTab from '../components/SettingsTab'
 import {
   participantsApi,
   solverApi,
@@ -2431,6 +2433,7 @@ const TABS = [
   { key: 'mentorops',       label: 'Mentor Ops',     Icon: Target },
   { key: 'anomaly',         label: 'Anomaly Scanner',Icon: Activity },
   { key: 'democontrols',    label: 'Demo Controls',  Icon: AlertTriangle },
+  { key: 'settings',        label: 'Settings',       Icon: Settings },
 ]
 
 const VALID_TABS = TABS.map(t => t.key)
@@ -2446,6 +2449,7 @@ function getInitialAdminTab() {
 }
 
 export default function AdminDashboard() {
+  const { activeOrganization } = useAuth()
   const [activeTab, setActiveTabState] = useState(getInitialAdminTab)
 
   const setActiveTab = (tab) => {
@@ -2468,6 +2472,7 @@ export default function AdminDashboard() {
     mentorops:      <MentorOpsTab />,
     anomaly:        <AnomalyTab />,
     democontrols:   <DemoControlsTab />,
+    settings:       <SettingsTab key={activeOrganization?.id || 'no-org'} />,
   }
 
   return (
@@ -2481,11 +2486,12 @@ export default function AdminDashboard() {
             <p className="text-xs font-medium text-slate-500">WiSE@TI Hackathon</p>
           </div>
         </div>
-        <div className="flex items-center gap-3 text-xs text-slate-500">
-          <span className="flex items-center gap-1">
+        <div className="flex items-center gap-3">
+          <span className="flex items-center gap-1 text-xs text-slate-500">
             <span className="w-2 h-2 rounded-full bg-teal-500 inline-block animate-pulse" />
-            System Online
+            Online
           </span>
+          <OrgSwitcher />
         </div>
       </header>
 

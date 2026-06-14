@@ -12,6 +12,7 @@ from app.models.evaluation import Evaluation, Evaluator
 from app.services.score_service import ScoreService
 from app.models.assignment import EvaluatorTeamAssignment
 from app.core.security import generate_score_hash
+from app.core.auth_deps import RequireOrganizationRole
 from app.schemas.evaluation_schemas import (
     ScoreSubmissionRequest,
     ScoreUpdateRequest,
@@ -130,6 +131,7 @@ def update_scorecard(
 @router.get(
     "/team/{team_id}",
     summary="Get all scorecards for a specific team",
+    dependencies=[Depends(RequireOrganizationRole('owner', 'admin'))]
 )
 def get_team_scorecards(team_id: UUID, scope: ScopedEventService = Depends(get_event_scope)):
     scorecards = ScoreService.get_team_scorecards(scope.event_id, team_id, scope.db)
@@ -152,6 +154,7 @@ def get_team_scorecards(team_id: UUID, scope: ScopedEventService = Depends(get_e
 @router.get(
     "/flagged",
     summary="Get all flagged scorecards pending admin review",
+    dependencies=[Depends(RequireOrganizationRole('owner', 'admin'))]
 )
 def get_flagged_scorecards(scope: ScopedEventService = Depends(get_event_scope)):
     flagged = ScoreService.get_flagged_scorecards(scope.event_id, scope.db)
@@ -176,6 +179,7 @@ def get_flagged_scorecards(scope: ScopedEventService = Depends(get_event_scope))
     "/flags/{evaluation_id}/clear",
     response_model=EvaluationResponse,
     summary="Admin clears an anomaly flag after manual review",
+    dependencies=[Depends(RequireOrganizationRole('owner', 'admin'))]
 )
 def clear_flag(evaluation_id: UUID, scope: ScopedEventService = Depends(get_event_scope)):
     return ScoreService.clear_flag(scope.event_id, evaluation_id, scope.db)
@@ -184,6 +188,11 @@ def clear_flag(evaluation_id: UUID, scope: ScopedEventService = Depends(get_even
 @router.get(
     "/leaderboard",
     summary="Get consolidated team leaderboard",
+    description=(
+        "Returns weighted average scores per team. "
+        "Teams with active flags are included but marked as not leaderboard-ready."
+    ),
+    dependencies=[Depends(RequireOrganizationRole('owner', 'admin'))]
 )
 def get_leaderboard(scope: ScopedEventService = Depends(get_event_scope)):
     return ScoreService.consolidate_all_teams(scope.event_id, scope.db)
@@ -191,7 +200,8 @@ def get_leaderboard(scope: ScopedEventService = Depends(get_event_scope)):
 
 @router.get(
     "/audit-integrity", 
-    summary="Run a cryptographic audit on all scores to detect database tampering"
+    summary="Run a cryptographic audit on all scores to detect database tampering",
+    dependencies=[Depends(RequireOrganizationRole('owner', 'admin'))]
 )
 def audit_score_integrity(scope: ScopedEventService = Depends(get_event_scope)):
     # Scope the audit to just THIS event
