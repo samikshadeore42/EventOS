@@ -7,6 +7,7 @@ import axios from 'axios'
 const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000'
 const SESSION_KEY = 'eventos_token'
 const ORG_KEY = 'eventos_active_org_id'
+const EVENT_KEY = 'eventos_active_event_id'
 
 // ── Axios instance ─────────────────────────────────────────────────────────
 const api = axios.create({
@@ -144,6 +145,20 @@ export const orgStorage = {
   clear:  ()       => localStorage.removeItem(ORG_KEY),
 }
 
+export const eventStorage = {
+  get:    ()        => localStorage.getItem(EVENT_KEY),
+  set:    (eventId) => localStorage.setItem(EVENT_KEY, eventId),
+  clear:  ()        => localStorage.removeItem(EVENT_KEY),
+}
+
+function eventPath(path) {
+  const eventId = eventStorage.get()
+  if (!eventId) {
+    throw new Error('Select an event before using event-specific features.')
+  }
+  return `/events/${eventId}${path}`
+}
+
 // ═════════════════════════════════════════════════════════════════════════
 // DOMAIN API MODULES
 // ═════════════════════════════════════════════════════════════════════════
@@ -230,43 +245,50 @@ export const invitationsApi = {
 }
 
 // ── Participants ──────────────────────────────────────────────────────────
+
+export const eventsApi = {
+  list: () => api.get('/events'),
+  create: (data) => api.post('/events', data),
+  templates: () => api.get('/templates'),
+}
+
 export const participantsApi = {
   list: (params = {}) =>
-    api.get('/participants', { params }),
+    api.get(eventPath('/participants'), { params }),
 
   get: (id) =>
-    api.get(`/participants/${id}`),
+    api.get(eventPath(`/participants/${id}`)),
 
   create: (data) =>
-    api.post('/participants', data),
+    api.post(eventPath('/participants'), data),
 
   update: (id, data) =>
-    api.patch(`/participants/${id}`, data),
+    api.patch(eventPath(`/participants/${id}`), data),
 
   remove: (id) =>
-    api.delete(`/participants/${id}`),
+    api.delete(eventPath(`/participants/${id}`)),
 
   // Returns a Promise that resolves to the upload result with per-row breakdown
   upload: (file, upsert = false) => {
     const form = new FormData()
     form.append('file', file)
-    return api.post(`/participants/upload?upsert=${upsert}`, form, {
+    return api.post(`${eventPath('/participants/upload')}?upsert=${upsert}`, form, {
       headers: { 'Content-Type': 'multipart/form-data' },
     })
   },
 
   summary: () =>
-    api.get('/participants/roster/summary'),
+    api.get(eventPath('/participants/roster/summary')),
 
   // Returns a direct URL string (not a Promise) — use as <a href> or window.location
-  csvTemplateUrl: () => `${BASE_URL}/participants/csv-template`,
+  csvTemplateUrl: () => `${BASE_URL}${eventPath('/participants/csv-template')}`,
 }
 
 // ── Solver ────────────────────────────────────────────────────────────────
 export const solverApi = {
   // Enqueue solver task; returns { task_id, status_url, message }
   run: (config) =>
-    api.post('/solver/run', { config }),
+    api.post(eventPath('/solver/run'), { config }),
 
   // Poll this until status === 'success' or 'failed'
   taskStatus: (taskId) =>
@@ -274,91 +296,91 @@ export const solverApi = {
 
   // Fetch draft lineups once task is successful
   drafts: (taskId) =>
-    api.get(`/solver/drafts/${taskId}`),
+    api.get(eventPath(`/solver/drafts/${taskId}`)),
 
   // Persist solver output to the DB (creates Team rows → approval queue)
   commit: (taskId) =>
-    api.post(`/solver/commit/${taskId}`),
+    api.post(eventPath(`/solver/commit/${taskId}`)),
 }
 
 // ── Approvals ─────────────────────────────────────────────────────────────
 export const approvalsApi = {
   pending: () =>
-    api.get('/approvals/pending'),
+    api.get(eventPath('/approvals/pending')),
 
   all: () =>
-    api.get('/approvals/teams'),
+    api.get(eventPath('/approvals/teams')),
 
   detail: (id) =>
-    api.get(`/approvals/teams/${id}`),
+    api.get(eventPath(`/approvals/teams/${id}`)),
 
   // decision: 'approve' | 'reject'
   decide: (id, decision, notes = '') =>
-    api.post(`/approvals/${id}/decision`, { decision, notes }),
+    api.post(eventPath(`/approvals/${id}/decision`), { decision, notes }),
 
   bulk: (decision, notes = '') =>
-    api.post('/approvals/bulk-decision', { decision, notes }),
+    api.post(eventPath('/approvals/bulk-decision'), { decision, notes }),
 
   publish: () =>
-    api.post('/approvals/publish'),
+    api.post(eventPath('/approvals/publish'),),
 }
 
 // ── Evaluators ────────────────────────────────────────────────────────────
 export const evaluatorsApi = {
   list: () =>
-    api.get('/evaluators'),
+    api.get(eventPath('/evaluators'),),
 
   create: (data) =>
-    api.post('/evaluators', data),
+    api.post(eventPath('/evaluators'), data),
 
   get: (id) =>
-    api.get(`/evaluators/${id}`),
+    api.get(eventPath(`/evaluators/${id}`)),
 
   update: (id, data) =>
-    api.patch(`/evaluators/${id}`, data),
+    api.patch(eventPath(`/evaluators/${id}`), data),
 
   remove: (id) =>
-    api.delete(`/evaluators/${id}`),
+    api.delete(eventPath(`/evaluators/${id}`)),
 
   sendLink: (id, stage = 'evaluation') =>
-    api.post(`/evaluators/${id}/send-access-link?stage=${stage}`),
+    api.post(eventPath(`/evaluators/${id}/send-access-link?stage=${stage}`)),
 
   assign: (data) =>
-    api.post('/evaluators/assign', data),
+    api.post(eventPath('/evaluators/assign'), data),
 
   assignments: (evaluatorId) =>
-    api.get(`/evaluators/${evaluatorId}/assignments`),
+    api.get(eventPath(`/evaluators/${evaluatorId}/assignments`)),
 }
 
 // ── Evaluations (judge scorecard submission) ──────────────────────────────
 export const evaluationsApi = {
   // Token is injected as ?token= by the request interceptor
   submit: (data) =>
-    api.post('/evaluations', data),
+    api.post(eventPath('/evaluations'), data),
 
   update: (id, data) =>
-    api.patch(`/evaluations/${id}`, data),
+    api.patch(eventPath(`/evaluations/${id}`), data),
 
   teamScores: (teamId) =>
-    api.get(`/evaluations/team/${teamId}`),
+    api.get(eventPath(`/evaluations/team/${teamId}`)),
 
   flagged: () =>
-    api.get('/evaluations/flagged'),
+    api.get(eventPath('/evaluations/flagged')),
 }
 
 // ── Leaderboard ───────────────────────────────────────────────────────────
 export const leaderboardApi = {
   get: () =>
-    api.get('/leaderboard'),
+    api.get(eventPath('/leaderboard'),),
 
   anomalies: () =>
-    api.get('/leaderboard/anomalies'),
+    api.get(eventPath('/leaderboard/anomalies'),),
 
   override: (id) =>
-    api.post(`/leaderboard/anomalies/${id}/override`),
+    api.post(eventPath(`/leaderboard/anomalies/${id}/override`),),
 
   overrideAll: () =>
-    api.post('/leaderboard/anomalies/override-all'),
+    api.post(eventPath('/leaderboard/anomalies/override-all'),),
 }
 
 // ── Portal (JWT-based participant & judge access) ──────────────────────────
@@ -379,21 +401,21 @@ export const portalApi = {
 // ── Event configuration & pipeline state ──────────────────────────────────
 export const eventApi = {
   config: () =>
-    api.get('/event/config'),
+    api.get(eventPath('/event/config'),),
 
   advanceStage: (stage) => {
     const params = stage ? { stage } : {}
-    return api.patch('/event/config/stage', null, { params })
+    return api.patch(eventPath('/event/config/stage'), null, { params })
   },
 
   updateRules: (rules) =>
-    api.patch('/event/config/rules', rules),
+    api.patch(eventPath('/event/config/rules'), rules),
 }
 
 // ── Communication log ─────────────────────────────────────────────────────
 export const commsApi = {
   log: (params = {}) =>
-    api.get('/communications', { params }),
+    api.get(eventPath('/communications'), { params }),
 }
 
 // ── AI / LLM drafting ─────────────────────────────────────────────────────
@@ -436,45 +458,45 @@ export const demoAdminApi = {
 // ── Event State (Hackathon stage) ─────────────────────────────────────────
 export const eventStateApi = {
   get: () =>
-    api.get('/event-state'),
+    api.get(eventPath('/event-state')),
 
   setStage: (stage) =>
-    api.post('/event-state/set', { stage }),
+    api.post(eventPath('/event-state/set'), { stage }),
 
   next: () =>
-    api.post('/event-state/next'),
+    api.post(eventPath('/event-state/next'),),
 
   previous: () =>
-    api.post('/event-state/previous'),
+    api.post(eventPath('/event-state/previous'),),
 
   reset: () =>
-    api.post('/event-state/reset'),
+    api.post(eventPath('/event-state/reset'),),
 }
 
 // ── Mentor Operations ─────────────────────────────────────────────────────
 export const mentorApi = {
   // Mentor management (admin)
-  list:    ()        => api.get('/mentors'),
-  create:  (data)    => api.post('/mentors', data),
-  update:  (id, data)=> api.patch(`/mentors/${id}`, data),
-  remove:  (id)      => api.delete(`/mentors/${id}`),
-  sendLink:(id)      => api.post(`/mentors/${id}/send-access-link`),
+  list:    ()        => api.get(eventPath('/mentors'),),
+  create:  (data)    => api.post(eventPath('/mentors'), data),
+  update:  (id, data)=> api.patch(eventPath(`/mentors/${id}`), data),
+  remove:  (id)      => api.delete(eventPath(`/mentors/${id}`)),
+  sendLink:(id)      => api.post(eventPath(`/mentors/${id}/send-access-link`),),
 
   // Assignments (admin)
-  assignments:      ()   => api.get('/mentor-assignments'),
-  assign:           (data)=> api.post('/mentor-assignments', data),
-  unassign:         (id) => api.delete(`/mentor-assignments/${id}`),
-  teamMentor:       (teamId) => api.get(`/mentor-assignments/team/${teamId}`),
+  assignments:      ()   => api.get(eventPath('/mentor-assignments'),),
+  assign:           (data)=> api.post(eventPath('/mentor-assignments'), data),
+  unassign:         (id) => api.delete(eventPath(`/mentor-assignments/${id}`)),
+  teamMentor:       (teamId) => api.get(eventPath(`/mentor-assignments/team/${teamId}`)),
 
   // Ops dashboard (admin)
-  opsSummary:            () => api.get('/mentor-ops/summary'),
-  riskTeams:             () => api.get('/mentor-ops/risk-teams'),
-  teamsWithoutMentor:    () => api.get('/mentor-ops/teams-without-mentor'),
-  teamsWithoutMeeting:   () => api.get('/mentor-ops/teams-without-meeting'),
-  missingDailyUpdates:   () => api.get('/mentor-ops/missing-daily-updates'),
-  assignmentSuggestions: () => api.get('/mentor-ops/assignment-suggestions'),
-  sendDailyReminders:    () => api.post('/mentor-ops/reminders/daily'),
-  generateSummary: (teamId)=> api.post('/mentor-ops/ai-summary', { team_id: teamId }),
+  opsSummary:            () => api.get(eventPath('/mentor-ops/summary'),),
+  riskTeams:             () => api.get(eventPath('/mentor-ops/risk-teams'),),
+  teamsWithoutMentor:    () => api.get(eventPath('/mentor-ops/teams-without-mentor'),),
+  teamsWithoutMeeting:   () => api.get(eventPath('/mentor-ops/teams-without-meeting'),),
+  missingDailyUpdates:   () => api.get(eventPath('/mentor-ops/missing-daily-updates'),),
+  assignmentSuggestions: () => api.get(eventPath('/mentor-ops/assignment-suggestions'),),
+  sendDailyReminders:    () => api.post(eventPath('/mentor-ops/reminders/daily')),
+  generateSummary: (teamId)=> api.post(eventPath('/mentor-ops/ai-summary'), { team_id: teamId }),
 
   // Mentor portal (token-auth)
   me:             () => api.get('/mentor-portal/me'),
@@ -486,7 +508,7 @@ export const mentorApi = {
   teamFeedback:   (teamId) => api.get(`/mentor-portal/feedback/team/${teamId}`),
 
   // Participant-safe mentor info
-  participantInfo: () => api.get('/participant-mentor-info'),
+  participantInfo: () => api.get(eventPath('/participant-mentor-info')),
 }
 
 // ── System ─────────────────────────────────────────────────────────────────
@@ -501,25 +523,25 @@ export const submissionsApi = {
   upload: (file) => {
     const form = new FormData()
     form.append('file', file)
-    return api.post('/submissions/participant/project', form, {
+    return api.post(eventPath('/submissions/participant/project'), form, {
       headers: { 'Content-Type': 'multipart/form-data' },
     })
   },
 
   /** Get participant's own team submission metadata */
   getParticipantProject: () =>
-    api.get('/submissions/participant/project'),
+    api.get(eventPath('/submissions/participant/project'),),
 
   /** Get submission metadata for a team (judge) */
   getTeamSubmission: (teamId) =>
-    api.get(`/submissions/team/${teamId}`),
+    api.get(eventPath(`/submissions/team/${teamId}`)),
 
   /** Download team ZIP (judge) — GET /submissions/team/{team_id}/download
    *  Returns a raw Axios response (not unwrapped) so caller can access the blob.
    */
   downloadTeamZip: (teamId) => {
     const token = sessionStorage.getItem(SESSION_KEY)
-    return axios.get(`${BASE_URL}/submissions/team/${teamId}/download`, {
+    return axios.get(`${BASE_URL}${eventPath(`/submissions/team/${teamId}/download`)}`, {
       params: { token },
       responseType: 'blob',
     })

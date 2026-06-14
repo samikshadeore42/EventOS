@@ -7,7 +7,7 @@ import {
   useState,
   useCallback,
 } from 'react'
-import { tokenStorage, orgStorage, authApi } from '../services/api'
+import { tokenStorage, orgStorage, eventStorage, authApi, eventsApi } from '../services/api'
 
 import { queryClient } from '../queryClient'
 
@@ -114,6 +114,14 @@ export function AuthProvider({ children }) {
         setActiveOrganization(activeEntry.organization)
         setActiveMembership(activeEntry.membership)
         orgStorage.set(activeEntry.organization.id)
+        try {
+          const events = await eventsApi.list()
+          const savedEventId = eventStorage.get()
+          const activeEvent = events.find((event) => event.id === savedEventId) || events[0]
+          if (activeEvent) eventStorage.set(activeEvent.id)
+        } catch {
+          eventStorage.clear()
+        }
       } else {
         setActiveOrganization(null)
         setActiveMembership(null)
@@ -175,6 +183,7 @@ export function AuthProvider({ children }) {
     setActiveOrganization(org)
     setActiveMembership(membershipsByOrgId[org.id] || null)
     orgStorage.set(org.id)
+    eventStorage.clear()
     // Drop all cached query data so the new organization's screens
     // don't briefly show the previous organization's data.
     queryClient.clear()
@@ -189,6 +198,7 @@ export function AuthProvider({ children }) {
     }
     tokenStorage.clear()
     orgStorage.clear()
+    eventStorage.clear()
     setTokenState(null)
     setPayload(null)
     setActiveOrganization(null)
