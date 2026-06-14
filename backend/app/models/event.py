@@ -22,12 +22,11 @@ class Event(Base):
         default=uuid.uuid4
     )
     
-    # We leave organization_id as an Integer, but DO NOT define the Organization class here.
-    # Your teammate will link this up when she merges Phase 1!
-    organization_id: Mapped[uuid.UUID | None] = mapped_column(
+    organization_id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True),
+        ForeignKey("organizations.id", ondelete="CASCADE"),
         index=True,
-        nullable=True
+        nullable=False
     )
     name: Mapped[str] = mapped_column(String(255), nullable=False)
     slug: Mapped[str] = mapped_column(String(100), nullable=False, unique=True)

@@ -14,9 +14,7 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
 from app.core.database import Base
 
 # Import ALL models here so Alembic can detect them for autogenerate
-from app.models import participant   # noqa: F401
-from app.models import evaluation    # noqa: F401
-from app.models import mentor        # noqa: F401
+import app.models
 
 config = context.config
 
