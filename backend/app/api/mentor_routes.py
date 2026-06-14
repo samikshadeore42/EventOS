@@ -4,6 +4,7 @@ from sqlalchemy.orm import Session
 from uuid import UUID
 
 from app.core.database import get_db
+from app.core.capabilities import require_capability
 from app.services.event_scope import ScopedEventService, get_event_scope  # <-- Import Bouncer
 from app.core.security import decode_access_token, verify_token_role, get_token_subject, parse_uuid_subject
 from app.services.mentor_service import MentorService
@@ -48,7 +49,7 @@ def _get_mentor_id(token: str, scope: ScopedEventService) -> UUID:
 @router.get("/mentors", summary="List all mentors")
 def list_mentors(
     active_only: bool = Query(default=False),
-    scope: ScopedEventService = Depends(get_event_scope),
+    scope: ScopedEventService = Depends(require_capability("mentors"))
 ):
     return {"mentors": MentorService.list_mentors(scope.event_id, scope.db, active_only)}
 

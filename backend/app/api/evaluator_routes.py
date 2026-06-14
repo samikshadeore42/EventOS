@@ -5,7 +5,8 @@ from sqlalchemy.orm import Session
 from pydantic import BaseModel, EmailStr, Field
 from typing import Optional, List
 from app.core.database import get_db
-from app.services.event_scope import ScopedEventService, get_event_scope  # <-- Import Bouncer
+from app.core.capabilities import require_capability
+from app.services.event_scope import ScopedEventService
 from app.models.evaluation import Evaluator
 from app.services.link_service import LinkService
 from app.models.assignment import EvaluatorTeamAssignment
@@ -36,7 +37,7 @@ class EvaluatorResponse(BaseModel):
 
 
 @router.get("", summary="List all evaluators")
-def list_evaluators(scope: ScopedEventService = Depends(get_event_scope)):
+def list_evaluators(scope: ScopedEventService = Depends(require_capability("evaluators"))):
     # Scope query to event
     evaluators = scope.db.query(Evaluator).filter(
         Evaluator.event_id == scope.event_id
@@ -49,7 +50,7 @@ def list_evaluators(scope: ScopedEventService = Depends(get_event_scope)):
 
 
 @router.post("", status_code=201, response_model=EvaluatorResponse, summary="Register a new evaluator/judge")
-def create_evaluator(body: EvaluatorCreate, scope: ScopedEventService = Depends(get_event_scope)):
+def create_evaluator(body: EvaluatorCreate, scope: ScopedEventService = Depends(require_capability("evaluators"))):
     existing = scope.db.query(Evaluator).filter(
         Evaluator.email == body.email.lower(),
         Evaluator.event_id == scope.event_id # Scope uniqueness to the event
@@ -75,7 +76,7 @@ def create_evaluator(body: EvaluatorCreate, scope: ScopedEventService = Depends(
 
 
 @router.get("/{evaluator_id}", response_model=EvaluatorResponse, summary="Get a single evaluator")
-def get_evaluator(evaluator_id: uuid.UUID, scope: ScopedEventService = Depends(get_event_scope)):
+def get_evaluator(evaluator_id: uuid.UUID, scope: ScopedEventService = Depends(require_capability("evaluators"))):
     e = scope.db.query(Evaluator).filter(
         Evaluator.id == evaluator_id,
         Evaluator.event_id == scope.event_id
@@ -89,7 +90,7 @@ def get_evaluator(evaluator_id: uuid.UUID, scope: ScopedEventService = Depends(g
 def update_evaluator(
     evaluator_id: uuid.UUID,
     body: dict,
-    scope: ScopedEventService = Depends(get_event_scope)
+    scope: ScopedEventService = Depends(require_capability("evaluators"))
 ):
     e = scope.db.query(Evaluator).filter(
         Evaluator.id == evaluator_id,
@@ -107,7 +108,7 @@ def update_evaluator(
 
 
 @router.delete("/{evaluator_id}", summary="Remove an evaluator")
-def delete_evaluator(evaluator_id: uuid.UUID, scope: ScopedEventService = Depends(get_event_scope)):
+def delete_evaluator(evaluator_id: uuid.UUID, scope: ScopedEventService = Depends(require_capability("evaluators"))):
     e = scope.db.query(Evaluator).filter(
         Evaluator.id == evaluator_id,
         Evaluator.event_id == scope.event_id
@@ -123,7 +124,7 @@ def delete_evaluator(evaluator_id: uuid.UUID, scope: ScopedEventService = Depend
 def send_evaluator_link(
     evaluator_id: uuid.UUID,
     stage: str = "evaluation",
-    scope: ScopedEventService = Depends(get_event_scope)
+    scope: ScopedEventService = Depends(require_capability("evaluators"))
 ):
     e = scope.db.query(Evaluator).filter(
         Evaluator.id == evaluator_id,
@@ -167,7 +168,7 @@ def send_evaluator_link(
     }
 
 @router.get("/{evaluator_id}/assignments", summary="Get teams assigned to an evaluator")
-def get_evaluator_assignments(evaluator_id: uuid.UUID, scope: ScopedEventService = Depends(get_event_scope)):
+def get_evaluator_assignments(evaluator_id: uuid.UUID, scope: ScopedEventService = Depends(require_capability("evaluators"))):
     e = scope.db.query(Evaluator).filter(
         Evaluator.id == evaluator_id,
         Evaluator.event_id == scope.event_id
@@ -202,7 +203,7 @@ def _normalize_institution(value):
 @router.post("/assign", summary="Assign an evaluator to specific teams")
 def assign_evaluator(
     payload: EvaluatorAssignmentRequest,
-    scope: ScopedEventService = Depends(get_event_scope)
+    scope: ScopedEventService = Depends(require_capability("evaluators"))
 ):
     from app.models.participant import Team
     
