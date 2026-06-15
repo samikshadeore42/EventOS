@@ -14,6 +14,7 @@ from datetime import datetime, timezone
 from app.core.celery_app import celery_app
 from app.core.database import SessionLocal
 from app.models.scheduled_action import ScheduledAction
+from app.models.stage_definition import StageDefinition
 from app.services.stage_service import StageService
 
 logger = logging.getLogger(__name__)
@@ -78,9 +79,29 @@ def _execute_action(db, action: ScheduledAction) -> None:
     svc = StageService(db, action.event_id)
 
     if action.action_type == "stage_start":
-        # Activate the stage. Auto-advance is the dynamic engine's job, so we
-        # force=True here (the schedule itself is the authority on ordering).
-        svc.advance_stage(action.stage_definition_id, force=True)
+        # Phase 6: respect the creator's transition_policy. 'automatic' stages
+        # activate themselves; 'manual' stages park in awaiting_approval until a
+        # committee member approves. The schedule itself is the ordering authority,
+        # so automatic advance uses force=True.
+        stage_def = (
+            db.query(StageDefinition)
+            .filter(
+                StageDefinition.event_id == action.event_id,
+                StageDefinition.id == action.stage_definition_id,
+            )
+            .first()
+        )
+        policy = getattr(stage_def, "transition_policy", "automatic")
+        if policy == "manual":
+            svc.hold_stage_for_approval(action.stage_definition_id)
+        else:
+            svc.advance_stage(action.stage_definition_id, force=True)
+            svc._safe_notify(
+                role="participant",
+                title="Stage started",
+                message=f"Stage '{getattr(stage_def, 'name', 'stage')}' is now active.",
+                notification_type="stage_started",
+            )
 
     elif action.action_type == "stage_end":
         svc.complete_stage_run(action.stage_definition_id)

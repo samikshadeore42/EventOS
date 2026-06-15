@@ -198,7 +198,7 @@ def test_publish_rejected_when_not_draft(client):
 def test_scheduled_actions_processed(client, db_session, monkeypatch, now):
     eid = _make_event(db_session, EventStatus.DRAFT)
     # start_at in the past → its stage_start action is immediately due.
-    _create(client, eid, "s1", 1, now - timedelta(hours=2), now + timedelta(days=1))
+    _create(client, eid, "s1", 1, now - timedelta(hours=2), now + timedelta(days=1), transition_policy="automatic")
     assert client.post(f"/events/{eid}/publish", headers=_hdr(eid)).status_code == 200
 
     # Point the task's SessionLocal at the SQLite test engine.

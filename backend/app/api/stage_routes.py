@@ -109,3 +109,14 @@ def advance_stage(
     actor: User = Depends(get_current_user),
 ):
     return _svc(scope).advance_stage(stage_id, actor_user_id=actor.id, force=force)
+
+
+@router.post("/{stage_id}/approve", response_model=StageRunResponse)
+def approve_stage(
+    stage_id: uuid.UUID,
+    scope: ScopedEventService = Depends(get_event_scope),
+    actor: User = Depends(get_current_user),
+):
+    """Phase 6 approval gate: release a stage that is awaiting_approval (a manual
+    transition that reached its start time) so it becomes active."""
+    return _svc(scope).approve_stage(stage_id, actor_user_id=actor.id)
