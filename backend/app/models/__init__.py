@@ -26,12 +26,12 @@ from app.models.notification import InAppNotification
 
 __all__ = [
     # Phase 2 Models
-    "Participant", "Team", "Mentor", "MentorAssignment", "MentorSession", 
+    "Participant", "Team", "Mentor", "MentorAssignment", "MentorSession",
     "MentorFeedback", "EventState", "ProjectSubmission", "Event",
-    
+
     # Phase 1 Models
-    "Employee", "Admin", "Organization", "User", "OrganizationMembership", 
-    "AdminInvitation", "UserSession", "EmailVerificationToken", 
+    "Employee", "Admin", "Organization", "User", "OrganizationMembership",
+    "AdminInvitation", "UserSession", "EmailVerificationToken",
     "PasswordResetToken", "AuditLog",
     "Template",
     "StageDefinition", "StageRun", "ScheduledAction", "InAppNotification"

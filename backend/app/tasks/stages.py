@@ -7,7 +7,7 @@ from app.services.stage_service import StageService
 
 logger = logging.getLogger(__name__)
 
-@celery_app.task(name="tasks.process_scheduled_actions")
+@celery_app.task(name="app.tasks.stages.process_scheduled_actions")
 def process_scheduled_actions():
     db = SessionLocal()
     try:
@@ -16,12 +16,12 @@ def process_scheduled_actions():
             ScheduledAction.status == "pending",
             ScheduledAction.run_at <= now
         ).all()
-        
+
         for action in actions:
             try:
                 action.status = "running"
                 db.commit()
-                
+
                 # Process the action based on type
                 if action.action_type == "stage_start":
                     svc = StageService(db, action.event_id)
@@ -29,7 +29,7 @@ def process_scheduled_actions():
                 elif action.action_type == "stage_warning":
                     logger.info(f"Stage warning triggered for {action.stage_definition_id}")
                     # Notify users... implementation skipped for brevity
-                
+
                 action.status = "completed"
                 action.executed_at = datetime.now(timezone.utc)
                 db.commit()
@@ -39,7 +39,7 @@ def process_scheduled_actions():
                 action.error = str(e)
                 db.commit()
                 logger.error(f"Action {action.id} failed: {e}")
-                
+
     except Exception as e:
         logger.error(f"Error processing scheduled actions: {e}")
     finally:

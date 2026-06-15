@@ -85,7 +85,7 @@ class StageService:
         ).first()
         if not run:
             raise HTTPException(status_code=400, detail="Stage run not found. Generate runs first.")
-        
+
         # Complete currently active runs
         active_runs = self.db.query(StageRun).filter(
             StageRun.event_id == self.event_id,
@@ -94,7 +94,7 @@ class StageService:
         for active in active_runs:
             active.status = "completed"
             active.ended_at = datetime.now(timezone.utc)
-            
+
         run.status = "active"
         run.started_at = datetime.now(timezone.utc)
         self.db.commit()

@@ -6,7 +6,7 @@ from app.services.task_tracker import TaskTracker
 from app.core.redis_client import ping_redis
 from app.models import participant
 from app.models import evaluation
-from app.models import event_config       
+from app.models import event_config
 from app.models import communication_log
 from app.models import mentor
 
@@ -55,10 +55,10 @@ async def lifespan(app: FastAPI):
     # Startup logic
     print("Initializing EventOS...")
     redis_ok = ping_redis()
-    
+
     # Ensure this exact line is present:
-    seed_templates()  
-    
+    seed_templates()
+
     print(f"Redis status: {'Connected' if redis_ok else 'Not Connected'}")
     yield
     # Shutdown logic
@@ -143,10 +143,10 @@ def debug_run_solver(membership = Depends(RequireOrganizationRole('owner', 'admi
         entry = dict(p)
         entry["id"] = f"mock-{i}"
         entry["email"] = f"mock{i}@test.com"
-        
+
         if i >= len(MOCK_ROSTER):
             entry["first_name"] = f"{entry['first_name']} (Clone)"
-            
+
         roster.append(entry)
 
     config = {

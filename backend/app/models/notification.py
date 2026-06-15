@@ -22,5 +22,5 @@ class InAppNotification(EventScopedMixin, Base):
     message: Mapped[str] = mapped_column(Text, nullable=False)
     notification_type: Mapped[str] = mapped_column(String(100), nullable=False)
     read_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
-    
+
     created_at = mapped_column(DateTime(timezone=True), server_default=func.now())

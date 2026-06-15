@@ -21,7 +21,7 @@ class Event(Base):
         primary_key=True,
         default=uuid.uuid4
     )
-    
+
     organization_id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True),
         ForeignKey("organizations.id", ondelete="CASCADE"),
@@ -35,8 +35,8 @@ class Event(Base):
     # Template linkage
     event_type: Mapped[str] = mapped_column(String(50), default="hackathon")
     template_id: Mapped[uuid.UUID | None] = mapped_column(
-        UUID(as_uuid=True), 
-        ForeignKey("templates.id", ondelete="SET NULL"), 
+        UUID(as_uuid=True),
+        ForeignKey("templates.id", ondelete="SET NULL"),
         nullable=True
     )
     template_version: Mapped[int | None] = mapped_column(Integer, nullable=True)
@@ -47,12 +47,12 @@ class Event(Base):
     is_legacy: Mapped[bool] = mapped_column(Boolean, default=False)
 
     created_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), 
+        DateTime(timezone=True),
         default=lambda: datetime.now(timezone.utc)
     )
     updated_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), 
-        default=lambda: datetime.now(timezone.utc), 
+        DateTime(timezone=True),
+        default=lambda: datetime.now(timezone.utc),
         onupdate=lambda: datetime.now(timezone.utc)
     )
 
