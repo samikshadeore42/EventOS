@@ -5,6 +5,7 @@ import { useAuth } from '../context/AuthContext'
 import jsPDF from 'jspdf'
 import autoTable from 'jspdf-autotable'
 import { useState, useRef, useCallback } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import {
   LayoutDashboard, Users, GitBranch, CheckSquare,
@@ -13,6 +14,7 @@ import {
   ChevronDown, ChevronRight, Wand2,
   BarChart2, MessageSquare, Activity, Target, Calendar,
   Send, Copy, Trash2, Plus, Shield, ShieldAlert, ShieldCheck, FileText, Settings,
+  Sparkles,
 } from 'lucide-react'
 import EventOSLogo from '../components/EventOSLogo'
 import PipelineStepper from '../components/PipelineStepper'
@@ -2434,6 +2436,7 @@ const TABS = [
   { key: 'anomaly',         label: 'Anomaly Scanner',Icon: Activity },
   { key: 'democontrols',    label: 'Demo Controls',  Icon: AlertTriangle },
   { key: 'settings',        label: 'Settings',       Icon: Settings },
+  { key: 'aiconfig', label: 'AI Config', Icon: Sparkles, isNav: true, navTo: '/configure' },
 ]
 
 const VALID_TABS = TABS.map(t => t.key)
@@ -2450,6 +2453,7 @@ function getInitialAdminTab() {
 
 export default function AdminDashboard() {
   const { activeOrganization } = useAuth()
+  const navigate = useNavigate()
   const [activeTab, setActiveTabState] = useState(getInitialAdminTab)
 
   const setActiveTab = (tab) => {
@@ -2501,18 +2505,21 @@ export default function AdminDashboard() {
 
         {/* Tab navigation */}
         <div className="flex gap-1 mb-6 glass-card rounded-xl border border-slate-200 p-1 overflow-x-auto">
-          {TABS.map(({ key, label, Icon }) => (
+          {TABS.map(({ key, label, Icon, isNav, navTo }) => (
             <button
               key={key}
-              onClick={() => setActiveTab(key)}
+              onClick={() => isNav ? navigate(navTo) : setActiveTab(key)}
               className={`flex items-center gap-1.5 text-sm px-3 py-2 rounded-lg whitespace-nowrap transition-colors ${
-                activeTab === key
+                !isNav && activeTab === key
                   ? 'btn-primary text-white font-medium'
-                  : 'text-slate-600 hover:bg-slate-200'
+                  : isNav
+                    ? 'text-indigo-600 hover:bg-indigo-50 border border-indigo-200 font-medium'
+                    : 'text-slate-600 hover:bg-slate-200'
               }`}
             >
               <Icon size={14} />
               {label}
+              {isNav && <span className="text-[10px] ml-0.5 opacity-70">↗</span>}
             </button>
           ))}
         </div>

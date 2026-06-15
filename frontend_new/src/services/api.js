@@ -548,4 +548,27 @@ export const submissionsApi = {
   },
 }
 
+// ── LangGraph Event Configuration (Phase 5) ───────────────────────────────
+// POST /ai/configure-event        — one chat turn with the agent
+// POST /events/create-from-config — persist the final config as a real Event
+export const langgraphApi = {
+  /**
+   * Send one message to the LangGraph conversational agent.
+   * @param {string} message   — the user's text
+   * @param {string} sessionId — stable UUID for this conversation (generate once on page load)
+   * @returns {{ reply: string, is_complete: boolean, config: object|null }}
+   */
+  chat: (message, sessionId) =>
+    api.post('/ai/configure-event', { message, session_id: sessionId }),
+
+  /**
+   * Save the completed config JSON as a real Event in the org.
+   * Called only when is_complete=true and user clicks Confirm.
+   * @param {object} config — the EventConfig object from the agent
+   * @returns {{ event_id: string, event_name: string, status: string, message: string }}
+   */
+  createFromConfig: (config) =>
+    api.post('/events/create-from-config', config),
+}
+
 export default api

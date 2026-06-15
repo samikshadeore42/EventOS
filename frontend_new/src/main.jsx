@@ -16,6 +16,7 @@ import AuthVerifyEmail from './views/AuthVerifyEmail'
 import AuthForgotPassword from './views/AuthForgotPassword'
 import AuthResetPasswordConfirm from './views/AuthResetPasswordConfirm'
 import AuthAcceptInvitation from './views/AuthAcceptInvitation'
+import ConfigureEvent from './views/ConfigureEvent'
 import { queryClient } from './queryClient'
 import { QueryClientProvider } from '@tanstack/react-query'
 
@@ -55,6 +56,12 @@ function App() {
             <Route path="/admin/login" element={<Navigate to="/auth/login" replace />} />
             <Route path="/admin/signup" element={<Navigate to="/auth/register" replace />} />
             
+            <Route path="/configure" element={
+            <ProtectedAdminRoute>
+                <ConfigureEvent />
+            </ProtectedAdminRoute>
+            } />
+
             <Route path="/auth/login" element={<AuthLogin />} />
             <Route path="/auth/register" element={<AuthRegister />} />
             <Route path="/auth/verify-email" element={<AuthVerifyEmail />} />
