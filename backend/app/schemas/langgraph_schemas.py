@@ -61,3 +61,14 @@ class ConfigureEventResponse(BaseModel):
         None,
         description="The structured event config. Only set when is_complete=True."
     )
+
+
+class CreateFromConfigResponse(BaseModel):
+    """
+    Response returned after POST /events/create-from-config
+    saves the agent config to the database.
+    """
+    event_id:   str = Field(..., description="UUID of the newly created event.")
+    event_name: str = Field(..., description="Name of the created event.")
+    status:     str = Field(..., description="Always 'created' on success.")
+    message:    str = Field(..., description="Human-readable confirmation message.")
