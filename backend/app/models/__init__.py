@@ -22,6 +22,7 @@ from app.models.template import Template
 from app.models.stage_definition import StageDefinition
 from app.models.stage_run import StageRun
 from app.models.scheduled_action import ScheduledAction
+from app.models.stage_transition import StageTransition
 from app.models.notification import InAppNotification
 
 __all__ = [
@@ -34,5 +35,5 @@ __all__ = [
     "AdminInvitation", "UserSession", "EmailVerificationToken",
     "PasswordResetToken", "AuditLog",
     "Template",
-    "StageDefinition", "StageRun", "ScheduledAction", "InAppNotification"
+    "StageDefinition", "StageRun", "ScheduledAction", "StageTransition", "InAppNotification"
 ]
