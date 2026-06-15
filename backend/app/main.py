@@ -6,7 +6,7 @@ from app.services.task_tracker import TaskTracker
 from app.core.redis_client import ping_redis
 from app.models import participant
 from app.models import evaluation
-from app.models import event_config       
+from app.models import event_config
 from app.models import communication_log
 from app.models import mentor
 
@@ -32,6 +32,8 @@ from contextlib import asynccontextmanager
 from app.api.auth import router as auth_router
 from app.api.organization_routes import router as organization_router
 from app.api.event_management_routes import router as event_management_router
+from app.api.stage_routes import router as stage_router
+
 
 from fastapi import Depends
 from app.core.auth_deps import RequireOrganizationRole
@@ -53,10 +55,10 @@ async def lifespan(app: FastAPI):
     # Startup logic
     print("Initializing EventOS...")
     redis_ok = ping_redis()
-    
+
     # Ensure this exact line is present:
-    seed_templates()  
-    
+    seed_templates()
+
     print(f"Redis status: {'Connected' if redis_ok else 'Not Connected'}")
     yield
     # Shutdown logic
@@ -91,6 +93,7 @@ DEBUG_ROUTES_ENABLED = os.getenv("ENABLE_DEBUG_ROUTES", "false").lower() == "tru
 app.include_router(auth_router)
 app.include_router(organization_router)
 app.include_router(event_management_router)
+app.include_router(stage_router, dependencies=legacy_dependency)
 
 app.include_router(solver_router, dependencies=legacy_dependency)
 app.include_router(approval_router, dependencies=legacy_dependency)
@@ -140,10 +143,10 @@ def debug_run_solver(membership = Depends(RequireOrganizationRole('owner', 'admi
         entry = dict(p)
         entry["id"] = f"mock-{i}"
         entry["email"] = f"mock{i}@test.com"
-        
+
         if i >= len(MOCK_ROSTER):
             entry["first_name"] = f"{entry['first_name']} (Clone)"
-            
+
         roster.append(entry)
 
     config = {

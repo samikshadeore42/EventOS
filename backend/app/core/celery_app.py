@@ -18,6 +18,7 @@ celery_app = Celery(
         "app.tasks.anomaly",
         "app.tasks.ai_tasks",
         "app.tasks.scheduler",
+        "app.tasks.stages",
     ]
 )
 
@@ -39,6 +40,7 @@ celery_app.conf.update(
         "app.tasks.solver.*":         {"queue": "algorithms"},
         "app.tasks.anomaly.*":        {"queue": "algorithms"},
         "app.tasks.ai_tasks.*":       {"queue": "algorithms"},
+        "app.tasks.stages.*":         {"queue": "default"},
     },
 
     # Retry policy defaults
@@ -63,6 +65,12 @@ celery_app.conf.beat_schedule = {
     "daily-eval-reminder": {
         "task":     "app.tasks.scheduler.send_daily_evaluation_reminder",
         "schedule": crontab(hour=9, minute=0),
+    },
+
+    # Process scheduled stage actions — every minute
+    "process-scheduled-actions": {
+        "task":     "app.tasks.stages.process_scheduled_actions",
+        "schedule": crontab(minute="*/1"),
     },
 }
 

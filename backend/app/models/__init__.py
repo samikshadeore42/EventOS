@@ -19,14 +19,20 @@ from app.models.audit import AuditLog
 from app.models.template import Template
 
 # Combined __all__ list (Includes everything from both phases)
+from app.models.stage_definition import StageDefinition
+from app.models.stage_run import StageRun
+from app.models.scheduled_action import ScheduledAction
+from app.models.notification import InAppNotification
+
 __all__ = [
     # Phase 2 Models
-    "Participant", "Team", "Mentor", "MentorAssignment", "MentorSession", 
+    "Participant", "Team", "Mentor", "MentorAssignment", "MentorSession",
     "MentorFeedback", "EventState", "ProjectSubmission", "Event",
-    
+
     # Phase 1 Models
-    "Employee", "Admin", "Organization", "User", "OrganizationMembership", 
-    "AdminInvitation", "UserSession", "EmailVerificationToken", 
+    "Employee", "Admin", "Organization", "User", "OrganizationMembership",
+    "AdminInvitation", "UserSession", "EmailVerificationToken",
     "PasswordResetToken", "AuditLog",
-    "Template"
+    "Template",
+    "StageDefinition", "StageRun", "ScheduledAction", "InAppNotification"
 ]

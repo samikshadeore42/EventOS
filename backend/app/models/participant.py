@@ -1,7 +1,8 @@
 # File: backend/app/models/participant.py
 # This defines what the 'participants' and 'teams' TABLES look like in PostgreSQL
 # SQLAlchemy turns these Python classes into actual SQL CREATE TABLE statements
-
+from __future__ import annotations
+from typing import TYPE_CHECKING
 import uuid
 from datetime import datetime,timezone
 from sqlalchemy import String, Boolean, DateTime, ForeignKey, Text, Index, UniqueConstraint
@@ -9,6 +10,10 @@ from sqlalchemy.dialects.postgresql import UUID, JSONB
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from app.core.database import Base
 from app.models.mixins import EventScopedMixin
+
+
+if TYPE_CHECKING:
+    from app.models.event import Event
 
 class Participant(EventScopedMixin,Base):
     __tablename__ = "participants"

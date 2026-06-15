@@ -21,13 +21,12 @@ class Event(Base):
         primary_key=True,
         default=uuid.uuid4
     )
-    
-    # We leave organization_id as an Integer, but DO NOT define the Organization class here.
-    # Your teammate will link this up when she merges Phase 1!
-    organization_id: Mapped[uuid.UUID | None] = mapped_column(
+
+    organization_id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True),
+        ForeignKey("organizations.id", ondelete="CASCADE"),
         index=True,
-        nullable=True
+        nullable=False
     )
     name: Mapped[str] = mapped_column(String(255), nullable=False)
     slug: Mapped[str] = mapped_column(String(100), nullable=False, unique=True)
@@ -36,8 +35,8 @@ class Event(Base):
     # Template linkage
     event_type: Mapped[str] = mapped_column(String(50), default="hackathon")
     template_id: Mapped[uuid.UUID | None] = mapped_column(
-        UUID(as_uuid=True), 
-        ForeignKey("templates.id", ondelete="SET NULL"), 
+        UUID(as_uuid=True),
+        ForeignKey("templates.id", ondelete="SET NULL"),
         nullable=True
     )
     template_version: Mapped[int | None] = mapped_column(Integer, nullable=True)
@@ -48,12 +47,12 @@ class Event(Base):
     is_legacy: Mapped[bool] = mapped_column(Boolean, default=False)
 
     created_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), 
+        DateTime(timezone=True),
         default=lambda: datetime.now(timezone.utc)
     )
     updated_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), 
-        default=lambda: datetime.now(timezone.utc), 
+        DateTime(timezone=True),
+        default=lambda: datetime.now(timezone.utc),
         onupdate=lambda: datetime.now(timezone.utc)
     )
 
