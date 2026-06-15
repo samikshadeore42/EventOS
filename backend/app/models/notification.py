@@ -1,7 +1,7 @@
 # backend/app/models/notification.py
 import uuid
 from datetime import datetime
-from sqlalchemy import String, DateTime, ForeignKey, Text
+from sqlalchemy import String, DateTime, ForeignKey, Text, UniqueConstraint
 from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column
 from sqlalchemy.sql import func
@@ -23,4 +23,13 @@ class InAppNotification(EventScopedMixin, Base):
     notification_type: Mapped[str] = mapped_column(String(100), nullable=False)
     read_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
 
+    # Set when created from the outbox: f"{outbox_id}:{user_id|role}". The unique
+    # constraint makes outbox redelivery idempotent — a retry can't duplicate a
+    # notification that was already fanned out.
+    dedupe_key: Mapped[str | None] = mapped_column(String(255), nullable=True)
+
     created_at = mapped_column(DateTime(timezone=True), server_default=func.now())
+
+    __table_args__ = (
+        UniqueConstraint("event_id", "dedupe_key", name="uq_inapp_event_dedupe"),
+    )
