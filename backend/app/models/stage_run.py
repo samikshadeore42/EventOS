@@ -13,7 +13,7 @@ class StageRun(EventScopedMixin, Base):
 
     id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     stage_definition_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), nullable=False)
-    status: Mapped[str] = mapped_column(String(50), nullable=False) # pending, active, completed, skipped
+    status: Mapped[str] = mapped_column(String(50), nullable=False) # pending, awaiting_approval, active, completed, skipped
     started_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     ended_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     created_at = mapped_column(DateTime(timezone=True), server_default=func.now())
@@ -29,7 +29,7 @@ class StageRun(EventScopedMixin, Base):
             ondelete="CASCADE",
         ),
         CheckConstraint(
-            "status IN ('pending', 'active', 'completed', 'skipped')",
+            "status IN ('pending', 'awaiting_approval', 'active', 'completed', 'skipped')",
             name="ck_stage_run_status",
         ),
     )

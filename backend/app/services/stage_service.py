@@ -388,6 +388,77 @@ class StageService:
         self.db.commit()
         return run
 
+    # ── Phase 6: automatic engine — approval holds & notifications ───────────
+
+    def _safe_notify(self, *, role: Optional[str] = None, user_id: Optional[uuid.UUID] = None,
+                     title: str = "", message: str = "", notification_type: str = "stage") -> None:
+        """Best-effort in-app notification. NEVER raises — a notification failure
+        must not roll back a committed stage transition (Phase-6 exit condition:
+        'failed delivery does not reverse a completed transition'). Phase 7 swaps
+        the body of this method to enqueue a transactional-outbox row instead."""
+        try:
+            from app.services.notification_service import NotificationService
+            svc = NotificationService(self.db, self.event_id)
+            if user_id is not None:
+                svc.notify_user(user_id, title, message, notification_type)
+            else:
+                svc.notify_role(role or "owner", title, message, notification_type)
+        except Exception:  # noqa: BLE001 — notifications are non-critical
+            self.db.rollback()  # drop only the failed notification, keep prior commit
+
+    def hold_stage_for_approval(self, stage_id: uuid.UUID) -> StageRun:
+        """Park a stage that has reached its start time but whose transition_policy
+        is 'manual' — it waits for a committee member to approve before going
+        active. Idempotent: a stage already held/active/completed is left as-is."""
+        run = self.db.query(StageRun).filter(
+            StageRun.event_id == self.event_id,
+            StageRun.stage_definition_id == stage_id,
+        ).first()
+        if not run:
+            raise HTTPException(status_code=400, detail="Stage run not found. Generate runs first.")
+        if run.status != "pending":
+            return run  # already awaiting_approval / active / completed
+
+        stage_def = self.get_stage_definition(stage_id)
+        run.status = "awaiting_approval"
+        self._record_transition(
+            "advance", from_status="pending", to_status="awaiting_approval",
+            stage_definition_id=stage_id, stage_run_id=run.id,
+            note="reached start time; awaiting committee approval (manual policy)",
+        )
+        self.db.commit()
+        self._safe_notify(
+            role="owner",
+            title="Stage awaiting approval",
+            message=f"Stage '{stage_def.name}' has reached its start time and needs approval to begin.",
+            notification_type="stage_awaiting_approval",
+        )
+        return run
+
+    def approve_stage(self, stage_id: uuid.UUID, actor_user_id: Optional[uuid.UUID] = None) -> StageRun:
+        """Committee releases a held stage. Only valid from 'awaiting_approval'."""
+        run = self.db.query(StageRun).filter(
+            StageRun.event_id == self.event_id,
+            StageRun.stage_definition_id == stage_id,
+        ).first()
+        if not run:
+            raise HTTPException(status_code=404, detail="Stage run not found")
+        if run.status != "awaiting_approval":
+            raise HTTPException(
+                status_code=409,
+                detail=f"Stage is '{run.status}', not awaiting approval.",
+            )
+        # force=True: the engine already sequenced this stage; approval is the gate.
+        activated = self.advance_stage(stage_id, actor_user_id=actor_user_id, force=True)
+        stage_def = self.get_stage_definition(stage_id)
+        self._safe_notify(
+            role="participant",
+            title="Stage started",
+            message=f"Stage '{stage_def.name}' is now active.",
+            notification_type="stage_started",
+        )
+        return activated
+
     # ── scheduled actions ────────────────────────────────────────────────────
 
     def _cancel_pending_actions(self, stage_definition_id: uuid.UUID) -> int:
@@ -410,9 +481,18 @@ class StageService:
         start_at = _aware(stage_def.start_at)
         end_at = _aware(stage_def.end_at)
 
+        # A grace period (late-submission window) pushes the *effective* end —
+        # the stage_end action — out by N minutes. reminder_policy may carry
+        # {"grace_minutes": 30}. The displayed deadline (end_at) is unchanged.
+        try:
+            grace = int((stage_def.reminder_policy or {}).get("grace_minutes", 0) or 0)
+        except (TypeError, ValueError):
+            grace = 0
+        effective_end = end_at + timedelta(minutes=grace) if grace > 0 else end_at
+
         planned: list[tuple[str, datetime, dict]] = [
             ("stage_start", start_at, {}),
-            ("stage_end", end_at, {}),
+            ("stage_end", effective_end, {"grace_minutes": grace} if grace else {}),
         ]
         # reminder_policy = {"warn_before_minutes": [60, 360, 1440]}
         for minutes in (stage_def.reminder_policy or {}).get("warn_before_minutes", []):
