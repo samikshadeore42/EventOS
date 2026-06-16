@@ -584,6 +584,14 @@ export const mentorApi = {
   },
 }
 
+// ── Risk Intelligence ──────────────────────────────────────────────────────
+export const riskApi = {
+  summary: (eventId) => api.get(`/events/${eventId}/risk/summary`),
+  teams: (eventId) => api.get(`/events/${eventId}/risk/teams`),
+  sweep: (eventId) => api.post(`/events/${eventId}/risk/sweep`),
+  history: (eventId, teamId) => api.get(`/events/${eventId}/risk/teams/${teamId}/history`),
+}
+
 // ── System ─────────────────────────────────────────────────────────────────
 export const systemApi = {
   health: () =>

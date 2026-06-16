@@ -34,6 +34,7 @@ import {
   portalApi,
   demoAdminApi,
   eventStateApi,
+  riskApi,
 } from '../services/api'
 
 // ── Shared micro-components ────────────────────────────────────────────────
@@ -2370,6 +2371,112 @@ function AnomalyTab() {
   )
 }
 
+// ── TAB: RISK INTELLIGENCE ───────────────────────────────────────────────
+function RiskTab() {
+  const { data: summary, refetch: refetchSummary } = useQuery({ queryKey: ['risk-summary'], queryFn: riskApi.summary })
+  const { data: teams, refetch: refetchTeams } = useQuery({ queryKey: ['risk-teams'], queryFn: riskApi.teams })
+  const sweepMutation = useMutation({
+    mutationFn: () => riskApi.sweep(),
+    onSuccess: () => {
+      refetchSummary()
+      refetchTeams()
+    },
+    onError: (err) => alert('Error running risk sweep: ' + (err.response?.data?.detail || err.message))
+  })
+
+  // Check for 403 (Capability not enabled)
+  if (summary === undefined && teams === undefined) {
+    // We can show a loading state, or wait. If it errors out due to 403, we can catch it.
+    // React Query normally retries. Let's assume the error is handled or we check data presence.
+  }
+
+  // Handle 403 Capability error gracefully
+  const isForbidden = summary?.status === 403 || teams?.status === 403 // Simplified check, usually RQ throws. Let's just handle it via error state if we used useQuery error handling.
+  // Actually, standard way:
+  const { error: summaryError } = useQuery({ queryKey: ['risk-summary'], queryFn: riskApi.summary, retry: false })
+  if (summaryError && summaryError.response?.status === 403) {
+    return (
+      <div className="glass-card py-16 text-center rounded-xl border border-slate-200">
+        <ShieldAlert size={48} className="mx-auto text-red-500/50 mb-3" />
+        <p className="text-slate-900 font-medium">Risk monitoring is not enabled for this event.</p>
+      </div>
+    )
+  }
+
+  return (
+    <div>
+      <div className="flex items-center justify-between mb-6">
+        <div>
+          <h2 className="text-lg font-bold text-slate-900">AI Risk Intelligence</h2>
+          <p className="text-sm text-slate-500">Continuous monitoring of team health and participant engagement.</p>
+        </div>
+        <button
+          onClick={() => sweepMutation.mutate()}
+          disabled={sweepMutation.isPending}
+          className="btn-primary px-4 py-2 rounded-lg text-sm flex items-center gap-2 text-white bg-indigo-600 hover:bg-indigo-700"
+        >
+          {sweepMutation.isPending ? <Loader2 size={16} className="animate-spin" /> : <Activity size={16} />}
+          Run risk sweep
+        </button>
+      </div>
+
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+        <StatCard label="Total Teams" value={summary?.total_teams ?? '—'} colour="indigo" />
+        <StatCard label="Average Risk Score" value={summary?.average_risk_score?.toFixed(1) ?? '—'} colour="teal" />
+        <StatCard label="High Risk" value={summary?.high_count ?? '—'} colour="amber" />
+        <StatCard label="Critical Risk" value={summary?.critical_count ?? '—'} colour="red" />
+      </div>
+
+      <h3 className="text-lg font-semibold text-slate-900 mb-4">Team Risk Dashboard</h3>
+      {!teams || teams.length === 0 ? (
+        <div className="glass-card py-16 text-center rounded-xl border border-slate-200">
+          <Activity size={48} className="mx-auto text-indigo-300 mb-3" />
+          <p className="text-slate-900 font-medium">No risk snapshots yet.</p>
+          <p className="text-sm text-slate-500">Run a risk sweep to generate the first report.</p>
+        </div>
+      ) : (
+        <div className="space-y-4">
+          {teams.map(team => (
+            <div key={team.team_id} className={`glass-card p-5 rounded-xl border ${team.risk_level === 'critical' ? 'border-red-300 bg-red-50' : team.risk_level === 'high' ? 'border-amber-300 bg-amber-50' : 'border-slate-200'}`}>
+              <div className="flex flex-col md:flex-row justify-between gap-4">
+                <div className="flex-1">
+                  <div className="flex items-center gap-2 mb-2">
+                    <h4 className="font-bold text-slate-900 text-lg">{team.team_name}</h4>
+                    <Badge colour={team.risk_level === 'critical' ? 'red' : team.risk_level === 'high' ? 'amber' : team.risk_level === 'medium' ? 'indigo' : 'green'}>
+                      {team.risk_level.toUpperCase()}
+                    </Badge>
+                  </div>
+                  <p className="text-sm text-slate-600 mb-3"><span className="text-slate-500 font-medium">Risk Score:</span> {team.risk_score}/100</p>
+                  
+                  {team.reasons.length > 0 && (
+                    <div className="mb-3">
+                      <p className="text-xs font-bold text-slate-700 uppercase tracking-wide mb-1">Reasons</p>
+                      <ul className="list-disc pl-5 text-sm text-slate-600 space-y-1">
+                        {team.reasons.map((r, i) => <li key={i}>{r}</li>)}
+                      </ul>
+                    </div>
+                  )}
+                  {team.recommended_actions.length > 0 && (
+                    <div>
+                      <p className="text-xs font-bold text-slate-700 uppercase tracking-wide mb-1">Recommended Actions</p>
+                      <ul className="list-disc pl-5 text-sm text-indigo-700 space-y-1">
+                        {team.recommended_actions.map((a, i) => <li key={i}>{a}</li>)}
+                      </ul>
+                    </div>
+                  )}
+                </div>
+                <div className="text-right flex flex-col justify-between">
+                  <p className="text-xs text-slate-400">Computed: {new Date(team.created_at).toLocaleString()}</p>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  )
+}
+
 // ── TAB: DEMO CONTROLS ───────────────────────────────────────────────────
 function DemoControlsTab() {
   const qc = useQueryClient()
@@ -2575,6 +2682,7 @@ const TABS = [
   { key: 'communications',  label: 'Communications', Icon: Mail },
   { key: 'mentorops',       label: 'Mentor Ops',     Icon: Target },
   { key: 'anomaly',         label: 'Anomaly Scanner',Icon: Activity },
+  { key: 'risk',            label: 'Risk',           Icon: ShieldAlert },
   { key: 'democontrols',    label: 'Demo Controls',  Icon: AlertTriangle },
   { key: 'settings',        label: 'Settings',       Icon: Settings },
   { key: 'aiconfig', label: 'AI Config', Icon: Sparkles, isNav: true, navTo: '/configure' },
@@ -2617,6 +2725,7 @@ export default function AdminDashboard() {
     communications: <CommunicationsTab />,
     mentorops:      <MentorOpsTab />,
     anomaly:        <AnomalyTab />,
+    risk:           <RiskTab />,
     democontrols:   <DemoControlsTab />,
     settings:       <SettingsTab key={activeOrganization?.id || 'no-org'} />,
   }
