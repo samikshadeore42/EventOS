@@ -55,8 +55,10 @@ api.interceptors.request.use(
       config.url?.includes('/portal/access') ||
       config.url?.includes('/evaluations') ||
       config.url?.includes('/mentor-portal/') ||
+      config.url?.includes('/ai/') ||
       config.url?.includes('/participant-mentor-info') ||
-      config.url?.includes('/submissions')
+      config.url?.includes('/submissions') ||
+      config.url?.includes('/daily-updates')
 
     if (needsQueryToken) {
       config.params = { ...config.params, token }
@@ -332,7 +334,7 @@ export const solverApi = {
 
   // Poll this until status === 'success' or 'failed'
   taskStatus: (taskId) =>
-    api.get(`/tasks/${taskId}/status`),
+    api.get(eventPath(`/solver/status/${taskId}`)),
 
   // Fetch draft lineups once task is successful
   drafts: (taskId) =>
@@ -445,10 +447,10 @@ export const leaderboardApi = {
 export const portalApi = {
   access: (explicitToken) => {
     const params = explicitToken ? { token: explicitToken } : {}
-    return api.get(portalEventPath('/portal/access', explicitToken), { params })
+    return api.get(eventPath('/portal/access'), { params })
   },
 
-  generateLinks: (role, stage = 'evaluation', sendEmails = true) =>
+  generateLinks: ( role, stage = 'evaluation', sendEmails = true) =>
     api.post(eventPath('/portal/generate-links'), null, {
       params: { role, stage, send_emails: sendEmails },
     }),
@@ -471,21 +473,34 @@ export const healthDashboardApi = {
 // ── Event configuration & pipeline state ──────────────────────────────────
 export const eventApi = {
   config: () =>
-    api.get(eventPath('/event/config'),),
+    api.get(eventPath('/config'),),
 
   advanceStage: (stage) => {
     const params = stage ? { stage } : {}
-    return api.patch(eventPath('/event/config/stage'), null, { params })
+    return api.patch(eventPath('/config/stage'), null, { params })
   },
 
   updateRules: (rules) =>
-    api.patch(eventPath('/event/config/rules'), rules),
+    api.patch(eventPath('/config/rules'), rules),
 }
 
 // ── Communication log ─────────────────────────────────────────────────────
 export const commsApi = {
   log: (params = {}) =>
     api.get(eventPath('/communications'), { params }),
+
+   // GET /events/{event_id}/communications/diagnostics
+  diagnostics: () =>
+    api.get(eventPath('/communications/diagnostics')),
+
+  // POST /events/{event_id}/communications/test-email
+  sendTestEmail: (data) =>
+    api.post(eventPath('/communications/test-email'), data),
+
+  // POST /events/{event_id}/communications/preflight-sendgrid
+  preflightSendgrid: () =>
+    api.post(eventPath('/communications/preflight-sendgrid')),
+
 }
 
 // ── AI / LLM drafting ─────────────────────────────────────────────────────
@@ -493,8 +508,8 @@ export const aiApi = {
   draft: (body) =>
     api.post('/ai/communication', body),
 
-  draftResult: (taskId) =>
-    api.get(`/ai/result/${taskId}`),
+  // draftResult: (taskId) =>
+  //   api.get(`/ai/result/${taskId}`),
 
   teamRationale: (body) =>
     api.post('/ai/team-rationale', body),
@@ -506,14 +521,18 @@ export const aiApi = {
   explainAnomaly: (body) =>
     api.post('/ai/explain-anomaly', body),
 
-  getResult: (taskId) =>
-    api.get(`/ai/result/${taskId}`),
-
   rubric: (body) =>
     api.post('/ai/rubric', body),
 
-  health: () =>
-    api.get('/ai/health'),
+  taskStatus: (taskId) =>
+    api.get(`/tasks/${taskId}/status`),
+
+  // Fetch the completed result once taskStatus says 'success'.
+  getResult: (taskId) =>
+    api.get(`/ai/result/${taskId}`),
+
+  // health: () =>
+  //   api.get('/ai/health'),
 }
 
 // ── Demo Admin Controls ───────────────────────────────────────────────────
@@ -604,6 +623,32 @@ export const riskApi = {
   teams: () => api.get(eventPath('/risk/teams')),
   sweep: () => api.post(eventPath('/risk/sweep')),
   history: (teamId) => api.get(eventPath(`/risk/teams/${teamId}/history`)),
+}
+
+export const dailyUpdatesApi = {
+  submit: (data) =>
+    api.post('/daily-updates/submit', data),
+
+  myUpdates: () =>
+    api.get('/daily-updates/my-updates'),
+
+  teamUpdates: (teamId) =>
+    api.get(`/daily-updates/team/${teamId}`),
+}
+
+
+export const anomalyApi = {
+  // POST /events/{event_id}/anomalies/detect — enqueue statistical anomaly scan
+  detect: (body = {}) =>
+    api.post(eventPath('/anomalies/detect'), body),
+
+  // GET /events/{event_id}/anomalies/status/{task_id} — poll until 'success'/'failed'
+  status: (taskId) =>
+    api.get(eventPath(`/anomalies/status/${taskId}`)),
+
+  // GET /events/{event_id}/anomalies/report/{task_id} — fetch the completed report
+  report: (taskId) =>
+    api.get(eventPath(`/anomalies/report/${taskId}`)),
 }
 
 // ── System ─────────────────────────────────────────────────────────────────

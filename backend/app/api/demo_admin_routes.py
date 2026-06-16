@@ -12,7 +12,7 @@ class ResetRequest(BaseModel):
     preserve_admins: bool = True
 
 @router.get("/status")
-def status_endpoint(db: Session = Depends(get_db)):
+def get_demo_admin_status(db: Session = Depends(get_db)):
     return get_demo_status(db)
 
 @router.post("/reset")

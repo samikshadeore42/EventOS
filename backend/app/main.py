@@ -51,11 +51,18 @@ from app.api.health_routes import router as health_router
 
 legacy_dependency = [Depends(RequireOrganizationRole('owner', 'admin'))]
 
-app = FastAPI(
-    title="EventOS API",
-    description="Intelligent Event Orchestration System — WiSE@TI",
-    version="1.0.0",
-)
+# app = FastAPI(
+#     title="EventOS API",
+#     description="Intelligent Event Orchestration System — WiSE@TI",
+#     version="1.0.0",
+# )
+
+# @app.get("/tasks/{task_id}/status", tags=["Tasks"])
+# def get_global_task_status(task_id: str):
+#     status = TaskTracker.get_status_with_logs(task_id)
+#     if not status:
+#         raise HTTPException(status_code=404, detail=f"Task '{task_id}' not found.")
+#     return status
 
 from slowapi.errors import RateLimitExceeded
 from slowapi import _rate_limit_exceeded_handler

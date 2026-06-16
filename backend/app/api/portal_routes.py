@@ -43,8 +43,8 @@ def generate_and_dispatch_links(
     scope: ScopedEventService = Depends(get_event_scope), # <-- FIXED: Added our Phase 2 dependency
     membership = Depends(RequireOrganizationRole('owner', 'admin')) # <-- Awesome Phase 1 teammate dependency!
 ):
-    if not DEBUG_ROUTES_ENABLED:
-        raise HTTPException(status_code=404, detail="Not found")
+    # if not DEBUG_ROUTES_ENABLED:
+        # raise HTTPException(status_code=404, detail="Not found")
     from app.tasks.communications import send_access_links
 
     if role == "participant":
@@ -69,7 +69,8 @@ def generate_and_dispatch_links(
             links=links, 
             role=role, 
             stage=stage,
-            event_name=scope.event.name
+            event_name=scope.event.name,
+            event_id=str(scope.event_id)
         )
         task_id = task.id
 
