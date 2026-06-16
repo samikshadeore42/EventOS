@@ -36,7 +36,7 @@ if hasattr(app.state, "limiter"):
 
 @pytest.fixture(scope="session", autouse=True)
 def setup_test_database():
-    from app.models import event, participant, evaluation, mentor, communication_log
+    from app.models import event, participant, evaluation, mentor, communication_log, risk
     from sqlalchemy.dialects.postgresql import JSONB, ARRAY
     from sqlalchemy.types import JSON
     

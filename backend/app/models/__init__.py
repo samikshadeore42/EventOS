@@ -25,6 +25,7 @@ from app.models.scheduled_action import ScheduledAction
 from app.models.stage_transition import StageTransition
 from app.models.notification import InAppNotification
 from app.models.notification_outbox import NotificationOutbox
+from app.models.risk import RiskSignal, TeamRiskSnapshot
 
 __all__ = [
     # Phase 2 Models
@@ -37,5 +38,5 @@ __all__ = [
     "PasswordResetToken", "AuditLog",
     "Template",
     "StageDefinition", "StageRun", "ScheduledAction", "StageTransition", "InAppNotification",
-    "NotificationOutbox"
+    "NotificationOutbox", "RiskSignal", "TeamRiskSnapshot"
 ]
