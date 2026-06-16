@@ -1128,8 +1128,8 @@ function EvaluatorsTab() {
       <div className="flex items-center justify-between mb-5">
         <h2 className="text-base font-semibold text-slate-900">Evaluators / Judges</h2>
         <div className="flex items-center gap-2">
-          <a href={evaluatorsApi.csvTemplateUrl()} download className="text-sm px-3 py-1.5 rounded-lg border border-slate-200 text-slate-600 hover:bg-slate-50">CSV Template</a>
-          <a href={evaluatorsApi.exportCsvUrl()} download className="text-sm px-3 py-1.5 rounded-lg border border-slate-200 text-slate-600 hover:bg-slate-50">Export</a>
+          <button onClick={() => evaluatorsApi.downloadTemplate()} className="text-sm px-3 py-1.5 rounded-lg border border-slate-200 text-slate-600 hover:bg-slate-50">CSV Template</button>
+          <button onClick={() => evaluatorsApi.downloadExport()} className="text-sm px-3 py-1.5 rounded-lg border border-slate-200 text-slate-600 hover:bg-slate-50">Export</button>
           <button
             onClick={() => setShowForm((s) => !s)}
             className="flex items-center gap-1.5 text-sm px-3 py-1.5 rounded-lg btn-primary text-white hover:bg-indigo-700"
@@ -1872,8 +1872,8 @@ function MentorOpsTab() {
       <div className="flex items-center justify-between mb-5">
         <h2 className="text-base font-semibold text-slate-900">Mentors</h2>
         <div className="flex items-center gap-2">
-          <a href={mentorApi.csvTemplateUrl()} download className="text-sm px-3 py-1.5 rounded-lg border border-slate-200 text-slate-600 hover:bg-slate-50">CSV Template</a>
-          <a href={mentorApi.exportCsvUrl()} download className="text-sm px-3 py-1.5 rounded-lg border border-slate-200 text-slate-600 hover:bg-slate-50">Export</a>
+          <button onClick={() => mentorApi.downloadTemplate()} className="text-sm px-3 py-1.5 rounded-lg border border-slate-200 text-slate-600 hover:bg-slate-50">CSV Template</button>
+          <button onClick={() => mentorApi.downloadExport()} className="text-sm px-3 py-1.5 rounded-lg border border-slate-200 text-slate-600 hover:bg-slate-50">Export</button>
           <button onClick={() => setShowForm(s => !s)} className="flex items-center gap-1.5 text-sm px-3 py-1.5 rounded-lg btn-primary text-white hover:bg-indigo-700">
             <Plus size={14} /> Add Mentor
           </button>

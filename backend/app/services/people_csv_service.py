@@ -8,6 +8,9 @@ from app.models.mentor import Mentor
 from app.models.evaluation import Evaluator
 from app.schemas.people_import_schemas import ImportSummary, ImportRowResult
 
+
+EMAIL_RE = re.compile(r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
+
 MAX_CSV_SIZE = 5 * 1024 * 1024  # 5MB
 
 class PeopleCSVService:
@@ -137,6 +140,16 @@ class PeopleCSVService:
                     continue
 
                 email = row["email"].strip().lower()
+
+                if not EMAIL_RE.match(email):
+                    summary.errors += 1
+                    summary.results.append(ImportRowResult(
+                        row_number=i,
+                        email=email,
+                        status="error",
+                        message="Invalid email format"
+                    ))
+                    continue
                 
                 if email in seen_emails_in_csv:
                     summary.errors += 1

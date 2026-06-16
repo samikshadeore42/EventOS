@@ -1,28 +1,33 @@
 # Phase 8: People Import Export Readiness Review
 
 1. **Branch Name**: `phase8/people-import-export`
-2. **Latest Commit**: `0204658 - test: cover phase8 people import export`
+2. **Latest Commit**: `<PASTE_FINAL_COMMIT_HASH_HERE> - <PASTE_FINAL_COMMIT_MESSAGE_HERE>`
 3. **Migration Status**: No schema migration required. Phase 8 uses the existing `mentors` and `evaluators` tables.
-4. **Backend Test Result**: Passed. 11 tests completed in `< 2.0s`. Covered mentor and evaluator import/export logic, duplication handling, event isolation, and capability blocking checks.
-5. **Frontend Test Result**: Passed. Vitest regression tests pass without any regression, eslint reports zero errors, and `npm run build` succeeds correctly.
-6. **Docker Result**: Containers rebuild cleanly (`docker compose up --build -d`) and start correctly with `uvicorn` and `celery` components healthy.
+4. **Backend Test Result**: Passed. Full backend suite completed with 171 passed, 1 skipped, and 1 warning in 33.93s using `docker compose exec backend python -m pytest -q tests`.
+5. **Docker Result**: Passed. `docker compose ps` confirms backend, celery beat, celery worker, postgres, and redis are running; postgres and redis are healthy.
+6. **Targeted Phase 8 Test Result**: Passed. `tests/test_phase8_people_import_export.py` completed with 13 passed and 1 warning. Covered mentor/evaluator CSV templates, import creation, duplicate handling, upsert behavior, invalid email handling, large CSV rejection, event isolation, export isolation, and capability blocking.
 7. **Manual Mentor Import Workflow**:
    - Go to Admin Dashboard -> Mentors tab.
    - Click "CSV Template" to download `mentors_template.csv`.
    - Fill the file with `first_name,last_name,email,organization,expertise_areas`.
    - Select the CSV file, toggle "Update existing (upsert)" if desired, and click "Import CSV".
-   - A summary box appears indicating total rows, created rows, updated rows, and any errors like duplicates.
+   - A summary box appears showing total rows, created rows, updated rows, and row-level errors.
 8. **Manual Evaluator Import Workflow**:
    - Go to Admin Dashboard -> Evaluators / Judges tab.
    - Click "CSV Template" to download `evaluators_template.csv`.
    - Fill the file with `first_name,last_name,email,passed_out_institution,expertise_areas`.
    - Select the CSV file, toggle "Update existing (upsert)" if desired, and click "Import CSV".
-   - A summary box appears indicating success, error handling, and creation counts.
+   - A summary box appears showing success, error handling, and creation counts.
 9. **Event Isolation Proof**:
-   - Database uniqueness constraints strictly scope `uq_mentor_email_event` to `(email, event_id)` and `uq_evaluator_email_event` to `(email, event_id)`.
-   - The CSV import backend checks existing participants by running `db.query(...).filter(model_class.event_id == event_id)`.
-   - Evaluator/Mentor cross-event leakage is prevented as global uniqueness is not enforced and same email can freely exist across different events.
-10. **Known Limitations**:
-    - Processing of massive CSVs (> 5MB) is deliberately disabled (HTTP 413) to prevent backend DoS, recommending chunked uploads if exceeding limits.
-    - `expertise_areas` are split by commas or semicolons but leading/trailing spaces might exist inside the CSV if not formatted with proper separation.
-11. **Final Phase 8 Verdict**: **READY**. The People Operations Layer bulk import/export functionalities are correctly built, heavily tested, scoped by event isolation bounds, and gracefully embedded into the frontend dashboard.
+   - Import checks are scoped by `event_id`.
+   - Duplicate email checks only compare rows within the current event.
+   - The same mentor/evaluator email can exist in different events.
+   - Export returns only rows belonging to the requested event and excludes rows from other events.
+10. **Validation Coverage Added**:
+    - Invalid email imports return a row-level error with `Invalid email format`.
+    - CSV files larger than 5MB are rejected with HTTP 413.
+    - Export isolation now verifies that another event’s row is absent from the current event export.
+11. **Known Limitations**:
+    - CSV files larger than 5MB are deliberately rejected to prevent backend DoS.
+    - `expertise_areas` are split by commas or semicolons; poorly formatted spacing may remain if the CSV is not cleaned.
+12. **Final Phase 8 Verdict**: **READY**. The People Import/Export layer is verified with targeted Phase 8 tests, full backend tests, Docker service health, event isolation, validation coverage, and capability blocking.
