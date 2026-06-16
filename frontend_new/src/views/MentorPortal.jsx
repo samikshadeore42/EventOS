@@ -12,7 +12,6 @@ import {
 import { mentorApi, portalApi,eventStorage } from '../services/api'
 import { useAuth } from '../context/AuthContext'
 import { useParams } from 'react-router-dom'
-import { eventStorage } from '../services/api' 
 
 // ── Helpers ────────────────────────────────────────────────────────────────
 function initials(name = '') {
@@ -369,11 +368,7 @@ export default function MentorPortal() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
-  const { eventId } = useParams()
 
-  useEffect(() => {
-    if (eventId) eventStorage.set(eventId)
-  }, [eventId])
   // Load mentor profile via portal access
   const { data: profileData, isLoading: profileLoading, error: profileError } = useQuery({
     queryKey: ['portal-access', urlToken],
