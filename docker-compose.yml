@@ -65,7 +65,7 @@ services:
     container_name: EventOS_celery_worker
     restart: unless-stopped
     env_file:
-      - .env 
+      - ./backend/.env 
       - path: /.env
         required: false
     volumes:
