@@ -20,6 +20,8 @@ import EventOSLogo from '../components/EventOSLogo'
 import PipelineStepper from '../components/PipelineStepper'
 import OrgSwitcher from '../components/OrgSwitcher'
 import SettingsTab from '../components/SettingsTab'
+import NotificationBell from '../components/NotificationBell'
+import StageTimelinePanel from '../components/StageTimelinePanel'
 import {
   participantsApi,
   solverApi,
@@ -156,6 +158,7 @@ function OverviewTab() {
 // ── TAB 2: PARTICIPANTS ────────────────────────────────────────────────────
 function ParticipantsTab() {
   const qc = useQueryClient()
+  const { activeEvent, eventsLoaded } = useAuth()
   const fileInputRef = useRef(null)
   const [dragActive, setDragActive]   = useState(false)
   const [uploadResult, setUploadResult] = useState(null)
@@ -163,9 +166,13 @@ function ParticipantsTab() {
   const [page, setPage]               = useState(1)
   const [teamFilter, setTeamFilter]   = useState('')
 
-  const { data: summary } = useQuery({ queryKey: ['roster-summary'], queryFn: participantsApi.summary })
+  const { data: summary } = useQuery({
+    queryKey: ['roster-summary', activeEvent?.id],
+    queryFn: participantsApi.summary,
+    enabled: !!activeEvent?.id,
+  })
   const { data, isLoading } = useQuery({
-    queryKey: ['participants', page, search, teamFilter],
+    queryKey: ['participants', activeEvent?.id, page, search, teamFilter],
     queryFn: () => participantsApi.list({
       page,
       page_size: 15,
@@ -173,6 +180,7 @@ function ParticipantsTab() {
       team_assigned: teamFilter === '' ? undefined : teamFilter === 'true',
     }),
     keepPreviousData: true,
+    enabled: !!activeEvent?.id,
   })
 
   const uploadMutation = useMutation({
@@ -223,6 +231,25 @@ function ParticipantsTab() {
 
   const onDragOver = (e) => { e.preventDefault(); setDragActive(true) }
   const onDragLeave = () => setDragActive(false)
+
+  // Guard clauses — never render event-scoped UI (or call eventPath) without an event.
+  if (!eventsLoaded) {
+    return (
+      <div className="flex flex-col items-center justify-center py-20 text-slate-400">
+        <Loader2 size={28} className="animate-spin mb-3" />
+        <p className="text-sm">Loading event…</p>
+      </div>
+    )
+  }
+  if (!activeEvent) {
+    return (
+      <div className="flex flex-col items-center justify-center py-20 text-center">
+        <Calendar size={32} className="text-slate-300 mb-3" />
+        <p className="text-sm font-medium text-slate-600">No event selected</p>
+        <p className="text-xs text-slate-400 mt-1">Pick an event from the switcher to manage participants.</p>
+      </div>
+    )
+  }
 
   return (
     <div>
@@ -2429,6 +2456,7 @@ const TABS = [
   { key: 'participants',    label: 'Participants',    Icon: Users },
   { key: 'teams',           label: 'Team Formation', Icon: GitBranch },
   { key: 'approvals',       label: 'Approvals',      Icon: CheckSquare },
+  { key: 'timeline',        label: 'Timeline',       Icon: Calendar },
   { key: 'evaluators',      label: 'Evaluators',     Icon: UserCheck },
   { key: 'leaderboard',     label: 'Leaderboard',    Icon: Trophy },
   { key: 'communications',  label: 'Communications', Icon: Mail },
@@ -2470,6 +2498,7 @@ export default function AdminDashboard() {
     participants:   <ParticipantsTab />,
     teams:          <TeamsTab />,
     approvals:      <ApprovalsTab />,
+    timeline:       <StageTimelinePanel />,
     evaluators:     <EvaluatorsTab />,
     leaderboard:    <LeaderboardTab />,
     communications: <CommunicationsTab />,
@@ -2495,6 +2524,7 @@ export default function AdminDashboard() {
             <span className="w-2 h-2 rounded-full bg-teal-500 inline-block animate-pulse" />
             Online
           </span>
+          <NotificationBell />
           <OrgSwitcher />
         </div>
       </header>

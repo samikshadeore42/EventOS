@@ -19,6 +19,7 @@ celery_app = Celery(
         "app.tasks.ai_tasks",
         "app.tasks.scheduler",
         "app.tasks.stages",
+        "app.tasks.notifications"
     ]
 )
 
@@ -41,6 +42,7 @@ celery_app.conf.update(
         "app.tasks.anomaly.*":        {"queue": "algorithms"},
         "app.tasks.ai_tasks.*":       {"queue": "algorithms"},
         "app.tasks.stages.*":         {"queue": "default"},
+        "app.tasks.notifications.*":  {"queue": "notifications"},
     },
 
     # Retry policy defaults
@@ -70,6 +72,12 @@ celery_app.conf.beat_schedule = {
     # Process scheduled stage actions — every minute
     "process-scheduled-actions": {
         "task":     "app.tasks.stages.process_scheduled_actions",
+        "schedule": crontab(minute="*/1"),
+    },
+    
+    # Process the notification outbox — runs every minute
+    "process-notification-outbox": {
+        "task":     "app.tasks.notifications.process_notification_outbox",
         "schedule": crontab(minute="*/1"),
     },
 }

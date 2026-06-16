@@ -1,10 +1,10 @@
-# backend/app/models/stage_run.py
 import uuid
 from datetime import datetime
 from sqlalchemy import CheckConstraint, DateTime, ForeignKeyConstraint, String, UniqueConstraint
-from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy.sql import func
+from sqlalchemy.dialects.postgresql import UUID
+
 from app.core.database import Base
 from app.models.mixins import EventScopedMixin
 
@@ -13,11 +13,15 @@ class StageRun(EventScopedMixin, Base):
 
     id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     stage_definition_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), nullable=False)
-    status: Mapped[str] = mapped_column(String(50), nullable=False) # pending, awaiting_approval, active, completed, skipped
+    
+    status: Mapped[str] = mapped_column(String(50), nullable=False) 
     started_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     ended_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
-    created_at = mapped_column(DateTime(timezone=True), server_default=func.now())
+    
+    # Consistent Mapped annotation
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 
+    # Use string reference to avoid circular import issues
     stage_definition = relationship("StageDefinition")
 
     __table_args__ = (
