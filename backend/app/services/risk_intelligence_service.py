@@ -15,7 +15,7 @@ class RiskIntelligenceService:
     def __init__(self, db: Session, event_id: uuid.UUID):
         self.db = db
         self.event_id = event_id
-        self.notification_service = NotificationService(db)
+        self.notification_service = NotificationService(db, event_id)
 
     def list_latest_team_risks(self) -> List[RiskTeamOut]:
         subquery = (
@@ -150,11 +150,13 @@ class RiskIntelligenceService:
             else:
                 latest_interaction_time = latest_session.created_at
 
-            if latest_interaction_time and (now - latest_interaction_time) > timedelta(hours=48):
-                score += 15
-                signals.append({"type": "stale_feedback", "weight": 15})
-                reasons.append("Latest mentor feedback or check-in is older than 48 hours.")
-                recommended_actions.append("Check in with the team or ask mentor for an update.")
+            if latest_interaction_time:
+                latest_interaction_time = latest_interaction_time.replace(tzinfo=timezone.utc) if latest_interaction_time.tzinfo is None else latest_interaction_time
+                if (now - latest_interaction_time) > timedelta(hours=48):
+                    score += 15
+                    signals.append({"type": "stale_feedback", "weight": 15})
+                    reasons.append("Latest mentor feedback or check-in is older than 48 hours.")
+                    recommended_actions.append("Check in with the team or ask mentor for an update.")
 
         # 3. Open Blocker-like feedback
         if latest_feedback and (
@@ -195,7 +197,8 @@ class RiskIntelligenceService:
 
         # 6. No recent activity signal
         # We can simulate this by checking if the team hasn't been updated recently.
-        if (now - team.updated_at) > timedelta(hours=72):
+        team_created_at = team.created_at.replace(tzinfo=timezone.utc) if team.created_at.tzinfo is None else team.created_at
+        if (now - team_created_at) > timedelta(hours=72):
             score += 10
             signals.append({"type": "no_recent_activity", "weight": 10})
             reasons.append("No recent activity signal recorded for the team.")
@@ -225,52 +228,60 @@ class RiskIntelligenceService:
         }
 
     def run_sweep(self) -> RiskSweepResult:
-        teams = self.db.query(Team).filter(Team.event_id == self.event_id, Team.is_approved == True).all()
-        
-        created_snapshots = 0
-        high_risk_count = 0
-        critical_risk_count = 0
-
-        now_date_str = datetime.now(timezone.utc).strftime("%Y-%m-%d")
-
-        for team in teams:
-            risk_data = self.compute_team_risk(team)
+        import traceback
+        import sys
+        try:
+            teams = self.db.query(Team).filter(Team.event_id == self.event_id, Team.is_approved == True).all()
             
-            snapshot = TeamRiskSnapshot(
-                event_id=self.event_id,
-                team_id=team.id,
-                risk_score=risk_data["score"],
-                risk_level=risk_data["level"],
-                signals=risk_data["signals"],
-                reasons=risk_data["reasons"],
-                recommended_actions=risk_data["recommended_actions"]
-            )
-            self.db.add(snapshot)
-            created_snapshots += 1
+            created_snapshots = 0
+            high_risk_count = 0
+            critical_risk_count = 0
 
-            if risk_data["level"] in ["high", "critical"]:
-                if risk_data["level"] == "high": high_risk_count += 1
-                if risk_data["level"] == "critical": critical_risk_count += 1
+            now_date_str = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+
+            for team in teams:
+                risk_data = self.compute_team_risk(team)
                 
-                idempotency_key = f"phase9-risk:{self.event_id}:{team.id}:{risk_data['level']}:{now_date_str}"
-                
-                # Check if we already notified for this team today
-                # Assuming we use NotificationService methods. The easiest way is to use existing features or direct insert if needed.
-                self.notification_service.dispatch_team_notification(
+                snapshot = TeamRiskSnapshot(
                     event_id=self.event_id,
                     team_id=team.id,
-                    title=f"Team Risk Alert: {team.team_name} is {risk_data['level'].upper()} risk",
-                    message=" ".join(risk_data["reasons"]),
-                    notification_type="risk_alert",
-                    idempotency_key=idempotency_key
+                    risk_score=risk_data["score"],
+                    risk_level=risk_data["level"],
+                    signals=risk_data["signals"],
+                    reasons=risk_data["reasons"],
+                    recommended_actions=risk_data["recommended_actions"]
                 )
+                self.db.add(snapshot)
+                created_snapshots += 1
 
-        self.db.commit()
+                if risk_data["level"] in ["high", "critical"]:
+                    if risk_data["level"] == "high": high_risk_count += 1
+                    if risk_data["level"] == "critical": critical_risk_count += 1
+                    
+                    idempotency_key = f"phase9-risk:{self.event_id}:{team.id}:{risk_data['level']}:{now_date_str}"
+                    
+                    # Check if we already notified for this team today
+                    # Assuming we use NotificationService methods. The easiest way is to use existing features or direct insert if needed.
+                    self.notification_service.enqueue(
+                        notification_type="risk_alert",
+                        title=f"Team Risk Alert: {team.team_name} is {risk_data['level'].upper()} risk",
+                        message=" ".join(risk_data["reasons"]),
+                        role="admin",
+                        payload={"team_id": str(team.id), "risk_level": risk_data["level"]},
+                        idempotency_key=idempotency_key,
+                        commit=False
+                    )
 
-        return RiskSweepResult(
-            event_id=self.event_id,
-            processed_teams=len(teams),
-            created_snapshots=created_snapshots,
-            high_risk_count=high_risk_count,
-            critical_risk_count=critical_risk_count
-        )
+            self.db.commit()
+
+            return RiskSweepResult(
+                event_id=self.event_id,
+                processed_teams=len(teams),
+                created_snapshots=created_snapshots,
+                high_risk_count=high_risk_count,
+                critical_risk_count=critical_risk_count
+            )
+        except Exception as e:
+            print("CRITICAL ERROR IN RUN_SWEEP:", type(e), e, file=sys.stderr)
+            traceback.print_exc(file=sys.stderr)
+            raise
