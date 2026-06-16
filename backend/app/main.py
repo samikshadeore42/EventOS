@@ -42,6 +42,7 @@ from app.api.event_management_routes import router as event_management_router
 from app.api.stage_routes import router as stage_router
 from app.api.event_lifecycle_routes import router as event_lifecycle_router
 from app.api.notification_routes import router as notification_router
+from app.api.risk_routes import router as risk_router
 
 
 legacy_dependency = [Depends(RequireOrganizationRole('owner', 'admin'))]
@@ -120,6 +121,7 @@ app.include_router(ai_router, dependencies=legacy_dependency)
 app.include_router(event_state_router, dependencies=legacy_dependency)
 app.include_router(demo_admin_router, dependencies=legacy_dependency)
 app.include_router(notification_router)
+app.include_router(risk_router)
 
 @app.get("/health")
 def health_check():

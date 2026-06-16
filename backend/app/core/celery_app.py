@@ -19,7 +19,8 @@ celery_app = Celery(
         "app.tasks.ai_tasks",
         "app.tasks.scheduler",
         "app.tasks.stages",
-        "app.tasks.notifications"
+        "app.tasks.notifications",
+        "app.tasks.risk"
     ]
 )
 
@@ -43,6 +44,7 @@ celery_app.conf.update(
         "app.tasks.ai_tasks.*":       {"queue": "algorithms"},
         "app.tasks.stages.*":         {"queue": "default"},
         "app.tasks.notifications.*":  {"queue": "notifications"},
+        "app.tasks.risk.*":           {"queue": "algorithms"},
     },
 
     # Retry policy defaults
@@ -79,6 +81,12 @@ celery_app.conf.beat_schedule = {
     "process-notification-outbox": {
         "task":     "app.tasks.notifications.process_notification_outbox",
         "schedule": crontab(minute="*/1"),
+    },
+
+    # Risk sweep — every 30 minutes
+    "risk-sweep": {
+        "task":     "app.tasks.risk.process_risk_sweeps",
+        "schedule": crontab(minute="*/30"),
     },
 }
 
