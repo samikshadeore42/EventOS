@@ -70,6 +70,7 @@ describe('EventOS Stage-1 Regression Tests', () => {
 
     sessionStorage.setItem('eventos_token', PORTAL_TOKEN);
     localStorage.setItem('eventos_active_event_id', TEST_EVENT_ID);
+    window.history.pushState({}, 'Test portal', `/participant?token=${PORTAL_TOKEN}`);
   });
 
   it('1. Admin login form renders', () => {
