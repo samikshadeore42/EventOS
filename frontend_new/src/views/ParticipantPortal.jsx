@@ -2,7 +2,7 @@
 // Accessed via /portal?token=<JWT>  — read-only, full-page layout.
 // Flow: extract token → GET /portal/access → render personalised journey.
 
-import { useState, useEffect, useMemo } from 'react'
+import { useState, useEffect } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useParams, useSearchParams } from 'react-router-dom';
 import {
@@ -12,7 +12,7 @@ import {
   Check, X
 } from 'lucide-react'
 import EventOSLogo from '../components/EventOSLogo'
-import { portalApi, mentorApi, submissionsApi, dailyUpdateApi } from '../services/api'
+import { portalApi, mentorApi, submissionsApi, dailyUpdateApi, eventStorage } from '../services/api'
 import { useAuth } from '../context/AuthContext'
 
 
