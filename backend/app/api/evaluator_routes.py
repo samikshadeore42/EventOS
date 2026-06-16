@@ -1,6 +1,8 @@
 # File: backend/app/api/evaluator_routes.py
 import uuid
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Query
+from fastapi.responses import StreamingResponse
+import io
 from sqlalchemy.orm import Session
 from pydantic import BaseModel, EmailStr, Field
 from typing import Optional, List
@@ -11,6 +13,7 @@ from app.models.evaluation import Evaluator
 from app.services.link_service import LinkService
 from app.models.assignment import EvaluatorTeamAssignment
 from app.schemas.evaluation_schemas import EvaluatorAssignmentRequest
+from app.services.people_csv_service import PeopleCSVService
 
 # 1. Update Prefix
 router = APIRouter(prefix="/events/{event_id}/evaluators", tags=["Evaluators"])
@@ -73,6 +76,37 @@ def create_evaluator(body: EvaluatorCreate, scope: ScopedEventService = Depends(
     scope.db.commit()
     scope.db.refresh(e)
     return e
+
+
+@router.get("/csv-template", summary="Download Evaluator CSV Template")
+def get_evaluator_csv_template(scope: ScopedEventService = Depends(require_capability("evaluators"))):
+    content = "first_name,last_name,email,passed_out_institution,expertise_areas\n"
+    return StreamingResponse(
+        io.StringIO(content),
+        media_type="text/csv",
+        headers={"Content-Disposition": "attachment; filename=evaluators_template.csv"}
+    )
+
+
+@router.post("/import", summary="Import Evaluators from CSV")
+def import_evaluators(
+    file: UploadFile = File(...),
+    upsert: bool = Query(default=False),
+    scope: ScopedEventService = Depends(require_capability("evaluators"))
+):
+    content = file.file.read()
+    summary = PeopleCSVService.import_evaluators(scope.event_id, scope.db, content, upsert=upsert)
+    return summary.model_dump()
+
+
+@router.get("/export", summary="Export Evaluators to CSV")
+def export_evaluators(scope: ScopedEventService = Depends(require_capability("evaluators"))):
+    csv_str = PeopleCSVService.export_evaluators(scope.event_id, scope.db)
+    return StreamingResponse(
+        io.StringIO(csv_str),
+        media_type="text/csv",
+        headers={"Content-Disposition": "attachment; filename=evaluators_export.csv"}
+    )
 
 
 @router.get("/{evaluator_id}", response_model=EvaluatorResponse, summary="Get a single evaluator")
