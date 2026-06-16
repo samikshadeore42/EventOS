@@ -159,6 +159,35 @@ function eventPath(path) {
   return `/events/${eventId}${path}`
 }
 
+function decodeJwtPayload(token) {
+  if (!token) return {}
+
+  try {
+    const payload = token.split('.')[1]
+    if (!payload) return {}
+
+    const normalized = payload.replace(/-/g, '+').replace(/_/g, '/')
+    return JSON.parse(window.atob(normalized))
+  } catch {
+    return {}
+  }
+}
+
+function eventIdFromPortalToken(explicitToken) {
+  const token = explicitToken || tokenStorage.get()
+  const eventId = decodeJwtPayload(token)?.event_id
+
+  if (!eventId) {
+    throw new Error('This portal link is missing its event context.')
+  }
+
+  return eventId
+}
+
+function portalEventPath(path, explicitToken) {
+  return `/events/${eventIdFromPortalToken(explicitToken)}${path}`
+}
+
 // ═════════════════════════════════════════════════════════════════════════
 // DOMAIN API MODULES
 // ═════════════════════════════════════════════════════════════════════════
@@ -385,15 +414,13 @@ export const leaderboardApi = {
 
 // ── Portal (JWT-based participant & judge access) ──────────────────────────
 export const portalApi = {
-  // Token is injected as ?token= by interceptor when sessionStorage has it.
-  // Also accepts explicit token arg for the first call before storage is set.
   access: (explicitToken) => {
     const params = explicitToken ? { token: explicitToken } : {}
-    return api.get('/portal/access', { params })
+    return api.get(portalEventPath('/portal/access', explicitToken), { params })
   },
 
   generateLinks: (role, stage = 'evaluation', sendEmails = true) =>
-    api.post('/portal/generate-links', null, {
+    api.post(eventPath('/portal/generate-links'), null, {
       params: { role, stage, send_emails: sendEmails },
     }),
 }
@@ -499,16 +526,16 @@ export const mentorApi = {
   generateSummary: (teamId)=> api.post(eventPath('/mentor-ops/ai-summary'), { team_id: teamId }),
 
   // Mentor portal (token-auth)
-  me:             () => api.get('/mentor-portal/me'),
-  myTeams:        () => api.get('/mentor-portal/teams'),
-  createSession:  (data) => api.post('/mentor-portal/sessions', data),
-  updateSession:  (id, data) => api.patch(`/mentor-portal/sessions/${id}`, data),
-  cancelSession:  (id) => api.patch(`/mentor-portal/sessions/${id}`, { status: 'cancelled' }),
-  submitFeedback: (data) => api.post('/mentor-portal/feedback', data),
-  teamFeedback:   (teamId) => api.get(`/mentor-portal/feedback/team/${teamId}`),
+  me:             () => api.get(portalEventPath('/mentor-portal/me')),
+  myTeams:        () => api.get(portalEventPath('/mentor-portal/teams')),
+  createSession:  (data) => api.post(portalEventPath('/mentor-portal/sessions'), data),
+  updateSession:  (id, data) => api.patch(portalEventPath(`/mentor-portal/sessions/${id}`), data),
+  cancelSession:  (id) => api.patch(portalEventPath(`/mentor-portal/sessions/${id}`), { status: 'cancelled' }),
+  submitFeedback: (data) => api.post(portalEventPath('/mentor-portal/feedback'), data),
+  teamFeedback:   (teamId) => api.get(portalEventPath(`/mentor-portal/feedback/team/${teamId}`)),
 
   // Participant-safe mentor info
-  participantInfo: () => api.get(eventPath('/participant-mentor-info')),
+  participantInfo: () => api.get(portalEventPath('/participant-mentor-info')),
 }
 
 // ── System ─────────────────────────────────────────────────────────────────
