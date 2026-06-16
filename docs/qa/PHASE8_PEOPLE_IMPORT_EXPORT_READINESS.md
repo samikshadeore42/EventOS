@@ -1,6 +1,6 @@
 # Phase 8: People Import Export Readiness Review
 
-1. **Branch Name**: `fix/phase7-audit-blockers`
+1. **Branch Name**: `phase8/people-import-export`
 2. **Latest Commit**: `0204658 - test: cover phase8 people import export`
 3. **Migration Status**: No schema migration required. Phase 8 uses the existing `mentors` and `evaluators` tables.
 4. **Backend Test Result**: Passed. 11 tests completed in `< 2.0s`. Covered mentor and evaluator import/export logic, duplication handling, event isolation, and capability blocking checks.
