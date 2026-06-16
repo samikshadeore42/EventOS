@@ -41,6 +41,7 @@ class EventConfig(BaseModel):
     scoring_weights: List[float] = Field(..., examples=[[0.30, 0.30, 0.40]])
     elimination:     bool        = Field(..., examples=[True])
     approval_gates:  List[str]   = Field(..., examples=[["after_team_formation", "after_each_round"]])
+    event_type: str = Field(default="generic_competitive_event", examples=["hackathon"])
 
 
 class ConfigureEventResponse(BaseModel):

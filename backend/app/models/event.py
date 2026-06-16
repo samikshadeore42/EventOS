@@ -1,10 +1,17 @@
 # backend/app/models/event.py
 import uuid
 from datetime import datetime, timezone
-from sqlalchemy import String, Boolean, DateTime, Text, Integer, ForeignKey
+from typing import TYPE_CHECKING
+
+from sqlalchemy import String, Boolean, DateTime, Text, Integer, ForeignKey, UniqueConstraint
 from sqlalchemy.dialects.postgresql import UUID, JSONB
 from sqlalchemy.orm import Mapped, mapped_column, relationship
+
 from app.core.database import Base
+
+if TYPE_CHECKING:
+    from app.models.participant import Participant
+    from app.models.team import Team
 
 class EventStatus:
     DRAFT = "draft"
@@ -29,7 +36,7 @@ class Event(Base):
         nullable=False
     )
     name: Mapped[str] = mapped_column(String(255), nullable=False)
-    slug: Mapped[str] = mapped_column(String(100), nullable=False, unique=True)
+    slug: Mapped[str] = mapped_column(String(100), nullable=False)
     description: Mapped[str | None] = mapped_column(Text, nullable=True)
 
     # Template linkage
@@ -59,6 +66,10 @@ class Event(Base):
     # Relationships mapping to the isolated tenants
     participants: Mapped[list["Participant"]] = relationship("Participant", back_populates="event", cascade="all, delete-orphan")
     teams: Mapped[list["Team"]] = relationship("Team", back_populates="event", cascade="all, delete-orphan")
+
+    __table_args__ = (
+        UniqueConstraint("organization_id", "slug", name="uq_events_org_slug"),
+    )
 
     def __repr__(self) -> str:
         return f"<Event {self.slug}>"

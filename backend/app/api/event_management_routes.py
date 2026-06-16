@@ -140,7 +140,7 @@ def create_event_from_config(
     event_slug = f"{raw_slug}-{str(uuid_lib.uuid4())[:8]}"
 
     # Use hackathon template or fall back to generic
-    template = _template_for_event_type(db, "hackathon")
+    template = _template_for_event_type(db, body.event_type)
     capabilities = validate_capabilities(list(template.default_capabilities or []))
 
     # Pack all agent-extracted fields into the configuration JSONB
@@ -157,6 +157,7 @@ def create_event_from_config(
         "max_per_institution": 1,
         "skill_balance":       True,
         "_source":             "langgraph_agent",
+        "event_type": body.event_type,
     }
 
     event = Event(

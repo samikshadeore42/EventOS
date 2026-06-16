@@ -15,7 +15,7 @@ export default function StageTimelinePanel({ eventStatus }) {
   // Derive the active event's status if the parent didn't pass one in.
   const { data: events = [] } = useQuery({
     queryKey: ['events', 'list'],
-    queryFn: () => eventsApi.list().then((r) => r.data),
+    queryFn: () => eventsApi.list(),
     enabled: eventStatus === undefined,
   })
   const activeEventId = eventStorage.get()
@@ -27,15 +27,15 @@ export default function StageTimelinePanel({ eventStatus }) {
 
   const { data: stages = [] } = useQuery({
     queryKey: ['stages', 'list'],
-    queryFn: () => stagesApi.list().then((r) => r.data),
+    queryFn: () => stagesApi.list(),
   })
   const { data: runs = [] } = useQuery({
     queryKey: ['stages', 'runs'],
-    queryFn: () => stagesApi.runs().then((r) => r.data),
+    queryFn: () => stagesApi.runs(),
   })
   const { data: validation } = useQuery({
     queryKey: ['stages', 'validation'],
-    queryFn: () => stagesApi.validate().then((r) => r.data),
+    queryFn: () => stagesApi.validate(),
     refetchInterval: 15_000,
   })
 

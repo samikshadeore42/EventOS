@@ -35,6 +35,9 @@ const queryClient = new QueryClient({
   },
 });
 
+const TEST_EVENT_ID = '11111111-1111-4111-8111-111111111111';
+const PORTAL_TOKEN = 'header.eyJldmVudF9pZCI6IjExMTExMTExLTExMTEtNDExMS04MTExLTExMTExMTExMTExMSJ9.signature';
+
 vi.mock('../context/AuthContext', async () => {
   const originalModule = await vi.importActual('../context/AuthContext');
   return {
@@ -62,7 +65,12 @@ describe('EventOS Stage-1 Regression Tests', () => {
   beforeEach(() => {
     vi.resetAllMocks();
     localStorage.clear();
+    sessionStorage.clear();
     queryClient.clear();
+
+    sessionStorage.setItem('eventos_token', PORTAL_TOKEN);
+    localStorage.setItem('eventos_active_event_id', TEST_EVENT_ID);
+    window.history.pushState({}, 'Test portal', `/participant?token=${PORTAL_TOKEN}`);
   });
 
   it('1. Admin login form renders', () => {

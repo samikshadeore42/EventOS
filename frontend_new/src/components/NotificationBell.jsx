@@ -13,7 +13,7 @@ export default function NotificationBell() {
 
   const { data: countData } = useQuery({
     queryKey: ['notifications', 'unread-count'],
-    queryFn: () => notificationsApi.unreadCount().then((r) => r.data),
+    queryFn: () => notificationsApi.unreadCount(),
     refetchInterval: 30_000,      // poll every 30s
     refetchOnWindowFocus: true,
   })
@@ -21,7 +21,7 @@ export default function NotificationBell() {
 
   const { data: items = [], isLoading } = useQuery({
     queryKey: ['notifications', 'list'],
-    queryFn: () => notificationsApi.list().then((r) => r.data),
+    queryFn: () => notificationsApi.list(),
     enabled: open,                // only fetch the list when the dropdown is open
   })
 
