@@ -9,8 +9,10 @@ import {
   Clock, Send, Plus, ChevronDown, ChevronUp,
   Target,
 } from 'lucide-react'
-import { mentorApi, portalApi } from '../services/api'
+import { mentorApi, portalApi,eventStorage } from '../services/api'
 import { useAuth } from '../context/AuthContext'
+import { useParams } from 'react-router-dom'
+import { eventStorage } from '../services/api' 
 
 // ── Helpers ────────────────────────────────────────────────────────────────
 function initials(name = '') {
@@ -356,12 +358,22 @@ export default function MentorPortal() {
     return new URLSearchParams(window.location.search).get('token') || token
   }, [token])
 
+  const {eventId} = useParams()
+  useEffect(() => {
+    if (eventId) eventStorage.set(eventId)
+  }, [eventId])
+
   useEffect(() => {
     const t = new URLSearchParams(window.location.search).get('token')
     if (t) setToken(t)
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
+  const { eventId } = useParams()
+
+  useEffect(() => {
+    if (eventId) eventStorage.set(eventId)
+  }, [eventId])
   // Load mentor profile via portal access
   const { data: profileData, isLoading: profileLoading, error: profileError } = useQuery({
     queryKey: ['portal-access', urlToken],

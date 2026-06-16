@@ -44,9 +44,9 @@ function App() {
       <AuthProvider>
         <BrowserRouter>
           <Routes>
-            <Route path="/judge" element={<JudgePortal />} />
-            <Route path="/participant" element={<ParticipantPortal />} />
-            <Route path="/mentor" element={<MentorPortal />} />
+            <Route path="/events/:eventId/portal/judge" element={<JudgePortal />} />
+            <Route path="/events/:eventId/portal/participant" element={<ParticipantPortal />} />
+            <Route path="/event/:eventId/portal/mentor" element={<MentorPortal />} />
             
             <Route path="/admin" element={
                 <ProtectedAdminRoute>

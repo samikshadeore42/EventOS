@@ -4,6 +4,7 @@
 
 import { useState, useEffect, useMemo } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { useParams, useSearchParams } from 'react-router-dom';
 import {
   CheckCircle, Clock, Circle, Users, AlertTriangle,
   ChevronDown, ChevronUp, CalendarDays,
@@ -734,11 +735,17 @@ function ProgressionInvitationSection({ participantId, currentStatus }) {
 }
 // ── Main ParticipantPortal ────────────────────────────────────────────────
 export default function ParticipantPortal() {
-  const { token, setToken } = useAuth()
+  const { eventId } = useParams(); // Gets 'd468a1b2...' from the URL
+  const [searchParams] = useSearchParams();
+  const token = searchParams.get('token');
+  const { setToken } = useAuth();
 
-  const urlToken = useMemo(() => {
-    return new URLSearchParams(window.location.search).get('token') || token
-  }, [token])
+  // const { token, setToken } = useAuth()
+
+  const urlToken =token
+  useEffect(() => {
+    if (eventId) eventStorage.set(eventId)
+  }, [eventId])
 
   useEffect(() => {
     const t = new URLSearchParams(window.location.search).get('token')
@@ -749,7 +756,7 @@ export default function ParticipantPortal() {
   const { data, isLoading, error } = useQuery({
     queryKey:  ['portal-access', urlToken],
     queryFn:   () => portalApi.access(urlToken),
-    enabled:   !!urlToken,
+    enabled:   !!urlToken ,
     retry:     false,
     staleTime: 0,
     refetchInterval: 15000,

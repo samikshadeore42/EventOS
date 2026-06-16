@@ -40,7 +40,7 @@ class LinkService:
             expires_in=timedelta(days=expires_days)
         )
         # 2. Add event_id to the frontend URL route
-        portal_url = f"{FRONTEND_URL}/events/{event_id}/participant?token={token}"
+        portal_url = f"{FRONTEND_URL}/events/{event_id}/portal/participant?token={token}"
         return {
             "entity_id":  participant_id,
             "role":       "participant",
@@ -64,7 +64,7 @@ class LinkService:
             expires_in=timedelta(days=expires_days)
         )
         # 2. Add event_id to the frontend URL route
-        portal_url = f"{FRONTEND_URL}/events/{event_id}/judge?token={token}"
+        portal_url = f"{FRONTEND_URL}/events/{event_id}/portal/judge?token={token}"
         return {
             "entity_id":  evaluator_id,
             "role":       "evaluator",

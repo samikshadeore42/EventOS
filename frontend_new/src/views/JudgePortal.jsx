@@ -6,8 +6,9 @@ import {
   ClipboardList, CheckCircle, Loader2, AlertTriangle,
   ChevronRight, Send, RotateCcw, Wand2, Download,
 } from 'lucide-react'
-import { portalApi, evaluationsApi, aiApi, solverApi, submissionsApi } from '../services/api'
+import { portalApi, evaluationsApi, aiApi, solverApi, submissionsApi, eventStorage } from '../services/api'
 import { useAuth } from '../context/AuthContext'
+import { useParams } from 'react-router-dom';
 
 // ── Grading criteria — mirrors backend GRADING_CRITERIA constant ───────────
 const CRITERIA = [
@@ -376,6 +377,10 @@ function TeamQueueSidebar({ teams, selectedId, submittedIds, onSelect, evaluator
 // ── Main JudgePortal ──────────────────────────────────────────────────────
 
 export default function JudgePortal() {
+  const { eventId } = useParams();
+  useEffect(() => {
+    if (eventId) eventStorage.set(eventId)
+  }, [eventId])
   const { token, setToken } = useAuth()
   const [selectedTeam, setSelectedTeam]   = useState(null)
   const [submittedIds, setSubmittedIds]   = useState([])
@@ -436,7 +441,7 @@ export default function JudgePortal() {
   const { data: portalData, isLoading, error } = useQuery({
     queryKey:  ['portal-access', urlToken],
     queryFn:   () => portalApi.access(urlToken),
-    enabled:   !!urlToken,
+    enabled:   !!urlToken ,
     retry:     false,
     staleTime: 5 * 60 * 1000,
   })

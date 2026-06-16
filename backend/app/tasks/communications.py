@@ -14,10 +14,12 @@
 
 from email import message
 import os
+import uuid
 from celery import Task
 from sendgrid import SendGridAPIClient
 from app.core.celery_app import celery_app
 from app.services.email_service import EmailService
+from app.services.task_tracker import TaskTracker, TaskStatus
 
 class EmailTask(Task):
     """Base class for email tasks — adds error handling."""
@@ -143,32 +145,50 @@ def send_batch_emails(self, recipient_list: list, template: str, event_name: str
 
     return results
 
-
-
 @celery_app.task(
     bind=True,
     base=EmailTask,
     queue="notifications",
     name="app.tasks.communications.send_access_links",
-    max_retries=2,
-    default_retry_delay=120,
+    max_retries=3,
 )
-def send_access_links(self, links: list, role: str, stage: str):
+def send_access_links(self, links: list, role: str, stage: str, event_name: str = None, event_id: str=None):
+    task_id = self.request.id
+    parsed_event_id = uuid.UUID(event_id) if isinstance(event_id, str) else event_id
+    # 1. Initialize the tracker record in Redis
+    TaskTracker.initialize(
+        task_id=task_id,
+        task_type="send_access_links",
+        total_steps=len(links),
+        metadata={"event_name": event_name, "role": role, "stage": stage}
+    )
+    TaskTracker.mark_running(task_id, f"Preparing to dispatch {len(links)} magic links...")
+
     results = {"queued": len(links), "sent": 0, "failed": 0, "simulated": 0, "skipped": 0, "errors": []}
     failed_links = []
 
-    for link in links:
+    for idx, link in enumerate(links):
         try:
             norm_email = link["email"].strip().lower()
             idem_key = f"{self.request.id}:access_link:{role}:{stage}:{norm_email}"
 
+            # 2. Update real-time progress for the dashboard tracker
+            TaskTracker.update(
+                task_id=task_id,
+                status=TaskStatus.RUNNING,
+                progress=idx,
+                message=f"Dispatching link to {norm_email} ({idx + 1}/{len(links)})..."
+            )
+
             result = EmailService.send_access_link(
+                event_id=parsed_event_id,
                 to_email=link["email"],
                 recipient_name=link["name"],
                 role=role,
                 stage=stage,
                 portal_url=link["portal_url"],
                 expires_in="48 hours",
+                event_name=event_name,
                 idempotency_key=idem_key
             )
 
@@ -180,22 +200,38 @@ def send_access_links(self, links: list, role: str, stage: str):
                 else:
                     results["sent"] += 1
             else:
+                print(f"🚨 CRITICAL EMAIL FAILURE FOR {link['email']}: {result.get('error')}", flush=True)
                 results["failed"] += 1
                 results["errors"].append({"email": link["email"], "error": result.get("error")})
                 failed_links.append(link)
 
         except Exception as e:
+            print(f"💥 RUNTIME CODE CRASH IN TASK LOOP FOR {link.get('email')}: {str(e)}", flush=True)
+            import traceback; traceback.print_exc()
             results["failed"] += 1
             results["errors"].append({"email": link["email"], "error": str(e)})
             failed_links.append(link)
 
+    # 3. Handle failures and retries cleanly
     if failed_links:
+        TaskTracker.update(
+            task_id=task_id,
+            status=TaskStatus.RETRYING,
+            progress=len(links) - len(failed_links),
+            message=f"Completed with {len(failed_links)} failures. Queueing retry process..."
+        )
         raise self.retry(
-            kwargs={"links": failed_links, "role": role, "stage": stage},
+            kwargs={"links": failed_links, "role": role, "stage": stage, "event_name": event_name, "event_id": event_id},
             exc=Exception(f"Access links had {len(failed_links)} failures, retrying..."),
             countdown=60 * (self.request.retries + 1)
         )
 
+    # 4. Mark absolute success when complete
+    TaskTracker.mark_success(
+        task_id=task_id,
+        result=results,
+        message=f"Successfully processed all dispatches! Sent: {results['sent']}, Skipped: {results['skipped']}."
+    )
     return results
 
 
