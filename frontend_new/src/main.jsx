@@ -46,6 +46,8 @@ function App() {
           <Routes>
             <Route path="/events/:eventId/portal/judge" element={<JudgePortal />} />
             <Route path="/events/:eventId/portal/participant" element={<ParticipantPortal />} />
+            <Route path="/events/:eventId/portal/mentor" element={<MentorPortal />} />
+            <Route path="/events/:eventId/mentor" element={<MentorPortal />} />
             <Route path="/event/:eventId/portal/mentor" element={<MentorPortal />} />
             
             <Route path="/admin" element={
