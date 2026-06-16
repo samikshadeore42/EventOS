@@ -3,7 +3,7 @@
 
 import { useState, useRef, useEffect } from 'react'
 import { useAuth } from '../context/AuthContext'
-import { Building, ChevronDown, LogOut } from 'lucide-react'
++import { Building, CalendarDays, ChevronDown, LogOut } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 
 export default function OrgSwitcher() {
@@ -11,11 +11,15 @@ export default function OrgSwitcher() {
     activeOrganization,
     availableOrganizations,
     switchOrganization,
+    activeEvent,
+    availableEvents,
+    switchEvent,
     logout,
     payload,
   } = useAuth()
   const navigate = useNavigate()
   const [open, setOpen] = useState(false)
+  const [eventOpen, setEventOpen] = useState(false)
   const ref = useRef(null)
 
   // Close dropdown on outside click
@@ -38,6 +42,54 @@ export default function OrgSwitcher() {
 
   return (
     <div className="flex items-center gap-3" ref={ref}>
+      {/* Event Switcher */}
+      {availableEvents?.length > 0 && (
+        <div className="relative">
+          <button
+            onClick={() => setEventOpen(!eventOpen)}
+            className="flex items-center gap-2 text-sm px-3 py-1.5 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 transition-colors text-slate-700"
+          >
+            <CalendarDays size={14} className="text-teal-500" />
+            <span className="max-w-[180px] truncate font-medium">
+              {activeEvent?.name || 'Select Event'}
+            </span>
+            <ChevronDown size={14} className={`transition-transform ${eventOpen ? 'rotate-180' : ''}`} />
+          </button>
+
+          {eventOpen && (
+            <div className="absolute right-0 mt-1 w-72 bg-white rounded-xl border border-slate-200 shadow-lg z-50 py-1 overflow-hidden">
+              <div className="px-3 py-2 text-xs font-medium text-slate-400 uppercase tracking-wider">
+                Events
+              </div>
+
+        {availableEvents.map((event) => (
+          <button
+            key={event.id}
+            onClick={() => {
+              switchEvent(event)
+              setEventOpen(false)
+            }}
+            className={`w-full text-left px-3 py-2 text-sm flex items-center gap-2 hover:bg-slate-50 transition-colors ${
+              activeEvent?.id === event.id
+                ? 'bg-teal-50 text-teal-700 font-medium'
+                : 'text-slate-700'
+            }`}
+          >
+            <CalendarDays
+              size={14}
+              className={activeEvent?.id === event.id ? 'text-teal-500' : 'text-slate-400'}
+            />
+            <span className="truncate">{event.name}</span>
+
+            {activeEvent?.id === event.id && (
+              <span className="ml-auto w-2 h-2 rounded-full bg-teal-500" />
+            )}
+          </button>
+        ))}
+      </div>
+    )}
+  </div>
+)}
       {/* Organization Switcher */}
       {availableOrganizations?.length > 0 && (
         <div className="relative">
