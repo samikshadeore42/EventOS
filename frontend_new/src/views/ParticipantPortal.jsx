@@ -12,7 +12,7 @@ import {
   Check, X
 } from 'lucide-react'
 import EventOSLogo from '../components/EventOSLogo'
-import { portalApi, mentorApi, submissionsApi } from '../services/api'
+import { portalApi, mentorApi, submissionsApi, dailyUpdateApi } from '../services/api'
 import { useAuth } from '../context/AuthContext'
 
 
@@ -30,27 +30,16 @@ function DailyUpdateForm({ token }) {
     setSubmitting(true)
     setError('')
     try {
-      const res = await fetch(
-        `http://localhost:8000/daily-updates/submit?token=${token}`,
-        {
-          method:  'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body:    JSON.stringify({
-            what_i_built: what,
-            blockers:     blockers || null,
-            hours_worked: hours ? parseInt(hours) : null,
-          }),
-        }
-      )
-      if (!res.ok) {
-        const err = await res.json()
-        throw new Error(err.detail || 'Submission failed')
-      }
+      await dailyUpdateApi.submit(token, {
+        what_i_built: what,
+        blockers: blockers || null,
+        hours_worked: hours ? parseInt(hours) : null,
+      })
       setSubmitted(true)
-    } catch (e) {
-      setError(e.message)
-    } finally {
-      setSubmitting(false)
+      } catch (e) {
+        setError(e.message)
+      } finally {
+        setSubmitting(false)
     }
   }
 

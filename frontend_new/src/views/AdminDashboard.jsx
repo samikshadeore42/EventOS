@@ -35,6 +35,7 @@ import {
   demoAdminApi,
   eventStateApi,
   riskApi,
+  healthDashboardApi,
 } from '../services/api'
 
 // ── Shared micro-components ────────────────────────────────────────────────
@@ -2161,8 +2162,7 @@ function MentorOpsTab() {
 function HealthTab() {
   const { data: teams, isLoading, refetch, isRefetching } = useQuery({
     queryKey:        ['health-teams'],
-    queryFn:         () => fetch('http://localhost:8000/health-dashboard/teams')
-                            .then(r => r.json()),
+    queryFn: healthDashboardApi.teams,
     refetchInterval: 5 * 60 * 1000,
   })
 
@@ -2174,7 +2174,7 @@ function HealthTab() {
   }
 
   async function handleRefresh() {
-    await fetch('http://localhost:8000/health-dashboard/refresh', { method: 'POST' })
+    await healthDashboardApi.refresh()
     refetch()
   }
 

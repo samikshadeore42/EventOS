@@ -456,6 +456,20 @@ export const portalApi = {
     }),
 }
 
+export const dailyUpdateApi = {
+  submit: (token, data) =>
+    api.post(`${portalEventPath('/daily-updates/submit', token)}?token=${encodeURIComponent(token)}`, data),
+
+  myUpdates: (token) =>
+    api.get(`${portalEventPath('/daily-updates/my-updates', token)}?token=${encodeURIComponent(token)}`),
+}
+
+export const healthDashboardApi = {
+  teams: () => api.get(eventPath('/health-dashboard/teams')),
+  team: (teamId) => api.get(eventPath(`/health-dashboard/team/${teamId}`)),
+  refresh: () => api.post(eventPath('/health-dashboard/refresh')),
+}
+
 // ── Event configuration & pipeline state ──────────────────────────────────
 export const eventApi = {
   config: () =>
