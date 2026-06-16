@@ -4,7 +4,7 @@
 
 import axios from 'axios'
 
-const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8001'
+const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000'
 const SESSION_KEY = 'eventos_token'
 const ORG_KEY = 'eventos_active_org_id'
 const EVENT_KEY = 'eventos_active_event_id'

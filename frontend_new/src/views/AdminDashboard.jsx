@@ -2157,6 +2157,124 @@ function MentorOpsTab() {
   )
 }
 
+// ── TAB: TEAM HEALTH DASHBOARD (Phase 12) ──────────────────────────────────
+function HealthTab() {
+  const { data: teams, isLoading, refetch, isRefetching } = useQuery({
+    queryKey:        ['health-teams'],
+    queryFn:         () => fetch('http://localhost:8000/health-dashboard/teams')
+                            .then(r => r.json()),
+    refetchInterval: 5 * 60 * 1000,
+  })
+
+  const riskColour = {
+    critical: { bg: 'bg-red-50',    border: 'border-red-300',    badge: 'bg-red-100 text-red-700',       dot: 'bg-red-500'    },
+    high:     { bg: 'bg-orange-50', border: 'border-orange-300', badge: 'bg-orange-100 text-orange-700', dot: 'bg-orange-500' },
+    medium:   { bg: 'bg-yellow-50', border: 'border-yellow-200', badge: 'bg-yellow-100 text-yellow-700', dot: 'bg-yellow-400' },
+    low:      { bg: 'bg-green-50',  border: 'border-green-200',  badge: 'bg-green-100 text-green-700',   dot: 'bg-green-500'  },
+  }
+
+  async function handleRefresh() {
+    await fetch('http://localhost:8000/health-dashboard/refresh', { method: 'POST' })
+    refetch()
+  }
+
+  if (isLoading) return (
+    <div className="flex items-center gap-2 text-slate-500 py-10 justify-center">
+      <Loader2 size={18} className="animate-spin" /> Loading health data...
+    </div>
+  )
+
+  return (
+    <div className="space-y-5">
+      <div className="flex items-center justify-between">
+        <div>
+          <h2 className="text-xl font-bold text-slate-800">Team Health Dashboard</h2>
+          <p className="text-sm text-slate-500 mt-0.5">
+            Risk scores based on evaluation status, daily updates, and member activity.
+          </p>
+        </div>
+        <button
+          onClick={handleRefresh}
+          disabled={isRefetching}
+          className="flex items-center gap-2 bg-slate-100 hover:bg-slate-200 text-slate-700 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors"
+        >
+          {isRefetching ? <Loader2 size={14} className="animate-spin" /> : <Activity size={14} />}
+          Refresh
+        </button>
+      </div>
+
+      {teams && teams.length > 0 && (
+        <div className="grid grid-cols-4 gap-3">
+          {['critical','high','medium','low'].map(level => {
+            const c = riskColour[level]
+            const count = teams.filter(t => t.risk_level === level).length
+            return (
+              <div key={level} className={`${c.bg} ${c.border} border rounded-xl p-4`}>
+                <div className={`inline-flex items-center gap-1.5 ${c.badge} px-2 py-0.5 rounded-full text-xs font-semibold uppercase tracking-wide mb-2`}>
+                  <span className={`w-1.5 h-1.5 rounded-full ${c.dot}`} />
+                  {level}
+                </div>
+                <p className="text-2xl font-bold text-slate-800">{count}</p>
+                <p className="text-xs text-slate-500">team{count !== 1 ? 's' : ''}</p>
+              </div>
+            )
+          })}
+        </div>
+      )}
+
+      {(!teams || teams.length === 0) && (
+        <div className="text-center py-16 text-slate-400">
+          <Activity size={40} className="mx-auto mb-3 opacity-30" />
+          <p className="font-medium">No approved teams yet.</p>
+          <p className="text-sm mt-1">Health scores appear once teams are approved.</p>
+        </div>
+      )}
+
+      <div className="space-y-3">
+        {teams?.map(team => {
+          const c = riskColour[team.risk_level] ?? riskColour.low
+          return (
+            <div key={team.team_id} className={`${c.bg} ${c.border} border rounded-xl p-4`}>
+              <div className="flex items-start justify-between gap-3">
+                <div className="flex-1">
+                  <div className="flex items-center gap-3 mb-2">
+                    <span className="font-semibold text-slate-800">{team.team_name}</span>
+                    <span className={`${c.badge} px-2 py-0.5 rounded-full text-xs font-semibold uppercase`}>
+                      {team.risk_level}
+                    </span>
+                    <span className="text-xs text-slate-400">{team.member_count} member{team.member_count !== 1 ? 's' : ''}</span>
+                  </div>
+                  <div className="space-y-1">
+                    {team.signals.map((s, i) => (
+                      <div key={i} className="flex items-start gap-2 text-sm">
+                        <span className={`mt-1 w-1.5 h-1.5 rounded-full flex-shrink-0 ${s.severity === 'high' ? 'bg-red-500' : 'bg-yellow-500'}`} />
+                        <span>
+                          <span className="font-medium text-slate-700">{s.label}</span>
+                          {s.detail && <span className="text-slate-500"> — {s.detail}</span>}
+                        </span>
+                      </div>
+                    ))}
+                    {team.signals.length === 0 && (
+                      <p className="text-sm text-green-600">No risk signals detected.</p>
+                    )}
+                  </div>
+                </div>
+                <div className="text-right flex-shrink-0">
+                  <p className="text-2xl font-bold text-slate-800">{team.risk_score}</p>
+                  <p className="text-xs text-slate-400">risk score</p>
+                  {team.last_update && (
+                    <p className="text-xs text-slate-400 mt-1">Last update: {team.last_update}</p>
+                  )}
+                </div>
+              </div>
+            </div>
+          )
+        })}
+      </div>
+    </div>
+  )
+}
+
 // ── TAB 9: ANOMALY SCANNER ──────────────────────────────────────────────────
 function AnomalyTab() {
   const qc = useQueryClient()
@@ -2729,6 +2847,7 @@ const TABS = [
   { key: 'communications',  label: 'Communications', Icon: Mail },
   { key: 'mentorops',       label: 'Mentor Ops',     Icon: Target },
   { key: 'anomaly',         label: 'Anomaly Scanner',Icon: Activity },
+  { key: 'health',          label: 'Team Health',    Icon: Activity },
   { key: 'risk',            label: 'Risk',           Icon: ShieldAlert },
   { key: 'democontrols',    label: 'Demo Controls',  Icon: AlertTriangle },
   { key: 'settings',        label: 'Settings',       Icon: Settings },
@@ -2772,6 +2891,7 @@ export default function AdminDashboard() {
     communications: <CommunicationsTab />,
     mentorops:      <MentorOpsTab />,
     anomaly:        <AnomalyTab />,
+    health:         <HealthTab />,
     risk:           <RiskTab />,
     democontrols:   <DemoControlsTab />,
     settings:       <SettingsTab key={activeOrganization?.id || 'no-org'} />,

@@ -44,6 +44,10 @@ from app.api.event_lifecycle_routes import router as event_lifecycle_router
 from app.api.notification_routes import router as notification_router
 from app.api.risk_routes import router as risk_router
 
+# Phase 10 & 12 — Daily Updates + Team Health Dashboard
+from app.api.daily_update_routes import router as daily_update_router
+from app.api.health_routes import router as health_router
+
 
 legacy_dependency = [Depends(RequireOrganizationRole('owner', 'admin'))]
 
@@ -122,6 +126,11 @@ app.include_router(event_state_router, dependencies=legacy_dependency)
 app.include_router(demo_admin_router, dependencies=legacy_dependency)
 app.include_router(notification_router)
 app.include_router(risk_router)
+
+# Phase 10 & 12 — no legacy_dependency: participants auth via JWT query param
+app.include_router(daily_update_router)
+app.include_router(health_router)
+
 
 @app.get("/health")
 def health_check():
