@@ -4,31 +4,34 @@ from sqlalchemy import CheckConstraint, DateTime, Integer, String, Text, UniqueC
 from sqlalchemy.orm import Mapped, mapped_column
 from sqlalchemy.sql import func
 # Import these to handle dialect differences
-from sqlalchemy.dialects.postgresql import JSONB, UUID as PG_UUID
-from sqlalchemy import JSON, String as SA_String
+from sqlalchemy.dialects.postgresql import JSONB, UUID
+from sqlalchemy import JSON
 
 from app.core.database import Base
 from app.models.mixins import EventScopedMixin
 
-# Helper to handle cross-dialect type support
-from sqlalchemy import Dialect
-
+# Helper to handle cross-dialect JSON support (JSONB on Postgres, JSON on SQLite
+# for tests). NOTE: UUID columns deliberately do NOT get a similar SQLite variant
+# — plain postgresql.UUID(as_uuid=True) round-trips correctly on SQLite in this
+# SQLAlchemy version and matches Event.id / EventScopedMixin.event_id. A
+# with_variant(String(36), "sqlite") shim was tried here previously and broke:
+# SQLAlchemy binds uuid.UUID values through the LEFT-hand column's type, and
+# plain String has no bind processor for UUID objects, so any comparison whose
+# other side is a real uuid.UUID (e.g. from a freshly-created/refreshed row)
+# fails with "sqlite3.ProgrammingError: type 'UUID' is not supported".
 def get_json_type():
     return JSONB().with_variant(JSON(), "sqlite")
-
-def get_uuid_type():
-    return PG_UUID(as_uuid=True).with_variant(SA_String(36), "sqlite")
 
 class NotificationOutbox(EventScopedMixin, Base):
     __tablename__ = "notification_outbox"
 
-    id: Mapped[uuid.UUID] = mapped_column(get_uuid_type(), primary_key=True, default=uuid.uuid4)
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     
     notification_type: Mapped[str] = mapped_column(String(100), nullable=False)
     title: Mapped[str] = mapped_column(String(255), nullable=False)
     message: Mapped[str] = mapped_column(Text, nullable=False)
 
-    recipient_user_id: Mapped[uuid.UUID | None] = mapped_column(get_uuid_type(), nullable=True)
+    recipient_user_id: Mapped[uuid.UUID | None] = mapped_column(UUID(as_uuid=True), nullable=True)
     recipient_role: Mapped[str | None] = mapped_column(String(50), nullable=True)
 
     # Use the helper for the JSON column
@@ -53,4 +56,3 @@ class NotificationOutbox(EventScopedMixin, Base):
             name="ck_outbox_status",
         ),
     )
-    

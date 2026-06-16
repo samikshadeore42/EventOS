@@ -3,22 +3,16 @@ from datetime import datetime
 from sqlalchemy import CheckConstraint, DateTime, ForeignKeyConstraint, String, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy.sql import func
-# Import dialect helpers
-from sqlalchemy.dialects.postgresql import UUID as PG_UUID
-from sqlalchemy import String as SA_String
+from sqlalchemy.dialects.postgresql import UUID
 
 from app.core.database import Base
 from app.models.mixins import EventScopedMixin
 
-# Helper to ensure SQLite compatibility during testing
-def get_uuid_type():
-    return PG_UUID(as_uuid=True).with_variant(SA_String(36), "sqlite")
-
 class StageRun(EventScopedMixin, Base):
     __tablename__ = "stage_runs"
 
-    id: Mapped[uuid.UUID] = mapped_column(get_uuid_type(), primary_key=True, default=uuid.uuid4)
-    stage_definition_id: Mapped[uuid.UUID] = mapped_column(get_uuid_type(), nullable=False)
+    id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    stage_definition_id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), nullable=False)
     
     status: Mapped[str] = mapped_column(String(50), nullable=False) 
     started_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
