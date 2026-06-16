@@ -36,6 +36,7 @@ import {
   eventStateApi,
   riskApi,
   healthDashboardApi,
+  eventsApi,
 } from '../services/api'
 
 // ── Shared micro-components ────────────────────────────────────────────────
@@ -2835,8 +2836,163 @@ function DemoControlsTab() {
   )
 }
 
+function slugifyEventName(value) {
+  return value
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '')
+}
+
+function CreateEventTab() {
+  const navigate = useNavigate()
+  const qc = useQueryClient()
+  const { loadEvents, switchEvent } = useAuth()
+  const [form, setForm] = useState({
+    name: '',
+    slug: '',
+    description: '',
+    template_id: '',
+  })
+
+  const { data: templates = [], isLoading } = useQuery({
+    queryKey: ['event-templates'],
+    queryFn: eventsApi.templates,
+  })
+
+  const selectedTemplate = templates.find((t) => t.id === form.template_id) || null
+
+  const createMutation = useMutation({
+    mutationFn: () => {
+      const name = form.name.trim()
+      const slug = (form.slug.trim() || slugifyEventName(name))
+      return eventsApi.create({
+        name,
+        slug,
+        description: form.description.trim() || null,
+        template_id: form.template_id || null,
+        event_type: selectedTemplate?.key || 'generic_competitive_event',
+        configuration: {},
+      })
+    },
+    onSuccess: async (event) => {
+      await loadEvents()
+      switchEvent(event)
+      qc.clear()
+      setForm({ name: '', slug: '', description: '', template_id: '' })
+      navigate('/admin?tab=overview')
+    },
+  })
+
+  return (
+    <div className="grid lg:grid-cols-[1fr_320px] gap-6">
+      <div className="glass-card rounded-xl border border-slate-200 p-6">
+        <div className="flex items-start justify-between gap-4 mb-5">
+          <div>
+            <SectionTitle>Create Event</SectionTitle>
+            <p className="text-sm text-slate-500">
+              Create from a system template. The event receives a copied template config and its own active capabilities.
+            </p>
+          </div>
+          <Badge colour="teal">Template method</Badge>
+        </div>
+
+        <div className="grid md:grid-cols-2 gap-4 mb-4">
+          <div>
+            <label className="block text-xs font-medium text-slate-500 mb-1">Event name</label>
+            <input
+              value={form.name}
+              onChange={(e) => setForm((f) => ({
+                ...f,
+                name: e.target.value,
+                slug: f.slug || slugifyEventName(e.target.value),
+              }))}
+              placeholder="Smart India Hackathon Demo"
+              className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            />
+          </div>
+          <div>
+            <label className="block text-xs font-medium text-slate-500 mb-1">Slug</label>
+            <input
+              value={form.slug}
+              onChange={(e) => setForm((f) => ({ ...f, slug: slugifyEventName(e.target.value) }))}
+              placeholder="smart-india-hackathon-demo"
+              className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            />
+          </div>
+        </div>
+
+        <div className="mb-4">
+          <label className="block text-xs font-medium text-slate-500 mb-1">Template</label>
+          <select
+            value={form.template_id}
+            onChange={(e) => setForm((f) => ({ ...f, template_id: e.target.value }))}
+            className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white"
+          >
+            <option value="">{isLoading ? 'Loading templates...' : 'Choose a template'}</option>
+            {templates.map((template) => (
+              <option key={template.id} value={template.id}>
+                {template.name}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        {selectedTemplate && (
+          <div className="rounded-lg border border-slate-200 bg-slate-50 p-4 mb-4">
+            <p className="text-sm font-semibold text-slate-800">{selectedTemplate.name}</p>
+            <p className="text-xs text-slate-500 mt-1">{selectedTemplate.description}</p>
+            <div className="flex gap-2 flex-wrap mt-3">
+              {(selectedTemplate.default_capabilities || []).map((cap) => (
+                <Badge key={cap} colour="indigo">{cap}</Badge>
+              ))}
+            </div>
+          </div>
+        )}
+
+        <div className="mb-5">
+          <label className="block text-xs font-medium text-slate-500 mb-1">Description</label>
+          <textarea
+            value={form.description}
+            onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))}
+            rows={3}
+            placeholder="Optional internal description for this event..."
+            className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 resize-none"
+          />
+        </div>
+        <button
+          onClick={() => createMutation.mutate()}
+          disabled={createMutation.isPending || !form.name.trim() || !form.template_id}
+          className="btn-primary rounded-lg px-4 py-2 text-sm font-semibold disabled:opacity-50"
+        >
+          {createMutation.isPending ? 'Creating...' : 'Create from template'}
+        </button>
+        {createMutation.isError && (
+          <p className="text-xs text-red-600 mt-3">{createMutation.error?.message}</p>
+        )}
+      </div>
+      <div className="glass-card rounded-xl border border-indigo-200 bg-indigo-50 p-5 h-fit">
+        <div className="flex items-center gap-2 mb-3">
+          <Sparkles size={16} className="text-indigo-600" />
+          <p className="text-sm font-bold text-indigo-900">Need AI help?</p>
+        </div>
+        <p className="text-sm text-indigo-800 mb-4">
+          Use the AI event builder when you do not know the template, stages, team size, or scoring structure yet.
+        </p>
+        <button
+          onClick={() => navigate('/configure')}
+          className="w-full rounded-lg bg-indigo-600 text-white px-4 py-2 text-sm font-semibold hover:bg-indigo-700"
+        >
+          Create with AI
+        </button>
+      </div>
+    </div>
+  )
+}
+
 // ── MAIN DASHBOARD ─────────────────────────────────────────────────────────
 const TABS = [
+  { key: 'createevent',     label: 'Create Event',   Icon: Plus },
   { key: 'overview',        label: 'Overview',       Icon: LayoutDashboard },
   { key: 'participants',    label: 'Participants',    Icon: Users },
   { key: 'teams',           label: 'Team Formation', Icon: GitBranch },
@@ -2881,6 +3037,7 @@ export default function AdminDashboard() {
   }
 
   const TAB_CONTENT = {
+    createevent:    <CreateEventTab />,
     overview:       <OverviewTab />,
     participants:   <ParticipantsTab />,
     teams:          <TeamsTab />,
