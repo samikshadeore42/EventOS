@@ -66,6 +66,12 @@ export function AuthProvider({ children }) {
   const [membershipsByOrgId, setMembershipsByOrgId] = useState({})
   const [orgsLoaded, setOrgsLoaded] = useState(false)
 
+  // Event state — now REACTIVE (previously only persisted to localStorage, which
+  // is why selecting an event never propagated to child components).
+  const [activeEvent, setActiveEventState] = useState(null)
+  const [availableEvents, setAvailableEvents] = useState([])
+  const [eventsLoaded, setEventsLoaded] = useState(false)
+
   // On mount: clear token from URL bar if it was present
   useEffect(() => {
     const params = new URLSearchParams(window.location.search)
@@ -82,9 +88,34 @@ export function AuthProvider({ children }) {
       setActiveOrganization(null)
       setAvailableOrganizations([])
       setActiveMembership(null)
+      setActiveEventState(null)
+      setAvailableEvents([])
     }
     window.addEventListener('auth:logout', handleForcedLogout)
     return () => window.removeEventListener('auth:logout', handleForcedLogout)
+  }, [])
+
+  // Load the active org's events into React state (and keep eventStorage in sync
+  // so api.js eventPath() resolves). Restores the previously-selected event if it
+  // still exists, otherwise falls back to the first event.
+  const loadEvents = useCallback(async () => {
+    setEventsLoaded(false)
+    try {
+      const events = await eventsApi.list()
+      const list = Array.isArray(events) ? events : []
+      setAvailableEvents(list)
+      const savedEventId = eventStorage.get()
+      const active = list.find((e) => e.id === savedEventId) || list[0] || null
+      setActiveEventState(active)
+      if (active) eventStorage.set(active.id)
+      else eventStorage.clear()
+    } catch {
+      setAvailableEvents([])
+      setActiveEventState(null)
+      eventStorage.clear()
+    } finally {
+      setEventsLoaded(true)
+    }
   }, [])
 
   // Load organizations after login
@@ -100,7 +131,7 @@ export function AuthProvider({ children }) {
       const membershipMap = {}
       list.forEach((r) => {
         membershipMap[r.organization.id] = r.membership
-      })  
+      })
       setMembershipsByOrgId(membershipMap)
 
       const savedOrgId = orgStorage.get()
@@ -114,17 +145,13 @@ export function AuthProvider({ children }) {
         setActiveOrganization(activeEntry.organization)
         setActiveMembership(activeEntry.membership)
         orgStorage.set(activeEntry.organization.id)
-        try {
-          const events = await eventsApi.list()
-          const savedEventId = eventStorage.get()
-          const activeEvent = events.find((event) => event.id === savedEventId) || events[0]
-          if (activeEvent) eventStorage.set(activeEvent.id)
-        } catch {
-          eventStorage.clear()
-        }
+        await loadEvents()
       } else {
         setActiveOrganization(null)
         setActiveMembership(null)
+        setAvailableEvents([])
+        setActiveEventState(null)
+        setEventsLoaded(true)
       }
     } catch {
       // User may be a portal user without org membership — that's fine
@@ -132,10 +159,13 @@ export function AuthProvider({ children }) {
       setMembershipsByOrgId({})
       setActiveOrganization(null)
       setActiveMembership(null)
+      setAvailableEvents([])
+      setActiveEventState(null)
+      setEventsLoaded(true)
     } finally {
       setOrgsLoaded(true)
     }
-  }, [])
+  }, [loadEvents])
 
   // Auto-load orgs when we have a valid non-portal token
   useEffect(() => {
@@ -179,15 +209,28 @@ export function AuthProvider({ children }) {
   }, [])
 
   // Switch active organization
-  const switchOrganization = useCallback((org) => {
+  const switchOrganization = useCallback(async (org) => {
     setActiveOrganization(org)
     setActiveMembership(membershipsByOrgId[org.id] || null)
     orgStorage.set(org.id)
     eventStorage.clear()
+    setActiveEventState(null)
+    setAvailableEvents([])
     // Drop all cached query data so the new organization's screens
     // don't briefly show the previous organization's data.
     queryClient.clear()
-  }, [membershipsByOrgId])
+    await loadEvents()
+  }, [membershipsByOrgId, loadEvents])
+
+  // Switch active event — REACTIVE. Updates React state (so children re-render),
+  // persists to eventStorage (so api.js eventPath() resolves), and clears cached
+  // query data so event-scoped screens refetch for the new event.
+  const switchEvent = useCallback((event) => {
+    if (!event) return
+    setActiveEventState(event)
+    eventStorage.set(event.id)
+    queryClient.clear()
+  }, [])
 
   // Logout — call backend then clear local state
   const logout = useCallback(async () => {
@@ -204,6 +247,8 @@ export function AuthProvider({ children }) {
     setActiveOrganization(null)
     setAvailableOrganizations([])
     setActiveMembership(null)
+    setActiveEventState(null)
+    setAvailableEvents([])
   }, [])
 
   // Derived values every consumer needs
@@ -212,7 +257,7 @@ export function AuthProvider({ children }) {
   const activeStage    = payload?.stage ?? null
   const isPortalUser   = role === 'evaluator' || role === 'participant' || role === 'mentor'
   const authenticated  = !!(token && payload && !isExpired(payload))
-  const isAdmin        = !!(activeOrganization && activeMembership && 
+  const isAdmin        = !!(activeOrganization && activeMembership &&
                            (activeMembership.role === 'owner' || activeMembership.role === 'admin'))
 
   return (
@@ -236,6 +281,12 @@ export function AuthProvider({ children }) {
         switchOrganization,
         loadOrganizations,
         orgsLoaded,
+        // Event (reactive)
+        activeEvent,
+        availableEvents,
+        eventsLoaded,
+        switchEvent,
+        loadEvents,
       }}
     >
       {children}

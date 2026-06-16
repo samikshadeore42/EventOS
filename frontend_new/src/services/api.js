@@ -4,7 +4,7 @@
 
 import axios from 'axios'
 
-const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000'
+const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8001'
 const SESSION_KEY = 'eventos_token'
 const ORG_KEY = 'eventos_active_org_id'
 const EVENT_KEY = 'eventos_active_event_id'
@@ -569,6 +569,34 @@ export const langgraphApi = {
    */
   createFromConfig: (config) =>
     api.post('/events/create-from-config', config),
+}
+
+// ── Stages & timeline (Phase 4–6) ───────────────────────────────
+export const stagesApi = {
+  list:     ()            => api.get(eventPath('/stages')),
+  get:      (id)          => api.get(eventPath(`/stages/${id}`)),
+  create:   (data)        => api.post(eventPath('/stages'), data),
+  update:   (id, data)    => api.patch(eventPath(`/stages/${id}`), data),
+  remove:   (id)          => api.delete(eventPath(`/stages/${id}`)),
+  reorder:  (orderedIds)  => api.post(eventPath('/stages/reorder'), { ordered_ids: orderedIds }),
+  validate: ()            => api.get(eventPath('/stages/validation')),
+  runs:     ()            => api.get(eventPath('/stages/runs')),
+  generateRuns: ()        => api.post(eventPath('/stages/runs/generate')),
+  advance:  (id, force = false) => api.post(eventPath(`/stages/${id}/advance`), null, { params: { force } }),
+  approve:  (id)          => api.post(eventPath(`/stages/${id}/approve`)),
+}
+
+// ── Event lifecycle (Phase 4 Hard Gate) ──────────────────────
+export const eventLifecycleApi = {
+  publish: () => api.post(eventPath('/publish')),
+}
+
+// ── Notifications (Phase 7) ──────────────────────────
+export const notificationsApi = {
+  list:        (unreadOnly = false) => api.get(eventPath('/notifications'), { params: { unread_only: unreadOnly } }),
+  unreadCount: ()    => api.get(eventPath('/notifications/unread-count')),
+  markRead:    (id)  => api.post(eventPath(`/notifications/${id}/read`)),
+  markAllRead: ()    => api.post(eventPath('/notifications/read-all')),
 }
 
 export default api

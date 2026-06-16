@@ -391,20 +391,20 @@ class StageService:
     # ── Phase 6: automatic engine — approval holds & notifications ───────────
 
     def _safe_notify(self, *, role: Optional[str] = None, user_id: Optional[uuid.UUID] = None,
-                     title: str = "", message: str = "", notification_type: str = "stage") -> None:
-        """Best-effort in-app notification. NEVER raises — a notification failure
-        must not roll back a committed stage transition (Phase-6 exit condition:
-        'failed delivery does not reverse a completed transition'). Phase 7 swaps
-        the body of this method to enqueue a transactional-outbox row instead."""
+                     title: str = "", message: str = "", notification_type: str = "stage",
+                     idempotency_key: Optional[str] = None) -> None:
+        """Best-effort enqueue onto the transactional outbox. NEVER raises — a
+        notification failure must not roll back a committed stage transition
+        (Phase-6 exit condition). Delivery (in-app + email) happens asynchronously
+        in app.tasks.notifications.process_notification_outbox."""
         try:
             from app.services.notification_service import NotificationService
-            svc = NotificationService(self.db, self.event_id)
-            if user_id is not None:
-                svc.notify_user(user_id, title, message, notification_type)
-            else:
-                svc.notify_role(role or "owner", title, message, notification_type)
+            NotificationService(self.db, self.event_id).enqueue(
+                notification_type, title, message,
+                user_id=user_id, role=role, idempotency_key=idempotency_key,
+            )
         except Exception:  # noqa: BLE001 — notifications are non-critical
-            self.db.rollback()  # drop only the failed notification, keep prior commit
+            self.db.rollback()  # drop only the failed enqueue, keep prior commit
 
     def hold_stage_for_approval(self, stage_id: uuid.UUID) -> StageRun:
         """Park a stage that has reached its start time but whose transition_policy
