@@ -379,6 +379,18 @@ export const evaluatorsApi = {
 
   assignments: (evaluatorId) =>
     api.get(eventPath(`/evaluators/${evaluatorId}/assignments`)),
+
+  csvTemplateUrl: () => `${BASE_URL}${eventPath('/evaluators/csv-template')}`,
+
+  importCsv: (file, upsert = false) => {
+    const form = new FormData()
+    form.append('file', file)
+    return api.post(`${eventPath('/evaluators/import')}?upsert=${upsert}`, form, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    })
+  },
+
+  exportCsvUrl: () => `${BASE_URL}${eventPath('/evaluators/export')}`,
 }
 
 // ── Evaluations (judge scorecard submission) ──────────────────────────────
@@ -536,6 +548,17 @@ export const mentorApi = {
 
   // Participant-safe mentor info
   participantInfo: () => api.get(portalEventPath('/participant-mentor-info')),
+
+  // Import/Export
+  csvTemplateUrl: () => `${BASE_URL}${eventPath('/mentors/csv-template')}`,
+  importCsv: (file, upsert = false) => {
+    const form = new FormData()
+    form.append('file', file)
+    return api.post(`${eventPath('/mentors/import')}?upsert=${upsert}`, form, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    })
+  },
+  exportCsvUrl: () => `${BASE_URL}${eventPath('/mentors/export')}`,
 }
 
 // ── System ─────────────────────────────────────────────────────────────────

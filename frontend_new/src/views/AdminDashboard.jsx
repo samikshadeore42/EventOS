@@ -1039,6 +1039,21 @@ function EvaluatorsTab() {
   const [assignTeamIds, setAssignTeamIds] = useState([])
   const [expandedEval, setExpandedEval] = useState(null)
 
+  // Import state
+  const [importFile, setImportFile] = useState(null)
+  const [importUpsert, setImportUpsert] = useState(false)
+  const [importSummary, setImportSummary] = useState(null)
+
+  const importMutation = useMutation({
+    mutationFn: () => evaluatorsApi.importCsv(importFile, importUpsert),
+    onSuccess: (res) => {
+      setImportSummary(res)
+      setImportFile(null)
+      qc.invalidateQueries({ queryKey: ['evaluators'] })
+    },
+    onError: (err) => alert(err.message)
+  })
+
   const { data, isLoading } = useQuery({ queryKey: ['evaluators'], queryFn: evaluatorsApi.list })
   const { data: teamsData } = useQuery({ queryKey: ['all-teams'], queryFn: approvalsApi.all })
   
@@ -1112,12 +1127,55 @@ function EvaluatorsTab() {
     <div>
       <div className="flex items-center justify-between mb-5">
         <h2 className="text-base font-semibold text-slate-900">Evaluators / Judges</h2>
-        <button
-          onClick={() => setShowForm((s) => !s)}
-          className="flex items-center gap-1.5 text-sm px-3 py-1.5 rounded-lg btn-primary text-white hover:bg-indigo-700"
-        >
-          <Plus size={14} /> Add Evaluator
-        </button>
+        <div className="flex items-center gap-2">
+          <a href={evaluatorsApi.csvTemplateUrl()} download className="text-sm px-3 py-1.5 rounded-lg border border-slate-200 text-slate-600 hover:bg-slate-50">CSV Template</a>
+          <a href={evaluatorsApi.exportCsvUrl()} download className="text-sm px-3 py-1.5 rounded-lg border border-slate-200 text-slate-600 hover:bg-slate-50">Export</a>
+          <button
+            onClick={() => setShowForm((s) => !s)}
+            className="flex items-center gap-1.5 text-sm px-3 py-1.5 rounded-lg btn-primary text-white hover:bg-indigo-700"
+          >
+            <Plus size={14} /> Add Evaluator
+          </button>
+        </div>
+      </div>
+      <p className="text-xs text-slate-500 mb-6 italic">
+        Evaluators receive secure magic links and score approved teams in the Judge Portal. Submitted scorecards update the leaderboard and anomaly scanner.
+      </p>
+
+      {/* Bulk Import */}
+      <div className="glass-card rounded-xl border border-slate-200 p-4 mb-5 flex flex-col gap-3">
+        <div className="flex items-center gap-4">
+          <input type="file" accept=".csv" onChange={(e) => setImportFile(e.target.files[0])} className="text-sm" />
+          <label className="flex items-center gap-2 text-sm text-slate-700">
+            <input type="checkbox" checked={importUpsert} onChange={e => setImportUpsert(e.target.checked)} />
+            Update existing (upsert)
+          </label>
+          <button
+            onClick={() => importMutation.mutate()}
+            disabled={!importFile || importMutation.isPending}
+            className="text-sm px-4 py-1.5 rounded-lg bg-emerald-600 text-white hover:bg-emerald-700 disabled:opacity-50"
+          >
+            {importMutation.isPending ? <Loader2 size={14} className="animate-spin inline" /> : 'Import CSV'}
+          </button>
+        </div>
+        {importSummary && (
+          <div className="bg-slate-50 p-3 rounded-lg text-sm border border-slate-200">
+            <p className="font-semibold text-slate-800">Import Summary</p>
+            <div className="flex gap-4 mt-1 mb-2 text-slate-600">
+              <span>Total: {importSummary.total_rows}</span>
+              <span className="text-emerald-600">Created: {importSummary.created}</span>
+              <span className="text-indigo-600">Updated: {importSummary.updated}</span>
+              <span className="text-red-600">Errors: {importSummary.errors}</span>
+            </div>
+            {importSummary.errors > 0 && (
+              <ul className="text-xs text-red-600 list-disc pl-4 space-y-1">
+                {importSummary.results.filter(r => r.status === 'error').map((r, idx) => (
+                  <li key={idx}>Row {r.row_number} ({r.email || 'No email'}): {r.message}</li>
+                ))}
+              </ul>
+            )}
+          </div>
+        )}
       </div>
       <p className="text-xs text-slate-500 mb-6 italic">
         Evaluators receive secure magic links and score approved teams in the Judge Portal. Submitted scorecards update the leaderboard and anomaly scanner.
@@ -1710,6 +1768,21 @@ function MentorOpsTab() {
   const [aiTeamId, setAiTeamId] = useState('')
   const [aiResult, setAiResult] = useState(null)
 
+  // Import state
+  const [importFile, setImportFile] = useState(null)
+  const [importUpsert, setImportUpsert] = useState(false)
+  const [importSummary, setImportSummary] = useState(null)
+
+  const importMutation = useMutation({
+    mutationFn: () => mentorApi.importCsv(importFile, importUpsert),
+    onSuccess: (res) => {
+      setImportSummary(res)
+      setImportFile(null)
+      qc.invalidateQueries({ queryKey: ['mentors'] })
+    },
+    onError: (err) => alert(err.message)
+  })
+
   const getTeamId = (team) => team?.team_id || team?.id
   const getTeamName = (team) => team?.team_name || team?.name || "Unnamed Team"
 
@@ -1798,9 +1871,49 @@ function MentorOpsTab() {
       {/* Mentors list */}
       <div className="flex items-center justify-between mb-5">
         <h2 className="text-base font-semibold text-slate-900">Mentors</h2>
-        <button onClick={() => setShowForm(s => !s)} className="flex items-center gap-1.5 text-sm px-3 py-1.5 rounded-lg btn-primary">
-          <Plus size={14} /> Add Mentor
-        </button>
+        <div className="flex items-center gap-2">
+          <a href={mentorApi.csvTemplateUrl()} download className="text-sm px-3 py-1.5 rounded-lg border border-slate-200 text-slate-600 hover:bg-slate-50">CSV Template</a>
+          <a href={mentorApi.exportCsvUrl()} download className="text-sm px-3 py-1.5 rounded-lg border border-slate-200 text-slate-600 hover:bg-slate-50">Export</a>
+          <button onClick={() => setShowForm(s => !s)} className="flex items-center gap-1.5 text-sm px-3 py-1.5 rounded-lg btn-primary text-white hover:bg-indigo-700">
+            <Plus size={14} /> Add Mentor
+          </button>
+        </div>
+      </div>
+
+      {/* Bulk Import */}
+      <div className="glass-card rounded-xl border border-slate-200 p-4 mb-5 flex flex-col gap-3">
+        <div className="flex items-center gap-4">
+          <input type="file" accept=".csv" onChange={(e) => setImportFile(e.target.files[0])} className="text-sm" />
+          <label className="flex items-center gap-2 text-sm text-slate-700">
+            <input type="checkbox" checked={importUpsert} onChange={e => setImportUpsert(e.target.checked)} />
+            Update existing (upsert)
+          </label>
+          <button
+            onClick={() => importMutation.mutate()}
+            disabled={!importFile || importMutation.isPending}
+            className="text-sm px-4 py-1.5 rounded-lg bg-emerald-600 text-white hover:bg-emerald-700 disabled:opacity-50"
+          >
+            {importMutation.isPending ? <Loader2 size={14} className="animate-spin inline" /> : 'Import CSV'}
+          </button>
+        </div>
+        {importSummary && (
+          <div className="bg-slate-50 p-3 rounded-lg text-sm border border-slate-200">
+            <p className="font-semibold text-slate-800">Import Summary</p>
+            <div className="flex gap-4 mt-1 mb-2 text-slate-600">
+              <span>Total: {importSummary.total_rows}</span>
+              <span className="text-emerald-600">Created: {importSummary.created}</span>
+              <span className="text-indigo-600">Updated: {importSummary.updated}</span>
+              <span className="text-red-600">Errors: {importSummary.errors}</span>
+            </div>
+            {importSummary.errors > 0 && (
+              <ul className="text-xs text-red-600 list-disc pl-4 space-y-1">
+                {importSummary.results.filter(r => r.status === 'error').map((r, idx) => (
+                  <li key={idx}>Row {r.row_number} ({r.email || 'No email'}): {r.message}</li>
+                ))}
+              </ul>
+            )}
+          </div>
+        )}
       </div>
 
       {showForm && (
