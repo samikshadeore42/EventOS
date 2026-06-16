@@ -1,5 +1,7 @@
 # File: backend/app/api/mentor_routes.py
-from fastapi import APIRouter, Depends, Query, HTTPException
+from fastapi import APIRouter, Depends, Query, HTTPException, UploadFile, File
+from fastapi.responses import StreamingResponse
+import io
 from sqlalchemy.orm import Session
 from uuid import UUID
 
@@ -10,6 +12,7 @@ from app.core.security import decode_access_token, verify_token_role, get_token_
 from app.services.mentor_service import MentorService
 from app.services.mentor_ops_service import MentorOpsService
 from app.services.link_service import LinkService
+from app.services.people_csv_service import PeopleCSVService
 from app.schemas.mentor_schemas import (
     MentorCreate, MentorUpdate, MentorOut,
     MentorAssignmentCreate, MentorAssignmentOut,
@@ -58,6 +61,37 @@ def list_mentors(
 def create_mentor(data: MentorCreate, scope: ScopedEventService = Depends(get_event_scope)):
     mentor = MentorService.create_mentor(scope.event_id, scope.db, data)
     return MentorOut.model_validate(mentor).model_dump()
+
+
+@router.get("/mentors/csv-template", summary="Download Mentor CSV Template")
+def get_mentor_csv_template(scope: ScopedEventService = Depends(require_capability("mentors"))):
+    content = "first_name,last_name,email,organization,expertise_areas\n"
+    return StreamingResponse(
+        io.StringIO(content),
+        media_type="text/csv",
+        headers={"Content-Disposition": "attachment; filename=mentors_template.csv"}
+    )
+
+
+@router.post("/mentors/import", summary="Import Mentors from CSV")
+def import_mentors(
+    file: UploadFile = File(...),
+    upsert: bool = Query(default=False),
+    scope: ScopedEventService = Depends(require_capability("mentors"))
+):
+    content = file.file.read()
+    summary = PeopleCSVService.import_mentors(scope.event_id, scope.db, content, upsert=upsert)
+    return summary.model_dump()
+
+
+@router.get("/mentors/export", summary="Export Mentors to CSV")
+def export_mentors(scope: ScopedEventService = Depends(require_capability("mentors"))):
+    csv_str = PeopleCSVService.export_mentors(scope.event_id, scope.db)
+    return StreamingResponse(
+        io.StringIO(csv_str),
+        media_type="text/csv",
+        headers={"Content-Disposition": "attachment; filename=mentors_export.csv"}
+    )
 
 
 @router.get("/mentors/{mentor_id}", summary="Get mentor by ID")

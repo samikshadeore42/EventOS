@@ -188,6 +188,17 @@ function portalEventPath(path, explicitToken) {
   return `/events/${eventIdFromPortalToken(explicitToken)}${path}`
 }
 
+function downloadBlob(blob, filename) {
+  const url = window.URL.createObjectURL(blob)
+  const link = document.createElement('a')
+  link.href = url
+  link.download = filename
+  document.body.appendChild(link)
+  link.click()
+  link.remove()
+  window.URL.revokeObjectURL(url)
+}
+
 // ═════════════════════════════════════════════════════════════════════════
 // DOMAIN API MODULES
 // ═════════════════════════════════════════════════════════════════════════
@@ -379,6 +390,24 @@ export const evaluatorsApi = {
 
   assignments: (evaluatorId) =>
     api.get(eventPath(`/evaluators/${evaluatorId}/assignments`)),
+
+  downloadTemplate: async () => {
+    const blob = await api.get(eventPath('/evaluators/csv-template'), { responseType: 'blob' })
+    downloadBlob(blob, 'evaluators_template.csv')
+  },
+
+  importCsv: (file, upsert = false) => {
+    const form = new FormData()
+    form.append('file', file)
+    return api.post(`${eventPath('/evaluators/import')}?upsert=${upsert}`, form, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    })
+  },
+
+  downloadExport: async () => {
+    const blob = await api.get(eventPath('/evaluators/export'), { responseType: 'blob' })
+    downloadBlob(blob, 'evaluators_export.csv')
+  },
 }
 
 // ── Evaluations (judge scorecard submission) ──────────────────────────────
@@ -536,6 +565,23 @@ export const mentorApi = {
 
   // Participant-safe mentor info
   participantInfo: () => api.get(portalEventPath('/participant-mentor-info')),
+
+  // Import/Export
+  downloadTemplate: async () => {
+    const blob = await api.get(eventPath('/mentors/csv-template'), { responseType: 'blob' })
+    downloadBlob(blob, 'mentors_template.csv')
+  },
+  importCsv: (file, upsert = false) => {
+    const form = new FormData()
+    form.append('file', file)
+    return api.post(`${eventPath('/mentors/import')}?upsert=${upsert}`, form, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    })
+  },
+  downloadExport: async () => {
+    const blob = await api.get(eventPath('/mentors/export'), { responseType: 'blob' })
+    downloadBlob(blob, 'mentors_export.csv')
+  },
 }
 
 // ── System ─────────────────────────────────────────────────────────────────
