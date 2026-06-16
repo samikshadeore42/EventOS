@@ -89,12 +89,48 @@ def test_same_email_allowed_in_different_events(client, db_session):
     # Reset header
     client.headers.update({"X-Event-Id": str(TEST_EVENT_ID)})
 
-def test_export_returns_only_current_event_rows(client):
+def test_export_returns_only_current_event_rows(client, db_session):
+    from app.models.event import Event, EventStatus
+
+    event2_id = uuid.uuid4()
+    org_id = uuid.UUID("a1111111-1111-1111-1111-111111111111")
+
+    event2 = Event(
+        id=event2_id,
+        organization_id=org_id,
+        name="Export Isolation Event",
+        slug=f"export-isolation-{event2_id}",
+        event_type="hackathon",
+        active_capabilities=["mentors"],
+        status=EventStatus.ACTIVE,
+        is_legacy=False,
+    )
+    db_session.add(event2)
+    db_session.commit()
+
+    current_csv = b"first_name,last_name,email,organization,expertise_areas\nCurrent,Event,current-export@test.com,O1,AI\n"
+    other_csv = b"first_name,last_name,email,organization,expertise_areas\nOther,Event,other-export@test.com,O2,ML\n"
+
+    client.headers.update({"X-Event-Id": str(TEST_EVENT_ID)})
+    res1 = client.post(
+        f"/events/{TEST_EVENT_ID}/mentors/import?upsert=false",
+        files={"file": ("current.csv", io.BytesIO(current_csv), "text/csv")},
+    )
+    assert res1.status_code == 200
+
+    client.headers.update({"X-Event-Id": str(event2_id)})
+    res2 = client.post(
+        f"/events/{event2_id}/mentors/import?upsert=false",
+        files={"file": ("other.csv", io.BytesIO(other_csv), "text/csv")},
+    )
+    assert res2.status_code == 200
+
+    client.headers.update({"X-Event-Id": str(TEST_EVENT_ID)})
     res = client.get(f"/events/{TEST_EVENT_ID}/mentors/export")
+
     assert res.status_code == 200
-    assert "cross@test.com" in res.text
-    lines = res.text.strip().split("\n")
-    assert len(lines) > 1 # headers + at least 1 row
+    assert "current-export@test.com" in res.text
+    assert "other-export@test.com" not in res.text
 
 def test_disabled_mentors_capability_blocks_mentor_import(client, db_session):
     from app.models.event import Event, EventStatus
@@ -127,3 +163,29 @@ def test_disabled_evaluators_capability_blocks_evaluator_import(client, db_sessi
     assert "does not enable capability: evaluators" in res.json()["detail"]
 
     client.headers.update({"X-Event-Id": str(TEST_EVENT_ID)})
+
+def test_invalid_email_returns_row_error(client):
+    csv_content = b"first_name,last_name,email,organization,expertise_areas\nBad,Email,not-an-email,Org,AI\n"
+
+    res = client.post(
+        f"/events/{TEST_EVENT_ID}/mentors/import?upsert=false",
+        files={"file": ("bad.csv", io.BytesIO(csv_content), "text/csv")},
+    )
+
+    assert res.status_code == 200
+    assert res.json()["errors"] == 1
+    assert "Invalid email format" in res.json()["results"][0]["message"]
+
+
+def test_large_csv_rejected(client):
+    content = (
+        b"first_name,last_name,email,organization,expertise_areas\n"
+        + b"a" * (5 * 1024 * 1024 + 1)
+    )
+
+    res = client.post(
+        f"/events/{TEST_EVENT_ID}/mentors/import?upsert=false",
+        files={"file": ("large.csv", io.BytesIO(content), "text/csv")},
+    )
+
+    assert res.status_code == 413
