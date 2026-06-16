@@ -27,6 +27,9 @@ from app.models.notification import InAppNotification
 from app.models.notification_outbox import NotificationOutbox
 from app.models.risk import RiskSignal, TeamRiskSnapshot
 
+# Phase 10 & 12
+from app.models.daily_update import DailyUpdate
+
 __all__ = [
     # Phase 2 Models
     "Participant", "Team", "Mentor", "MentorAssignment", "MentorSession",
@@ -38,5 +41,8 @@ __all__ = [
     "PasswordResetToken", "AuditLog",
     "Template",
     "StageDefinition", "StageRun", "ScheduledAction", "StageTransition", "InAppNotification",
-    "NotificationOutbox", "RiskSignal", "TeamRiskSnapshot"
+    "NotificationOutbox", "RiskSignal", "TeamRiskSnapshot",
+
+    # Phase 10 & 12
+    "DailyUpdate",
 ]

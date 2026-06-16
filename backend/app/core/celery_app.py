@@ -88,5 +88,10 @@ celery_app.conf.beat_schedule = {
         "task":     "app.tasks.risk.process_risk_sweeps",
         "schedule": crontab(minute="*/30"),
     },
-}
 
+    # Phase 12 — Team Health Dashboard cache refresh + participant daily update reminders
+    "health-dashboard-refresh": {
+        "task":     "app.tasks.scheduler.refresh_health_dashboard",
+        "schedule": crontab(hour="*/1", minute=30),  # every hour at :30 (offset from score consolidation)
+    },
+}
