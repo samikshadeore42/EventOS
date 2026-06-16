@@ -636,17 +636,6 @@ export const dailyUpdatesApi = {
     api.get(`/daily-updates/team/${teamId}`),
 }
 
-// ── Team Health Dashboard (Phase 12) ──────────────────────────────────────
-export const healthDashboardApi = {
-  allTeams: () =>
-    api.get(eventPath('/health-dashboard/teams')),
-
-  team: (teamId) =>
-    api.get(eventPath(`/health-dashboard/team/${teamId}`)),
-
-  refresh: () =>
-    api.post(eventPath('/health-dashboard/refresh')),
-}
 
 export const anomalyApi = {
   // POST /events/{event_id}/anomalies/detect — enqueue statistical anomaly scan
