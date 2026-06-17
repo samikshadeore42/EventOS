@@ -754,7 +754,7 @@ export default function ParticipantPortal() {
 
   const { data: mentorData } = useQuery({
     queryKey: ['participant-mentor-info', urlToken],
-    ueryFn: () => mentorApi.participantInfo(urlToken),
+    queryFn: () => mentorApi.participantInfo(urlToken),
     enabled: !!urlToken && data?.participant_id != null,
     staleTime: 0,
     refetchInterval: 15000,

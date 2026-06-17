@@ -112,11 +112,11 @@ describe('EventOS Stage-1 Regression Tests', () => {
   it('2. Invalid admin input or authentication failure shows a safe message', async () => {
     axios.post.mockRejectedValueOnce(new Error('Invalid credentials'));
     renderWithProviders(<AuthLogin />);
-    
+
     fireEvent.change(screen.getByPlaceholderText('you@example.com (or username)'), { target: { value: 'admin' } });
     fireEvent.change(screen.getByPlaceholderText('••••••••'), { target: { value: 'wrong' } });
     fireEvent.click(screen.getByRole('button', { name: /sign in/i }));
-    
+
     await waitFor(() => {
       expect(screen.getByText(/Invalid credentials/i)).toBeInTheDocument();
     });
@@ -144,7 +144,7 @@ describe('EventOS Stage-1 Regression Tests', () => {
       }
       return Promise.resolve({});
     });
-    
+
     renderWithProviders(<ParticipantPortal />);
     await waitFor(() => {
       // It should NOT display "Secret Team" if it's not approved
@@ -164,7 +164,7 @@ describe('EventOS Stage-1 Regression Tests', () => {
       }
       return Promise.resolve({});
     });
-    
+
     renderWithProviders(<ParticipantPortal />);
     await waitFor(() => {
       expect(screen.getByText(/Published Team/i)).toBeInTheDocument();
@@ -183,7 +183,7 @@ describe('EventOS Stage-1 Regression Tests', () => {
       }
       return Promise.resolve({});
     });
-    
+
     renderWithProviders(<MentorPortal />);
     await waitFor(() => {
       expect(screen.getByText(/Assigned Team 1/i)).toBeInTheDocument();
@@ -204,7 +204,7 @@ describe('EventOS Stage-1 Regression Tests', () => {
       }
       return Promise.resolve({});
     });
-    
+
     renderWithProviders(<JudgePortal />);
     await waitFor(() => {
       expect(screen.getByText(/Evaluating Team/i)).toBeInTheDocument();
@@ -216,7 +216,7 @@ describe('EventOS Stage-1 Regression Tests', () => {
     axios.get.mockResolvedValueOnce({
       config: { current_stage: 'evaluation' }
     });
-    
+
     renderWithProviders(<AdminDashboard />);
     await waitFor(() => {
       // Admin dashboard usually shows the stage
@@ -326,13 +326,19 @@ describe('EventOS Stage-1 Regression Tests', () => {
     expect(axios.post).toHaveBeenCalledWith(
       `/events/${TEST_EVENT_ID}/mentors/import`,
       expect.any(FormData),
-      { params: { upsert: true } }
+      {
+        params: { upsert: true },
+        headers: { 'Content-Type': 'multipart/form-data' },
+      }
     );
     await evaluatorsApi.importCsv(file, false);
     expect(axios.post).toHaveBeenCalledWith(
       `/events/${TEST_EVENT_ID}/evaluators/import`,
       expect.any(FormData),
-      { params: { upsert: false } }
+      {
+        params: { upsert: false },
+        headers: { 'Content-Type': 'multipart/form-data' },
+      }
     );
   });
   it('15. Judge score submit uses the event embedded in the evaluator magic-link token', async () => {

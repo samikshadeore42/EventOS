@@ -71,7 +71,7 @@ function StatCard({ label, value, icon: Icon, colour = 'indigo' }) {
 }
 
 // ── Schedule meeting form ──────────────────────────────────────────────────
-ffunction ScheduleMeetingForm({ teamId, token, onSuccess }) {
+function ScheduleMeetingForm({ teamId, token, onSuccess }) {
   const qc = useQueryClient()
   const [form, setForm] = useState({
     title: '', meeting_url: '', scheduled_at: '', duration_minutes: 30, agenda: '',
@@ -80,7 +80,7 @@ ffunction ScheduleMeetingForm({ teamId, token, onSuccess }) {
   const mutation = useMutation({
     mutationFn: () => {
       const isoDate = new Date(form.scheduled_at).toISOString();
-      eturn mentorApi.createSession({ ...form, team_id: teamId, duration_minutes: +form.duration_minutes, scheduled_at: isoDate }, token)
+      return mentorApi.createSession({ ...form, team_id: teamId, duration_minutes: +form.duration_minutes, scheduled_at: isoDate }, token)
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['mentor-teams'] })

@@ -28,6 +28,15 @@ function isPublicAuthPath(url) {
   return PUBLIC_AUTH_PATHS.some((p) => url?.startsWith(p))
 }
 
+function tokenFromRequestUrl(url) {
+  if (!url) return null
+    try {
+      return new URL(url, BASE_URL).searchParams.get('token')
+    } catch {
+      return null
+    }
+}
+
 // ── Request interceptor ───────────────────────────────────────────────────
 // Injects:
 //   1. Authorization: Bearer <token> — for authenticated requests
@@ -35,15 +44,19 @@ function isPublicAuthPath(url) {
 //   3. ?token= query param           — for portal/evaluation routes
 api.interceptors.request.use(
   (config) => {
-    const token = sessionStorage.getItem(SESSION_KEY)
-    if (!token) return config
+    const sessionToken = sessionStorage.getItem(SESSION_KEY)
+    const explicitQueryToken = config.params?.token || tokenFromRequestUrl(config.url)
+    const authToken = explicitQueryToken || sessionToken
+    if (!authToken) return config
 
     // Always attach as Bearer header
     config.headers = config.headers ?? {}
-    config.headers['Authorization'] = `Bearer ${token}`
+    config.headers['Authorization'] = `Bearer ${authToken}`
 
     // Attach organization context for admin API calls (not public auth)
-    if (!isPublicAuthPath(config.url)) {
+    // Token-scoped portal links must not receive the currently selected org
+    // header; the event boundary comes from the signed magic-link token.
+    if (!isPublicAuthPath(config.url) && !explicitQueryToken) {
       const orgId = localStorage.getItem(ORG_KEY)
       if (orgId) {
         config.headers['X-Organization-Id'] = orgId
@@ -60,8 +73,8 @@ api.interceptors.request.use(
       config.url?.includes('/submissions') ||
       config.url?.includes('/daily-updates')
 
-    if (needsQueryToken) {
-      config.params = { ...config.params, token }
+    if (needsQueryToken && !explicitQueryToken && sessionToken) {
+      config.params = { ...config.params, token: sessionToken }
     }
 
     return config
@@ -403,6 +416,7 @@ export const evaluatorsApi = {
     form.append('file', file)
     return api.post(eventPath('/evaluators/import'), form, {
       params: { upsert },
+      headers: { 'Content-Type': 'multipart/form-data' },
     })
   },
 
@@ -616,6 +630,7 @@ export const mentorApi = {
     form.append('file', file)
     return api.post(eventPath('/mentors/import'), form, {
       params: { upsert },
+      headers: { 'Content-Type': 'multipart/form-data' },
     })
   },
   downloadExport: async () => {

@@ -3,7 +3,7 @@
 
 import { useState, useRef, useEffect } from 'react'
 import { useAuth } from '../context/AuthContext'
-+import { Building, CalendarDays, ChevronDown, LogOut } from 'lucide-react'
+import { Building, CalendarDays, ChevronDown, LogOut } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 
 export default function OrgSwitcher() {

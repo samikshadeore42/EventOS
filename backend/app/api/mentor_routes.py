@@ -36,12 +36,12 @@ portal_router = APIRouter(prefix="/events/{event_id}", tags=["Mentor Portal"])
 def _get_mentor_id(token: str, scope: ScopedEventService) -> UUID:
     payload = decode_access_token(token)
     verify_token_role(payload, "mentor")
-    
+
     # Cryptographic event boundary check
     token_event_id = payload.get("event_id")
     if str(token_event_id) != str(scope.event_id):
         raise HTTPException(status_code=403, detail="Token mismatch. This link belongs to a different event.")
-        
+
     return parse_uuid_subject(get_token_subject(payload), "mentor ID")
 
 
@@ -58,7 +58,7 @@ def list_mentors(
 
 
 @router.post("/mentors", summary="Create a new mentor", status_code=201)
-def create_mentor(data: MentorCreate, scope: ScopedEventService = Depends(get_event_scope)):
+def create_mentor(data: MentorCreate, scope: ScopedEventService = Depends(require_capability("mentors"))):
     mentor = MentorService.create_mentor(scope.event_id, scope.db, data)
     return MentorOut.model_validate(mentor).model_dump()
 
@@ -95,19 +95,19 @@ def export_mentors(scope: ScopedEventService = Depends(require_capability("mento
 
 
 @router.get("/mentors/{mentor_id}", summary="Get mentor by ID")
-def get_mentor(mentor_id: UUID, scope: ScopedEventService = Depends(get_event_scope)):
+def get_mentor(mentor_id: UUID, scope: ScopedEventService = Depends(require_capability("mentors"))):
     mentor = MentorService.get_mentor(scope.event_id, scope.db, mentor_id)
     return MentorOut.model_validate(mentor).model_dump()
 
 
 @router.patch("/mentors/{mentor_id}", summary="Update a mentor")
-def update_mentor(mentor_id: UUID, data: MentorUpdate, scope: ScopedEventService = Depends(get_event_scope)):
+def update_mentor(mentor_id: UUID, data: MentorUpdate, scope: ScopedEventService = Depends(require_capability("mentors"))):
     mentor = MentorService.update_mentor(scope.event_id, scope.db, mentor_id, data)
     return MentorOut.model_validate(mentor).model_dump()
 
 
 @router.delete("/mentors/{mentor_id}", summary="Deactivate a mentor")
-def deactivate_mentor(mentor_id: UUID, scope: ScopedEventService = Depends(get_event_scope)):
+def deactivate_mentor(mentor_id: UUID, scope: ScopedEventService = Depends(require_capability("mentors"))):
     return MentorService.deactivate_mentor(scope.event_id, scope.db, mentor_id)
 
 
@@ -115,7 +115,7 @@ def deactivate_mentor(mentor_id: UUID, scope: ScopedEventService = Depends(get_e
     "/mentors/{mentor_id}/send-access-link",
     summary="Send magic access link to mentor via existing email system",
 )
-def send_mentor_access_link(mentor_id: UUID, scope: ScopedEventService = Depends(get_event_scope)):
+def send_mentor_access_link(mentor_id: UUID, scope: ScopedEventService = Depends(require_capability("mentors"))):
     from app.models.mentor import MentorAssignment
     assignment_count = scope.db.query(MentorAssignment).filter(
         MentorAssignment.mentor_id == mentor_id,
@@ -135,23 +135,23 @@ def send_mentor_access_link(mentor_id: UUID, scope: ScopedEventService = Depends
 # ═══════════════════════════════════════════════════════════════════════════
 
 @router.get("/mentor-assignments", summary="List all active assignments")
-def list_assignments(scope: ScopedEventService = Depends(get_event_scope)):
+def list_assignments(scope: ScopedEventService = Depends(require_capability("mentors"))):
     return {"assignments": MentorService.list_assignments(scope.event_id, scope.db)}
 
 
 @router.post("/mentor-assignments", summary="Assign mentor to team", status_code=201)
-def assign_mentor(data: MentorAssignmentCreate, scope: ScopedEventService = Depends(get_event_scope)):
+def assign_mentor(data: MentorAssignmentCreate, scope: ScopedEventService = Depends(require_capability("mentors"))):
     assignment = MentorService.assign_mentor_to_team(scope.event_id, scope.db, data)
     return MentorAssignmentOut.model_validate(assignment).model_dump()
 
 
 @router.delete("/mentor-assignments/{assignment_id}", summary="Unassign mentor")
-def unassign_mentor(assignment_id: UUID, scope: ScopedEventService = Depends(get_event_scope)):
+def unassign_mentor(assignment_id: UUID, scope: ScopedEventService = Depends(require_capability("mentors"))):
     return MentorService.unassign_mentor_from_team(scope.event_id, scope.db, assignment_id)
 
 
 @router.get("/mentor-assignments/team/{team_id}", summary="Get mentor for a team")
-def get_team_mentor(team_id: UUID, scope: ScopedEventService = Depends(get_event_scope)):
+def get_team_mentor(team_id: UUID, scope: ScopedEventService = Depends(require_capability("mentors"))):
     mentor = MentorService.get_team_mentor(scope.event_id, scope.db, team_id)
     if not mentor:
         return {"mentor": None, "message": "No active mentor assigned."}
@@ -241,45 +241,45 @@ def mentor_team_feedback(
 # ═══════════════════════════════════════════════════════════════════════════
 
 @router.get("/mentor-ops/summary", summary="Mentor ops dashboard summary")
-def mentor_ops_summary(scope: ScopedEventService = Depends(get_event_scope)):
+def mentor_ops_summary(scope: ScopedEventService = Depends(require_capability("mentors"))):
     return MentorOpsService.get_ops_summary(scope.event_id, scope.db).model_dump()
 
 
 @router.get("/mentor-ops/risk-teams", summary="Risk scores for all teams")
-def risk_teams(scope: ScopedEventService = Depends(get_event_scope)):
+def risk_teams(scope: ScopedEventService = Depends(require_capability("mentors"))):
     teams = MentorOpsService.get_risk_teams(scope.event_id, scope.db)
     return {"teams": [t.model_dump() for t in teams]}
 
 
 @router.get("/mentor-ops/teams-without-mentor", summary="Approved teams without a mentor")
-def teams_without_mentor(scope: ScopedEventService = Depends(get_event_scope)):
+def teams_without_mentor(scope: ScopedEventService = Depends(require_capability("mentors"))):
     return {"teams": MentorOpsService.get_teams_without_mentor(scope.event_id, scope.db)}
 
 
 @router.get("/mentor-ops/teams-without-meeting", summary="Teams without upcoming meeting")
-def teams_without_meeting(scope: ScopedEventService = Depends(get_event_scope)):
+def teams_without_meeting(scope: ScopedEventService = Depends(require_capability("mentors"))):
     return {"teams": MentorOpsService.get_teams_without_meeting(scope.event_id, scope.db)}
 
 
 @router.get("/mentor-ops/missing-daily-updates", summary="Teams missing daily feedback")
-def missing_daily_updates(scope: ScopedEventService = Depends(get_event_scope)):
+def missing_daily_updates(scope: ScopedEventService = Depends(require_capability("mentors"))):
     return {"teams": MentorOpsService.get_teams_missing_daily_update(scope.event_id, scope.db)}
 
 
 @router.get("/mentor-ops/assignment-suggestions", summary="Skill-gap mentor assignment suggestions")
-def assignment_suggestions(scope: ScopedEventService = Depends(get_event_scope)):
+def assignment_suggestions(scope: ScopedEventService = Depends(require_capability("mentors"))):
     suggestions = MentorOpsService.get_assignment_suggestions_by_skill_gap(scope.event_id, scope.db)
     return {"suggestions": [s.model_dump() for s in suggestions]}
 
 
 @router.post("/mentor-ops/reminders/daily", summary="Send daily mentor reminders")
-def send_daily_reminders(scope: ScopedEventService = Depends(get_event_scope)):
+def send_daily_reminders(scope: ScopedEventService = Depends(require_capability("mentors"))):
     result = MentorOpsService.queue_daily_mentor_reminders(scope.event_id, scope.db)
     return result.model_dump()
 
 
 @router.post("/mentor-ops/ai-summary", summary="Generate AI mentor summary for a team")
-def generate_ai_summary(data: AISummaryRequest, scope: ScopedEventService = Depends(get_event_scope)):
+def generate_ai_summary(data: AISummaryRequest, scope: ScopedEventService = Depends(require_capability("mentors"))):
     from app.services.ai_service import AIService
 
     payload = MentorOpsService.build_ai_summary_payload(scope.event_id, scope.db, data.team_id)
@@ -325,12 +325,12 @@ def participant_mentor_info(
 ):
     payload = decode_access_token(token)
     verify_token_role(payload, "participant")
-    
+
     # Cryptographic check
     token_event_id = payload.get("event_id")
     if str(token_event_id) != str(scope.event_id):
         raise HTTPException(status_code=403, detail="Token mismatch.")
-        
+
     participant_id = parse_uuid_subject(get_token_subject(payload), "participant ID")
 
     from app.models.participant import Participant
@@ -338,7 +338,7 @@ def participant_mentor_info(
         Participant.id == participant_id,
         Participant.event_id == scope.event_id
     ).first()
-    
+
     if not participant or not participant.team_id:
         return ParticipantMentorInfo().model_dump()
 
