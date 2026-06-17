@@ -149,6 +149,37 @@ def list_templates(
         Template.is_system_template == True,
     ).order_by(Template.name.asc()).all()
 
+@router.delete("/events/{event_id}", status_code=200)
+def delete_event(
+    event_id: uuid_lib.UUID,
+    db: Session = Depends(get_db),
+    membership=Depends(RequireOrganizationRole("owner", "admin")),
+):
+    event = db.query(Event).filter(
+        Event.id == event_id,
+        Event.organization_id == membership.organization_id,
+    ).first()
+
+    if not event:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Event not found in this organization.",
+        )
+
+    deleted = {
+        "event_id": str(event.id),
+        "name": event.name,
+        "slug": event.slug,
+    }
+
+    db.delete(event)
+    db.commit()
+
+    return {
+        "deleted": True,
+        "event": deleted,
+        "message": f"Event '{deleted['name']}' deleted successfully.",
+    }
 
 @router.get("/events", response_model=list[EventResponse])
 def list_events(

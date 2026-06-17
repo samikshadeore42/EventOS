@@ -360,7 +360,7 @@ function ParticipantsTab() {
             <option value="true">Assigned</option>
           </select>
         </div>
-        
+
         {/* Bulk Send Button */}
         <button
           onClick={() => {
@@ -524,10 +524,10 @@ function TeamsTab() {
   // Run mutation
   const runMutation = useMutation({
     mutationFn: () => solverApi.run(config),
-    onSuccess: (res) => { 
-      setTaskId(res.task_id); 
+    onSuccess: (res) => {
+      setTaskId(res.task_id);
       localStorage.setItem('solverTaskId', res.task_id);
-      setCommitted(false); 
+      setCommitted(false);
     },
   })
 
@@ -1066,7 +1066,7 @@ function EvaluatorsTab() {
 
   const { data, isLoading } = useQuery({ queryKey: ['evaluators'], queryFn: evaluatorsApi.list })
   const { data: teamsData } = useQuery({ queryKey: ['all-teams'], queryFn: approvalsApi.all })
-  
+
   // Fetch assignments for expanded evaluator
   const { data: assignData } = useQuery({
     queryKey: ['evaluator-assignments', expandedEval],
@@ -1392,7 +1392,7 @@ function LeaderboardTab() {
 
   const exportCSV = () => {
     if (!lb?.leaderboard?.length) return
-    
+
     const headers = ['Rank', 'Team', 'Technical', 'Innovation', 'Presentation', 'Total Score', 'Status']
     const rows = lb.leaderboard.map(t => [
       t.rank ?? '-',
@@ -1403,12 +1403,12 @@ function LeaderboardTab() {
       t.weighted_total?.toFixed(2) ?? '-',
       t.has_flags ? 'Flagged' : 'OK'
     ])
-    
+
     const csvContent = [
       headers.join(','),
       ...rows.map(e => e.map(f => `"${String(f).replace(/"/g, '""')}"`).join(','))
     ].join('\n')
-    
+
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' })
     const link = document.createElement('a')
     link.href = URL.createObjectURL(blob)
@@ -1420,10 +1420,10 @@ function LeaderboardTab() {
 
   const exportPDF = () => {
     if (!lb?.leaderboard?.length) return
-    
+
     const doc = new jsPDF()
     doc.text('EventOS Leaderboard', 14, 15)
-    
+
     const headers = [['Rank', 'Team', 'Technical', 'Innovation', 'Presentation', 'Total Score', 'Status']]
     const data = lb.leaderboard.map(t => [
       t.rank ?? '-',
@@ -1434,7 +1434,7 @@ function LeaderboardTab() {
       t.weighted_total?.toFixed(2) ?? '-',
       t.has_flags ? 'Flagged' : 'OK'
     ])
-    
+
     autoTable(doc, {
       head: headers,
       body: data,
@@ -1442,7 +1442,7 @@ function LeaderboardTab() {
       theme: 'grid',
       headStyles: { fillColor: [79, 70, 229] }
     })
-    
+
     doc.save('leaderboard.pdf')
     showToast('PDF exported successfully')
   }
@@ -2456,7 +2456,7 @@ function HealthTab() {
 // ── TAB 9: ANOMALY SCANNER ──────────────────────────────────────────────────
 function AnomalyTab() {
   const qc = useQueryClient()
-  
+
   const [explanations, setExplanations] = useState({})
 
   const generateExplanation = async (team) => {
@@ -2536,9 +2536,9 @@ function AnomalyTab() {
           </h2>
           <p className="text-sm text-slate-500 mt-1">Real-time monitoring of judge evaluations and score distributions.</p>
         </div>
-        
+
         {totalFlagged > 0 && (
-          <button 
+          <button
             onClick={() => { if(window.confirm('Override all flagged scorecards?')) overrideAllMutation.mutate() }}
             disabled={overrideAllMutation.isPending}
             className="btn-secondary px-4 py-2 rounded-lg flex items-center gap-2 text-sm text-amber-600 hover:text-amber-700 border-amber-200"
@@ -2554,7 +2554,7 @@ function AnomalyTab() {
         <div className="glass-card p-5 rounded-xl border border-slate-200">
           <p className="text-xs font-medium text-slate-500 uppercase mb-1">Total Flagged Teams</p>
           <p className="text-3xl font-bold text-red-600">{totalFlagged}</p>
-          
+
           <div className="mt-4 pt-4 border-t border-slate-200">
             <p className="text-xs text-slate-500 mb-2">Historical Frequency</p>
             <div className="flex items-end h-8 gap-1">
@@ -2566,7 +2566,7 @@ function AnomalyTab() {
             </div>
           </div>
         </div>
-        
+
         <div className="glass-card p-5 rounded-xl border border-slate-200 flex flex-col justify-between">
           <div>
             <p className="text-xs font-medium text-slate-500 uppercase mb-1">Sweep Status</p>
@@ -2581,7 +2581,7 @@ function AnomalyTab() {
              </div>
           </div>
         </div>
-        
+
         <div className="glass-card p-5 rounded-xl border border-slate-200 flex flex-col justify-between">
           <div>
             <p className="text-xs font-medium text-slate-500 uppercase mb-1">AI Confidence Score</p>
@@ -2648,9 +2648,9 @@ function AnomalyTab() {
                   <p><span className="text-slate-500">Detector Confidence:</span> 99.4%</p>
                 </div>
               </div>
-              
+
               <div className="flex flex-col gap-2 min-w-[160px]">
-                <button 
+                <button
                   onClick={() => { if(window.confirm(`Override flag for ${team.team_name}?`)) overrideMutation.mutate(team.id) }}
                   disabled={overrideMutation.isPending}
                   className="btn-secondary px-4 py-2 rounded-lg text-sm flex justify-center items-center gap-2 border-indigo-200 hover:border-indigo-400/60"
@@ -2823,8 +2823,9 @@ function RiskTab() {
 // ── TAB: DEMO CONTROLS ───────────────────────────────────────────────────
 function DemoControlsTab() {
   const qc = useQueryClient()
+  const { activeEvent, loadEvents } = useAuth()
+  const [deleteEventConfirm, setDeleteEventConfirm] = useState('')
   const [confirmText, setConfirmText] = useState('')
-
   const [auditResult, setAuditResult] = useState(null);
   const [auditError, setAuditError] = useState('');
   const [isAuditing, setIsAuditing] = useState(false);
@@ -2879,7 +2880,7 @@ function DemoControlsTab() {
     },
     onError: (err) => alert('Error: ' + (err.response?.data?.detail || err.message))
   })
-  
+
   const stepMutation = useMutation({
     mutationFn: (dir) => dir === 'next' ? eventStateApi.next() : eventStateApi.previous(),
     onSuccess: () => {
@@ -2889,11 +2890,22 @@ function DemoControlsTab() {
     onError: (err) => alert('Error: ' + (err.response?.data?.detail || err.message))
   })
 
+  const deleteEventMutation = useMutation({
+    mutationFn: () => eventsApi.remove(activeEvent.id),
+    onSuccess: async (res) => {
+      alert(res?.data?.message || res?.message || 'Event deleted successfully.')
+      setDeleteEventConfirm('')
+      qc.clear()
+      await loadEvents()
+    },
+    onError: (err) => alert('Error: ' + (err.response?.data?.detail || err.message))
+  })
+
   return (
     <div>
       <div className="mb-8">
         <h2 className="text-lg font-semibold text-slate-900 mb-4">Demo Controls</h2>
-        
+
         <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-6">
           <StatCard label="Participants" value={status?.participants} colour="indigo" />
           <StatCard label="Teams" value={status?.teams} colour="teal" />
@@ -2926,8 +2938,44 @@ function DemoControlsTab() {
               {resetMutation.isPending ? <Loader2 size={16} className="animate-spin" /> : <Trash2 size={16} />}
               Reset Data
             </button>
+                    </div>
+        </div>
+
+        <div className="glass-card rounded-xl border border-red-500/50 p-6 bg-red-900/10 mb-8">
+          <h3 className="text-base font-bold text-red-600 flex items-center gap-2 mb-2">
+            <AlertTriangle size={18} /> Delete Current Event
+          </h3>
+          <p className="text-sm text-slate-500 mb-2">
+            This permanently deletes the selected event and its event-scoped data. Use this only for demo/test events.
+          </p>
+          <p className="text-sm font-semibold text-slate-800 mb-4">
+            Selected event: {activeEvent?.name || 'No event selected'}
+          </p>
+
+          <div className="flex flex-col md:flex-row gap-3 md:items-center">
+            <input
+              type="text"
+              value={deleteEventConfirm}
+              onChange={(e) => setDeleteEventConfirm(e.target.value)}
+              placeholder="Type DELETE_EVENT"
+              className="bg-white shadow-sm border border-red-200 text-slate-900 rounded-lg px-4 py-2 text-sm focus:outline-none focus:border-red-500 w-full md:w-64"
+            />
+
+            <button
+              onClick={() => {
+                if (window.confirm(`Delete event "${activeEvent?.name}" permanently?`)) {
+                  deleteEventMutation.mutate()
+                }
+              }}
+              disabled={!activeEvent?.id || deleteEventConfirm !== 'DELETE_EVENT' || deleteEventMutation.isPending}
+              className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white text-sm font-medium rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+            >
+              {deleteEventMutation.isPending ? <Loader2 size={16} className="animate-spin" /> : <Trash2 size={16} />}
+              Delete Event
+            </button>
           </div>
         </div>
+
         <div className="mb-8">
           <h2 className="text-lg font-semibold text-white mb-4">Security & Integrity</h2>
           <div className="glass-card rounded-xl border border-slate-700/50 p-6">
@@ -2938,7 +2986,7 @@ function DemoControlsTab() {
                 </h3>
                 <p className="text-sm text-slate-400 mt-1">Cryptographically verify that no scorecards have been manipulated.</p>
               </div>
-              <button 
+              <button
                 onClick={runSecurityAudit}
                 disabled={isAuditing}
                 className="bg-indigo-600 hover:bg-indigo-500 text-white px-4 py-2 rounded-lg text-sm font-medium transition-all disabled:opacity-50 flex items-center gap-2"
@@ -2952,13 +3000,13 @@ function DemoControlsTab() {
               <div className={`p-4 rounded-xl border ${auditResult.is_secure ? 'bg-emerald-900/20 border-emerald-500/30' : 'bg-red-900/20 border-red-500/30'}`}>
                 {auditResult.is_secure ? (
                   <p className="text-emerald-400 text-sm font-medium flex items-center gap-2">
-                    <ShieldCheck size={18} /> 
+                    <ShieldCheck size={18} />
                     Secure: {auditResult.total_audited} scorecards cryptographically verified. No tampering detected.
                   </p>
                 ) : (
                   <div>
                     <p className="text-red-400 text-sm font-bold flex items-center gap-2 mb-2">
-                      <ShieldAlert size={18} /> 
+                      <ShieldAlert size={18} />
                       CRITICAL ALERT: Database tampering detected!
                     </p>
                     <ul className="text-xs text-red-300 list-disc pl-5 space-y-1">
@@ -2999,10 +3047,10 @@ function DemoControlsTab() {
               </button>
             </div>
           </div>
-          
+
           <div>
             <label className="block text-xs font-medium text-slate-500 mb-2">Jump directly to stage:</label>
-            <select 
+            <select
               value={eventState?.current_stage || ''}
               onChange={e => stageMutation.mutate(e.target.value)}
               className="w-full md:w-64 bg-white shadow-sm text-slate-900 border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
