@@ -156,6 +156,7 @@ class MentorTeamMemberOut(BaseModel):
     name: str
     institution: str
     skills: dict = {}
+    latest_daily_update: Optional[dict] = None
 
 
 class MentorTeamOut(BaseModel):
@@ -167,6 +168,7 @@ class MentorTeamOut(BaseModel):
     latest_progress_score: Optional[float] = None
     risk_level: Optional[str] = None
     feedback_count: int = 0
+    participant_updates_today: int = 0
 
 
 class MentorPortalMe(BaseModel):

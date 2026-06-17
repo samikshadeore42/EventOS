@@ -107,9 +107,8 @@ function CriterionSlider({ criterion, value, onChange }) {
 
 // ── Scoring form ──────────────────────────────────────────────────────────
 
-function ScoringForm({ team, onSubmitted, alreadySubmitted }) {
-  const { token } = useAuth()
-  const urlToken = useMemo(() => new URLSearchParams(window.location.search).get('token') || token, [token])
+function ScoringForm({ team, onSubmitted, alreadySubmitted, token }) {
+  const urlToken = token
   const [scores, setScores]         = useState(DEFAULT_SCORES)
   const [confirming, setConfirming] = useState(false)
 
@@ -235,9 +234,8 @@ function ScoringForm({ team, onSubmitted, alreadySubmitted }) {
 
 // ── Team submission download section ───────────────────────────────────────
 
-function TeamSubmissionSection({ teamId }) {
-  const { token } = useAuth()
-  const urlToken = useMemo(() => new URLSearchParams(window.location.search).get('token') || token, [token])
+function TeamSubmissionSection({ teamId, token }) {
+  const urlToken = token
   const [downloading, setDownloading] = useState(false)
 
   const { data, isLoading, error } = useQuery({
@@ -385,7 +383,7 @@ export default function JudgePortal() {
   useEffect(() => {
     if (eventId) eventStorage.set(eventId)
   }, [eventId])
-  const { token, setToken } = useAuth()
+  const { setToken } = useAuth()
   const [selectedTeam, setSelectedTeam]   = useState(null)
   const [submittedIds, setSubmittedIds]   = useState([])
 
@@ -431,16 +429,26 @@ export default function JudgePortal() {
 
   // Extract token from URL on mount (AuthContext also does this globally,
   // but we grab it here directly for the query so it runs immediately)
-  const urlToken = useMemo(() => {
-    return new URLSearchParams(window.location.search).get('token') || token
-  }, [token])
-
-  // Set token into session if it came from URL
-  useEffect(() => {
-    const t = new URLSearchParams(window.location.search).get('token')
-    if (t) setToken(t)
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    const rawUrlToken = useMemo(() => {
+    return new URLSearchParams(window.location.search).get('token')
   }, [])
+
+  const evaluatorPortalTokenKey = eventId
+    ? `eventos_portal_evaluator_token_${eventId}`
+    : null
+
+  const urlToken = useMemo(() => {
+    if (rawUrlToken) return rawUrlToken
+    return evaluatorPortalTokenKey
+      ? sessionStorage.getItem(evaluatorPortalTokenKey)
+      : null
+  }, [rawUrlToken, evaluatorPortalTokenKey])
+
+  useEffect(() => {
+    if (!rawUrlToken || !evaluatorPortalTokenKey) return
+    sessionStorage.setItem(evaluatorPortalTokenKey, rawUrlToken)
+    setToken(rawUrlToken)
+  }, [rawUrlToken, evaluatorPortalTokenKey, setToken])
 
   const { data: portalData, isLoading, error } = useQuery({
     queryKey:  ['portal-access', urlToken],
@@ -623,7 +631,7 @@ export default function JudgePortal() {
 
           {/* Project Submission — download section */}
             {selectedTeam && (
-              <TeamSubmissionSection teamId={selectedTeam.team_id} />
+              <TeamSubmissionSection teamId={selectedTeam.team_id} token={urlToken} />
             )}
 
             {/* Scoring form */}
@@ -631,6 +639,7 @@ export default function JudgePortal() {
               <ScoringForm
                 key={selectedTeam.team_id}
                 team={selectedTeam}
+                token={urlToken}
                 onSubmitted={handleSubmitted}
                 alreadySubmitted={
                   submittedIds.includes(selectedTeam.team_id) ||

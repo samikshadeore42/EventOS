@@ -2,7 +2,7 @@
 // Accessed via /portal?token=<JWT>  — read-only, full-page layout.
 // Flow: extract token → GET /portal/access → render personalised journey.
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useParams, useSearchParams } from 'react-router-dom';
 import {
@@ -725,23 +725,31 @@ function ProgressionInvitationSection({ participantId, currentStatus }) {
 }
 // ── Main ParticipantPortal ────────────────────────────────────────────────
 export default function ParticipantPortal() {
-  const { eventId } = useParams(); // Gets 'd468a1b2...' from the URL
-  const [searchParams] = useSearchParams();
-  const token = searchParams.get('token');
-  const { setToken } = useAuth();
+  const { eventId } = useParams()
+  const [searchParams] = useSearchParams()
+  const rawUrlToken = searchParams.get('token')
+  const { setToken } = useAuth()
 
-  // const { token, setToken } = useAuth()
+  const participantPortalTokenKey = eventId
+    ? `eventos_portal_participant_token_${eventId}`
+    : null
 
-  const urlToken =token
+  const urlToken = useMemo(() => {
+    if (rawUrlToken) return rawUrlToken
+    return participantPortalTokenKey
+      ? sessionStorage.getItem(participantPortalTokenKey)
+      : null
+  }, [rawUrlToken, participantPortalTokenKey])
+
   useEffect(() => {
     if (eventId) eventStorage.set(eventId)
   }, [eventId])
 
   useEffect(() => {
-    const t = new URLSearchParams(window.location.search).get('token')
-    if (t) setToken(t)
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
+    if (!rawUrlToken || !participantPortalTokenKey) return
+    sessionStorage.setItem(participantPortalTokenKey, rawUrlToken)
+    setToken(rawUrlToken)
+  }, [rawUrlToken, participantPortalTokenKey, setToken])
 
   const { data, isLoading, error } = useQuery({
     queryKey:  ['portal-access', urlToken],

@@ -299,11 +299,32 @@ function TeamCard({ team, token }) {
                   <div className="min-w-0">
                     <p className="text-xs font-bold text-slate-800 truncate">{m.name}</p>
                     <p className="text-[11px] font-medium text-slate-500 truncate">{m.institution}</p>
-                    {m.skills && Object.keys(m.skills).length > 0 && (
+                                        {m.skills && Object.keys(m.skills).length > 0 && (
                       <div className="flex gap-1 mt-0.5 flex-wrap">
                         {Object.entries(m.skills).slice(0, 3).map(([k, v]) => (
                           <span key={k} className="text-[10px] font-bold bg-slate-100 border border-slate-200 text-slate-600 px-1.5 py-0.5 rounded">{k}: {Number(v).toFixed(0)}</span>
                         ))}
+                      </div>
+                    )}
+
+                    {m.latest_daily_update && (
+                      <div className="mt-2 rounded-lg border border-teal-100 bg-teal-50 p-2">
+                        <p className="text-[11px] font-bold text-teal-700">
+                          Latest update · {m.latest_daily_update.update_date}
+                        </p>
+                        <p className="text-[11px] text-slate-700 mt-1">
+                          {m.latest_daily_update.what_i_built}
+                        </p>
+                        {m.latest_daily_update.blockers && (
+                          <p className="text-[11px] text-amber-700 mt-1">
+                            Blocker: {m.latest_daily_update.blockers}
+                          </p>
+                        )}
+                        {m.latest_daily_update.hours_worked != null && (
+                          <p className="text-[11px] text-slate-500 mt-1">
+                            Hours: {m.latest_daily_update.hours_worked}
+                          </p>
+                        )}
                       </div>
                     )}
                   </div>
