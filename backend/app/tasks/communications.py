@@ -292,7 +292,15 @@ def send_password_reset_email(self, to_email: str, recipient_name: str, reset_li
     name="app.tasks.communications.send_invitation_email",
     max_retries=3,
 )
-def send_invitation_email(self, to_email: str, organization_name: str, inviter_name: str, role: str, invite_link: str):
+def send_invitation_email(
+    self,
+    to_email: str,
+    organization_name: str,
+    inviter_name: str,
+    role: str,
+    invite_link: str,
+    event_id: str | None = None,
+):
     try:
         norm_email = to_email.strip().lower()
         idem_key = f"{self.request.id}:invitation:{norm_email}"
@@ -303,7 +311,8 @@ def send_invitation_email(self, to_email: str, organization_name: str, inviter_n
             inviter_name=inviter_name,
             role=role,
             invite_link=invite_link,
-            idempotency_key=idem_key
+            event_id=event_id,
+            idempotency_key=idem_key,
         )
         if not result.get("success"):
             raise Exception(result.get("error", "Unknown SendGrid error"))

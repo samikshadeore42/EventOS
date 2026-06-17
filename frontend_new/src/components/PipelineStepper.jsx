@@ -137,11 +137,13 @@ export default function PipelineStepper({ showAdvanceButton = false, className =
   const activeStage = sortedStages[activeIndex]
 
   const advanceMutation = useMutation({
-    mutationFn: () => stagesApi.advance(activeStage.id),
+    mutationFn: () => stagesApi.advanceRun(),
     onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ['stages'] })
+      qc.invalidateQueries({ queryKey: ['stages', 'runs', activeEventId] })
+      qc.invalidateQueries({ queryKey: ['stages', 'list', activeEventId] })
+      qc.invalidateQueries({ queryKey: ['event-state', activeEventId] })
     },
-  })
+})
 
   if (stagesLoading) return <SkeletonStepper />
 
@@ -216,7 +218,7 @@ export default function PipelineStepper({ showAdvanceButton = false, className =
 
       {advanceMutation.isError && (
         <p className="mt-3 text-xs text-red-500">
-          {advanceMutation.error?.message || 'Failed to advance stage.'}
+          {advanceMutation.error?.response?.data?.detail || advanceMutation.error?.message || 'Failed to advance stage.'}
         </p>
       )}
     </div>

@@ -757,6 +757,7 @@ export const stagesApi = {
   generateRuns: ()        => api.post(eventPath('/stages/runs/generate')),
   advance:  (id, force = false) => api.post(eventPath(`/stages/${id}/advance`), null, { params: { force } }),
   approve:  (id)          => api.post(eventPath(`/stages/${id}/approve`)),
+   advanceRun: ()          => api.post(eventPath('/stages/runs/advance')),
 }
 
 // ── Event lifecycle (Phase 4 Hard Gate) ──────────────────────

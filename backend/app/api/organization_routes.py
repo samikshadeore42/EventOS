@@ -177,13 +177,26 @@ def invite_admin(
     invite_link = f"{frontend_base}/auth/accept-invitation?token={raw_token}"
     email_queued = True
     try:
+        from app.models.event import Event
         from app.tasks.communications import send_invitation_email
+
+        event = db.query(Event).filter(
+            Event.organization_id == org.id,
+        ).order_by(Event.created_at.asc()).first()
+
+        if not event:
+            raise HTTPException(
+                status_code=400,
+                detail="Create an event before inviting organization admins.",
+            )
+
         send_invitation_email.delay(
             data.email,
             org.name if org else "EventOS Organization",
             f"{inviter.first_name} {inviter.last_name}" if inviter else "An admin",
             data.role,
-            invite_link
+            invite_link,
+            str(event.id),
         )
     except Exception as e:
         email_queued = False

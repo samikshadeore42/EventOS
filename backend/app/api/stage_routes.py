@@ -1,21 +1,25 @@
 # backend/app/api/stage_routes.py
 import uuid
+from datetime import datetime, timezone
 from typing import List
 
-from fastapi import APIRouter, Depends, status
+from fastapi import APIRouter, Depends, HTTPException, status
 
 from app.core.auth_deps import get_current_user
+from app.core.capabilities import require_capability
+from app.models.stage_definition import StageDefinition
+from app.models.stage_run import StageRun
 from app.models.user import User
-from app.services.event_scope import ScopedEventService, get_event_scope
-from app.services.stage_service import StageService
 from app.schemas.stage_schemas import (
+    ScheduleValidationReport,
     StageDefinitionCreate,
     StageDefinitionResponse,
     StageDefinitionUpdate,
     StageReorderRequest,
     StageRunResponse,
-    ScheduleValidationReport,
 )
+from app.services.event_scope import ScopedEventService, get_event_scope
+from app.services.stage_service import StageService
 
 # Router is mounted in main.py under `legacy_dependency` (RequireOrganizationRole
 # 'owner','admin'), so owner/admin is already enforced at the include level.
@@ -65,12 +69,79 @@ def reorder_stages(
 def list_stage_runs(scope: ScopedEventService = Depends(get_event_scope)):
     return _svc(scope).list_stage_runs()
 
-
 @router.post("/runs/generate")
 def generate_stage_runs(scope: ScopedEventService = Depends(get_event_scope)):
     created = _svc(scope).generate_stage_runs()
     return {"message": "Stage runs generated", "runs_created": created}
 
+@router.post("/runs/advance")
+def advance_stage_run(
+    scope: ScopedEventService = Depends(get_event_scope),
+):
+    db = scope.db
+
+    runs = (
+        db.query(StageRun)
+        .join(StageDefinition, StageRun.stage_definition_id == StageDefinition.id)
+        .filter(StageRun.event_id == scope.event_id)
+        .order_by(StageDefinition.position.asc())
+        .all()
+    )
+
+    if not runs:
+        raise HTTPException(
+            status_code=400,
+            detail="Generate stage runs before advancing stages.",
+        )
+
+    active_index = next(
+        (index for index, run in enumerate(runs) if run.status == "active"),
+        None,
+    )
+
+    if active_index is None:
+        first_pending = next((run for run in runs if run.status == "pending"), None)
+        if not first_pending:
+            raise HTTPException(
+                status_code=400,
+                detail="No pending stage is available to start.",
+            )
+
+        first_pending.status = "active"
+        first_pending.started_at = datetime.now(timezone.utc)
+        db.commit()
+        db.refresh(first_pending)
+        return {
+            "message": "Stage started.",
+            "active_stage_run_id": str(first_pending.id),
+            "status": first_pending.status,
+        }
+
+    current_run = runs[active_index]
+    current_run.status = "completed"
+    current_run.ended_at = datetime.now(timezone.utc)
+
+    next_run = None
+    for run in runs[active_index + 1:]:
+        if run.status == "pending":
+            next_run = run
+            break
+
+    if next_run:
+        next_run.status = "active"
+        next_run.started_at = datetime.now(timezone.utc)
+        message = "Advanced to next stage."
+        active_stage_run_id = str(next_run.id)
+    else:
+        message = "All stages are completed."
+        active_stage_run_id = None
+
+    db.commit()
+
+    return {
+        "message": message,
+        "active_stage_run_id": active_stage_run_id,
+    }
 
 # ── single stage ─────────────────────────────────────────────────────────────
 
@@ -120,3 +191,4 @@ def approve_stage(
     """Phase 6 approval gate: release a stage that is awaiting_approval (a manual
     transition that reached its start time) so it becomes active."""
     return _svc(scope).approve_stage(stage_id, actor_user_id=actor.id)
+
