@@ -49,14 +49,14 @@ def update_organization(
     org = db.query(Organization).filter(Organization.id == organization_id).first()
     if not org:
         raise HTTPException(404, "Organization not found")
-    
+
     if data.name is not None:
         org.name = data.name
     if data.description is not None:
         org.description = data.description
     if data.logo_url is not None:
         org.logo_url = data.logo_url
-    
+
     org.updated_at = datetime.now(timezone.utc)
     AuditService.log_action(db, "organization.updated", actor_user_id=membership.user_id, organization_id=organization_id)
     db.commit()
@@ -72,7 +72,7 @@ def list_members(
     memberships = db.query(OrganizationMembership).filter(
         OrganizationMembership.organization_id == organization_id
     ).all()
-    
+
     results = []
     for m in memberships:
         results.append({
@@ -102,7 +102,7 @@ def change_member_role(
         OrganizationMembership.id == membership_id,
         OrganizationMembership.organization_id == organization_id
     ).first()
-    
+
     if not target:
         raise HTTPException(404, "Membership not found")
 
@@ -110,7 +110,7 @@ def change_member_role(
     if current_membership.role == 'admin':
         if target.role == 'owner' or role == 'owner':
             raise HTTPException(403, "Admins cannot manage owners")
-            
+
     if OrganizationService.is_last_active_owner(db, organization_id, target.user_id):
         if role != 'owner':
             raise HTTPException(400, "Cannot demote the last owner")
@@ -136,14 +136,14 @@ def change_member_status(
         OrganizationMembership.id == membership_id,
         OrganizationMembership.organization_id == organization_id
     ).first()
-    
+
     if not target:
         raise HTTPException(404, "Membership not found")
 
     # Policy checks
     if current_membership.role == 'admin' and target.role == 'owner':
         raise HTTPException(403, "Admins cannot manage owners")
-            
+
     if OrganizationService.is_last_active_owner(db, organization_id, target.user_id):
         if status != 'active':
             raise HTTPException(400, "Cannot suspend the last owner")
@@ -162,11 +162,11 @@ def invite_admin(
 ):
     if current_membership.role == 'admin' and data.role == 'owner':
         raise HTTPException(403, "Admins cannot invite owners")
-        
+
     invitation, raw_token = InvitationService.create_invitation(
         db, organization_id, data.email, data.role, current_membership.user_id
     )
-    
+
     AuditService.log_action(db, "admin.invited", actor_user_id=current_membership.user_id, organization_id=organization_id, metadata={"role": data.role})
     db.commit()
 
@@ -184,19 +184,13 @@ def invite_admin(
             Event.organization_id == org.id,
         ).order_by(Event.created_at.asc()).first()
 
-        if not event:
-            raise HTTPException(
-                status_code=400,
-                detail="Create an event before inviting organization admins.",
-            )
-
         send_invitation_email.delay(
             data.email,
             org.name if org else "EventOS Organization",
             f"{inviter.first_name} {inviter.last_name}" if inviter else "An admin",
             data.role,
             invite_link,
-            str(event.id),
+            str(event.id) if event else None,
         )
     except Exception as e:
         email_queued = False
@@ -235,10 +229,10 @@ def revoke_invitation(
         AdminInvitation.id == invitation_id,
         AdminInvitation.organization_id == organization_id
     ).first()
-    
+
     if not invitation:
         raise HTTPException(404, "Invitation not found")
-        
+
     if current_membership.role == 'admin' and invitation.role == 'owner':
         raise HTTPException(403, "Admins cannot revoke owner invitations")
 

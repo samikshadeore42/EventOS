@@ -191,4 +191,3 @@ def approve_stage(
     """Phase 6 approval gate: release a stage that is awaiting_approval (a manual
     transition that reached its start time) so it becomes active."""
     return _svc(scope).approve_stage(stage_id, actor_user_id=actor.id)
-

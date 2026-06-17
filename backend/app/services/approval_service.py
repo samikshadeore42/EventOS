@@ -35,15 +35,15 @@ class ApprovalService:
     @staticmethod
     def get_member_counts_batch(event_id: uuid.UUID, team_ids: list, db: Session) -> dict:
         """
-        OPTIMIZED: Returns a dictionary mapping {team_id_string: member_count_integer} 
+        OPTIMIZED: Returns a dictionary mapping {team_id_string: member_count_integer}
         for a batch list of targeted team IDs using a single SQL GROUP BY query.
         """
         from sqlalchemy import func
         from app.models.participant import Participant
-        
+
         if not team_ids:
             return {}
-        
+
         rows = (
             db.query(Participant.team_id, func.count(Participant.id).label("cnt"))
             .filter(Participant.team_id.in_(team_ids))
@@ -51,10 +51,10 @@ class ApprovalService:
             .group_by(Participant.team_id)
             .all()
         )
-        
+
         return {str(row.team_id): row.cnt for row in rows}
-        
-            
+
+
     @staticmethod
     def get_team_by_id(event_id: uuid.UUID, team_id: UUID, db: Session) -> Team:
         """
@@ -185,7 +185,7 @@ class ApprovalService:
             "message":       f"Bulk {decision.value}: "
                              f"{approved_count} approved, {rejected_count} rejected. Publish formation to send emails."
         }
-        
+
     @staticmethod
     def publish_formation(event_id: uuid.UUID, db: Session) -> dict:
         """
@@ -193,30 +193,30 @@ class ApprovalService:
         are assigned to a team. If valid, marks all teams as published and sends emails.
         """
         from app.models.participant import Participant
-        
+
         # 3. Securely scope the current teams
         current_teams = db.query(Team).filter(
-            Team.event_id == event_id, 
+            Team.event_id == event_id,
             Team.approval_status.in_(["pending", "approved", "rejected"])
         ).all()
-        
+
         if not current_teams:
             return {"success": False, "message": "No active team formation found."}
-            
+
         unapproved = [t for t in current_teams if t.approval_status != "approved"]
         if unapproved:
             return {
-                "success": False, 
+                "success": False,
                 "message": f"Cannot publish. {len(unapproved)} teams are still pending or rejected."
             }
-            
+
         # 4. Securely scope the participant validation counts
         total_participants = db.query(Participant).filter(Participant.event_id == event_id).count()
         assigned_participants = db.query(Participant).filter(
-            Participant.event_id == event_id, 
+            Participant.event_id == event_id,
             Participant.team_id.isnot(None)
         ).count()
-        
+
         if assigned_participants < total_participants:
             return {
                 "success": False,
@@ -238,7 +238,7 @@ class ApprovalService:
                     ],
                     "rationale": team.rationale or "",
                 })
-        
+
         db.commit()
 
         if all_email_recipients:
@@ -253,7 +253,7 @@ class ApprovalService:
                 template="team_assignment",
                 event_name=event_name  # <-- 5. Dynamic Email Titles
             )
-            
+
         return {
             "success": True,
             "message": f"Formation published successfully. {len(all_email_recipients)} assignment emails queued."

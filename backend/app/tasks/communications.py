@@ -75,11 +75,15 @@ def send_registration_email(self, to_email: str, participant_name: str, event_na
     name="app.tasks.communications.send_batch_emails",
     max_retries=2,
 )
-def send_batch_emails(self, recipient_list: list, template: str, event_name: str):
+def send_batch_emails(self, recipient_list: list, template: str, event_name: str, event_id: str = None):
     """
     Celery task: send emails to multiple participants at once.
     recipient_list = [{"email": "x@y.com", "name": "Priya", ...}, ...]
     """
+    parsed_event_id = uuid.UUID(event_id) if isinstance(event_id, str) else event_id
+    if parsed_event_id is None:
+        raise ValueError("event_id is required for event-scoped email logging.")
+
     results = {"sent": 0, "failed": 0, "simulated": 0, "skipped": 0, "errors": []}
     failed_recipients = []
 
@@ -93,7 +97,8 @@ def send_batch_emails(self, recipient_list: list, template: str, event_name: str
                     to_email=recipient["email"],
                     participant_name=recipient["name"],
                     event_name=event_name,
-                    idempotency_key=idem_key
+                    idempotency_key=idem_key,
+                    event_id=parsed_event_id,
                 )
             elif template == "team_assignment":
                 result = EmailService.send_team_assignment(
@@ -103,7 +108,8 @@ def send_batch_emails(self, recipient_list: list, template: str, event_name: str
                     team_members=recipient["team_members"],
                     rationale=recipient.get("rationale", ""),
                     event_name=event_name,
-                    idempotency_key=idem_key
+                    idempotency_key=idem_key,
+                    event_id=parsed_event_id,
                 )
             else:
                 result = {"success": False, "error": f"Unknown template: {template}"}
@@ -121,7 +127,10 @@ def send_batch_emails(self, recipient_list: list, template: str, event_name: str
                     from app.core.database import SessionLocal
                     from app.models.participant import Participant
                     with SessionLocal() as db:
-                        participant = db.query(Participant).filter(Participant.email == recipient["email"]).first()
+                        participant = db.query(Participant).filter(
+                            Participant.email == recipient["email"],
+                            Participant.event_id == parsed_event_id,
+                        ).first()
                         if participant:
                             participant.team_link_sent = True
                             db.commit()
@@ -138,7 +147,12 @@ def send_batch_emails(self, recipient_list: list, template: str, event_name: str
 
     if failed_recipients:
         raise self.retry(
-            kwargs={"recipient_list": failed_recipients, "template": template, "event_name": event_name},
+            kwargs={
+                "recipient_list": failed_recipients,
+                "template": template,
+                "event_name": event_name,
+                "event_id": event_id,
+            },
             exc=Exception(f"Batch had {len(failed_recipients)} failures, retrying..."),
             countdown=60 * (self.request.retries + 1)
         )
