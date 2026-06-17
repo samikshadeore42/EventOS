@@ -57,12 +57,15 @@ class TestMentorOps:
         assert r.status_code in [403, 404]
 
     def test_risk_score_no_mentor(self, db_session, approved_team):
-        risk = MentorOpsService.calculate_team_risk_score(db_session, approved_team.id)
+        # Add TEST_EVENT_ID as the first argument
+        risk = MentorOpsService.calculate_team_risk_score(TEST_EVENT_ID, db_session, approved_team.id)
         assert risk.risk_score >= 35
 
     def test_risk_score_missing_daily_update(self, db_session, approved_team):
         mentor = MentorService.create_mentor(event_id=TEST_EVENT_ID, data=MentorCreate(first_name="A", last_name="B", email="risk@ti.com", organization="TI", expertise_areas=[]), db=db_session)
         MentorService.assign_mentor_to_team(event_id=TEST_EVENT_ID, data=MentorAssignmentCreate(mentor_id=mentor.id, team_id=approved_team.id), db=db_session)
         MentorService.create_session(event_id=TEST_EVENT_ID, mentor_id=mentor.id, data=MentorSessionCreate(team_id=approved_team.id, title="Sync", scheduled_at=datetime.now(timezone.utc) + timedelta(days=1), duration_minutes=30, meeting_url="http://meet"), db=db_session)
-        risk = MentorOpsService.calculate_team_risk_score(db_session, approved_team.id)
+        
+        # Add TEST_EVENT_ID as the first argument
+        risk = MentorOpsService.calculate_team_risk_score(TEST_EVENT_ID, db_session, approved_team.id)
         assert risk.risk_score >= 25
