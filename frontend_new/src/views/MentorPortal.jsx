@@ -71,7 +71,7 @@ function StatCard({ label, value, icon: Icon, colour = 'indigo' }) {
 }
 
 // ── Schedule meeting form ──────────────────────────────────────────────────
-function ScheduleMeetingForm({ teamId, onSuccess }) {
+function ScheduleMeetingForm({ teamId, token, onSuccess }) {
   const qc = useQueryClient()
   const [form, setForm] = useState({
     title: '', meeting_url: '', scheduled_at: '', duration_minutes: 30, agenda: '',
@@ -80,7 +80,7 @@ function ScheduleMeetingForm({ teamId, onSuccess }) {
   const mutation = useMutation({
     mutationFn: () => {
       const isoDate = new Date(form.scheduled_at).toISOString();
-      return mentorApi.createSession({ ...form, team_id: teamId, duration_minutes: +form.duration_minutes, scheduled_at: isoDate })
+      return mentorApi.createSession({ ...form, team_id: teamId, duration_minutes: +form.duration_minutes, scheduled_at: isoDate }, token)
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['mentor-teams'] })
@@ -134,7 +134,7 @@ function ScheduleMeetingForm({ teamId, onSuccess }) {
 }
 
 // ── Daily progress form ────────────────────────────────────────────────────
-function DailyProgressForm({ teamId, members, onSuccess }) {
+function DailyProgressForm({ teamId, members, token, onSuccess }) {
   const qc = useQueryClient()
   const [tab, setTab] = useState('team') // 'team' | 'individual'
   const [form, setForm] = useState({
@@ -160,7 +160,7 @@ function DailyProgressForm({ teamId, members, onSuccess }) {
       if (tab === 'individual' && form.participant_id) {
         payload.participant_id = form.participant_id
       }
-      return mentorApi.submitFeedback(payload)
+      return mentorApi.submitFeedback(payload, token)
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['mentor-teams'] })
@@ -249,11 +249,11 @@ function DailyProgressForm({ teamId, members, onSuccess }) {
 }
 
 // ── Team card ──────────────────────────────────────────────────────────────
-function TeamCard({ team }) {
+function TeamCard({ team, token }) {
   const qc = useQueryClient()
   const [expanded, setExpanded] = useState(false)
   const cancelMutation = useMutation({
-    mutationFn: (id) => mentorApi.cancelSession(id),
+    mutationFn: (id) => mentorApi.cancelSession(id, token),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['mentor-teams'] })
       qc.invalidateQueries({ queryKey: ['portal-access'] })
@@ -339,10 +339,10 @@ function TeamCard({ team }) {
           )}
 
           {/* Schedule meeting */}
-          <ScheduleMeetingForm teamId={team.team_id} />
+          <ScheduleMeetingForm teamId={team.team_id} token={token} />
 
           {/* Daily progress */}
-          <DailyProgressForm teamId={team.team_id} members={team.members} />
+          <DailyProgressForm teamId={team.team_id} members={team.members} token={token} />
         </div>
       )}
     </div>
@@ -380,8 +380,8 @@ export default function MentorPortal() {
 
   // Load mentor teams
   const { data: teamsData, isLoading: teamsLoading } = useQuery({
-    queryKey: ['mentor-teams'],
-    queryFn: mentorApi.myTeams,
+    queryKey: ['mentor-teams', urlToken],
+    queryFn: () => mentorApi.myTeams(urlToken),
     enabled: !!urlToken && profileData?.role === 'mentor',
     refetchInterval: 30_000,
   })
@@ -490,7 +490,7 @@ export default function MentorPortal() {
             </div>
           ) : (
             <div className="space-y-3">
-              {teams.map(team => <TeamCard key={team.team_id} team={team} />)}
+              {teams.map(team => <TeamCard key={team.team_id} team={team} token={urlToken} />)}
             </div>
           )}
         </div>

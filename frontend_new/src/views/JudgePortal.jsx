@@ -108,6 +108,8 @@ function CriterionSlider({ criterion, value, onChange }) {
 // ── Scoring form ──────────────────────────────────────────────────────────
 
 function ScoringForm({ team, onSubmitted, alreadySubmitted }) {
+  const { token } = useAuth()
+  const urlToken = useMemo(() => new URLSearchParams(window.location.search).get('token') || token, [token])
   const [scores, setScores]         = useState(DEFAULT_SCORES)
   const [confirming, setConfirming] = useState(false)
 
@@ -116,7 +118,7 @@ function ScoringForm({ team, onSubmitted, alreadySubmitted }) {
 
   const submitMutation = useMutation({
     mutationFn: () =>
-      evaluationsApi.submit({ team_id: team.team_id, scores }),
+      evaluationsApi.submit({ team_id: team.team_id, scores }, urlToken),
     onSuccess: () => {
       setConfirming(false)
       onSubmitted(team.team_id)
@@ -234,19 +236,21 @@ function ScoringForm({ team, onSubmitted, alreadySubmitted }) {
 // ── Team submission download section ───────────────────────────────────────
 
 function TeamSubmissionSection({ teamId }) {
+  const { token } = useAuth()
+  const urlToken = useMemo(() => new URLSearchParams(window.location.search).get('token') || token, [token])
   const [downloading, setDownloading] = useState(false)
 
   const { data, isLoading, error } = useQuery({
-    queryKey: ['team-submission', teamId],
-    queryFn: () => submissionsApi.getTeamSubmission(teamId),
-    enabled: !!teamId,
+    queryKey: ['team-submission', teamId, urlToken],
+    queryFn: () => submissionsApi.getTeamSubmission(teamId, urlToken),
+    enabled: !!teamId && !!urlToken,
     retry: false,
   })
 
   async function handleDownload() {
     setDownloading(true)
     try {
-      const response = await submissionsApi.downloadTeamZip(teamId)
+      const response = await submissionsApi.downloadTeamZip(teamId, urlToken)
       const blob = new Blob([response.data], { type: 'application/zip' })
       const url = window.URL.createObjectURL(blob)
       const a = document.createElement('a')

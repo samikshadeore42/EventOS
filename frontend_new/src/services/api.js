@@ -28,6 +28,15 @@ function isPublicAuthPath(url) {
   return PUBLIC_AUTH_PATHS.some((p) => url?.startsWith(p))
 }
 
+function tokenFromRequestUrl(url) {
+  if (!url) return null
+    try {
+      return new URL(url, BASE_URL).searchParams.get('token')
+    } catch {
+      return null
+    }
+}
+
 // ── Request interceptor ───────────────────────────────────────────────────
 // Injects:
 //   1. Authorization: Bearer <token> — for authenticated requests
@@ -35,15 +44,19 @@ function isPublicAuthPath(url) {
 //   3. ?token= query param           — for portal/evaluation routes
 api.interceptors.request.use(
   (config) => {
-    const token = sessionStorage.getItem(SESSION_KEY)
-    if (!token) return config
+    const sessionToken = sessionStorage.getItem(SESSION_KEY)
+    const explicitQueryToken = config.params?.token || tokenFromRequestUrl(config.url)
+    const authToken = explicitQueryToken || sessionToken
+    if (!authToken) return config
 
     // Always attach as Bearer header
     config.headers = config.headers ?? {}
-    config.headers['Authorization'] = `Bearer ${token}`
+    config.headers['Authorization'] = `Bearer ${authToken}`
 
     // Attach organization context for admin API calls (not public auth)
-    if (!isPublicAuthPath(config.url)) {
+    // Token-scoped portal links must not receive the currently selected org
+    // header; the event boundary comes from the signed magic-link token.
+    if (!isPublicAuthPath(config.url) && !explicitQueryToken) {
       const orgId = localStorage.getItem(ORG_KEY)
       if (orgId) {
         config.headers['X-Organization-Id'] = orgId
@@ -60,8 +73,8 @@ api.interceptors.request.use(
       config.url?.includes('/submissions') ||
       config.url?.includes('/daily-updates')
 
-    if (needsQueryToken) {
-      config.params = { ...config.params, token }
+    if (needsQueryToken && !explicitQueryToken && sessionToken) {
+      config.params = { ...config.params, token: sessionToken }
     }
 
     return config
@@ -401,7 +414,8 @@ export const evaluatorsApi = {
   importCsv: (file, upsert = false) => {
     const form = new FormData()
     form.append('file', file)
-    return api.post(`${eventPath('/evaluators/import')}?upsert=${upsert}`, form, {
+    return api.post(eventPath('/evaluators/import'), form, {
+      params: { upsert },
       headers: { 'Content-Type': 'multipart/form-data' },
     })
   },
@@ -414,18 +428,25 @@ export const evaluatorsApi = {
 
 // ── Evaluations (judge scorecard submission) ──────────────────────────────
 export const evaluationsApi = {
-  // Token is injected as ?token= by the request interceptor
-  submit: (data) =>
-    api.post(eventPath('/evaluations'), data),
+  // Portal score submission must use the event embedded in the evaluator token.
+  submit: (data, token) =>
+    api.post(portalEventPath('/evaluations', token), data, {
+      params: token ? { token } : undefined,
+    }),
 
-  update: (id, data) =>
-    api.patch(eventPath(`/evaluations/${id}`), data),
+  update: (id, data, token) =>
+    api.patch(portalEventPath(`/evaluations/${id}`, token), data, {
+      params: token ? { token } : undefined,
+    }),
 
   teamScores: (teamId) =>
     api.get(eventPath(`/evaluations/team/${teamId}`)),
 
   flagged: () =>
     api.get(eventPath('/evaluations/flagged')),
+
+  auditIntegrity: () =>
+    api.get(eventPath('/evaluations/audit-integrity')),
 }
 
 // ── Leaderboard ───────────────────────────────────────────────────────────
@@ -447,7 +468,7 @@ export const leaderboardApi = {
 export const portalApi = {
   access: (explicitToken) => {
     const params = explicitToken ? { token: explicitToken } : {}
-    return api.get(eventPath('/portal/access'), { params })
+    return api.get(portalEventPath('/portal/access', explicitToken), { params })
   },
 
   generateLinks: ( role, stage = 'evaluation', sendEmails = true) =>
@@ -498,8 +519,8 @@ export const commsApi = {
     api.post(eventPath('/communications/test-email'), data),
 
   // POST /events/{event_id}/communications/preflight-sendgrid
-  preflightSendgrid: () =>
-    api.post(eventPath('/communications/preflight-sendgrid')),
+  preflightSendgrid: (data = {}) =>
+    api.post(eventPath('/communications/preflight-sendgrid'), data),
 
 }
 
@@ -588,16 +609,16 @@ export const mentorApi = {
   generateSummary: (teamId)=> api.post(eventPath('/mentor-ops/ai-summary'), { team_id: teamId }),
 
   // Mentor portal (token-auth)
-  me:             () => api.get(portalEventPath('/mentor-portal/me')),
-  myTeams:        () => api.get(portalEventPath('/mentor-portal/teams')),
-  createSession:  (data) => api.post(portalEventPath('/mentor-portal/sessions'), data),
-  updateSession:  (id, data) => api.patch(portalEventPath(`/mentor-portal/sessions/${id}`), data),
-  cancelSession:  (id) => api.patch(portalEventPath(`/mentor-portal/sessions/${id}`), { status: 'cancelled' }),
-  submitFeedback: (data) => api.post(portalEventPath('/mentor-portal/feedback'), data),
-  teamFeedback:   (teamId) => api.get(portalEventPath(`/mentor-portal/feedback/team/${teamId}`)),
+  me:             (token) => api.get(portalEventPath('/mentor-portal/me', token), { params: token ? { token } : undefined }),
+  myTeams:        (token) => api.get(portalEventPath('/mentor-portal/teams', token), { params: token ? { token } : undefined }),
+  createSession:  (data, token) => api.post(portalEventPath('/mentor-portal/sessions', token), data, { params: token ? { token } : undefined }),
+  updateSession:  (id, data, token) => api.patch(portalEventPath(`/mentor-portal/sessions/${id}`, token), data, { params: token ? { token } : undefined }),
+  cancelSession:  (id, token) => api.patch(portalEventPath(`/mentor-portal/sessions/${id}`, token), { status: 'cancelled' }, { params: token ? { token } : undefined }),
+  submitFeedback: (data, token) => api.post(portalEventPath('/mentor-portal/feedback', token), data, { params: token ? { token } : undefined }),
+  teamFeedback:   (teamId, token) => api.get(portalEventPath(`/mentor-portal/feedback/team/${teamId}`, token), { params: token ? { token } : undefined }),
 
   // Participant-safe mentor info
-  participantInfo: () => api.get(portalEventPath('/participant-mentor-info')),
+  participantInfo: (token) => api.get(portalEventPath('/participant-mentor-info', token), { params: token ? { token } : undefined }),
 
   // Import/Export
   downloadTemplate: async () => {
@@ -607,7 +628,8 @@ export const mentorApi = {
   importCsv: (file, upsert = false) => {
     const form = new FormData()
     form.append('file', file)
-    return api.post(`${eventPath('/mentors/import')}?upsert=${upsert}`, form, {
+    return api.post(eventPath('/mentors/import'), form, {
+      params: { upsert },
       headers: { 'Content-Type': 'multipart/form-data' },
     })
   },
@@ -660,28 +682,28 @@ export const systemApi = {
 // ── Submissions ────────────────────────────────────────────────────────────
 export const submissionsApi = {
   /** Upload project ZIP (participant) — POST /submissions/participant/project */
-  upload: (file) => {
+  upload: (file, token) => {
     const form = new FormData()
     form.append('file', file)
-    return api.post(eventPath('/submissions/participant/project'), form, {
-      headers: { 'Content-Type': 'multipart/form-data' },
+    return api.post(portalEventPath('/submissions/participant/project', token), form, {
+      params: token ? { token } : undefined,
     })
   },
 
   /** Get participant's own team submission metadata */
-  getParticipantProject: () =>
-    api.get(eventPath('/submissions/participant/project'),),
+  getParticipantProject: (token) =>
+    api.get(portalEventPath('/submissions/participant/project', token), { params: token ? { token } : undefined }),
 
   /** Get submission metadata for a team (judge) */
-  getTeamSubmission: (teamId) =>
-    api.get(eventPath(`/submissions/team/${teamId}`)),
+  getTeamSubmission: (teamId, token) =>
+    api.get(portalEventPath(`/submissions/team/${teamId}`, token), { params: token ? { token } : undefined }),
 
   /** Download team ZIP (judge) — GET /submissions/team/{team_id}/download
    *  Returns a raw Axios response (not unwrapped) so caller can access the blob.
    */
-  downloadTeamZip: (teamId) => {
-    const token = sessionStorage.getItem(SESSION_KEY)
-    return axios.get(`${BASE_URL}${eventPath(`/submissions/team/${teamId}/download`)}`, {
+  downloadTeamZip: (teamId, explicitToken) => {
+    const token = explicitToken || sessionStorage.getItem(SESSION_KEY)
+    return axios.get(`${BASE_URL}${portalEventPath(`/submissions/team/${teamId}/download`, token)}`, {
       params: { token },
       responseType: 'blob',
     })

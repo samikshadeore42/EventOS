@@ -6,28 +6,30 @@ import { useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { Bell, Check, Loader2 } from 'lucide-react'
 import { notificationsApi } from '../services/api'
+import { useAuth } from '../context/AuthContext'
 
 export default function NotificationBell() {
   const qc = useQueryClient()
+  const { activeEvent } = useAuth()
   const [open, setOpen] = useState(false)
 
   const { data: countData } = useQuery({
-    queryKey: ['notifications', 'unread-count'],
+    queryKey: ['notifications', activeEvent?.id, 'unread-count'],
     queryFn: () => notificationsApi.unreadCount(),
+    enabled: !!activeEvent?.id,
     refetchInterval: 30_000,      // poll every 30s
     refetchOnWindowFocus: true,
   })
   const unread = countData?.unread ?? 0
 
   const { data: items = [], isLoading } = useQuery({
-    queryKey: ['notifications', 'list'],
+    queryKey: ['notifications', activeEvent?.id, 'list'],
     queryFn: () => notificationsApi.list(),
-    enabled: open,                // only fetch the list when the dropdown is open
+    enabled: open && !!activeEvent?.id,                // only fetch the list when the dropdown is open
   })
 
   const invalidate = () => {
-    qc.invalidateQueries({ queryKey: ['notifications', 'unread-count'] })
-    qc.invalidateQueries({ queryKey: ['notifications', 'list'] })
+    qc.invalidateQueries({ queryKey: ['notifications', activeEvent?.id] })
   }
 
   const markRead = useMutation({
@@ -43,6 +45,7 @@ export default function NotificationBell() {
     <div className="relative">
       <button
         onClick={() => setOpen((v) => !v)}
+        disabled={!activeEvent?.id}
         className="relative p-2 rounded-full hover:bg-gray-100 transition"
         aria-label="Notifications"
       >

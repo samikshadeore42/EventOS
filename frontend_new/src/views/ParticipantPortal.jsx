@@ -467,7 +467,7 @@ function KeyDatesCard({ stage }) {
 
 // ── Project submission section ───────────────────────────────────────────────
 
-function ProjectSubmissionSection() {
+function ProjectSubmissionSection({ token }) {
   const qc = useQueryClient()
   const [file, setFile] = useState(null)
   const [error, setError] = useState('')
@@ -476,8 +476,9 @@ function ProjectSubmissionSection() {
 
   // Fetch existing submission metadata from backend
   const { data: subData } = useQuery({
-    queryKey: ['participant-submission'],
-    queryFn: () => submissionsApi.getParticipantProject(),
+    queryKey: ['participant-submission', token],
+    queryFn: () => submissionsApi.getParticipantProject(token),
+    enabled: !!token,
     retry: false,
   })
 
@@ -496,12 +497,12 @@ function ProjectSubmissionSection() {
     
     try {
        setUploading(true)
-       await submissionsApi.upload(file);
+       await submissionsApi.upload(file, token);
        setError('');
        setFile(null);
        setShowReplace(false);
        // Refetch submission metadata
-       qc.invalidateQueries({ queryKey: ['participant-submission'] })
+       qc.invalidateQueries({ queryKey: ['participant-submission', token] })
        qc.invalidateQueries({ queryKey: ['portal-access'] })
     } catch (err) {
        setError(err?.response?.data?.detail || err.message || 'Upload failed');
@@ -753,7 +754,7 @@ export default function ParticipantPortal() {
 
   const { data: mentorData } = useQuery({
     queryKey: ['participant-mentor-info', urlToken],
-    queryFn: mentorApi.participantInfo,
+    queryFn: () => mentorApi.participantInfo(urlToken),
     enabled: !!urlToken && data?.participant_id != null,
     staleTime: 0,
     refetchInterval: 15000,
@@ -876,7 +877,7 @@ export default function ParticipantPortal() {
             }
 
             {team_assigned && <DailyUpdateForm token={urlToken} />}
-            {team_assigned && (stage === 'evaluation' || stage === 'results') && <ProjectSubmissionSection />}
+            {team_assigned && (stage === 'evaluation' || stage === 'results') && <ProjectSubmissionSection token={urlToken} />}
 
             {stage === 'results' && <ResultsSection data={data} />}
 

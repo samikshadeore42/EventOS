@@ -10,6 +10,15 @@ import AdminDashboard from '../views/AdminDashboard';
 import ParticipantPortal from '../views/ParticipantPortal';
 import MentorPortal from '../views/MentorPortal';
 import JudgePortal from '../views/JudgePortal';
+import { useAuth } from '../context/AuthContext';
+import StageTimelinePanel from '../components/StageTimelinePanel';
+import NotificationBell from '../components/NotificationBell';
+import {
+  commsApi,
+  evaluationsApi,
+  evaluatorsApi,
+  mentorApi,
+} from '../services/api';
 
 vi.mock('axios', () => {
   const mAxios = {
@@ -42,16 +51,32 @@ vi.mock('../context/AuthContext', async () => {
   const originalModule = await vi.importActual('../context/AuthContext');
   return {
     ...originalModule,
-    useAuth: vi.fn(() => ({
-      authenticated: true,
-      role: 'admin',
-      userId: 'user1',
-      token: 'fake-token',
-      logout: vi.fn(),
-      setToken: vi.fn(),
-    })),
+    useAuth: vi.fn(),
   };
 });
+
+function defaultAuth(overrides = {}) {
+  return {
+    authenticated: true,
+    role: 'admin',
+    userId: 'user1',
+    token: PORTAL_TOKEN,
+    logout: vi.fn(),
+    setToken: vi.fn(),
+    activeOrganization: { id: 'org1', name: 'Demo Org' },
+    activeMembership: { role: 'owner' },
+    activeEvent: {
+      id: TEST_EVENT_ID,
+      name: 'Demo Hackathon',
+      active_capabilities: ['teams', 'mentors', 'evaluators', 'submissions', 'weighted_scoring', 'risk_monitoring'],
+    },
+    availableEvents: [],
+    eventsLoaded: true,
+    loadEvents: vi.fn().mockResolvedValue(undefined),
+    switchEvent: vi.fn(),
+    ...overrides,
+  };
+}
 
 const renderWithProviders = (ui) => {
   return render(
@@ -67,6 +92,11 @@ describe('EventOS Stage-1 Regression Tests', () => {
     localStorage.clear();
     sessionStorage.clear();
     queryClient.clear();
+    useAuth.mockReturnValue(defaultAuth());
+    axios.get.mockResolvedValue({});
+    axios.post.mockResolvedValue({});
+    axios.patch.mockResolvedValue({});
+    axios.delete.mockResolvedValue({});
 
     sessionStorage.setItem('eventos_token', PORTAL_TOKEN);
     localStorage.setItem('eventos_active_event_id', TEST_EVENT_ID);
@@ -82,11 +112,11 @@ describe('EventOS Stage-1 Regression Tests', () => {
   it('2. Invalid admin input or authentication failure shows a safe message', async () => {
     axios.post.mockRejectedValueOnce(new Error('Invalid credentials'));
     renderWithProviders(<AuthLogin />);
-    
+
     fireEvent.change(screen.getByPlaceholderText('you@example.com (or username)'), { target: { value: 'admin' } });
     fireEvent.change(screen.getByPlaceholderText('••••••••'), { target: { value: 'wrong' } });
     fireEvent.click(screen.getByRole('button', { name: /sign in/i }));
-    
+
     await waitFor(() => {
       expect(screen.getByText(/Invalid credentials/i)).toBeInTheDocument();
     });
@@ -114,7 +144,7 @@ describe('EventOS Stage-1 Regression Tests', () => {
       }
       return Promise.resolve({});
     });
-    
+
     renderWithProviders(<ParticipantPortal />);
     await waitFor(() => {
       // It should NOT display "Secret Team" if it's not approved
@@ -134,7 +164,7 @@ describe('EventOS Stage-1 Regression Tests', () => {
       }
       return Promise.resolve({});
     });
-    
+
     renderWithProviders(<ParticipantPortal />);
     await waitFor(() => {
       expect(screen.getByText(/Published Team/i)).toBeInTheDocument();
@@ -153,7 +183,7 @@ describe('EventOS Stage-1 Regression Tests', () => {
       }
       return Promise.resolve({});
     });
-    
+
     renderWithProviders(<MentorPortal />);
     await waitFor(() => {
       expect(screen.getByText(/Assigned Team 1/i)).toBeInTheDocument();
@@ -174,7 +204,7 @@ describe('EventOS Stage-1 Regression Tests', () => {
       }
       return Promise.resolve({});
     });
-    
+
     renderWithProviders(<JudgePortal />);
     await waitFor(() => {
       expect(screen.getByText(/Evaluating Team/i)).toBeInTheDocument();
@@ -186,7 +216,7 @@ describe('EventOS Stage-1 Regression Tests', () => {
     axios.get.mockResolvedValueOnce({
       config: { current_stage: 'evaluation' }
     });
-    
+
     renderWithProviders(<AdminDashboard />);
     await waitFor(() => {
       // Admin dashboard usually shows the stage
@@ -207,5 +237,138 @@ describe('EventOS Stage-1 Regression Tests', () => {
     const { container } = renderWithProviders(<MentorPortal />);
     expect(container.querySelector('.animate-pulse')).toBeInTheDocument();
     expect(screen.queryByText(/Assigned Team/i)).not.toBeInTheDocument();
+  });
+  it('11. Admin can create an event from a backend template', async () => {
+    window.history.pushState({}, 'Create event', '/admin?tab=createevent');
+    const template = {
+      id: 'template-1',
+      key: 'hackathon',
+      name: 'Hackathon',
+      description: 'Team build event',
+      default_capabilities: ['teams', 'mentors', 'evaluators'],
+    };
+    axios.get.mockImplementation((url) => {
+      if (url === '/templates') return Promise.resolve([template]);
+      if (url === '/events') return Promise.resolve([]);
+      if (String(url).includes('/config')) return Promise.resolve({ current_stage: 'registration' });
+      if (String(url).includes('/event-state')) return Promise.resolve({ current_stage: 'registration' });
+      return Promise.resolve({});
+    });
+    axios.post.mockResolvedValueOnce({
+      id: TEST_EVENT_ID,
+      name: 'Template Demo',
+      active_capabilities: template.default_capabilities,
+    });
+
+    renderWithProviders(<AdminDashboard />);
+
+    fireEvent.change(await screen.findByPlaceholderText('Smart India Hackathon Demo'), {
+      target: { value: 'Template Demo' },
+    });
+    fireEvent.change(screen.getByRole('combobox'), { target: { value: 'template-1' } });
+    fireEvent.click(screen.getByRole('button', { name: /create from template/i }));
+
+    await waitFor(() => {
+      expect(axios.post).toHaveBeenCalledWith('/events', expect.objectContaining({
+        name: 'Template Demo',
+        slug: 'template-demo',
+        template_id: 'template-1',
+        event_type: 'hackathon',
+      }));
+    });
+  });
+  it('12. Admin tabs hide modules not enabled by the active event capabilities', () => {
+    useAuth.mockReturnValue(defaultAuth({
+      activeEvent: {
+        id: TEST_EVENT_ID,
+        name: 'Coding Contest',
+        active_capabilities: ['submissions', 'evaluators', 'leaderboard'],
+      },
+    }));
+
+    renderWithProviders(<AdminDashboard />);
+
+    expect(screen.queryByText('Mentor Ops')).not.toBeInTheDocument();
+    expect(screen.queryByText('Risk')).not.toBeInTheDocument();
+    expect(screen.getByText('Evaluators')).toBeInTheDocument();
+  });
+  it('13. Stage timeline can create a creator-defined stage', async () => {
+    axios.get.mockImplementation((url) => {
+      if (String(url).endsWith('/stages')) return Promise.resolve([]);
+      if (String(url).endsWith('/stages/runs')) return Promise.resolve([]);
+      if (String(url).endsWith('/stages/validation')) return Promise.resolve({ is_valid: true, violations: [] });
+      return Promise.resolve({});
+    });
+    axios.post.mockResolvedValueOnce({});
+
+    renderWithProviders(<StageTimelinePanel eventStatus="draft" />);
+
+    fireEvent.click(await screen.findByRole('button', { name: /add stage/i }));
+    fireEvent.change(screen.getByLabelText('Key'), { target: { value: 'registration' } });
+    fireEvent.change(screen.getByLabelText('Name'), { target: { value: 'Registration' } });
+    fireEvent.click(screen.getByRole('button', { name: /create stage/i }));
+
+    await waitFor(() => {
+      expect(axios.post).toHaveBeenCalledWith(
+        `/events/${TEST_EVENT_ID}/stages`,
+        expect.objectContaining({
+          key: 'registration',
+          name: 'Registration',
+          position: expect.any(Number),
+        })
+      );
+    });
+  });
+  it('14. Mentor and evaluator CSV imports use event-scoped multipart routes', async () => {
+    const file = new File(['first_name,last_name,email\nA,B,a@example.com\n'], 'people.csv', { type: 'text/csv' });
+
+    await mentorApi.importCsv(file, true);
+    expect(axios.post).toHaveBeenCalledWith(
+      `/events/${TEST_EVENT_ID}/mentors/import`,
+      expect.any(FormData),
+      {
+        params: { upsert: true },
+        headers: { 'Content-Type': 'multipart/form-data' },
+      }
+    );
+    await evaluatorsApi.importCsv(file, false);
+    expect(axios.post).toHaveBeenCalledWith(
+      `/events/${TEST_EVENT_ID}/evaluators/import`,
+      expect.any(FormData),
+      {
+        params: { upsert: false },
+        headers: { 'Content-Type': 'multipart/form-data' },
+      }
+    );
+  });
+  it('15. Judge score submit uses the event embedded in the evaluator magic-link token', async () => {
+    localStorage.setItem('eventos_active_event_id', '22222222-2222-4222-8222-222222222222');
+
+    await evaluationsApi.submit({ team_id: 'team-1', scores: { innovation: 8 } }, PORTAL_TOKEN);
+
+    expect(axios.post).toHaveBeenCalledWith(
+      `/events/${TEST_EVENT_ID}/evaluations`,
+      { team_id: 'team-1', scores: { innovation: 8 } },
+      { params: { token: PORTAL_TOKEN } }
+    );
+  });
+  it('16. Notification bell does not call event-scoped APIs until an active event exists', () => {
+    useAuth.mockReturnValue(defaultAuth({ activeEvent: null }));
+    renderWithProviders(<NotificationBell />);
+    expect(axios.get).not.toHaveBeenCalled();
+  });
+  it('17. Communications preflight sends a request body to the event-scoped endpoint', async () => {
+    await commsApi.preflightSendgrid({ to_email: 'test@example.com', recipient_name: 'Tester' });
+    expect(axios.post).toHaveBeenCalledWith(
+      `/events/${TEST_EVENT_ID}/communications/preflight-sendgrid`,
+      { to_email: 'test@example.com', recipient_name: 'Tester' }
+    );
+  });
+  it('18. Integrity audit uses the event-scoped evaluation endpoint', async () => {
+    await evaluationsApi.auditIntegrity();
+
+    expect(axios.get).toHaveBeenCalledWith(
+      `/events/${TEST_EVENT_ID}/evaluations/audit-integrity`
+    );
   });
 });

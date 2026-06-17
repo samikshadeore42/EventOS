@@ -18,7 +18,8 @@ import {
   Sparkles, ArrowLeft, RotateCcw, AlertCircle,
 } from 'lucide-react'
 import EventOSLogo from '../components/EventOSLogo'
-import { langgraphApi } from '../services/api'
+import { eventStorage, langgraphApi } from '../services/api'
+import { useAuth } from '../context/AuthContext'
 
 // ── Constants ──────────────────────────────────────────────────────────────
 
@@ -172,6 +173,7 @@ function ConfigSummaryCard({ config, onConfirm, saving, saved }) {
 
 export default function ConfigureEvent() {
   const navigate    = useNavigate()
+  const { loadEvents } = useAuth()
   const bottomRef   = useRef(null)
   const inputRef    = useRef(null)
 
@@ -237,9 +239,11 @@ export default function ConfigureEvent() {
     if (!config) return
     setSaving(true)
     try {
-      await langgraphApi.createFromConfig(config)
+      const created = await langgraphApi.createFromConfig(config)
+      if (created?.event_id) eventStorage.set(created.event_id)
+      await loadEvents()
       setSaved(true)
-      setTimeout(() => navigate('/admin'), 1800)
+      setTimeout(() => navigate('/admin?tab=overview'), 1800)
     } finally {
       setSaving(false)
     }
