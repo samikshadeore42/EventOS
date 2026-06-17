@@ -11,6 +11,21 @@ import { stagesApi, eventLifecycleApi, eventsApi, eventStorage } from '../servic
 const DEFAULT_TZ = 'Asia/Kolkata'
 const INPUT_CLASS = 'w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white text-slate-900'
 const ICON_BUTTON_CLASS = 'p-1.5 rounded border border-slate-200 text-slate-600 hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed'
+const CAPABILITY_OPTIONS = [
+  { key: 'teams', label: 'Teams' },
+  { key: 'mentors', label: 'Mentors' },
+  { key: 'evaluators', label: 'Evaluators / judges' },
+  { key: 'problem_statements', label: 'Problem statements' },
+  { key: 'submissions', label: 'Submissions' },
+  { key: 'weighted_scoring', label: 'Weighted scoring' },
+  { key: 'live_scoring', label: 'Live scoring' },
+  { key: 'leaderboard', label: 'Leaderboard' },
+  { key: 'risk_monitoring', label: 'Risk monitoring' },
+  { key: 'presentation_evaluation', label: 'Presentation evaluation' },
+  { key: 'matches', label: 'Matches' },
+  { key: 'fixtures', label: 'Fixtures' },
+  { key: 'elimination', label: 'Elimination' },
+]
 
 function toDatetimeLocal(value) {
   if (!value) return ''
@@ -97,11 +112,70 @@ function buildPayload(form) {
   }
 }
 
+function selectedCapabilities(value) {
+  return new Set(
+    value
+      .split(',')
+      .map((cap) => cap.trim())
+      .filter(Boolean)
+  )
+}
+
+function toggleCapability(value, capability) {
+  const selected = selectedCapabilities(value)
+  if (selected.has(capability)) selected.delete(capability)
+  else selected.add(capability)
+  return [...selected].join(', ')
+}
+
+function reminderPolicyFromEnglish(text) {
+  const normalized = text.toLowerCase()
+  const beforeStartMinutes = []
+  const beforeEndMinutes = []
+  const notifyRoles = []
+
+  const addRole = (role) => {
+    if (!notifyRoles.includes(role)) notifyRoles.push(role)
+  }
+
+  if (normalized.includes('admin')) addRole('admin')
+  if (normalized.includes('mentor')) addRole('mentor')
+  if (normalized.includes('judge') || normalized.includes('evaluator')) addRole('evaluator')
+  if (normalized.includes('participant')) addRole('participant')
+
+  const durationRegex = /(\d+)\s*(day|days|hour|hours|hr|hrs|minute|minutes|min|mins)/g
+  let match
+  while ((match = durationRegex.exec(normalized)) !== null) {
+    const amount = Number(match[1])
+    const unit = match[2]
+    let minutes = amount
+    if (unit.startsWith('day')) minutes = amount * 24 * 60
+    else if (unit.startsWith('hour') || unit.startsWith('hr')) minutes = amount * 60
+
+    if (
+      normalized.includes('before start') ||
+      normalized.includes('before the stage starts') ||
+      normalized.includes('before stage starts')
+    ) {
+      beforeStartMinutes.push(minutes)
+    } else {
+      beforeEndMinutes.push(minutes)
+    }
+  }
+
+  return {
+    ...(notifyRoles.length ? { notify_roles: notifyRoles } : {}),
+    ...(beforeStartMinutes.length ? { before_start_minutes: [...new Set(beforeStartMinutes)] } : {}),
+    ...(beforeEndMinutes.length ? { before_end_minutes: [...new Set(beforeEndMinutes)] } : {}),
+  }
+}
+
 export default function StageTimelinePanel({ eventStatus }) {
   const qc = useQueryClient()
   const [formOpen, setFormOpen] = useState(false)
   const [form, setForm] = useState(defaultStageForm())
   const [formError, setFormError] = useState('')
+  const [reminderPrompt, setReminderPrompt] = useState('')
 
   const { data: events = [] } = useQuery({
     queryKey: ['events', 'list'],
@@ -192,11 +266,13 @@ export default function StageTimelinePanel({ eventStatus }) {
   function startCreate() {
     setForm(defaultStageForm(nextPosition))
     setFormError('')
+    setReminderPrompt('')
     setFormOpen(true)
   }
   function startEdit(stage) {
     setForm(stageToForm(stage))
     setFormError('')
+    setReminderPrompt('')
     setFormOpen(true)
   }
   function moveStage(index, direction) {
@@ -207,7 +283,12 @@ export default function StageTimelinePanel({ eventStatus }) {
     reordered.splice(target, 0, item)
     reorder.mutate(reordered.map((s) => s.id))
   }
-   
+
+  function generateReminderJson() {
+    const policy = reminderPolicyFromEnglish(reminderPrompt)
+    setForm((f) => ({ ...f, reminder_policy: JSON.stringify(policy, null, 2) }))
+  }
+
 
   return (
     <div className="space-y-6">
@@ -362,12 +443,30 @@ export default function StageTimelinePanel({ eventStatus }) {
               </Field>
 
               <Field label="Required capabilities">
-                <input
-                  value={form.required_capabilities}
-                  onChange={(e) => setForm((f) => ({ ...f, required_capabilities: e.target.value }))}
-                  className={INPUT_CLASS}
-                  placeholder="teams, submissions"
-                />
+                <div className="rounded-lg border border-slate-200 bg-white p-3">
+                  <div className="grid sm:grid-cols-2 gap-2">
+                    {CAPABILITY_OPTIONS.map((capability) => {
+                      const checked = selectedCapabilities(form.required_capabilities).has(capability.key)
+                      return (
+                        <label key={capability.key} className="flex items-center gap-2 text-xs text-slate-700">
+                          <input
+                            type="checkbox"
+                            checked={checked}
+                            onChange={() => setForm((f) => ({
+                              ...f,
+                              required_capabilities: toggleCapability(f.required_capabilities, capability.key),
+                            }))}
+                          />
+                          <span>{capability.label}</span>
+                          <span className="text-slate-400">({capability.key})</span>
+                        </label>
+                      )
+                    })}
+                  </div>
+                  <p className="mt-2 text-[11px] text-slate-500">
+                    Select only the capabilities this stage actually needs. The saved payload still uses system keys.
+                  </p>
+                </div>
               </Field>
 
               <Field label="Description">
@@ -380,12 +479,32 @@ export default function StageTimelinePanel({ eventStatus }) {
               </Field>
 
               <Field label="Reminder policy JSON">
-                <textarea
-                  value={form.reminder_policy}
-                  onChange={(e) => setForm((f) => ({ ...f, reminder_policy: e.target.value }))}
-                  rows={2}
-                  className={`${INPUT_CLASS} font-mono text-xs resize-none`}
-                />
+                <div className="space-y-2">
+                  <textarea
+                    value={reminderPrompt}
+                    onChange={(e) => setReminderPrompt(e.target.value)}
+                    rows={2}
+                    className={`${INPUT_CLASS} resize-none`}
+                    placeholder="Example: remind mentors and admins 1 day and 1 hour before end"
+                  />
+                  <button
+                    type="button"
+                    onClick={generateReminderJson}
+                    disabled={!reminderPrompt.trim()}
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-indigo-200 text-xs font-medium text-indigo-700 bg-indigo-50 hover:bg-indigo-100 disabled:opacity-40"
+                  >
+                    Generate editable JSON
+                  </button>
+                  <textarea
+                    value={form.reminder_policy}
+                    onChange={(e) => setForm((f) => ({ ...f, reminder_policy: e.target.value }))}
+                    rows={4}
+                    className={`${INPUT_CLASS} font-mono text-xs resize-none`}
+                  />
+                  <p className="text-[11px] text-slate-500">
+                    You can edit this JSON before saving. Use {} if no reminders are needed.
+                  </p>
+                </div>
               </Field>
             </div>
 

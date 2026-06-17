@@ -9,6 +9,7 @@ from fastapi import HTTPException
 
 from app.models.mentor import Mentor, MentorAssignment, MentorSession, MentorFeedback
 from app.models.participant import Participant, Team
+from app.models.daily_update import DailyUpdate
 from app.schemas.mentor_schemas import (
     MentorCreate, MentorUpdate, MentorOut,
     MentorAssignmentCreate, MentorAssignmentOut,
@@ -192,22 +193,46 @@ class MentorService:
                 MentorFeedback.event_id == event_id, # Scope to event
             ).count()
 
+            today = datetime.now(timezone.utc).date()
+            member_views = []
+            participant_updates_today = 0
+
+            for m in members:
+                latest_daily_update = db.query(DailyUpdate).filter(
+                    DailyUpdate.event_id == event_id,
+                    DailyUpdate.participant_id == m.id,
+                ).order_by(DailyUpdate.update_date.desc(), DailyUpdate.submitted_at.desc()).first()
+
+                update_payload = None
+                if latest_daily_update:
+                    if latest_daily_update.update_date == today:
+                        participant_updates_today += 1
+
+                    update_payload = {
+                        "what_i_built": latest_daily_update.what_i_built,
+                        "blockers": latest_daily_update.blockers,
+                        "hours_worked": latest_daily_update.hours_worked,
+                        "update_date": str(latest_daily_update.update_date),
+                        "submitted_at": latest_daily_update.submitted_at.isoformat(),
+                    }
+
+                member_views.append(MentorTeamMemberOut(
+                    id=m.id,
+                    name=f"{m.first_name} {m.last_name}",
+                    institution=m.institution,
+                    skills=m.skill_vector or {},
+                    latest_daily_update=update_payload,
+                ))
+
             results.append(MentorTeamOut(
                 team_id=team.id,
                 team_name=team.team_name,
                 member_count=len(members),
-                members=[
-                    MentorTeamMemberOut(
-                        id=m.id,
-                        name=f"{m.first_name} {m.last_name}",
-                        institution=m.institution,
-                        skills=m.skill_vector or {},
-                    )
-                    for m in members
-                ],
+                members=member_views,
                 next_meeting=MentorSessionOut.model_validate(next_session) if next_session else None,
                 latest_progress_score=latest_fb.progress_score if latest_fb else None,
                 feedback_count=feedback_count,
+                participant_updates_today=participant_updates_today,
             ))
         return results
 
@@ -396,26 +421,28 @@ class MentorService:
             MentorSession.scheduled_at >= now,
         ).count()
 
-        updates_today = db.query(MentorFeedback).filter(
-            MentorFeedback.mentor_id == mentor_id,
-            MentorFeedback.event_id == event_id, # Scope to event
-            MentorFeedback.created_at >= today_start,
-        ).count()
-
         assigned_team_ids = [a.team_id for a in db.query(MentorAssignment).filter(
             MentorAssignment.mentor_id == mentor_id,
             MentorAssignment.event_id == event_id, # Scope to event
             MentorAssignment.is_active == True,
         ).all()]
 
-        updated_team_ids = set()
-        for fb in db.query(MentorFeedback).filter(
-            MentorFeedback.mentor_id == mentor_id,
-            MentorFeedback.event_id == event_id, # Scope to event
-            MentorFeedback.created_at >= today_start,
-            MentorFeedback.participant_id == None,
-        ).all():
-            updated_team_ids.add(fb.team_id)
+        today = now.date()
+
+        updates_today = db.query(DailyUpdate).filter(
+            DailyUpdate.event_id == event_id,
+            DailyUpdate.team_id.in_(assigned_team_ids),
+            DailyUpdate.update_date == today,
+        ).count() if assigned_team_ids else 0
+
+        updated_team_ids = {
+            update.team_id
+            for update in db.query(DailyUpdate).filter(
+                DailyUpdate.event_id == event_id,
+                DailyUpdate.team_id.in_(assigned_team_ids),
+                DailyUpdate.update_date == today,
+            ).all()
+        } if assigned_team_ids else set()
 
         pending = len([tid for tid in assigned_team_ids if tid not in updated_team_ids])
 

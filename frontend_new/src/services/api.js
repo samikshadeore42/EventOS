@@ -304,6 +304,7 @@ export const invitationsApi = {
 export const eventsApi = {
   list: () => api.get('/events'),
   create: (data) => api.post('/events', data),
+  remove: (id) => api.delete(`/events/${id}`),
   templates: () => api.get('/templates'),
 }
 
@@ -694,9 +695,11 @@ export const submissionsApi = {
   /** Upload project ZIP (participant) — POST /submissions/participant/project */
   upload: (file, token) => {
     const form = new FormData()
-    form.append('file', file)
+    form.append('file', file, file.name)
+
     return api.post(portalEventPath('/submissions/participant/project', token), form, {
       params: token ? { token } : undefined,
+      headers: { 'Content-Type': 'multipart/form-data' },
     })
   },
 
@@ -756,6 +759,7 @@ export const stagesApi = {
   generateRuns: ()        => api.post(eventPath('/stages/runs/generate')),
   advance:  (id, force = false) => api.post(eventPath(`/stages/${id}/advance`), null, { params: { force } }),
   approve:  (id)          => api.post(eventPath(`/stages/${id}/approve`)),
+   advanceRun: ()          => api.post(eventPath('/stages/runs/advance')),
 }
 
 // ── Event lifecycle (Phase 4 Hard Gate) ──────────────────────

@@ -239,14 +239,89 @@ class LinkService:
             raise HTTPException(status_code=400, detail=f"Unknown token role: {role}")
 
     @staticmethod
+    def _stage_snapshot(event_id: uuid.UUID, db: Session) -> dict:
+        from app.models.stage_definition import StageDefinition
+        from app.models.stage_run import StageRun
+        from app.services.event_state_service import get_event_state
+
+        stage_defs = db.query(StageDefinition).filter(
+            StageDefinition.event_id == event_id,
+            StageDefinition.is_active == True,
+        ).order_by(StageDefinition.position.asc()).all()
+
+        if not stage_defs:
+            current_stage = get_event_state(event_id, db).current_stage
+            return {
+                "current_stage": current_stage,
+                "timeline": [
+                    {"phase": "Registration", "status": "completed"},
+                    {
+                        "phase": "Team Formation",
+                        "status": "active" if current_stage == "team_formation" else "pending",
+                    },
+                    {
+                        "phase": "Evaluation",
+                        "status": "active" if current_stage == "evaluation" else "pending",
+                    },
+                    {
+                        "phase": "Results",
+                        "status": "active" if current_stage == "results" else "pending",
+                    },
+                ],
+            }
+
+        runs = db.query(StageRun).filter(StageRun.event_id == event_id).all()
+        run_by_stage = {run.stage_definition_id: run for run in runs}
+
+        active_index = 0
+        for index, stage_def in enumerate(stage_defs):
+            run = run_by_stage.get(stage_def.id)
+            if run and run.status in ("active", "awaiting_approval"):
+                active_index = index
+                break
+        else:
+            for index, stage_def in enumerate(stage_defs):
+                run = run_by_stage.get(stage_def.id)
+                if not run or run.status not in ("completed", "skipped"):
+                    active_index = index
+                    break
+            else:
+                active_index = len(stage_defs) - 1
+
+        timeline = []
+        for index, stage_def in enumerate(stage_defs):
+            run = run_by_stage.get(stage_def.id)
+
+            if run and run.status in ("completed", "skipped"):
+                status = "completed"
+            elif run and run.status in ("active", "awaiting_approval"):
+                status = "active"
+            elif index < active_index:
+                status = "completed"
+            elif index == active_index:
+                status = "active"
+            else:
+                status = "pending"
+
+            timeline.append({
+                "phase": stage_def.name,
+                "status": status,
+            })
+
+        return {
+            "current_stage": stage_defs[active_index].key,
+            "timeline": timeline,
+        }
+
+    @staticmethod
     def _load_participant_view(
         event_id:       uuid.UUID,
         participant_id: str,
         stage:          str,
         db:             Session
     ) -> dict:
-        from app.services.event_state_service import get_event_state
-        current_stage = get_event_state(event_id, db).current_stage
+        stage_snapshot = LinkService._stage_snapshot(event_id, db)
+        current_stage = stage_snapshot["current_stage"]
 
         participant = db.query(Participant).filter(
             Participant.id == participant_id,
@@ -294,12 +369,7 @@ class LinkService:
             team_name      = team.team_name if team else None,
             team_rationale = team.rationale if team else None,
             teammates      = teammates,
-            timeline       = [
-                {"phase": "Registration",    "status": "completed"},
-                {"phase": "Team Formation",  "status": "completed" if participant.team_id else ("active" if current_stage == "team_formation" else ("pending" if current_stage == "registration" else "completed"))},
-                {"phase": "Evaluation",      "status": "active" if current_stage == "evaluation" else ("completed" if current_stage == "results" else "pending")},
-                {"phase": "Results",         "status": "active" if current_stage == "results" else "pending"},
-            ],
+            timeline       = stage_snapshot["timeline"],
             rank                  = rank,
             total_score           = total_score,
             progression_confirmed = participant.progression_confirmed,
@@ -319,6 +389,7 @@ class LinkService:
 
         if not evaluator:
             raise HTTPException(status_code=404, detail="Evaluator not found.")
+        stage_snapshot = LinkService._stage_snapshot(event_id, db)
 
         from app.models.participant import Team
         from app.models.evaluation import Evaluation
@@ -355,7 +426,7 @@ class LinkService:
             evaluator_id    = str(evaluator.id),
             name            = f"{evaluator.first_name} {evaluator.last_name}",
             email           = evaluator.email,
-            stage           = stage,
+            stage           = stage_snapshot["current_stage"],
             assigned_teams  = teams_data,
             grading_criteria = [
                 {"key": "technical_depth",  "label": "Technical Depth",  "max": 10, "weight": 0.35},

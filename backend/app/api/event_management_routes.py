@@ -1,6 +1,7 @@
 # File: backend/app/api/event_management_routes.py
 import re
 import uuid as uuid_lib
+from datetime import datetime, timedelta, timezone
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
@@ -9,6 +10,7 @@ from app.core.auth_deps import RequireOrganizationRole
 from app.core.capabilities import validate_capabilities
 from app.core.database import get_db
 from app.models.event import Event, EventStatus
+from app.models.stage_definition import StageDefinition
 from app.models.template import Template
 from app.schemas.event import EventCreate, EventResponse, TemplateResponse
 from app.schemas.langgraph_schemas import EventConfig as LangGraphEventConfig, CreateFromConfigResponse
@@ -46,6 +48,98 @@ def _template_for_event_type(db: Session, event_type: str) -> Template:
     return fallback
 
 
+def _stage_key(value: str, fallback: str) -> str:
+    key = re.sub(r"[^a-z0-9_]+", "_", (value or fallback).strip().lower().replace(" ", "_"))
+    return key.strip("_") or fallback
+
+
+def _stage_description(stage_key: str, stage_name: str) -> str:
+    descriptions = {
+        "registration": "Participant registration, CSV roster intake, and eligibility verification.",
+        "team_formation": "Team generation, team review, and approval workflow.",
+        "development": "Teams build their project while mentors track progress.",
+        "submission": "Teams upload final project files and supporting material.",
+        "evaluation": "Judges review assigned teams and submit scorecards.",
+        "review": "Judges review submissions and scoring evidence.",
+        "presentation": "Teams present their solution for evaluation.",
+        "results": "Leaderboard review, result finalization, and winner announcement.",
+        "fixtures": "Tournament fixture generation and match schedule preparation.",
+        "matches": "Tournament matches, score tracking, and progression.",
+        "coding": "Contestants solve coding problems and submit solutions.",
+        "competition": "Core competition window for submissions and scoring.",
+        "case_solving": "Teams analyze the case and prepare their recommendation.",
+    }
+    return descriptions.get(stage_key, f"{stage_name} stage for this event.")
+
+
+def _stage_capabilities(stage_key: str, active_capabilities: list[str]) -> list[str]:
+    desired_by_stage = {
+        "registration": ["teams"],
+        "team_formation": ["teams"],
+        "development": ["mentors"],
+        "submission": ["submissions"],
+        "evaluation": ["evaluators", "weighted_scoring", "presentation_evaluation"],
+        "review": ["evaluators", "weighted_scoring", "live_scoring"],
+        "presentation": ["presentation_evaluation", "evaluators"],
+        "results": ["leaderboard", "weighted_scoring", "live_scoring"],
+        "fixtures": ["fixtures"],
+        "matches": ["matches", "live_scoring", "elimination"],
+        "coding": ["submissions", "live_scoring", "evaluators"],
+        "competition": ["teams", "submissions", "evaluators"],
+        "case_solving": ["teams", "submissions"],
+    }
+    enabled = set(active_capabilities or [])
+    return [cap for cap in desired_by_stage.get(stage_key, []) if cap in enabled]
+
+
+def _materialize_stage_definitions(
+    db: Session,
+    event: Event,
+    suggested_stages: list,
+    active_capabilities: list[str],
+) -> None:
+    if not suggested_stages:
+        return
+
+    cursor = datetime.now(timezone.utc) + timedelta(hours=1)
+    seen_keys: set[str] = set()
+
+    for index, raw_stage in enumerate(suggested_stages, start=1):
+        if isinstance(raw_stage, dict):
+            raw_key = raw_stage.get("key") or raw_stage.get("name") or f"stage_{index}"
+            name = raw_stage.get("name") or str(raw_key).replace("_", " ").title()
+            ratio = float(raw_stage.get("ratio") or 0)
+        else:
+            raw_key = str(raw_stage)
+            name = raw_key.replace("_", " ").title()
+            ratio = 0
+
+        key = _stage_key(str(raw_key), f"stage_{index}")
+        if key in seen_keys:
+            key = f"{key}_{index}"
+        seen_keys.add(key)
+
+        duration_hours = max(1, round((ratio or 0.2) * 24))
+        start_at = cursor
+        end_at = start_at + timedelta(hours=duration_hours)
+        cursor = end_at
+
+        db.add(StageDefinition(
+            event_id=event.id,
+            key=key,
+            name=name,
+            description=_stage_description(key, name),
+            position=index,
+            start_at=start_at,
+            end_at=end_at,
+            timezone="Asia/Kolkata",
+            transition_policy="manual",
+            reminder_policy={},
+            required_capabilities=_stage_capabilities(key, active_capabilities),
+            is_active=True,
+        ))
+
+
 @router.get("/templates", response_model=list[TemplateResponse])
 def list_templates(
     db: Session = Depends(get_db),
@@ -55,6 +149,37 @@ def list_templates(
         Template.is_system_template == True,
     ).order_by(Template.name.asc()).all()
 
+@router.delete("/events/{event_id}", status_code=200)
+def delete_event(
+    event_id: uuid_lib.UUID,
+    db: Session = Depends(get_db),
+    membership=Depends(RequireOrganizationRole("owner", "admin")),
+):
+    event = db.query(Event).filter(
+        Event.id == event_id,
+        Event.organization_id == membership.organization_id,
+    ).first()
+
+    if not event:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Event not found in this organization.",
+        )
+
+    deleted = {
+        "event_id": str(event.id),
+        "name": event.name,
+        "slug": event.slug,
+    }
+
+    db.delete(event)
+    db.commit()
+
+    return {
+        "deleted": True,
+        "event": deleted,
+        "message": f"Event '{deleted['name']}' deleted successfully.",
+    }
 
 @router.get("/events", response_model=list[EventResponse])
 def list_events(
@@ -108,6 +233,13 @@ def create_event(
     )
 
     db.add(event)
+    db.flush()
+    _materialize_stage_definitions(
+        db=db,
+        event=event,
+        suggested_stages=list(template.suggested_stages or []),
+        active_capabilities=capabilities,
+    )
     db.commit()
     db.refresh(event)
     return event
@@ -178,6 +310,13 @@ def create_event_from_config(
     )
 
     db.add(event)
+    db.flush()
+    _materialize_stage_definitions(
+        db=db,
+        event=event,
+        suggested_stages=list(body.stages or template.suggested_stages or []),
+        active_capabilities=capabilities,
+    )
     db.commit()
     db.refresh(event)
 
