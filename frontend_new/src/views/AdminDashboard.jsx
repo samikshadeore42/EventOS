@@ -4,7 +4,7 @@
 import { useAuth } from '../context/AuthContext'
 import jsPDF from 'jspdf'
 import autoTable from 'jspdf-autotable'
-import { useState, useRef, useCallback } from 'react'
+import { useState, useRef, useCallback, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import {
@@ -37,6 +37,7 @@ import {
   riskApi,
   healthDashboardApi,
   eventsApi,
+  evaluationsApi,
 } from '../services/api'
 
 // ── Shared micro-components ────────────────────────────────────────────────
@@ -1057,6 +1058,10 @@ function EvaluatorsTab() {
     onError: (err) => alert(err.message)
   })
 
+   const auditMutation = useMutation({
+    mutationFn: evaluationsApi.auditIntegrity,
+  })
+
   const { data, isLoading } = useQuery({ queryKey: ['evaluators'], queryFn: evaluatorsApi.list })
   const { data: teamsData } = useQuery({ queryKey: ['all-teams'], queryFn: approvalsApi.all })
   
@@ -1144,6 +1149,35 @@ function EvaluatorsTab() {
       <p className="text-xs text-slate-500 mb-6 italic">
         Evaluators receive secure magic links and score approved teams in the Judge Portal. Submitted scorecards update the leaderboard and anomaly scanner.
       </p>
+
+      <div className="glass-card rounded-xl border border-slate-200 p-4 mb-5">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
+          <div>
+            <p className="text-sm font-semibold text-slate-900">Evaluation audit integrity</p>
+            <p className="text-xs text-slate-500 mt-1">
+              Check event-scoped scorecard integrity, evaluator assignments, and suspicious scoring state.
+            </p>
+          </div>
+          <button
+            onClick={() => auditMutation.mutate()}
+            disabled={auditMutation.isPending}
+            className="inline-flex items-center justify-center gap-2 text-sm px-4 py-2 rounded-lg border border-indigo-200 text-indigo-700 hover:bg-indigo-50 disabled:opacity-50"
+          >
+            {auditMutation.isPending ? <Loader2 size={14} className="animate-spin" /> : <ShieldCheck size={14} />}
+            Run audit
+          </button>
+        </div>
+        {auditMutation.isSuccess && (
+          <div className="mt-3 rounded-lg border border-emerald-200 bg-emerald-50 p-3 text-sm text-emerald-700">
+            Audit completed. Issues found: {auditMutation.data?.issues?.length ?? auditMutation.data?.issue_count ?? 0}
+          </div>
+        )}
+        {auditMutation.isError && (
+          <div className="mt-3 rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700">
+            {auditMutation.error?.message || 'Audit failed.'}
+          </div>
+        )}
+      </div>
 
       {/* Bulk Import */}
       <div className="glass-card rounded-xl border border-slate-200 p-4 mb-5 flex flex-col gap-3">
@@ -1514,8 +1548,11 @@ function LeaderboardTab() {
 
 // ── TAB 7: COMMUNICATIONS ─────────────────────────────────────────────────
 function CommunicationsTab() {
+  const qc = useQueryClient()
   const [templateFilter, setTemplateFilter] = useState('')
   const [successFilter, setSuccessFilter]   = useState('')
+  const [preflightEmail, setPreflightEmail] = useState('')
+  const [preflightName, setPreflightName] = useState('Test User')
   const [draftType, setDraftType]   = useState('progression_invite')
   const [draftTone, setDraftTone]   = useState('professional')
   const [draftContext, setDraftContext] = useState(
@@ -1537,6 +1574,22 @@ function CommunicationsTab() {
       page_size: 50,
     }),
     refetchInterval: 20_000,
+  })
+
+  const { data: diagnostics, isLoading: diagnosticsLoading } = useQuery({
+    queryKey: ['comms-diagnostics'],
+    queryFn: commsApi.diagnostics,
+    refetchInterval: 60_000,
+  })
+
+  const preflightMutation = useMutation({
+    mutationFn: () => commsApi.preflightSendgrid({
+      to_email: preflightEmail.trim() || null,
+      recipient_name: preflightName.trim() || 'Test User',
+    }),
+    onSuccess: () => {
+      setTimeout(() => qc.invalidateQueries({ queryKey: ['comms-log'] }), 1500)
+    },
   })
 
   const draftMutation = useMutation({
@@ -1588,6 +1641,87 @@ function CommunicationsTab() {
 
   return (
     <div>
+      <div className="glass-card rounded-xl border border-slate-200 p-5 mb-6">
+        <div className="flex items-start justify-between gap-4 mb-4">
+          <div>
+            <SectionTitle>Email Diagnostics</SectionTitle>
+            <p className="text-sm text-slate-500">
+              Verify event-scoped email delivery configuration before sending participant, mentor, or evaluator links.
+            </p>
+          </div>
+          <Badge colour={diagnostics?.email_delivery_mode === 'sendgrid' ? 'green' : 'amber'}>
+            {diagnostics?.email_delivery_mode || 'loading'}
+          </Badge>
+        </div>
+
+        {diagnosticsLoading ? (
+          <div className="h-20 bg-slate-100 rounded-lg animate-pulse" />
+        ) : (
+          <div className="grid md:grid-cols-4 gap-3 mb-4 text-sm">
+            <div className="rounded-lg border border-slate-200 bg-slate-50 p-3">
+              <p className="text-xs text-slate-500 mb-1">From email</p>
+              <p className="font-semibold text-slate-800 truncate">{diagnostics?.from_email || 'missing'}</p>
+            </div>
+            <div className="rounded-lg border border-slate-200 bg-slate-50 p-3">
+              <p className="text-xs text-slate-500 mb-1">SendGrid key</p>
+              <p className="font-semibold text-slate-800">
+                {diagnostics?.sendgrid_api_key_present ? diagnostics?.sendgrid_key_prefix : 'missing'}
+              </p>
+            </div>
+            <div className="rounded-lg border border-slate-200 bg-slate-50 p-3">
+              <p className="text-xs text-slate-500 mb-1">Frontend base</p>
+              <p className="font-semibold text-slate-800 truncate">{diagnostics?.frontend_base_url}</p>
+            </div>
+            <div className="rounded-lg border border-slate-200 bg-slate-50 p-3">
+              <p className="text-xs text-slate-500 mb-1">Redis</p>
+              <p className="font-semibold text-slate-800">{diagnostics?.redis_url_present ? 'configured' : 'missing'}</p>
+            </div>
+          </div>
+        )}
+        {diagnostics?.notes?.length > 0 && (
+          <ul className="mb-4 space-y-1 text-xs text-amber-700 list-disc pl-5">
+            {diagnostics.notes.map((note, idx) => <li key={idx}>{note}</li>)}
+          </ul>
+        )}
+        <div className="grid md:grid-cols-[1fr_1fr_auto] gap-3 items-end">
+          <div>
+            <label className="block text-xs font-medium text-slate-500 mb-1">Preflight recipient email</label>
+            <input
+              value={preflightEmail}
+              onChange={(e) => setPreflightEmail(e.target.value)}
+              placeholder="optional@example.com"
+              className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            />
+          </div>
+          <div>
+            <label className="block text-xs font-medium text-slate-500 mb-1">Recipient name</label>
+            <input
+              value={preflightName}
+              onChange={(e) => setPreflightName(e.target.value)}
+              className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            />
+          </div>
+          <button
+            onClick={() => preflightMutation.mutate()}
+            disabled={preflightMutation.isPending}
+            className="px-4 py-2 rounded-lg bg-indigo-600 text-white text-sm font-semibold disabled:opacity-50"
+          >
+            {preflightMutation.isPending ? 'Checking...' : 'Run preflight'}
+          </button>
+        </div>
+
+        {preflightMutation.isSuccess && (
+          <div className="mt-3 rounded-lg border border-emerald-200 bg-emerald-50 p-3 text-sm text-emerald-700">
+            Preflight passed via {preflightMutation.data?.provider || preflightMutation.data?.mode || 'provider'}.
+            {preflightMutation.data?.message_id && ` Message id: ${preflightMutation.data.message_id}`}
+          </div>
+        )}
+        {preflightMutation.isError && (
+          <div className="mt-3 rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700">
+            {preflightMutation.error?.message || 'Preflight failed.'}
+          </div>
+        )}
+      </div>
       {/* Communication log */}
       <div className="glass-card rounded-xl border border-slate-200 overflow-hidden mb-8">
         <div className="flex items-center justify-between px-4 py-3 border-b border-slate-200">
@@ -2649,16 +2783,17 @@ function DemoControlsTab() {
   const [confirmText, setConfirmText] = useState('')
 
   const [auditResult, setAuditResult] = useState(null);
+  const [auditError, setAuditError] = useState('');
   const [isAuditing, setIsAuditing] = useState(false);
 
   const runSecurityAudit = async () => {
     setIsAuditing(true);
+    setAuditError('');
     try {
-      const response = await fetch('http://localhost:8000/evaluations/audit-integrity');
-      const data = await response.json();
+      const data = await evaluationsApi.auditIntegrity();
       setAuditResult(data);
     } catch (error) {
-      console.error("Audit failed",error);
+      setAuditError(error.message || 'Audit failed.');
     }
     setIsAuditing(false);
   };
@@ -2792,6 +2927,11 @@ function DemoControlsTab() {
                     </ul>
                   </div>
                 )}
+              </div>
+            )}
+            {auditError && (
+              <div className="p-4 rounded-xl border border-red-200 bg-red-50 text-red-700 text-sm">
+                {auditError}
               </div>
             )}
           </div>
@@ -2993,24 +3133,34 @@ function CreateEventTab() {
 // ── MAIN DASHBOARD ─────────────────────────────────────────────────────────
 const TABS = [
   { key: 'createevent',     label: 'Create Event',   Icon: Plus },
-  { key: 'overview',        label: 'Overview',       Icon: LayoutDashboard },
-  { key: 'participants',    label: 'Participants',    Icon: Users },
-  { key: 'teams',           label: 'Team Formation', Icon: GitBranch },
-  { key: 'approvals',       label: 'Approvals',      Icon: CheckSquare },
-  { key: 'timeline',        label: 'Timeline',       Icon: Calendar },
-  { key: 'evaluators',      label: 'Evaluators',     Icon: UserCheck },
-  { key: 'leaderboard',     label: 'Leaderboard',    Icon: Trophy },
-  { key: 'communications',  label: 'Communications', Icon: Mail },
-  { key: 'mentorops',       label: 'Mentor Ops',     Icon: Target },
-  { key: 'anomaly',         label: 'Anomaly Scanner',Icon: Activity },
-  { key: 'health',          label: 'Team Health',    Icon: Activity },
-  { key: 'risk',            label: 'Risk',           Icon: ShieldAlert },
-  { key: 'democontrols',    label: 'Demo Controls',  Icon: AlertTriangle },
+  { key: 'overview',        label: 'Overview',       Icon: LayoutDashboard, requiresEvent: true },
+  { key: 'participants',    label: 'Participants',    Icon: Users, requiresEvent: true },
+  { key: 'teams',           label: 'Team Formation', Icon: GitBranch, requiresEvent: true, capabilities: ['teams'] },
+  { key: 'approvals',       label: 'Approvals',      Icon: CheckSquare, requiresEvent: true, capabilities: ['teams'] },
+  { key: 'timeline',        label: 'Timeline',       Icon: Calendar, requiresEvent: true },
+  { key: 'evaluators',      label: 'Evaluators',     Icon: UserCheck, requiresEvent: true, capabilities: ['evaluators'] },
+  { key: 'leaderboard',     label: 'Leaderboard',    Icon: Trophy, requiresEvent: true, anyCapabilities: ['leaderboard', 'weighted_scoring', 'live_scoring', 'evaluators'] },
+  { key: 'communications',  label: 'Communications', Icon: Mail, requiresEvent: true },
+  { key: 'mentorops',       label: 'Mentor Ops',     Icon: Target, requiresEvent: true, capabilities: ['mentors'] },
+  { key: 'anomaly',         label: 'Anomaly Scanner',Icon: Activity, requiresEvent: true, anyCapabilities: ['evaluators', 'weighted_scoring'] },
+  { key: 'health',          label: 'Team Health',    Icon: Activity, requiresEvent: true, capabilities: ['risk_monitoring'] },
+  { key: 'risk',            label: 'Risk',           Icon: ShieldAlert, requiresEvent: true, capabilities: ['risk_monitoring'] },
+  { key: 'democontrols',    label: 'Demo Controls',  Icon: AlertTriangle, requiresEvent: true },
   { key: 'settings',        label: 'Settings',       Icon: Settings },
   { key: 'aiconfig', label: 'AI Config', Icon: Sparkles, isNav: true, navTo: '/configure' },
 ]
 
 const VALID_TABS = TABS.map(t => t.key)
+
+function tabAllowed(tab, activeEvent) {
+  if (!tab.requiresEvent && !tab.capabilities && !tab.anyCapabilities) return true
+  if (tab.requiresEvent && !activeEvent?.id) return false
+
+  const capabilities = new Set(activeEvent?.active_capabilities || [])
+  if (tab.capabilities?.some((cap) => !capabilities.has(cap))) return false
+  if (tab.anyCapabilities?.length && !tab.anyCapabilities.some((cap) => capabilities.has(cap))) return false
+  return true
+}
 
 function getInitialAdminTab() {
   const urlTab = new URLSearchParams(window.location.search).get('tab')
@@ -3023,12 +3173,17 @@ function getInitialAdminTab() {
 }
 
 export default function AdminDashboard() {
-  const { activeOrganization } = useAuth()
+  const { activeOrganization, activeEvent } = useAuth()
   const navigate = useNavigate()
   const [activeTab, setActiveTabState] = useState(getInitialAdminTab)
+  const visibleTabs = useMemo(() => TABS.filter((tab) => tabAllowed(tab, activeEvent)), [activeEvent])
+  const visibleTabKeys = useMemo(() => visibleTabs.map((tab) => tab.key), [visibleTabs])
+  const safeActiveTab = visibleTabKeys.includes(activeTab)
+    ? activeTab
+    : (activeEvent?.id ? 'overview' : 'createevent')
 
   const setActiveTab = (tab) => {
-    if (!VALID_TABS.includes(tab)) return
+    if (!visibleTabKeys.includes(tab)) return
     setActiveTabState(tab)
     localStorage.setItem('eventosAdminActiveTab', tab)
     const url = new URL(window.location.href)
@@ -3062,7 +3217,7 @@ export default function AdminDashboard() {
           <EventOSLogo className="text-indigo-600" size={48} />
           <div className="border-l border-slate-200 pl-4">
             <h1 className="text-sm font-bold text-slate-800 uppercase tracking-wide">Committee Dashboard</h1>
-            <p className="text-xs font-medium text-slate-500">WiSE@TI Hackathon</p>
+            <p className="text-xs font-medium text-slate-500">{activeEvent?.name || 'Create or select an event'}</p>
           </div>
         </div>
         <div className="flex items-center gap-3">
@@ -3077,11 +3232,11 @@ export default function AdminDashboard() {
 
       <div className="max-w-7xl mx-auto px-6 py-6">
         {/* Pipeline stepper — always visible */}
-        <PipelineStepper showAdvanceButton className="mb-6" />
+        {activeEvent?.id && <PipelineStepper showAdvanceButton className="mb-6" />}
 
         {/* Tab navigation */}
         <div className="flex gap-1 mb-6 glass-card rounded-xl border border-slate-200 p-1 overflow-x-auto">
-          {TABS.map(({ key, label, Icon, isNav, navTo }) => (
+          {visibleTabs.map(({ key, label, Icon, isNav, navTo }) => (
             <button
               key={key}
               onClick={() => isNav ? navigate(navTo) : setActiveTab(key)}
@@ -3101,7 +3256,7 @@ export default function AdminDashboard() {
         </div>
 
         {/* Tab content */}
-        <div>{TAB_CONTENT[activeTab]}</div>
+        <div>{TAB_CONTENT[safeActiveTab]}</div>
       </div>
     </div>
   )

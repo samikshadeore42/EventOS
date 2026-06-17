@@ -430,6 +430,9 @@ export const evaluationsApi = {
 
   flagged: () =>
     api.get(eventPath('/evaluations/flagged')),
+
+  auditIntegrity: () =>
+    api.get(eventPath('/evaluations/audit-integrity')),
 }
 
 // ── Leaderboard ───────────────────────────────────────────────────────────
@@ -502,8 +505,8 @@ export const commsApi = {
     api.post(eventPath('/communications/test-email'), data),
 
   // POST /events/{event_id}/communications/preflight-sendgrid
-  preflightSendgrid: () =>
-    api.post(eventPath('/communications/preflight-sendgrid')),
+  preflightSendgrid: (data = {}) =>
+    api.post(eventPath('/communications/preflight-sendgrid'), data),
 
 }
 
