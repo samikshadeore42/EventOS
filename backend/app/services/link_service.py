@@ -124,7 +124,7 @@ class LinkService:
             event_id=str(event_id), # <-- Security constraint
             expires_in=timedelta(days=expires_days)
         )
-        portal_url = f"{FRONTEND_URL}/events/{event_id}/mentor?token={token}"
+        portal_url = f"{FRONTEND_URL}/events/{event_id}/portal/mentor?token={token}"
         return {
             "entity_id":  mentor_id,
             "role":       "mentor",
@@ -164,6 +164,7 @@ class LinkService:
         event_name = event_obj.name if event_obj else "EventOS Hackathon"
 
         result = EmailService.send_access_link(
+            event_id=event_id,
             to_email=mentor.email,
             recipient_name=f"{mentor.first_name} {mentor.last_name}",
             role="Mentor",

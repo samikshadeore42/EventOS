@@ -13,6 +13,12 @@ from app.services.mentor_service import MentorService
 from app.services.mentor_ops_service import MentorOpsService
 from app.services.link_service import LinkService
 from app.services.people_csv_service import PeopleCSVService
+from app.services.auto_assignment_service import AutoAssignmentService
+from app.schemas.auto_assignment_schemas import (
+    MentorAutoAssignRequest,
+    MentorAutoAssignProposal,
+    MentorAutoAssignCommitRequest,
+)
 from app.schemas.mentor_schemas import (
     MentorCreate, MentorUpdate, MentorOut,
     MentorAssignmentCreate, MentorAssignmentOut,
@@ -143,6 +149,34 @@ def list_assignments(scope: ScopedEventService = Depends(require_capability("men
 def assign_mentor(data: MentorAssignmentCreate, scope: ScopedEventService = Depends(require_capability("mentors"))):
     assignment = MentorService.assign_mentor_to_team(scope.event_id, scope.db, data)
     return MentorAssignmentOut.model_validate(assignment).model_dump()
+
+
+@router.post(
+    "/mentor-assignments/auto-assign/propose",
+    response_model=MentorAutoAssignProposal,
+    summary="Compute an automatic mentor-to-team assignment proposal (no DB writes)",
+)
+def propose_mentor_auto_assignment(
+    body: MentorAutoAssignRequest = MentorAutoAssignRequest(),
+    scope: ScopedEventService = Depends(require_capability("mentors")),
+):
+    """Skill-gap matched, load-balanced proposal — same scoring formula as the
+    existing 'suggestions' panel, extended into a complete assignment covering
+    every un-mentored approved team. Always a dry run; review then commit."""
+    return AutoAssignmentService.propose_mentor_assignment(scope.event_id, scope.db)
+
+
+@router.post(
+    "/mentor-assignments/auto-assign/commit",
+    summary="Commit a (possibly admin-edited) mentor auto-assignment proposal",
+)
+def commit_mentor_auto_assignment(
+    body: MentorAutoAssignCommitRequest,
+    scope: ScopedEventService = Depends(require_capability("mentors")),
+):
+    return AutoAssignmentService.commit_mentor_assignment(
+        scope.event_id, scope.db, body.assignments
+    )
 
 
 @router.delete("/mentor-assignments/{assignment_id}", summary="Unassign mentor")
