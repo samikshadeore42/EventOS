@@ -15,7 +15,19 @@ from app.services.project_submission_service import ProjectSubmissionService
 router = APIRouter(prefix="/events/{event_id}/submissions", tags=["Submissions"])
 
 @router.post("/participant/project")
-def submit_project(token: str, file: UploadFile = File(...), scope: ScopedEventService = Depends(require_capability("submissions"))):
+def submit_project(
+    token: str,
+    file: UploadFile | None = File(default=None),
+    project_file: UploadFile | None = File(default=None),
+    upload: UploadFile | None = File(default=None),
+    scope: ScopedEventService = Depends(require_capability("submissions")),
+):
+    upload_file = file or project_file or upload
+    if upload_file is None:
+        raise HTTPException(
+            status_code=422,
+            detail="Upload field is required. Send the ZIP as multipart field 'file'.",
+        )
     payload = decode_access_token(token)
     role = payload.get("role")
     token_event_id = payload.get("event_id")
@@ -39,7 +51,7 @@ def submit_project(token: str, file: UploadFile = File(...), scope: ScopedEventS
         raise HTTPException(status_code=404, detail="Participant not found in this event.")
         
     # Pass event_id to service layer
-    submission = ProjectSubmissionService.save_team_submission(scope.event_id, scope.db, participant, file)
+    submission = ProjectSubmissionService.save_team_submission(scope.event_id, scope.db, participant, upload_file)
     
     return {
         "success": True,

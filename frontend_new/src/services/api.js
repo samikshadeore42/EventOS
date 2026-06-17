@@ -695,9 +695,11 @@ export const submissionsApi = {
   /** Upload project ZIP (participant) — POST /submissions/participant/project */
   upload: (file, token) => {
     const form = new FormData()
-    form.append('file', file)
+    form.append('file', file, file.name)
+
     return api.post(portalEventPath('/submissions/participant/project', token), form, {
       params: token ? { token } : undefined,
+      headers: { 'Content-Type': 'multipart/form-data' },
     })
   },
 
