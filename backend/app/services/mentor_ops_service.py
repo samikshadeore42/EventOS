@@ -1,6 +1,12 @@
 # File: backend/app/services/mentor_ops_service.py
 # Admin-facing operations: risk scoring, skill-gap suggestions,
 # daily reminders, AI summary payloads.
+#
+# Every method takes event_id as its FIRST argument and every query is filtered
+# by it. Previously these methods took only `db` — every call site in
+# mentor_routes.py already passed (event_id, db, ...), so this was throwing a
+# TypeError (-> 500) AND, had it not crashed, would have aggregated mentor/team
+# data across every event in the database (cross-tenant data leak).
 
 from uuid import UUID
 from datetime import datetime, timezone, timedelta
@@ -17,53 +23,60 @@ from app.schemas.mentor_schemas import (
 
 
 class MentorOpsService:
-    """Admin-level mentor operations: dashboards, risk, suggestions."""
+    """Admin-level mentor operations: dashboards, risk, suggestions.
+    Stateless service — every method takes event_id and db session."""
 
     # ── Summary ────────────────────────────────────────────────────────
 
     @staticmethod
-    def get_ops_summary(db: Session) -> MentorOpsSummary:
-        total_mentors = db.query(Mentor).count()
-        active_mentors = db.query(Mentor).filter(Mentor.is_active == True).count()
+    def get_ops_summary(event_id: UUID, db: Session) -> MentorOpsSummary:
+        total_mentors = db.query(Mentor).filter(Mentor.event_id == event_id).count()
+        active_mentors = db.query(Mentor).filter(
+            Mentor.event_id == event_id, Mentor.is_active == True
+        ).count()
         total_assignments = db.query(MentorAssignment).filter(
+            MentorAssignment.event_id == event_id,
             MentorAssignment.is_active == True
         ).count()
 
-        # Approved teams
-        approved_teams = db.query(Team).filter(Team.is_approved == True).all()
+        approved_teams = db.query(Team).filter(
+            Team.event_id == event_id, Team.is_approved == True
+        ).all()
         approved_ids = {t.id for t in approved_teams}
 
-        # Teams with active mentor
         assigned_team_ids = set()
-        for a in db.query(MentorAssignment).filter(MentorAssignment.is_active == True).all():
+        for a in db.query(MentorAssignment).filter(
+            MentorAssignment.event_id == event_id,
+            MentorAssignment.is_active == True,
+        ).all():
             assigned_team_ids.add(a.team_id)
 
         teams_without_mentor = len(approved_ids - assigned_team_ids)
 
-        # Teams without upcoming meeting
         now = datetime.now(timezone.utc)
         teams_with_meeting = set()
         for s in db.query(MentorSession).filter(
+            MentorSession.event_id == event_id,
             MentorSession.status == "scheduled",
             MentorSession.scheduled_at >= now,
         ).all():
             teams_with_meeting.add(s.team_id)
         teams_without_meeting = len(assigned_team_ids - teams_with_meeting)
 
-        # Teams missing daily update (last 24 hours)
         yesterday = now - timedelta(hours=24)
         teams_with_update = set()
         for fb in db.query(MentorFeedback).filter(
+            MentorFeedback.event_id == event_id,
             MentorFeedback.created_at >= yesterday,
             MentorFeedback.participant_id == None,
         ).all():
             teams_with_update.add(fb.team_id)
         teams_missing_daily = len(assigned_team_ids - teams_with_update)
 
-        # Low progress teams (latest progress_score < 5)
         low_progress = 0
         for tid in assigned_team_ids:
             latest = db.query(MentorFeedback).filter(
+                MentorFeedback.event_id == event_id,
                 MentorFeedback.team_id == tid,
                 MentorFeedback.participant_id == None,
                 MentorFeedback.progress_score != None,
@@ -84,10 +97,13 @@ class MentorOpsService:
     # ── Teams without mentor ───────────────────────────────────────────
 
     @staticmethod
-    def get_teams_without_mentor(db: Session) -> list[dict]:
-        approved_teams = db.query(Team).filter(Team.is_approved == True).all()
+    def get_teams_without_mentor(event_id: UUID, db: Session) -> list[dict]:
+        approved_teams = db.query(Team).filter(
+            Team.event_id == event_id, Team.is_approved == True
+        ).all()
         assigned_team_ids = {
             a.team_id for a in db.query(MentorAssignment).filter(
+                MentorAssignment.event_id == event_id,
                 MentorAssignment.is_active == True
             ).all()
         }
@@ -99,11 +115,15 @@ class MentorOpsService:
     # ── Teams without meeting ──────────────────────────────────────────
 
     @staticmethod
-    def get_teams_without_meeting(db: Session) -> list[dict]:
+    def get_teams_without_meeting(event_id: UUID, db: Session) -> list[dict]:
         now = datetime.now(timezone.utc)
-        assigned = db.query(MentorAssignment).filter(MentorAssignment.is_active == True).all()
+        assigned = db.query(MentorAssignment).filter(
+            MentorAssignment.event_id == event_id,
+            MentorAssignment.is_active == True,
+        ).all()
         teams_with_meeting = {
             s.team_id for s in db.query(MentorSession).filter(
+                MentorSession.event_id == event_id,
                 MentorSession.status == "scheduled",
                 MentorSession.scheduled_at >= now,
             ).all()
@@ -111,7 +131,9 @@ class MentorOpsService:
         results = []
         for a in assigned:
             if a.team_id not in teams_with_meeting:
-                team = db.query(Team).filter(Team.id == a.team_id).first()
+                team = db.query(Team).filter(
+                    Team.id == a.team_id, Team.event_id == event_id
+                ).first()
                 if team:
                     results.append({"team_id": str(team.id), "team_name": team.team_name})
         return results
@@ -119,12 +141,16 @@ class MentorOpsService:
     # ── Teams missing daily update ─────────────────────────────────────
 
     @staticmethod
-    def get_teams_missing_daily_update(db: Session) -> list[dict]:
+    def get_teams_missing_daily_update(event_id: UUID, db: Session) -> list[dict]:
         now = datetime.now(timezone.utc)
         yesterday = now - timedelta(hours=24)
-        assigned = db.query(MentorAssignment).filter(MentorAssignment.is_active == True).all()
+        assigned = db.query(MentorAssignment).filter(
+            MentorAssignment.event_id == event_id,
+            MentorAssignment.is_active == True,
+        ).all()
         teams_with_update = {
             fb.team_id for fb in db.query(MentorFeedback).filter(
+                MentorFeedback.event_id == event_id,
                 MentorFeedback.created_at >= yesterday,
                 MentorFeedback.participant_id == None,
             ).all()
@@ -132,7 +158,9 @@ class MentorOpsService:
         results = []
         for a in assigned:
             if a.team_id not in teams_with_update:
-                team = db.query(Team).filter(Team.id == a.team_id).first()
+                team = db.query(Team).filter(
+                    Team.id == a.team_id, Team.event_id == event_id
+                ).first()
                 if team:
                     results.append({"team_id": str(team.id), "team_name": team.team_name})
         return results
@@ -140,8 +168,10 @@ class MentorOpsService:
     # ── Risk scoring ───────────────────────────────────────────────────
 
     @staticmethod
-    def calculate_team_risk_score(db: Session, team_id: UUID) -> TeamRiskOut:
-        team = db.query(Team).filter(Team.id == team_id).first()
+    def calculate_team_risk_score(event_id: UUID, db: Session, team_id: UUID) -> TeamRiskOut:
+        team = db.query(Team).filter(
+            Team.id == team_id, Team.event_id == event_id
+        ).first()
         if not team:
             return TeamRiskOut(team_id=team_id, team_name="Unknown")
 
@@ -150,8 +180,8 @@ class MentorOpsService:
         now = datetime.now(timezone.utc)
         yesterday = now - timedelta(hours=24)
 
-        # Check mentor assignment
         assignment = db.query(MentorAssignment).filter(
+            MentorAssignment.event_id == event_id,
             MentorAssignment.team_id == team_id,
             MentorAssignment.is_active == True,
         ).first()
@@ -160,11 +190,13 @@ class MentorOpsService:
             risk_score += 35
             reasons.append("No active mentor assigned")
         else:
-            mentor = db.query(Mentor).filter(Mentor.id == assignment.mentor_id).first()
+            mentor = db.query(Mentor).filter(
+                Mentor.id == assignment.mentor_id, Mentor.event_id == event_id
+            ).first()
             mentor_name = f"{mentor.first_name} {mentor.last_name}" if mentor else None
 
-        # Check upcoming meeting
         has_meeting = db.query(MentorSession).filter(
+            MentorSession.event_id == event_id,
             MentorSession.team_id == team_id,
             MentorSession.status == "scheduled",
             MentorSession.scheduled_at >= now,
@@ -173,8 +205,8 @@ class MentorOpsService:
             risk_score += 20
             reasons.append("No upcoming meeting scheduled")
 
-        # Check recent team-level feedback
         latest_fb = db.query(MentorFeedback).filter(
+            MentorFeedback.event_id == event_id,
             MentorFeedback.team_id == team_id,
             MentorFeedback.participant_id == None,
         ).order_by(MentorFeedback.created_at.desc()).first()
@@ -225,11 +257,13 @@ class MentorOpsService:
         )
 
     @staticmethod
-    def get_risk_teams(db: Session) -> list[TeamRiskOut]:
+    def get_risk_teams(event_id: UUID, db: Session) -> list[TeamRiskOut]:
         """Risk scores for all approved teams, sorted worst-first."""
-        approved_teams = db.query(Team).filter(Team.is_approved == True).all()
+        approved_teams = db.query(Team).filter(
+            Team.event_id == event_id, Team.is_approved == True
+        ).all()
         results = [
-            MentorOpsService.calculate_team_risk_score(db, t.id)
+            MentorOpsService.calculate_team_risk_score(event_id, db, t.id)
             for t in approved_teams
         ]
         results.sort(key=lambda r: r.risk_score, reverse=True)
@@ -238,26 +272,32 @@ class MentorOpsService:
     # ── Skill-gap assignment suggestions ───────────────────────────────
 
     @staticmethod
-    def get_assignment_suggestions_by_skill_gap(db: Session) -> list[MentorSuggestionOut]:
+    def get_assignment_suggestions_by_skill_gap(event_id: UUID, db: Session) -> list[MentorSuggestionOut]:
         """For each un-mentored approved team, suggest top 3 mentors by skill match."""
-        approved_teams = db.query(Team).filter(Team.is_approved == True).all()
+        approved_teams = db.query(Team).filter(
+            Team.event_id == event_id, Team.is_approved == True
+        ).all()
         assigned_ids = {
             a.team_id for a in db.query(MentorAssignment).filter(
+                MentorAssignment.event_id == event_id,
                 MentorAssignment.is_active == True
             ).all()
         }
-        active_mentors = db.query(Mentor).filter(Mentor.is_active == True).all()
+        active_mentors = db.query(Mentor).filter(
+            Mentor.event_id == event_id, Mentor.is_active == True
+        ).all()
 
         suggestions = []
         for team in approved_teams:
             if team.id in assigned_ids:
                 continue
 
-            members = db.query(Participant).filter(Participant.team_id == team.id).all()
+            members = db.query(Participant).filter(
+                Participant.team_id == team.id, Participant.event_id == event_id
+            ).all()
             if not members:
                 continue
 
-            # Compute average skill vector
             skill_sums: dict[str, float] = {}
             skill_counts: dict[str, int] = {}
             for m in members:
@@ -274,13 +314,11 @@ class MentorOpsService:
                 for skill in skill_sums
             }
 
-            # Find weakest skills (below 5.0 or bottom 3)
             sorted_skills = sorted(avg_skills.items(), key=lambda x: x[1])
             weak_skills = [s[0] for s in sorted_skills[:3] if s[1] < 7.0]
             if not weak_skills:
                 weak_skills = [sorted_skills[0][0]] if sorted_skills else []
 
-            # Score mentors
             candidates = []
             for mentor in active_mentors:
                 expertise = [e.lower().strip() for e in (mentor.expertise_areas or [])]
@@ -288,12 +326,11 @@ class MentorOpsService:
                     1 for ws in weak_skills
                     if any(ws.lower() in exp or exp in ws.lower() for exp in expertise)
                 )
-                # Current load
                 load = db.query(MentorAssignment).filter(
+                    MentorAssignment.event_id == event_id,
                     MentorAssignment.mentor_id == mentor.id,
                     MentorAssignment.is_active == True,
                 ).count()
-                # Score: matching skills bonus - load penalty
                 score = (match_count * 30) - (load * 5)
                 if match_count > 0:
                     candidates.append(MentorSuggestionCandidate(
@@ -321,7 +358,7 @@ class MentorOpsService:
     # ── Daily mentor reminders ─────────────────────────────────────────
 
     @staticmethod
-    def queue_daily_mentor_reminders(db: Session) -> DailyReminderResult:
+    def queue_daily_mentor_reminders(event_id: UUID, db: Session) -> DailyReminderResult:
         """Find mentor-team pairs missing today's update, queue reminder emails."""
         from app.services.email_service import EmailService
 
@@ -329,12 +366,13 @@ class MentorOpsService:
         today_start = now.replace(hour=0, minute=0, second=0, microsecond=0)
 
         assignments = db.query(MentorAssignment).filter(
+            MentorAssignment.event_id == event_id,
             MentorAssignment.is_active == True
         ).all()
 
-        # Find teams with updates today
         teams_with_update = {
             fb.team_id for fb in db.query(MentorFeedback).filter(
+                MentorFeedback.event_id == event_id,
                 MentorFeedback.created_at >= today_start,
                 MentorFeedback.participant_id == None,
             ).all()
@@ -347,8 +385,12 @@ class MentorOpsService:
             if a.team_id in teams_with_update:
                 continue
 
-            mentor = db.query(Mentor).filter(Mentor.id == a.mentor_id).first()
-            team = db.query(Team).filter(Team.id == a.team_id).first()
+            mentor = db.query(Mentor).filter(
+                Mentor.id == a.mentor_id, Mentor.event_id == event_id
+            ).first()
+            team = db.query(Team).filter(
+                Team.id == a.team_id, Team.event_id == event_id
+            ).first()
             if not mentor or not team:
                 continue
 
@@ -362,6 +404,7 @@ class MentorOpsService:
             """
 
             email_result = EmailService.send_email(
+                event_id=event_id,
                 to_email=mentor.email,
                 subject=subject,
                 html_content=html,
@@ -384,34 +427,40 @@ class MentorOpsService:
             result.message = "No reminders sent. There are no assigned mentors missing today's update."
         else:
             result.message = "Daily mentor reminders processed."
-            
+
         result.affected_teams = affected_teams
         return result
 
     # ── AI summary payload ─────────────────────────────────────────────
 
     @staticmethod
-    def build_ai_summary_payload(db: Session, team_id: UUID) -> dict:
+    def build_ai_summary_payload(event_id: UUID, db: Session, team_id: UUID) -> dict:
         """Build structured input for AI summary generation."""
-        team = db.query(Team).filter(Team.id == team_id).first()
+        team = db.query(Team).filter(
+            Team.id == team_id, Team.event_id == event_id
+        ).first()
         if not team:
             return {"error": "Team not found"}
 
         assignment = db.query(MentorAssignment).filter(
+            MentorAssignment.event_id == event_id,
             MentorAssignment.team_id == team_id,
             MentorAssignment.is_active == True,
         ).first()
         mentor_name = None
         if assignment:
-            mentor = db.query(Mentor).filter(Mentor.id == assignment.mentor_id).first()
+            mentor = db.query(Mentor).filter(
+                Mentor.id == assignment.mentor_id, Mentor.event_id == event_id
+            ).first()
             mentor_name = f"{mentor.first_name} {mentor.last_name}" if mentor else None
 
         latest_fb = db.query(MentorFeedback).filter(
+            MentorFeedback.event_id == event_id,
             MentorFeedback.team_id == team_id,
             MentorFeedback.participant_id == None,
         ).order_by(MentorFeedback.created_at.desc()).first()
 
-        risk = MentorOpsService.calculate_team_risk_score(db, team_id)
+        risk = MentorOpsService.calculate_team_risk_score(event_id, db, team_id)
 
         return {
             "team_name": team.team_name,

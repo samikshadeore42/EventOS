@@ -7,6 +7,7 @@ import autoTable from 'jspdf-autotable'
 import { useState, useRef, useCallback, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import AutoAssignModal from '../components/AutoAssignModal'
 import {
   LayoutDashboard, Users, GitBranch, CheckSquare,
   UserCheck, Trophy, Mail, Upload, Download,
@@ -1037,6 +1038,7 @@ function ApprovalsTab() {
 function EvaluatorsTab() {
   const qc = useQueryClient()
   const [showForm, setShowForm] = useState(false)
+  const [showAutoAssign, setShowAutoAssign] = useState(false)
   const [form, setForm] = useState({ first_name: '', last_name: '', email: '', expertise_areas: '', passed_out_institution: '' })
 
   // Assignment state
@@ -1132,12 +1134,19 @@ function EvaluatorsTab() {
   }
 
   return (
+    <>
     <div>
       <div className="flex items-center justify-between mb-5">
         <h2 className="text-base font-semibold text-slate-900">Evaluators / Judges</h2>
         <div className="flex items-center gap-2">
           <button onClick={() => evaluatorsApi.downloadTemplate()} className="text-sm px-3 py-1.5 rounded-lg border border-slate-200 text-slate-600 hover:bg-slate-50">CSV Template</button>
           <button onClick={() => evaluatorsApi.downloadExport()} className="text-sm px-3 py-1.5 rounded-lg border border-slate-200 text-slate-600 hover:bg-slate-50">Export</button>
+          <button
+            onClick={() => setShowAutoAssign(true)}
+            className="flex items-center gap-1.5 text-sm px-3 py-1.5 rounded-lg border border-indigo-200 text-indigo-700 hover:bg-indigo-50"
+          >
+            <Wand2 size={14} /> Auto-assign
+          </button>
           <button
             onClick={() => setShowForm((s) => !s)}
             className="flex items-center gap-1.5 text-sm px-3 py-1.5 rounded-lg btn-primary text-white hover:bg-indigo-700"
@@ -1355,6 +1364,17 @@ function EvaluatorsTab() {
         )
       }
     </div>
+
+    {showAutoAssign && (
+      <AutoAssignModal
+        kind="evaluator"
+        proposeFn={() => evaluatorsApi.autoAssignPropose(1)}
+        commitFn={(id, assignments) => evaluatorsApi.autoAssignCommit(id, assignments)}
+        onClose={() => setShowAutoAssign(false)}
+        onCommitted={() => qc.invalidateQueries({ queryKey: ['evaluators'] })}
+      />
+    )}
+    </>
   )
 }
 
@@ -1899,6 +1919,7 @@ function CommunicationsTab() {
 function MentorOpsTab() {
   const qc = useQueryClient()
   const [showForm, setShowForm] = useState(false)
+  const [showAutoAssign, setShowAutoAssign] = useState(false)
   const [form, setForm] = useState({ first_name: '', last_name: '', email: '', organization: '', expertise_areas: '' })
   const [assignForm, setAssignForm] = useState({ mentor_id: '', team_id: '' })
   const [showAssignForm, setShowAssignForm] = useState(false)
@@ -1990,6 +2011,7 @@ function MentorOpsTab() {
   }
 
   return (
+    <>
     <div>
       {/* Ops summary cards */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
@@ -2011,6 +2033,12 @@ function MentorOpsTab() {
         <div className="flex items-center gap-2">
           <button onClick={() => mentorApi.downloadTemplate()} className="text-sm px-3 py-1.5 rounded-lg border border-slate-200 text-slate-600 hover:bg-slate-50">CSV Template</button>
           <button onClick={() => mentorApi.downloadExport()} className="text-sm px-3 py-1.5 rounded-lg border border-slate-200 text-slate-600 hover:bg-slate-50">Export</button>
+          <button
+            onClick={() => setShowAutoAssign(true)}
+            className="flex items-center gap-1.5 text-sm px-3 py-1.5 rounded-lg border border-indigo-200 text-indigo-700 hover:bg-indigo-50"
+          >
+            <Wand2 size={14} /> Auto-assign
+          </button>
           <button onClick={() => setShowForm(s => !s)} className="flex items-center gap-1.5 text-sm px-3 py-1.5 rounded-lg btn-primary text-white hover:bg-indigo-700">
             <Plus size={14} /> Add Mentor
           </button>
@@ -2290,6 +2318,21 @@ function MentorOpsTab() {
         {aiMutation.isError && <p className="text-xs text-red-500 mt-2">{aiMutation.error?.message}</p>}
       </div>
     </div>
+
+    {showAutoAssign && (
+      <AutoAssignModal
+        kind="mentor"
+        proposeFn={() => mentorApi.autoAssignPropose()}
+        commitFn={(id, assignments) => mentorApi.autoAssignCommit(id, assignments)}
+        onClose={() => setShowAutoAssign(false)}
+        onCommitted={() => {
+          qc.invalidateQueries({ queryKey: ['mentor-assignments'] })
+          qc.invalidateQueries({ queryKey: ['mentor-ops-summary'] })
+          qc.invalidateQueries({ queryKey: ['mentor-suggestions'] })
+        }}
+      />
+    )}
+    </>
   )
 }
 
@@ -3212,7 +3255,7 @@ export default function AdminDashboard() {
   return (
     <div className="min-h-screen bg-slate-50">
       {/* Top bar */}
-      <header className="glass-card border-b border-slate-200 px-6 py-4 flex items-center justify-between">
+      <header className="glass-card border-b border-slate-200 px-6 py-4 flex items-center justify-between relative z-30">
         <div className="flex items-center gap-4">
           <EventOSLogo className="text-indigo-600" size={48} />
           <div className="border-l border-slate-200 pl-4">

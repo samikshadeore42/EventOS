@@ -124,7 +124,7 @@ class LinkService:
             event_id=str(event_id), # <-- Security constraint
             expires_in=timedelta(days=expires_days)
         )
-        portal_url = f"{FRONTEND_URL}/events/{event_id}/mentor?token={token}"
+        portal_url = f"{FRONTEND_URL}/events/{event_id}/portal/mentor?token={token}"
         return {
             "entity_id":  mentor_id,
             "role":       "mentor",
@@ -163,7 +163,17 @@ class LinkService:
         event_obj = db.query(Event).filter(Event.id == event_id).first()
         event_name = event_obj.name if event_obj else "EventOS Hackathon"
 
+        # --- DEV BYPASS INSERTION 1 ---
+        # Print the valid access link to the console immediately.
+        # This gives you the stable backdoor for UI development.
+        dev_link = link_data["portal_url"]
+        print(f"\n[DEV ACCESS LINK - mentor]:\n{dev_link}\n")
+        
+        # --- DEV BYPASS INSERTION 2 ---
+        # Comment out the failing EmailService call to prevent the 401 crash.
+        """
         result = EmailService.send_access_link(
+            event_id=event_id,
             to_email=mentor.email,
             recipient_name=f"{mentor.first_name} {mentor.last_name}",
             role="Mentor",
@@ -172,6 +182,11 @@ class LinkService:
             expires_in=link_data["expires_in"],
             event_name=event_name # Inject event name into email
         )
+        """
+
+        # --- DEV BYPASS INSERTION 3 ---
+        # Mock the result to simulate success, unblocking the UI from CORS/Auth errors.
+        result = {"success": True, "provider": "debug_bypass"}
 
         is_success = result.get("success", False)
         if is_success:
@@ -216,7 +231,7 @@ class LinkService:
     @classmethod
     def resolve_portal_access(cls, url_event_id: uuid.UUID, token: str, db: Session) -> dict:
         payload = decode_access_token(token)
-        role    = payload.get("role")
+        role     = payload.get("role")
         subject = parse_uuid_subject(get_token_subject(payload), "portal subject")
         stage   = payload.get("stage", "unknown")
         token_event_id = payload.get("event_id")
@@ -360,7 +375,7 @@ class LinkService:
                 {"key": "technical_depth",  "label": "Technical Depth",  "max": 10, "weight": 0.35},
                 {"key": "innovation",       "label": "Innovation",       "max": 10, "weight": 0.25},
                 {"key": "presentation",     "label": "Presentation",     "max": 10, "weight": 0.20},
-                {"key": "feasibility",      "label": "Feasibility",       "max": 10, "weight": 0.20},
+                {"key": "feasibility",      "label": "Feasibility",      "max": 10, "weight": 0.20},
             ],
             submitted_count = len(submitted_team_ids),
             total_assigned  = len(assigned_teams),

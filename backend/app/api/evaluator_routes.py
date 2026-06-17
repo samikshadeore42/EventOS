@@ -14,6 +14,12 @@ from app.services.link_service import LinkService
 from app.models.assignment import EvaluatorTeamAssignment
 from app.schemas.evaluation_schemas import EvaluatorAssignmentRequest
 from app.services.people_csv_service import PeopleCSVService
+from app.services.auto_assignment_service import AutoAssignmentService
+from app.schemas.auto_assignment_schemas import (
+    EvaluatorAutoAssignRequest,
+    EvaluatorAutoAssignProposal,
+    EvaluatorAutoAssignCommitRequest,
+)
 
 # 1. Update Prefix
 router = APIRouter(prefix="/events/{event_id}/evaluators", tags=["Evaluators"])
@@ -288,3 +294,34 @@ def assign_evaluator(
         "status":"success",
         "message": f"Evaluator {payload.evaluator_id} assigned to {len(payload.team_ids)} teams in this event."
     }
+
+
+@router.post(
+    "/auto-assign/propose",
+    response_model=EvaluatorAutoAssignProposal,
+    summary="Compute an automatic evaluator-to-team assignment proposal (no DB writes)",
+)
+def propose_evaluator_auto_assignment(
+    body: EvaluatorAutoAssignRequest = EvaluatorAutoAssignRequest(),
+    scope: ScopedEventService = Depends(require_capability("evaluators")),
+):
+    """Greedy, balanced assignment respecting conflict-of-interest as a hard
+    constraint (relaxed only as a last resort, and always flagged in the
+    response). Always a dry run — nothing is written. Review the proposal,
+    then POST it to /auto-assign/commit to actually create the assignments."""
+    return AutoAssignmentService.propose_evaluator_assignment(
+        scope.event_id, scope.db, judges_per_team=body.judges_per_team
+    )
+
+
+@router.post(
+    "/auto-assign/commit",
+    summary="Commit a (possibly admin-edited) evaluator auto-assignment proposal",
+)
+def commit_evaluator_auto_assignment(
+    body: EvaluatorAutoAssignCommitRequest,
+    scope: ScopedEventService = Depends(require_capability("evaluators")),
+):
+    return AutoAssignmentService.commit_evaluator_assignment(
+        scope.event_id, scope.db, body.assignments
+    )

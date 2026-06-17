@@ -406,6 +406,12 @@ export const evaluatorsApi = {
   assignments: (evaluatorId) =>
     api.get(eventPath(`/evaluators/${evaluatorId}/assignments`)),
 
+  autoAssignPropose: (judgesPerTeam = 1) =>
+    api.post(eventPath('/evaluators/auto-assign/propose'), { judges_per_team: judgesPerTeam, dry_run: true }),
+
+  autoAssignCommit: (proposalId, assignments) =>
+    api.post(eventPath('/evaluators/auto-assign/commit'), { proposal_id: proposalId, assignments }),
+
   downloadTemplate: async () => {
     const blob = await api.get(eventPath('/evaluators/csv-template'), { responseType: 'blob' })
     downloadBlob(blob, 'evaluators_template.csv')
@@ -597,6 +603,10 @@ export const mentorApi = {
   assign:           (data)=> api.post(eventPath('/mentor-assignments'), data),
   unassign:         (id) => api.delete(eventPath(`/mentor-assignments/${id}`)),
   teamMentor:       (teamId) => api.get(eventPath(`/mentor-assignments/team/${teamId}`)),
+  autoAssignPropose: () => api.post(eventPath('/mentor-assignments/auto-assign/propose'), { dry_run: true }),
+  autoAssignCommit:  (proposalId, assignments) =>
+    api.post(eventPath('/mentor-assignments/auto-assign/commit'), { proposal_id: proposalId, assignments }),
+
 
   // Ops dashboard (admin)
   opsSummary:            () => api.get(eventPath('/mentor-ops/summary'),),
