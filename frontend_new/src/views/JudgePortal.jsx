@@ -304,7 +304,7 @@ function TeamSubmissionSection({ teamId, token }) {
 
 // ── Team queue sidebar ─────────────────────────────────────────────────────
 
-function TeamQueueSidebar({ teams, selectedId, submittedIds, onSelect, evaluatorName }) {
+function TeamQueueSidebar({ teams, selectedId, submittedIds, onSelect }) {
   return (
     <aside className="hidden lg:flex w-72 bg-background border-r border-border flex-col shadow-sm z-10 shrink-0">
       {/* Evaluator header */}

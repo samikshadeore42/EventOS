@@ -9,7 +9,7 @@ import { useNavigate } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import AutoAssignModal from '../components/AutoAssignModal'
 import {
-  LayoutDashboard, Users, GitBranch, CheckSquare,
+  Users, GitBranch, CheckSquare,
   UserCheck, Trophy, Mail, Upload, Download,
   Play, Loader2, Check, X, AlertTriangle,
   ChevronDown, ChevronRight, Wand2,
@@ -17,16 +17,13 @@ import {
   Send, Copy, Trash2, Plus, Shield, ShieldAlert, ShieldCheck, FileText, Settings,
   Sparkles,
 } from 'lucide-react'
-import EventOSLogo from '../components/EventOSLogo'
 import PipelineStepper from '../components/PipelineStepper'
 import OrgSwitcher from '../components/OrgSwitcher'
 import SettingsTab from '../components/SettingsTab'
 import NotificationBell from '../components/NotificationBell'
 import AppLayout from '../components/AppLayout'
 import StageTimelinePanel from '../components/StageTimelinePanel'
-import ThemeToggle from '../components/ThemeToggle'
 import { motion, AnimatePresence } from 'framer-motion'
-import { PieChart, Pie, Cell, Tooltip as RechartsTooltip, ResponsiveContainer } from 'recharts'
 import {
   participantsApi,
   solverApi,

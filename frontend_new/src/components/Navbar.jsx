@@ -1,4 +1,3 @@
-import { useState } from 'react'
 import { Menu, X } from 'lucide-react'
 import EventOSLogo from './EventOSLogo'
 import ThemeToggle from './ThemeToggle'
@@ -7,7 +6,6 @@ export default function Navbar({
   title = "EventOS Platform",
   subtitle = "Hackathon Operating System",
   userName = "User",
-  showNotifications = false,
   customActions = null,
   mobileMenuOpen,
   setMobileMenuOpen,
