@@ -10,6 +10,7 @@ import {
   Target,
 } from 'lucide-react'
 import { mentorApi, portalApi,eventStorage } from '../services/api'
+import TeamChatPanel from '../components/TeamChatPanel'
 import { useAuth } from '../context/AuthContext'
 import { useParams } from 'react-router-dom'
 
@@ -247,7 +248,7 @@ function DailyProgressForm({ teamId, members, token, onSuccess }) {
 }
 
 // ── Team card ──────────────────────────────────────────────────────────────
-function TeamCard({ team, token }) {
+function TeamCard({ team, token, eventId, mentorId }) {
   const qc = useQueryClient()
   const [expanded, setExpanded] = useState(false)
   const cancelMutation = useMutation({
@@ -363,6 +364,19 @@ function TeamCard({ team, token }) {
           {/* Daily progress */}
           <DailyProgressForm teamId={team.team_id} members={team.members} token={token} />
         </div>
+      )}
+
+      {expanded && eventId && mentorId && (
+        <TeamChatPanel
+          eventId={eventId}
+          teamId={team.team_id}
+          token={token}
+          kind="mentor"
+          title={`Chat — ${team.team_name}`}
+          accentClass="bg-teal-700 hover:bg-teal-800"
+          currentSenderId={mentorId}
+          currentSenderRole="mentor"
+        />
       )}
     </div>
   )
@@ -509,7 +523,15 @@ export default function MentorPortal() {
             </div>
           ) : (
             <div className="space-y-3">
-              {teams.map(team => <TeamCard key={team.team_id} team={team} token={urlToken} />)}
+              {teams.map(team => (
+                <TeamCard
+                  key={team.team_id}
+                  team={team}
+                  token={urlToken}
+                  eventId={eventId}
+                  mentorId={profileData?.mentor_id}
+                />
+              ))}
             </div>
           )}
         </div>

@@ -29,6 +29,7 @@ from app.models.risk import RiskSignal, TeamRiskSnapshot
 
 # Phase 10 & 12
 from app.models.daily_update import DailyUpdate
+from app.models.chat import ChatConversation, ChatMessage
 
 __all__ = [
     # Phase 2 Models
@@ -45,4 +46,7 @@ __all__ = [
 
     # Phase 10 & 12
     "DailyUpdate",
+
+    # Chat
+    "ChatConversation", "ChatMessage",
 ]
