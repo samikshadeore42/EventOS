@@ -73,7 +73,7 @@ def upgrade() -> None:
                existing_type=postgresql.TIMESTAMP(timezone=True),
                nullable=False,
                existing_server_default=sa.text('now()'))
-    op.drop_index('ix_outbox_pending_due', table_name='notification_outbox', postgresql_where="((status)::text = 'pending'::text)")
+    op.execute("DROP INDEX IF EXISTS ix_outbox_pending_due")
     op.alter_column('risk_signals', 'severity',
                existing_type=sa.INTEGER(),
                server_default=None,
