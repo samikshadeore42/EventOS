@@ -41,10 +41,10 @@ export default function AuthRegister() {
       <div className="absolute inset-0 bg-[url('data:image/svg+xml,%3Csvg width=\\'60\\' height=\\'60\\' viewBox=\\'0 0 60 60\\' xmlns=\\'http://www.w3.org/2000/svg\\'%3E%3Cg fill=\\'none\\' fill-rule=\\'evenodd\\'%3E%3Cg fill=\\'%230f172a\\' fill-opacity=\\'0.03\\'%3E%3Cpath d=\\'M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z\\'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E')] pointer-events-none opacity-50 z-0"></div>
       
       <div className="sm:mx-auto sm:w-full sm:max-w-md z-10">
-        <div className="flex justify-center text-teal-600">
+        <div className="flex justify-center text-amber-600">
           <EventOSLogo size={64} />
         </div>
-        <h2 className="mt-4 text-center text-3xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-teal-600 to-sky-600">
+        <h2 className="mt-4 text-center text-3xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-amber-600 to-orange-500">
           Create an Organization
         </h2>
       </div>
@@ -61,14 +61,14 @@ export default function AuthRegister() {
                 We've sent a verification link to <strong>{formData.email}</strong>. 
                 Please verify your email address before signing in.
               </p>
-              <Link to="/auth/login" className="font-medium text-teal-600 hover:text-teal-500">
+              <Link to="/auth/login" className="font-medium text-amber-600 hover:text-amber-500">
                 Go to sign in
               </Link>
             </div>
           ) : (
           <form className="space-y-6" onSubmit={handleRegister}>
             {error && (
-              <div className="bg-teal-50 border border-teal-200 text-teal-600 p-3 rounded-lg text-sm text-center">
+              <div className="bg-amber-50 border border-teal-200 text-amber-600 p-3 rounded-lg text-sm text-center">
                 {error}
               </div>
             )}
@@ -85,7 +85,7 @@ export default function AuthRegister() {
                     required
                     value={formData.first_name}
                     onChange={(e) => setFormData({ ...formData, first_name: e.target.value })}
-                    className="block w-full pl-10 bg-surface text-foreground placeholder-slate-400 border border-border rounded-lg focus:ring-teal-500 focus:border-teal-500 sm:text-sm p-2.5"
+                    className="block w-full pl-10 bg-surface text-foreground placeholder-slate-400 border border-border rounded-lg focus:ring-amber-500 focus:border-amber-500 sm:text-sm p-2.5"
                     placeholder="Jane"
                   />
                 </div>
@@ -102,7 +102,7 @@ export default function AuthRegister() {
                     required
                     value={formData.last_name}
                     onChange={(e) => setFormData({ ...formData, last_name: e.target.value })}
-                    className="block w-full pl-10 bg-surface text-foreground placeholder-slate-400 border border-border rounded-lg focus:ring-teal-500 focus:border-teal-500 sm:text-sm p-2.5"
+                    className="block w-full pl-10 bg-surface text-foreground placeholder-slate-400 border border-border rounded-lg focus:ring-amber-500 focus:border-amber-500 sm:text-sm p-2.5"
                     placeholder="Doe"
                   />
                 </div>
@@ -120,7 +120,7 @@ export default function AuthRegister() {
                   required
                   value={formData.email}
                   onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                  className="block w-full pl-10 bg-surface text-foreground placeholder-slate-400 border border-border rounded-lg focus:ring-teal-500 focus:border-teal-500 sm:text-sm p-2.5"
+                  className="block w-full pl-10 bg-surface text-foreground placeholder-slate-400 border border-border rounded-lg focus:ring-amber-500 focus:border-amber-500 sm:text-sm p-2.5"
                   placeholder="jane@example.com"
                 />
               </div>
@@ -138,7 +138,7 @@ export default function AuthRegister() {
                   minLength={8}
                   value={formData.password}
                   onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                  className="block w-full pl-10 bg-surface text-foreground placeholder-slate-400 border border-border rounded-lg focus:ring-teal-500 focus:border-teal-500 sm:text-sm p-2.5"
+                  className="block w-full pl-10 bg-surface text-foreground placeholder-slate-400 border border-border rounded-lg focus:ring-amber-500 focus:border-amber-500 sm:text-sm p-2.5"
                   placeholder="••••••••"
                 />
               </div>
@@ -164,7 +164,7 @@ export default function AuthRegister() {
                       organization_slug: generateSlug(name)
                     });
                   }}
-                  className="block w-full pl-10 bg-surface text-foreground placeholder-slate-400 border border-border rounded-lg focus:ring-teal-500 focus:border-teal-500 sm:text-sm p-2.5"
+                  className="block w-full pl-10 bg-surface text-foreground placeholder-slate-400 border border-border rounded-lg focus:ring-amber-500 focus:border-amber-500 sm:text-sm p-2.5"
                   placeholder="Acme Hackathon Inc."
                 />
               </div>
@@ -181,7 +181,7 @@ export default function AuthRegister() {
                   required
                   value={formData.organization_slug}
                   onChange={(e) => setFormData({ ...formData, organization_slug: e.target.value })}
-                  className="block w-full pl-10 font-mono bg-surface text-foreground border border-border rounded-lg focus:ring-teal-500 focus:border-teal-500 sm:text-sm p-2.5"
+                  className="block w-full pl-10 font-mono bg-surface text-foreground border border-border rounded-lg focus:ring-amber-500 focus:border-amber-500 sm:text-sm p-2.5"
                   placeholder="acme-hackathon"
                 />
               </div>
@@ -191,7 +191,7 @@ export default function AuthRegister() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full flex justify-center py-2.5 px-4 border border-teal-400/20 rounded-lg shadow-lg shadow-teal-500/25 text-sm font-medium text-white bg-gradient-to-r from-teal-600 to-teal-600 hover:from-teal-500 hover:to-teal-500 focus:outline-none transition-all disabled:opacity-100 disabled:bg-teal-100 dark:disabled:bg-teal-900/50 disabled:text-teal-400 dark:disabled:text-teal-600 disabled:border-transparent disabled:shadow-none disabled:cursor-not-allowed"
+              className="w-full flex justify-center py-2.5 px-4 border border-amber-400/20 rounded-lg shadow-lg shadow-amber-500/25 text-sm font-medium text-white bg-amber-600 hover:bg-amber-500 focus:outline-none transition-all disabled:opacity-100 disabled:bg-amber-100 dark:disabled:bg-amber-900/50 disabled:text-amber-400 dark:disabled:text-amber-600 disabled:border-transparent disabled:shadow-none disabled:cursor-not-allowed"
             >
               {loading ? <Loader2 className="animate-spin h-5 w-5" /> : 'Register Organization'}
             </button>
@@ -200,7 +200,7 @@ export default function AuthRegister() {
 
           <div className="mt-6 text-center text-sm">
             <span className="text-muted">Already have an account? </span>
-            <Link to="/auth/login" className="font-medium text-teal-600 hover:text-teal-500">
+            <Link to="/auth/login" className="font-medium text-amber-600 hover:text-amber-500">
               Sign in
             </Link>
           </div>

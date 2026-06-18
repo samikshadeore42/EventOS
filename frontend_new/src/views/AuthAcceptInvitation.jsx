@@ -78,20 +78,20 @@ export default function AuthAcceptInvitation() {
       case 'loading':
         return (
           <div className="text-center">
-            <Loader2 className="animate-spin h-12 w-12 text-teal-500 mx-auto mb-4" />
+            <Loader2 className="animate-spin h-12 w-12 text-amber-500 mx-auto mb-4" />
             <h3 className="text-lg font-medium text-foreground">Loading invitation...</h3>
           </div>
         );
       case 'ready':
         return (
           <div className="text-center">
-            <div className="mx-auto flex items-center justify-center h-14 w-14 rounded-full bg-teal-100 mb-4">
-              <Building className="h-7 w-7 text-teal-600" />
+            <div className="mx-auto flex items-center justify-center h-14 w-14 rounded-full bg-amber-100 mb-4">
+              <Building className="h-7 w-7 text-amber-600" />
             </div>
             <h3 className="text-lg font-medium text-foreground mb-2">
               You&apos;re invited to join
             </h3>
-            <p className="text-xl font-bold text-teal-600 mb-1">{preview?.organization_name}</p>
+            <p className="text-xl font-bold text-amber-600 mb-1">{preview?.organization_name}</p>
             {preview?.inviter_name && (
               <p className="text-sm text-muted mb-1">Invited by {preview.inviter_name}</p>
             )}
@@ -99,7 +99,7 @@ export default function AuthAcceptInvitation() {
               Role: <span className="font-medium capitalize">{preview?.role}</span>
             </p>
             {error && (
-              <div className="bg-teal-50 border border-teal-200 text-teal-600 p-3 rounded-lg text-sm text-center mb-4">
+              <div className="bg-amber-50 border border-teal-200 text-amber-600 p-3 rounded-lg text-sm text-center mb-4">
                 {error}
               </div>
             )}
@@ -109,7 +109,7 @@ export default function AuthAcceptInvitation() {
                 <button
                   onClick={handleAccept}
                   disabled={accepting}
-                  className="w-full flex justify-center py-2.5 px-4 border border-teal-400/20 rounded-lg shadow-lg shadow-teal-500/25 text-sm font-medium text-white bg-gradient-to-r from-teal-600 to-teal-600 hover:from-teal-500 hover:to-teal-500 focus:outline-none transition-all disabled:opacity-100 disabled:bg-teal-100 dark:disabled:bg-teal-900/50 disabled:text-teal-400 dark:disabled:text-teal-600 disabled:border-transparent disabled:shadow-none disabled:cursor-not-allowed"
+                  className="w-full flex justify-center py-2.5 px-4 border border-amber-400/20 rounded-lg shadow-lg shadow-amber-500/25 text-sm font-medium text-white bg-amber-600 hover:bg-amber-500 focus:outline-none transition-all disabled:opacity-100 disabled:bg-amber-100 dark:disabled:bg-amber-900/50 disabled:text-amber-400 dark:disabled:text-amber-600 disabled:border-transparent disabled:shadow-none disabled:cursor-not-allowed"
                 >
                   {accepting ? <Loader2 className="animate-spin h-5 w-5" /> :
                     (authenticated ? 'Accept Invitation' : (preview?.has_account ? 'Sign in to Accept' : 'Create Account & Join'))}
@@ -117,7 +117,7 @@ export default function AuthAcceptInvitation() {
                 {!authenticated && preview?.has_account && (
                   <p className="text-xs text-muted mt-3">
                     Don&apos;t have an account?{' '}
-                    <button onClick={() => setShowCreateAccount(true)} className="text-teal-600 hover:underline">
+                    <button onClick={() => setShowCreateAccount(true)} className="text-amber-600 hover:underline">
                       Create one for {preview?.email}
                     </button>
                   </p>
@@ -131,26 +131,26 @@ export default function AuthAcceptInvitation() {
                   placeholder="First name"
                   value={form.first_name}
                   onChange={e => setForm(f => ({ ...f, first_name: e.target.value }))}
-                  className="w-full border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500"
+                  className="w-full border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500"
                 />
                 <input
                   type="text"
                   placeholder="Last name"
                   value={form.last_name}
                   onChange={e => setForm(f => ({ ...f, last_name: e.target.value }))}
-                  className="w-full border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500"
+                  className="w-full border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500"
                 />
                 <input
                   type="password"
                   placeholder="Password (min 8 characters)"
                   value={form.password}
                   onChange={e => setForm(f => ({ ...f, password: e.target.value }))}
-                  className="w-full border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500"
+                  className="w-full border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-amber-500"
                 />
                 <button
                   onClick={handleCreateAccount}
                   disabled={accepting || !form.first_name || !form.last_name || form.password.length < 8}
-                  className="w-full flex justify-center py-2.5 px-4 rounded-lg shadow-lg shadow-teal-500/25 text-sm font-medium text-white bg-gradient-to-r from-teal-600 to-teal-600 hover:from-teal-500 hover:to-teal-500 disabled:opacity-100 disabled:bg-teal-100 dark:disabled:bg-teal-900/50 disabled:text-teal-400 dark:disabled:text-teal-600 disabled:border-transparent disabled:shadow-none disabled:cursor-not-allowed"
+                  className="w-full flex justify-center py-2.5 px-4 rounded-lg shadow-lg shadow-amber-500/25 text-sm font-medium text-white bg-amber-600 hover:bg-amber-500 disabled:opacity-100 disabled:bg-amber-100 dark:disabled:bg-amber-900/50 disabled:text-amber-400 dark:disabled:text-amber-600 disabled:border-transparent disabled:shadow-none disabled:cursor-not-allowed"
                 >
                   {accepting ? <Loader2 className="animate-spin h-5 w-5" /> : 'Create Account & Join'}
                 </button>
@@ -169,7 +169,7 @@ export default function AuthAcceptInvitation() {
             <p className="text-sm text-muted mb-6">
               You&apos;ve joined <strong>{preview?.organization_name}</strong> as {preview?.role}.
             </p>
-            <Link to="/admin" className="inline-flex items-center px-4 py-2 rounded-lg text-sm font-medium text-white bg-gradient-to-r from-teal-600 to-teal-600 hover:from-teal-500 hover:to-teal-500">
+            <Link to="/admin" className="inline-flex items-center px-4 py-2 rounded-lg text-sm font-medium text-white bg-amber-600 hover:bg-amber-500">
               Go to Dashboard
             </Link>
           </div>
@@ -180,16 +180,16 @@ export default function AuthAcceptInvitation() {
             <AlertTriangle className="h-12 w-12 text-amber-500 mx-auto mb-4" />
             <h3 className="text-lg font-medium text-foreground mb-2">Invitation Expired</h3>
             <p className="text-sm text-muted mb-6">This invitation has expired. Please ask the organization admin to send a new one.</p>
-            <Link to="/auth/login" className="font-medium text-teal-600 hover:text-teal-500">Go to sign in</Link>
+            <Link to="/auth/login" className="font-medium text-amber-600 hover:text-amber-500">Go to sign in</Link>
           </div>
         );
       default:
         return (
           <div className="text-center">
-            <XCircle className="h-12 w-12 text-teal-500 mx-auto mb-4" />
+            <XCircle className="h-12 w-12 text-amber-500 mx-auto mb-4" />
             <h3 className="text-lg font-medium text-foreground mb-2">Invalid Invitation</h3>
             <p className="text-sm text-muted mb-6">This invitation link is invalid or has already been used.</p>
-            <Link to="/auth/login" className="font-medium text-teal-600 hover:text-teal-500">Go to sign in</Link>
+            <Link to="/auth/login" className="font-medium text-amber-600 hover:text-amber-500">Go to sign in</Link>
           </div>
         );
     }
@@ -198,10 +198,10 @@ export default function AuthAcceptInvitation() {
   return (
     <div className="min-h-screen bg-surface flex flex-col justify-center py-12 sm:px-6 lg:px-8 relative overflow-hidden text-foreground">
       <div className="sm:mx-auto sm:w-full sm:max-w-md z-10">
-        <div className="flex justify-center text-teal-600">
+        <div className="flex justify-center text-amber-600">
           <EventOSLogo size={64} />
         </div>
-        <h2 className="mt-4 text-center text-3xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-teal-600 to-sky-600">
+        <h2 className="mt-4 text-center text-3xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-amber-600 to-orange-500">
           Organization Invitation
         </h2>
       </div>

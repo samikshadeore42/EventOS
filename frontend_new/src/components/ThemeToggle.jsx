@@ -1,33 +1,51 @@
 import { useEffect, useState } from 'react';
-import { Moon, Sun } from 'lucide-react';
+import { Moon, Sun, Palette } from 'lucide-react';
 
 export default function ThemeToggle() {
-  const [isDark, setIsDark] = useState(() => {
+  const [theme, setTheme] = useState(() => {
     if (typeof localStorage !== 'undefined') {
-      return localStorage.getItem('theme') === 'dark' || 
-             (!localStorage.getItem('theme') && window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches);
+      const saved = localStorage.getItem('theme');
+      if (saved) return saved;
+      return window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
     }
-    return false;
+    return 'light';
   });
 
   useEffect(() => {
     const root = document.documentElement;
-    if (isDark) {
+    root.classList.remove('dark', 'theme-eventos');
+    
+    if (theme === 'dark') {
       root.classList.add('dark');
-      localStorage.setItem('theme', 'dark');
-    } else {
-      root.classList.remove('dark');
-      localStorage.setItem('theme', 'light');
+    } else if (theme === 'eventos') {
+      root.classList.add('theme-eventos');
     }
-  }, [isDark]);
+    
+    localStorage.setItem('theme', theme);
+  }, [theme]);
+
+  const cycleTheme = () => {
+    setTheme(current => {
+      if (current === 'light') return 'dark';
+      if (current === 'dark') return 'eventos';
+      return 'light';
+    });
+  };
 
   return (
     <button
-      onClick={() => setIsDark(!isDark)}
-      className="p-2 rounded-xl text-muted hover:text-teal-600 hover:bg-teal-50 dark:hover:bg-teal-900/30 transition-colors border border-transparent hover:border-teal-200 dark:hover:border-teal-800"
-      aria-label="Toggle Dark Mode"
+      onClick={cycleTheme}
+      className="p-2 rounded-xl text-muted hover:text-[var(--color-primary)] hover:bg-[var(--color-bg-soft)] transition-colors border border-transparent hover:border-[var(--color-border)]"
+      aria-label="Toggle Theme"
+      title={`Current Theme: ${theme}`}
     >
-      {isDark ? <Sun size={20} className="text-teal-400" /> : <Moon size={20} />}
+      {theme === 'light' ? (
+        <Moon size={20} />
+      ) : theme === 'dark' ? (
+        <Palette size={20} className="text-teal-400" />
+      ) : (
+        <Sun size={20} className="text-[#D98A3A]" />
+      )}
     </button>
   );
 }

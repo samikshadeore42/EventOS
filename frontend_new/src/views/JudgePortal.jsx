@@ -163,22 +163,25 @@ function ScoringForm({ team, onSubmitted, alreadySubmitted, token }) {
       </div>
 
       {/* Weighted total display */}
-      <div className="bg-background border border-border shadow-sm rounded-xl p-4 mb-5 flex items-center justify-between">
-        <div>
-          <p className="text-xs font-semibold text-muted mb-0.5">Weighted total score</p>
-          <div className="flex items-baseline gap-2">
-            <span className="text-4xl font-black text-foreground">{total.toFixed(2)}</span>
-            <span className="text-muted font-medium">/10</span>
-            <span className={`text-sm font-bold ${quality.colour}`}>{quality.label}</span>
+      <div className="glass-card rounded-2xl border-t-4 border-t-teal-500 p-6 mb-5 flex items-center justify-between relative overflow-hidden group transition-all hover:-translate-y-1 hover:scale-[1.02]">
+        <div className="absolute -right-8 -top-8 w-40 h-40 bg-gradient-to-br from-teal-500/20 to-transparent rounded-full blur-3xl group-hover:scale-125 transition-transform duration-700" />
+        <div className="relative z-10 w-full flex items-center justify-between">
+          <div>
+            <p className="text-xs font-semibold text-muted mb-0.5 uppercase tracking-wider">Weighted total score</p>
+            <div className="flex items-baseline gap-2">
+              <span className="text-4xl font-black text-foreground">{total.toFixed(2)}</span>
+              <span className="text-muted font-medium">/10</span>
+              <span className={`text-sm font-bold ${quality.colour}`}>{quality.label}</span>
+            </div>
           </div>
-        </div>
-        <div className="text-right">
-          <button
-            onClick={() => setScores(DEFAULT_SCORES)}
-            className="flex items-center gap-1 text-xs font-medium text-muted hover:text-muted transition-colors"
-          >
-            <RotateCcw size={12} /> Reset
-          </button>
+          <div className="text-right">
+            <button
+              onClick={() => setScores(DEFAULT_SCORES)}
+              className="flex items-center gap-1 text-xs font-bold text-muted hover:text-teal-600 transition-colors"
+            >
+              <RotateCcw size={14} /> Reset
+            </button>
+          </div>
         </div>
       </div>
 

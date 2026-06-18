@@ -84,7 +84,7 @@ export default function TeamChatPanel({
       {/* Panel */}
       {isPanelOpen && (
         <div
-          className={inline ? "flex flex-col w-full h-full bg-background" : `fixed bottom-24 z-40 w-[92vw] max-w-sm h-[28rem] glass-panel rounded-2xl shadow-[0_12px_40px_rgba(20,184,166,0.15)] flex flex-col overflow-hidden ring-1 ring-teal-500/20 ${
+          className={inline ? "flex flex-col w-full h-full bg-background" : `fixed bottom-24 z-40 w-[92vw] max-w-sm h-[28rem] glass-panel rounded-2xl shadow-[0_12px_40px_color-mix(in_srgb,var(--color-teal-500)_15%,transparent)] flex flex-col overflow-hidden ring-1 ring-teal-500/20 ${
             kind === 'mentor' ? 'right-6' : 'right-24'
           }`}
         >
@@ -109,7 +109,7 @@ export default function TeamChatPanel({
 
           <div className="relative flex-1 overflow-y-auto px-3 py-3 space-y-2 bg-background">
             {/* Chat background pattern */}
-            <div className="absolute inset-0 opacity-[0.04] dark:opacity-[0.02] pointer-events-none" style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%2314B8A6' fill-opacity='1'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")` }}></div>
+            <div className="absolute inset-0 bg-teal-500 opacity-[0.04] dark:opacity-[0.02] pointer-events-none" style={{ WebkitMaskImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z' fill='black'/%3E%3C/svg%3E")`, maskImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z' fill='black'/%3E%3C/svg%3E")` }}></div>
 
             {historyError && (
               <p className="relative z-10 text-xs text-teal-500 flex items-center gap-1.5">

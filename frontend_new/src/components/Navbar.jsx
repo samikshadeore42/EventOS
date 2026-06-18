@@ -22,7 +22,7 @@ export default function Navbar({
               if (onMenuClick) onMenuClick()
               else if (setMobileMenuOpen) setMobileMenuOpen(!mobileMenuOpen)
             }}
-            className={`p-2 -ml-2 text-muted hover:text-foreground transition-colors`}
+            className={`p-2 -ml-2 text-foreground hover:opacity-80 transition-opacity`}
           >
             {mobileMenuOpen && mobileBreakpoint !== 'never' && window.innerWidth < (mobileBreakpoint === 'lg' ? 1024 : 768) ? <X size={24} /> : <Menu size={24} />}
           </button>

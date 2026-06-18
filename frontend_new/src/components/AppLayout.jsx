@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
+import { X } from 'lucide-react'
 import Navbar from './Navbar'
 
 export default function AppLayout({
@@ -61,7 +62,7 @@ export default function AppLayout({
                   className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold transition-all ${
                     item.isActive
                       ? 'bg-teal-100 dark:bg-teal-900/60 text-teal-950 dark:text-teal-50 ring-2 ring-teal-500'
-                      : 'text-foreground hover:bg-slate-100 dark:hover:bg-slate-800 border border-transparent'
+                      : 'text-foreground bg-slate-50 dark:bg-slate-800/50 hover:bg-slate-100 dark:hover:bg-slate-800 border border-border/40 hover:border-teal-400 hover:shadow-md hover:-translate-y-0.5 group'
                   }`}
                 >
                   {item.Icon && (
@@ -87,17 +88,20 @@ export default function AppLayout({
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
                 onClick={() => setMobileMenuOpen(false)}
-                className={`fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-40 ${hiddenClass}`}
+                className={`fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-[60] ${hiddenClass}`}
               />
               <motion.div
                 initial={{ x: '-100%' }}
                 animate={{ x: 0 }}
                 exit={{ x: '-100%' }}
                 transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-                className={`fixed inset-y-0 left-0 w-3/4 max-w-sm bg-background border-r border-border shadow-2xl z-50 overflow-y-auto ${hiddenClass}`}
+                className={`fixed inset-y-0 left-0 w-3/4 max-w-sm bg-surface dark:bg-slate-900 border-r border-border shadow-2xl z-[70] overflow-y-auto ${hiddenClass}`}
               >
                 <div className="p-4 border-b border-border flex justify-between items-center">
                   <h2 className="font-bold text-teal-800 dark:text-teal-400">Navigation</h2>
+                  <button onClick={() => setMobileMenuOpen(false)} className="p-2 -mr-2 text-foreground hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full transition-colors">
+                    <X size={20} />
+                  </button>
                 </div>
                 <nav className="p-4 space-y-1">
                   {navigationItems.map((item) => (
@@ -110,7 +114,7 @@ export default function AppLayout({
                       className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold transition-all ${
                         item.isActive
                           ? 'bg-teal-100 dark:bg-teal-900/60 text-teal-950 dark:text-teal-50 ring-2 ring-teal-500'
-                          : 'text-foreground hover:bg-surface border border-transparent'
+                          : 'text-foreground bg-slate-50 dark:bg-slate-800/50 hover:bg-slate-100 dark:hover:bg-slate-800 border border-border/40 hover:border-teal-400 hover:shadow-md hover:-translate-y-0.5 group'
                       }`}
                     >
                       {item.Icon && (
