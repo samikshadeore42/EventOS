@@ -33,16 +33,16 @@ export default function AutoAssignModal({
 
   return (
     <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-[100] p-4">
-      <div className="bg-white rounded-2xl shadow-xl w-full max-w-2xl max-h-[85vh] flex flex-col">
+      <div className="bg-background rounded-2xl shadow-xl w-full max-w-2xl max-h-[85vh] flex flex-col">
         {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-200">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-border">
           <div className="flex items-center gap-2">
-            <Wand2 size={18} className="text-red-600" />
-            <h3 className="text-base font-bold text-slate-900">
+            <Wand2 size={18} className="text-teal-600" />
+            <h3 className="text-base font-bold text-foreground">
               Auto-assign {entityLabel}s
             </h3>
           </div>
-          <button onClick={onClose} className="text-slate-400 hover:text-slate-600">
+          <button onClick={onClose} className="text-muted hover:text-muted">
             <X size={20} />
           </button>
         </div>
@@ -50,14 +50,14 @@ export default function AutoAssignModal({
         <div className="flex-1 overflow-y-auto px-6 py-4">
           {!proposal && (
             <div className="text-center py-10">
-              <p className="text-sm text-slate-600 mb-5">
+              <p className="text-sm text-muted mb-5">
                 This computes a complete, balanced assignment of all active {entityLabel.toLowerCase()}s
                 to approved teams. Nothing is saved until you review and confirm below.
               </p>
               <button
                 onClick={() => proposeMutation.mutate()}
                 disabled={proposeMutation.isPending}
-                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg bg-red-600 text-white text-sm font-semibold hover:bg-red-700 disabled:opacity-50"
+                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg bg-teal-600 text-white text-sm font-semibold hover:bg-teal-700 disabled:opacity-100 disabled:bg-teal-100 dark:disabled:bg-teal-900/50 disabled:text-teal-400 dark:disabled:text-teal-600 disabled:border-transparent disabled:shadow-none disabled:cursor-not-allowed"
               >
                 {proposeMutation.isPending
                   ? <Loader2 size={16} className="animate-spin" />
@@ -65,7 +65,7 @@ export default function AutoAssignModal({
                 Generate proposal
               </button>
               {proposeMutation.isError && (
-                <p className="mt-3 text-sm text-red-600">{proposeMutation.error?.message}</p>
+                <p className="mt-3 text-sm text-teal-600">{proposeMutation.error?.message}</p>
               )}
             </div>
           )}
@@ -74,19 +74,19 @@ export default function AutoAssignModal({
             <div className="space-y-4">
               {/* Summary stats */}
               <div className="grid grid-cols-3 gap-3 text-center">
-                <div className="rounded-lg bg-slate-50 border border-slate-200 p-3">
-                  <p className="text-xl font-bold text-slate-900">{proposal.assignments.length}</p>
-                  <p className="text-xs text-slate-500 font-medium">Assignments proposed</p>
+                <div className="rounded-lg bg-surface border border-border p-3">
+                  <p className="text-xl font-bold text-foreground">{proposal.assignments.length}</p>
+                  <p className="text-xs text-muted font-medium">Assignments proposed</p>
                 </div>
-                <div className="rounded-lg bg-slate-50 border border-slate-200 p-3">
-                  <p className="text-xl font-bold text-slate-900">
+                <div className="rounded-lg bg-surface border border-border p-3">
+                  <p className="text-xl font-bold text-foreground">
                     {kind === 'evaluator' ? proposal.total_evaluators : proposal.total_mentors}
                   </p>
-                  <p className="text-xs text-slate-500 font-medium">Active {entityLabel.toLowerCase()}s</p>
+                  <p className="text-xs text-muted font-medium">Active {entityLabel.toLowerCase()}s</p>
                 </div>
-                <div className="rounded-lg bg-slate-50 border border-slate-200 p-3">
-                  <p className="text-xl font-bold text-slate-900">{proposal.unassigned_teams.length}</p>
-                  <p className="text-xs text-slate-500 font-medium">Teams unassigned</p>
+                <div className="rounded-lg bg-surface border border-border p-3">
+                  <p className="text-xl font-bold text-foreground">{proposal.unassigned_teams.length}</p>
+                  <p className="text-xs text-muted font-medium">Teams unassigned</p>
                 </div>
               </div>
 
@@ -108,11 +108,11 @@ export default function AutoAssignModal({
 
               {/* Unassigned teams */}
               {proposal.unassigned_teams?.length > 0 && (
-                <div className="rounded-lg border border-red-200 bg-red-50 p-3">
-                  <p className="text-sm font-semibold text-red-700 mb-1.5">
+                <div className="rounded-lg border border-teal-200 bg-teal-50 p-3">
+                  <p className="text-sm font-semibold text-teal-700 mb-1.5">
                     These teams need manual assignment:
                   </p>
-                  <ul className="text-xs text-red-600 space-y-1">
+                  <ul className="text-xs text-teal-600 space-y-1">
                     {proposal.unassigned_teams.map((t) => (
                       <li key={t.team_id}>{t.team_name} — {t.reason}</li>
                     ))}
@@ -121,30 +121,30 @@ export default function AutoAssignModal({
               )}
 
               {/* Assignment list */}
-              <div className="rounded-lg border border-slate-200 divide-y divide-slate-100 max-h-72 overflow-y-auto">
+              <div className="rounded-lg border border-border divide-y divide-slate-100 max-h-72 overflow-y-auto">
                 {proposal.assignments.map((a, i) => (
                   <div key={i} className="flex items-center justify-between px-3 py-2 text-sm">
                     <div>
-                      <span className="font-medium text-slate-900">{a.team_name}</span>
-                      <span className="text-slate-400 mx-1.5">→</span>
-                      <span className="text-slate-700">
+                      <span className="font-medium text-foreground">{a.team_name}</span>
+                      <span className="text-muted mx-1.5">→</span>
+                      <span className="text-foreground">
                         {kind === 'evaluator' ? a.evaluator_name : a.mentor_name}
                       </span>
                     </div>
                     {kind === 'mentor' && a.matched_skills?.length > 0 && (
-                      <span className="text-xs text-red-600 font-medium">
+                      <span className="text-xs text-teal-600 font-medium">
                         {a.matched_skills.join(', ')}
                       </span>
                     )}
                   </div>
                 ))}
                 {proposal.assignments.length === 0 && (
-                  <p className="text-sm text-slate-400 text-center py-6">No assignments to propose.</p>
+                  <p className="text-sm text-muted text-center py-6">No assignments to propose.</p>
                 )}
               </div>
 
               {commitMutation.isError && (
-                <p className="text-sm text-red-600">{commitMutation.error?.message}</p>
+                <p className="text-sm text-teal-600">{commitMutation.error?.message}</p>
               )}
             </div>
           )}
@@ -152,17 +152,17 @@ export default function AutoAssignModal({
 
         {/* Footer actions */}
         {proposal && (
-          <div className="flex items-center justify-end gap-2 px-6 py-4 border-t border-slate-200">
+          <div className="flex items-center justify-end gap-2 px-6 py-4 border-t border-border">
             <button
               onClick={() => setProposal(null)}
-              className="px-4 py-2 rounded-lg text-sm font-medium text-slate-600 hover:bg-slate-50"
+              className="px-4 py-2 rounded-lg text-sm font-medium text-muted hover:bg-surface"
             >
               Regenerate
             </button>
             <button
               onClick={() => commitMutation.mutate()}
               disabled={commitMutation.isPending || proposal.assignments.length === 0}
-              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg bg-emerald-600 text-white text-sm font-semibold hover:bg-emerald-700 disabled:opacity-50"
+              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg bg-emerald-600 text-white text-sm font-semibold hover:bg-emerald-700 disabled:opacity-100 disabled:bg-teal-100 dark:disabled:bg-teal-900/50 disabled:text-teal-400 dark:disabled:text-teal-600 disabled:border-transparent disabled:shadow-none disabled:cursor-not-allowed"
             >
               {commitMutation.isPending
                 ? <Loader2 size={16} className="animate-spin" />

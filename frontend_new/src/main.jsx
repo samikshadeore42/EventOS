@@ -27,7 +27,7 @@ function ProtectedAdminRoute({ children }) {
     if (isPortalUser) return <Navigate to="/" replace />;
 
     if (!orgsLoaded) {
-        return <div className="flex items-center justify-center h-screen text-slate-400">Loading...</div>;
+        return <div className="flex items-center justify-center h-screen text-muted">Loading...</div>;
     }
 
     if (!activeOrganization || !activeMembership) {

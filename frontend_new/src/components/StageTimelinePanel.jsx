@@ -9,8 +9,8 @@ import {
 import { stagesApi, eventLifecycleApi, eventsApi, eventStorage } from '../services/api'
 
 const DEFAULT_TZ = 'Asia/Kolkata'
-const INPUT_CLASS = 'w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-red-500 bg-white text-slate-900'
-const ICON_BUTTON_CLASS = 'p-1.5 rounded border border-slate-200 text-slate-600 hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed'
+const INPUT_CLASS = 'w-full border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 bg-background text-foreground'
+const ICON_BUTTON_CLASS = 'p-1.5 rounded border border-border text-muted hover:bg-surface disabled:opacity-40 disabled:cursor-not-allowed'
 const CAPABILITY_OPTIONS = [
   { key: 'teams', label: 'Teams' },
   { key: 'mentors', label: 'Mentors' },
@@ -312,7 +312,7 @@ export default function StageTimelinePanel({ eventStatus }) {
           <button
             onClick={() => generateRuns.mutate()}
             disabled={generateRuns.isPending || sortedStages.length === 0}
-            className="inline-flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium border border-slate-200 bg-white text-slate-700 hover:bg-slate-50 disabled:opacity-40"
+            className="inline-flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium border border-border bg-background text-foreground hover:bg-surface disabled:opacity-40"
           >
             {generateRuns.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Play className="w-4 h-4" />}
             Generate runs
@@ -321,7 +321,7 @@ export default function StageTimelinePanel({ eventStatus }) {
             <button
               onClick={() => publish.mutate()}
               disabled={!isValid || publish.isPending}
-              className="inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-white bg-red-600 hover:bg-red-700 disabled:opacity-40"
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-white bg-teal-600 hover:bg-teal-700 disabled:opacity-40"
             >
               {publish.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Rocket className="w-4 h-4" />}
               Publish event
@@ -331,7 +331,7 @@ export default function StageTimelinePanel({ eventStatus }) {
       </div>
 
       {publish.isError && (
-        <div className="rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700">
+        <div className="rounded-lg border border-teal-200 bg-teal-50 p-3 text-sm text-teal-700">
           {publishErr || 'Publish failed.'}
         </div>
       )}
@@ -339,7 +339,7 @@ export default function StageTimelinePanel({ eventStatus }) {
       {awaiting.length > 0 && (
         <div className="rounded-xl border border-gray-200 p-4">
           <h3 className="flex items-center gap-2 font-semibold text-sm text-gray-800 mb-3">
-            <Clock className="w-4 h-4 text-red-600" /> Stages awaiting approval
+            <Clock className="w-4 h-4 text-teal-600" /> Stages awaiting approval
           </h3>
           <ul className="space-y-2">
             {awaiting.map((s) => (
@@ -348,7 +348,7 @@ export default function StageTimelinePanel({ eventStatus }) {
                 <button
                   onClick={() => approve.mutate(s.id)}
                   disabled={approve.isPending}
-                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium text-white bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50"
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium text-white bg-emerald-600 hover:bg-emerald-700 disabled:opacity-100 disabled:bg-teal-100 dark:disabled:bg-teal-900/50 disabled:text-teal-400 dark:disabled:text-teal-600 disabled:border-transparent disabled:shadow-none disabled:cursor-not-allowed"
                 >
                   <CheckCircle2 className="w-3.5 h-3.5" /> Approve & start
                 </button>
@@ -359,7 +359,7 @@ export default function StageTimelinePanel({ eventStatus }) {
       )}
 
       {/* Timeline */}
-      <div className="rounded-xl border border-gray-200 bg-white overflow-hidden">
+      <div className="rounded-xl border border-gray-200 bg-background overflow-hidden">
         <div className="px-4 py-3 border-b border-gray-100 flex items-center justify-between">
           <div>
             <h3 className="text-sm font-semibold text-gray-800">Stage Definitions</h3>
@@ -367,14 +367,14 @@ export default function StageTimelinePanel({ eventStatus }) {
           </div>
           <button
             onClick={startCreate}
-            className="inline-flex items-center gap-1.5 text-sm px-3 py-2 rounded-lg bg-red-600 text-white hover:bg-red-700"
+            className="inline-flex items-center gap-1.5 text-sm px-3 py-2 rounded-lg bg-teal-600 text-white hover:bg-teal-700"
           >
             <Plus className="w-4 h-4" /> Add stage
           </button>
         </div>
 
         {formOpen && (
-          <div className="border-b border-gray-100 p-4 bg-slate-50">
+          <div className="border-b border-gray-100 p-4 bg-surface">
             <div className="grid md:grid-cols-2 gap-3">
               <Field label="Key">
                 <input
@@ -443,12 +443,12 @@ export default function StageTimelinePanel({ eventStatus }) {
               </Field>
 
               <Field label="Required capabilities">
-                <div className="rounded-lg border border-slate-200 bg-white p-3">
+                <div className="rounded-lg border border-border bg-background p-3">
                   <div className="grid sm:grid-cols-2 gap-2">
                     {CAPABILITY_OPTIONS.map((capability) => {
                       const checked = selectedCapabilities(form.required_capabilities).has(capability.key)
                       return (
-                        <label key={capability.key} className="flex items-center gap-2 text-xs text-slate-700">
+                        <label key={capability.key} className="flex items-center gap-2 text-xs text-foreground">
                           <input
                             type="checkbox"
                             checked={checked}
@@ -458,12 +458,12 @@ export default function StageTimelinePanel({ eventStatus }) {
                             }))}
                           />
                           <span>{capability.label}</span>
-                          <span className="text-slate-400">({capability.key})</span>
+                          <span className="text-muted">({capability.key})</span>
                         </label>
                       )
                     })}
                   </div>
-                  <p className="mt-2 text-[11px] text-slate-500">
+                  <p className="mt-2 text-[11px] text-muted">
                     Select only the capabilities this stage actually needs. The saved payload still uses system keys.
                   </p>
                 </div>
@@ -491,7 +491,7 @@ export default function StageTimelinePanel({ eventStatus }) {
                     type="button"
                     onClick={generateReminderJson}
                     disabled={!reminderPrompt.trim()}
-                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-red-200 text-xs font-medium text-red-700 bg-red-50 hover:bg-red-100 disabled:opacity-40"
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-teal-200 text-xs font-medium text-teal-700 bg-teal-50 hover:bg-teal-100 disabled:opacity-40"
                   >
                     Generate editable JSON
                   </button>
@@ -501,14 +501,14 @@ export default function StageTimelinePanel({ eventStatus }) {
                     rows={4}
                     className={`${INPUT_CLASS} font-mono text-xs resize-none`}
                   />
-                  <p className="text-[11px] text-slate-500">
+                  <p className="text-[11px] text-muted">
                     You can edit this JSON before saving. Use {} if no reminders are needed.
                   </p>
                 </div>
               </Field>
             </div>
 
-            <label className="mt-3 inline-flex items-center gap-2 text-sm text-slate-700">
+            <label className="mt-3 inline-flex items-center gap-2 text-sm text-foreground">
               <input
                 type="checkbox"
                 checked={form.is_active}
@@ -518,13 +518,13 @@ export default function StageTimelinePanel({ eventStatus }) {
             </label>
 
             {formError && (
-              <p className="text-xs text-red-600 mt-3">{formError}</p>
+              <p className="text-xs text-teal-600 mt-3">{formError}</p>
             )}
 
             <div className="flex justify-end gap-2 mt-4">
               <button
                 onClick={() => setFormOpen(false)}
-                className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg border border-slate-200 text-sm text-slate-600 bg-white"
+                className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg border border-border text-sm text-muted bg-background"
               >
                 <X className="w-4 h-4" />
                 Cancel
@@ -533,7 +533,7 @@ export default function StageTimelinePanel({ eventStatus }) {
               <button
                 onClick={() => saveStage.mutate()}
                 disabled={saveStage.isPending}
-                className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg bg-red-600 text-white text-sm disabled:opacity-50"
+                className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg bg-teal-600 text-white text-sm disabled:opacity-100 disabled:bg-teal-100 dark:disabled:bg-teal-900/50 disabled:text-teal-400 dark:disabled:text-teal-600 disabled:border-transparent disabled:shadow-none disabled:cursor-not-allowed"
               >
                 {saveStage.isPending ? (
                   <Loader2 className="w-4 h-4 animate-spin" />
@@ -574,7 +574,7 @@ export default function StageTimelinePanel({ eventStatus }) {
                   <button onClick={() => moveStage(index, 1)} disabled={index === sortedStages.length - 1 || reorder.isPending} className={ICON_BUTTON_CLASS} title="Move down">
                     <ArrowDown className="w-4 h-4" />
                   </button>
-                  <button onClick={() => startEdit(s)} className="text-xs px-2 py-1 rounded border border-slate-200 text-slate-600 hover:bg-slate-50">
+                  <button onClick={() => startEdit(s)} className="text-xs px-2 py-1 rounded border border-border text-muted hover:bg-surface">
                     Edit
                   </button>
                   <button
@@ -582,7 +582,7 @@ export default function StageTimelinePanel({ eventStatus }) {
                       if (window.confirm(`Delete stage "${s.name}"?`)) deleteStage.mutate(s.id)
                     }}
                     disabled={deleteStage.isPending}
-                    className={`${ICON_BUTTON_CLASS} text-red-600`}
+                    className={`${ICON_BUTTON_CLASS} text-teal-600`}
                     title="Delete"
                   >
                     <Trash2 className="w-4 h-4" />
@@ -600,7 +600,7 @@ export default function StageTimelinePanel({ eventStatus }) {
 function Field({ label, children }) {
   return (
     <label className="block">
-      <span className="block text-xs font-medium text-slate-500 mb-1">{label}</span>
+      <span className="block text-xs font-medium text-muted mb-1">{label}</span>
       {children}
     </label>
   )
@@ -608,7 +608,7 @@ function Field({ label, children }) {
 
 function StatusPill({ status }) {
   const map = {
-    active: 'bg-red-100 text-red-700',
+    active: 'bg-teal-100 text-teal-700',
     completed: 'bg-emerald-100 text-emerald-700',
     awaiting_approval: 'bg-amber-100 text-amber-700',
     pending: 'bg-gray-100 text-gray-500',

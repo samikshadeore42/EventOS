@@ -17,9 +17,9 @@ import {
   Send, Bot, User, CheckCircle2, Loader2,
   Sparkles, ArrowLeft, RotateCcw, AlertCircle,
 } from 'lucide-react'
-import EventOSLogo from '../components/EventOSLogo'
 import { eventStorage, langgraphApi } from '../services/api'
 import { useAuth } from '../context/AuthContext'
+import AppLayout from '../components/AppLayout'
 
 // ── Constants ──────────────────────────────────────────────────────────────
 
@@ -40,7 +40,7 @@ function ChatBubble({ role, text }) {
     <div className={`flex items-end gap-2 ${isUser ? 'justify-end' : 'justify-start'}`}>
       {/* AI avatar */}
       {!isUser && (
-        <div className="w-7 h-7 rounded-full bg-gradient-to-br from-red-500 to-red-600 flex items-center justify-center flex-shrink-0 shadow-sm">
+        <div className="w-7 h-7 rounded-full bg-gradient-to-br from-teal-500 to-teal-600 flex items-center justify-center flex-shrink-0 shadow-sm">
           <Bot size={14} className="text-white" />
         </div>
       )}
@@ -48,8 +48,8 @@ function ChatBubble({ role, text }) {
       <div className={`
         max-w-[78%] px-4 py-2.5 rounded-2xl text-sm leading-relaxed shadow-sm
         ${isUser
-          ? 'bg-gradient-to-br from-red-600 to-red-600 text-white rounded-br-sm'
-          : 'bg-white/80 backdrop-blur text-slate-800 border border-slate-200 rounded-bl-sm'
+          ? 'bg-gradient-to-br from-teal-600 to-teal-600 text-white rounded-br-sm'
+          : 'bg-white/80 dark:bg-slate-900/80 backdrop-blur text-foreground border border-border rounded-bl-sm'
         }
       `}>
         {text}
@@ -58,7 +58,7 @@ function ChatBubble({ role, text }) {
       {/* User avatar */}
       {isUser && (
         <div className="w-7 h-7 rounded-full bg-slate-200 flex items-center justify-center flex-shrink-0 shadow-sm">
-          <User size={14} className="text-slate-600" />
+          <User size={14} className="text-muted" />
         </div>
       )}
     </div>
@@ -68,14 +68,14 @@ function ChatBubble({ role, text }) {
 function TypingIndicator() {
   return (
     <div className="flex items-end gap-2 justify-start">
-      <div className="w-7 h-7 rounded-full bg-gradient-to-br from-red-500 to-red-600 flex items-center justify-center flex-shrink-0 shadow-sm">
+      <div className="w-7 h-7 rounded-full bg-gradient-to-br from-teal-500 to-teal-600 flex items-center justify-center flex-shrink-0 shadow-sm">
         <Bot size={14} className="text-white" />
       </div>
-      <div className="bg-white/80 backdrop-blur border border-slate-200 px-4 py-3 rounded-2xl rounded-bl-sm shadow-sm">
+      <div className="bg-white/80 dark:bg-slate-900/80 backdrop-blur border border-border px-4 py-3 rounded-2xl rounded-bl-sm shadow-sm">
         <span className="flex gap-1 items-center">
-          <span className="w-1.5 h-1.5 bg-red-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
-          <span className="w-1.5 h-1.5 bg-red-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
-          <span className="w-1.5 h-1.5 bg-red-400 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
+          <span className="w-1.5 h-1.5 bg-teal-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
+          <span className="w-1.5 h-1.5 bg-teal-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
+          <span className="w-1.5 h-1.5 bg-teal-400 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
         </span>
       </div>
     </div>
@@ -85,8 +85,8 @@ function TypingIndicator() {
 function ConfigRow({ label, value, wide }) {
   return (
     <div className={wide ? 'col-span-2' : ''}>
-      <p className="text-xs font-medium text-slate-500 uppercase tracking-wide mb-0.5">{label}</p>
-      <p className="text-sm font-semibold text-slate-800">{String(value)}</p>
+      <p className="text-xs font-medium text-muted uppercase tracking-wide mb-0.5">{label}</p>
+      <p className="text-sm font-semibold text-foreground">{String(value)}</p>
     </div>
   )
 }
@@ -141,7 +141,7 @@ function ConfigSummaryCard({ config, onConfirm, saving, saved }) {
 
       {/* Error */}
       {innerError && (
-        <div className="flex items-center gap-2 text-red-600 text-sm mb-4 bg-red-50 border border-red-200 rounded-lg px-3 py-2">
+        <div className="flex items-center gap-2 text-teal-600 text-sm mb-4 bg-teal-50 border border-teal-200 rounded-lg px-3 py-2">
           <AlertCircle size={14} />
           {innerError}
         </div>
@@ -157,7 +157,7 @@ function ConfigSummaryCard({ config, onConfirm, saving, saved }) {
         <button
           onClick={handleConfirm}
           disabled={saving}
-          className="w-full btn-primary rounded-xl px-4 py-3 font-semibold text-sm flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+          className="w-full btn-primary rounded-xl px-4 py-3 font-semibold text-sm flex items-center justify-center gap-2 disabled:opacity-100 disabled:bg-teal-100 dark:disabled:bg-teal-900/50 disabled:text-teal-400 dark:disabled:text-teal-600 disabled:border-transparent disabled:shadow-none disabled:cursor-not-allowed disabled:cursor-not-allowed"
         >
           {saving
             ? <><Loader2 size={15} className="animate-spin" /> Creating event…</>
@@ -251,18 +251,10 @@ export default function ConfigureEvent() {
 
   // ── Render ───────────────────────────────────────────────────────
   return (
-    <div className="min-h-screen bg-slate-50">
-      {/* Top bar — matches AdminDashboard */}
-      <header className="glass-card border-b border-slate-200 px-6 py-4 flex items-center justify-between">
-        <div className="flex items-center gap-4">
-          <EventOSLogo className="text-red-600" size={48} />
-          <div className="border-l border-slate-200 pl-4">
-            <h1 className="text-sm font-bold text-slate-800 uppercase tracking-wide">
-              AI Event Builder
-            </h1>
-            <p className="text-xs font-medium text-slate-500">Phase 5 — LangGraph</p>
-          </div>
-        </div>
+    <AppLayout
+      title="AI Event Builder"
+      subtitle="Phase 5 — LangGraph"
+      customActions={
         <button
           onClick={() => navigate('/admin')}
           className="btn-secondary flex items-center gap-2 text-sm px-4 py-2 rounded-xl"
@@ -270,16 +262,16 @@ export default function ConfigureEvent() {
           <ArrowLeft size={14} />
           Back to Dashboard
         </button>
-      </header>
-
-      <div className="max-w-2xl mx-auto px-4 py-8">
+      }
+    >
+      <div className="max-w-2xl mx-auto px-4 py-4">
         {/* Intro */}
         <div className="mb-6">
-          <h2 className="text-xl font-bold text-slate-800 mb-1 flex items-center gap-2">
-            <Sparkles size={20} className="text-red-500" />
+          <h2 className="text-xl font-bold text-foreground mb-1 flex items-center gap-2">
+            <Sparkles size={20} className="text-teal-500" />
             Configure Your Event with AI
           </h2>
-          <p className="text-sm text-slate-500">
+          <p className="text-sm text-muted">
             Describe your event in plain English. The agent will ask clarifying questions
             and generate a complete configuration — you confirm before anything is saved.
           </p>
@@ -287,7 +279,7 @@ export default function ConfigureEvent() {
 
         {/* Chat window */}
         <div
-          className="glass-card rounded-xl border border-slate-200 flex flex-col shadow-md"
+          className="glass-card rounded-xl border border-border flex flex-col shadow-md"
           style={{ height: '420px' }}
         >
           {/* Messages area */}
@@ -300,10 +292,10 @@ export default function ConfigureEvent() {
           </div>
 
           {/* Input bar */}
-          <div className="border-t border-slate-200 p-3 flex gap-2">
+          <div className="border-t border-border p-3 flex gap-2">
             <input
               ref={inputRef}
-              className="flex-1 bg-white border border-slate-200 text-slate-800 placeholder-slate-400 rounded-xl px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-red-400 focus:border-red-400 transition-all"
+              className="flex-1 bg-background border border-border text-foreground placeholder-slate-400 rounded-xl px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-teal-400 focus:border-teal-400 transition-all"
               placeholder={config ? 'Configuration complete ✓' : 'Describe your event…'}
               value={input}
               onChange={e => setInput(e.target.value)}
@@ -326,7 +318,7 @@ export default function ConfigureEvent() {
 
         {/* Chat-level error */}
         {chatError && (
-          <div className="flex items-center gap-2 text-red-600 text-sm mt-3 bg-red-50 border border-red-200 rounded-xl px-4 py-3">
+          <div className="flex items-center gap-2 text-teal-600 text-sm mt-3 bg-teal-50 border border-teal-200 rounded-xl px-4 py-3">
             <AlertCircle size={14} className="flex-shrink-0" />
             {chatError}
           </div>
@@ -337,7 +329,7 @@ export default function ConfigureEvent() {
           <div className="flex justify-end mt-3">
             <button
               onClick={resetChat}
-              className="text-xs text-slate-400 hover:text-slate-600 flex items-center gap-1 transition-colors"
+              className="text-xs text-muted hover:text-muted flex items-center gap-1 transition-colors"
             >
               <RotateCcw size={11} />
               Start over
@@ -355,6 +347,6 @@ export default function ConfigureEvent() {
           />
         )}
       </div>
-    </div>
+    </AppLayout>
   )
 }
