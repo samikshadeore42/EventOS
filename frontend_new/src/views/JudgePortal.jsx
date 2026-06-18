@@ -551,6 +551,7 @@ export default function JudgePortal() {
       userName={evaluatorName}
       navigationItems={navItems}
       mobileBreakpoint="lg"
+      showDesktopSidebar={false}
     >
       <div className="flex flex-col lg:flex-row min-h-screen -mx-4 sm:-mx-6 -my-6 sm:-my-8 bg-surface">
         {/* Sidebar */}

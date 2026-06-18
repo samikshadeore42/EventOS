@@ -10,7 +10,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import AutoAssignModal from '../components/AutoAssignModal'
 import {
   Users, GitBranch, CheckSquare,
-  UserCheck, Trophy, Mail, Upload, Download,
+  UserCheck, Mail, Upload, Download,
   Play, Loader2, Check, X, AlertTriangle,
   ChevronDown, ChevronRight, Wand2,
   BarChart2, MessageSquare, Activity, Target, Calendar,
@@ -23,7 +23,7 @@ import SettingsTab from '../components/SettingsTab'
 import NotificationBell from '../components/NotificationBell'
 import AppLayout from '../components/AppLayout'
 import StageTimelinePanel from '../components/StageTimelinePanel'
-import { motion, AnimatePresence } from 'framer-motion'
+import { motion } from 'framer-motion'
 import {
   participantsApi,
   solverApi,
@@ -223,59 +223,6 @@ function OverviewTab() {
 
 
 
-      <div className="w-full">
-        {/* Top Teams Leaderboard */}
-        <motion.div whileHover={{ scale: 1.01 }} className="glass-card rounded-2xl p-6">
-          <SectionTitle>Top Teams</SectionTitle>
-          {lb?.leaderboard?.length ? (
-            <div className="space-y-3">
-              {lb.leaderboard.slice(0, 5).map((team, idx) => (
-                <motion.div
-                  initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: idx * 0.1 }}
-                  key={team.team_id}
-                  className="group flex items-center justify-between p-3 rounded-xl bg-background border border-border hover:bg-surface hover:border-teal-500/30 transition-all"
-                >
-                  <div className="flex items-center gap-4">
-                    <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm shadow-inner
-                      ${idx === 0 ? 'bg-gradient-to-br from-yellow-300 to-yellow-600 text-yellow-900 shadow-yellow-500/50' :
-                        idx === 1 ? 'bg-gradient-to-br from-slate-200 to-slate-400 text-foreground shadow-slate-500/50' :
-                          idx === 2 ? 'bg-gradient-to-br from-teal-300 to-teal-600 text-teal-950 shadow-teal-500/50' :
-                            'bg-surface text-muted border border-border'}`}>
-                      {team.rank ?? (idx + 1)}
-                    </div>
-                    <div>
-                      <p className="text-sm font-bold text-foreground group-hover:text-teal-600 transition-colors">{team.team_name}</p>
-                      <p className="text-xs text-muted">{team.members?.[0]?.institution || 'Institution hidden'}</p>
-                    </div>
-                  </div>
-                  <div className="text-right">
-                    {team.has_flags ? (
-                      <Badge colour="amber"><AlertTriangle size={10} /> Flagged</Badge>
-                    ) : (
-                      <div className="flex flex-col items-end">
-                        <span className="text-lg font-black text-transparent bg-clip-text bg-gradient-to-r from-teal-600 to-teal-800">
-                          {team.weighted_total?.toFixed(2)}
-                        </span>
-                        <div className="w-16 h-1 bg-slate-200 rounded-full mt-1 overflow-hidden">
-                          <div className="h-full bg-gradient-to-r from-teal-500 to-teal-600" style={{ width: `${Math.min(100, team.weighted_total)}%` }} />
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                </motion.div>
-              ))}
-            </div>
-          ) : (
-            <div className="flex flex-col items-center justify-center py-12 text-muted">
-              <Trophy size={48} className="opacity-20 mb-4" />
-              <p className="text-sm">No evaluations submitted yet.</p>
-              <button className="mt-4 px-4 py-2 rounded-lg bg-teal-500/10 text-teal-600 text-xs font-semibold hover:bg-teal-500/20 transition-colors">Start Evaluating</button>
-            </div>
-          )}
-        </motion.div>
-
-
-      </div>
     </motion.div>
   )
 }
@@ -3347,21 +3294,20 @@ function CreateEventTab() {
 
 // ── MAIN DASHBOARD ─────────────────────────────────────────────────────────
 const TABS = [
-  { key: 'createevent', label: 'Create Event', Icon: Plus },
+  { key: 'createevent', label: 'Create Event', Icon: Plus, hideFromNav: true },
   { key: 'participants', label: 'Participants', Icon: Users, requiresEvent: true },
   { key: 'teams', label: 'Team Formation', Icon: GitBranch, requiresEvent: true, capabilities: ['teams'] },
   { key: 'approvals', label: 'Approvals', Icon: CheckSquare, requiresEvent: true, capabilities: ['teams'] },
-  { key: 'timeline', label: 'Timeline', Icon: Calendar, requiresEvent: true },
+  { key: 'timeline', label: 'Timeline', Icon: Calendar, requiresEvent: true, hideFromNav: true },
   { key: 'evaluators', label: 'Evaluators', Icon: UserCheck, requiresEvent: true, capabilities: ['evaluators'] },
-  { key: 'leaderboard', label: 'Leaderboard', Icon: Trophy, requiresEvent: true, anyCapabilities: ['leaderboard', 'weighted_scoring', 'live_scoring', 'evaluators'] },
   { key: 'communications', label: 'Communications', Icon: Mail, requiresEvent: true },
   { key: 'mentorops', label: 'Mentor Ops', Icon: Target, requiresEvent: true, capabilities: ['mentors'] },
   { key: 'anomaly', label: 'Anomaly Scanner', Icon: Activity, requiresEvent: true, anyCapabilities: ['evaluators', 'weighted_scoring'] },
   { key: 'health', label: 'Team Health', Icon: Activity, requiresEvent: true, capabilities: ['risk_monitoring'] },
   { key: 'risk', label: 'Risk', Icon: ShieldAlert, requiresEvent: true, capabilities: ['risk_monitoring'] },
   { key: 'democontrols', label: 'Demo Controls', Icon: AlertTriangle, requiresEvent: true },
-  { key: 'settings', label: 'Settings', Icon: Settings },
-  { key: 'aiconfig', label: 'AI Config', Icon: Sparkles, isNav: true, navTo: '/configure' },
+  { key: 'settings', label: 'Settings', Icon: Settings, hideFromNav: true },
+  { key: 'aiconfig', label: 'AI Config', Icon: Sparkles, isNav: true, navTo: '/configure', hideFromNav: true },
 ]
 
 const VALID_TABS = TABS.map(t => t.key)
@@ -3390,10 +3336,9 @@ export default function AdminDashboard() {
   const { activeOrganization, activeEvent } = useAuth()
   const navigate = useNavigate()
   const [activeTab, setActiveTabState] = useState(getInitialAdminTab)
-  const [isNavMinimized, setIsNavMinimized] = useState(() => localStorage.getItem('eventosNavMinimized') === 'true')
-  const [fabOpen, setFabOpen] = useState(false)
   const visibleTabs = useMemo(() => TABS.filter((tab) => tabAllowed(tab, activeEvent)), [activeEvent])
   const visibleTabKeys = useMemo(() => visibleTabs.map((tab) => tab.key), [visibleTabs])
+  const navTabs = useMemo(() => visibleTabs.filter(tab => !tab.hideFromNav), [visibleTabs])
   const safeActiveTab = visibleTabKeys.includes(activeTab)
     ? activeTab
     : (activeEvent?.id ? 'participants' : 'createevent')
@@ -3407,14 +3352,6 @@ export default function AdminDashboard() {
     window.history.replaceState(null, '', url.toString())
   }
 
-  const toggleNavSize = () => {
-    setIsNavMinimized((prev) => {
-      const next = !prev
-      localStorage.setItem('eventosNavMinimized', next.toString())
-      return next
-    })
-  }
-
   const TAB_CONTENT = {
     createevent: <CreateEventTab />,
     participants: <ParticipantsTab />,
@@ -3422,7 +3359,6 @@ export default function AdminDashboard() {
     approvals: <ApprovalsTab />,
     timeline: <StageTimelinePanel />,
     evaluators: <EvaluatorsTab />,
-    leaderboard: <LeaderboardTab />,
     communications: <CommunicationsTab />,
     mentorops: <MentorOpsTab />,
     anomaly: <AnomalyTab />,
@@ -3468,9 +3404,9 @@ export default function AdminDashboard() {
               <h1 className="text-3xl md:text-5xl font-black text-white tracking-tight drop-shadow-lg">{activeEvent?.name || 'Select an Event'}</h1>
             </div>
             <div className="flex flex-wrap items-center gap-3">
-              <button onClick={() => setActiveTab('communications')} className="btn-secondary px-4 py-2 rounded-xl text-xs flex items-center gap-2"><Send size={14} /> Announcement</button>
-              <button onClick={() => setActiveTab('teams')} className="btn-secondary px-4 py-2 rounded-xl text-xs flex items-center gap-2"><GitBranch size={14} /> Teams</button>
-              <button onClick={() => setActiveTab('createevent')} className="btn-primary px-5 py-2.5 rounded-xl text-sm flex items-center gap-2 font-bold"><Plus size={16} /> Create Event</button>
+              <button onClick={() => navigate('/configure')} className="btn-secondary px-4 py-2 rounded-xl text-xs flex items-center gap-2"><Sparkles size={14} /> AI Config</button>
+              <button onClick={() => { setActiveTab('timeline'); document.getElementById('tab-content')?.scrollIntoView({ behavior: 'smooth' }); }} className="btn-secondary px-4 py-2 rounded-xl text-xs flex items-center gap-2"><Calendar size={14} /> Timeline</button>
+              <button onClick={() => { setActiveTab('createevent'); document.getElementById('tab-content')?.scrollIntoView({ behavior: 'smooth' }); }} className="btn-primary px-5 py-2.5 rounded-xl text-sm flex items-center gap-2 font-bold"><Plus size={16} /> Create Event</button>
             </div>
           </div>
         </motion.div>
@@ -3480,129 +3416,59 @@ export default function AdminDashboard() {
 
         {/* Persistent Overview Dashboard */}
         {activeEvent?.id && (
-          <div className="mb-8">
+          <div className="mb-8 space-y-8">
             <OverviewTab />
+            <div id="leaderboard-section">
+              <LeaderboardTab />
+            </div>
           </div>
         )}
 
         {/* Navigation Deck Header */}
         <div className="flex items-center justify-between mb-4 mt-2">
           <h2 className="text-sm font-bold text-foreground uppercase tracking-wide">Operating Command Deck</h2>
-          <button
-            onClick={toggleNavSize}
-            className="text-xs font-semibold px-3 py-1.5 rounded-lg border border-teal-200 text-teal-600 bg-teal-50 hover:bg-teal-100 transition-colors"
-          >
-            {isNavMinimized ? 'Maximize Navigation Deck' : 'Minimize Navigation Deck'}
-          </button>
         </div>
 
         {/* Navigation Deck (Desktop Only) */}
         <div className="hidden md:block">
-          <AnimatePresence mode="wait">
-          {!isNavMinimized ? (
-            <motion.div
-              key="maximized"
-              initial={{ opacity: 0, height: 0 }}
-              animate={{ opacity: 1, height: 'auto' }}
-              exit={{ opacity: 0, height: 0 }}
-              className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4 mb-8"
-            >
-              {visibleTabs.map(({ key, label, Icon, isNav, navTo }) => {
-                const isActive = activeTab === key && !isNav;
-                return (
-                  <motion.button
-                    key={key}
-                    whileTap={{ scale: 0.98 }}
-                    onClick={() => isNav ? navigate(navTo) : setActiveTab(key)}
-                    className={`relative flex flex-col items-start p-4 rounded-2xl border text-left transition-all duration-300 group
-                      ${isActive
-                        ? 'bg-teal-100 dark:bg-teal-900/60 border-teal-500 ring-2 ring-teal-500 shadow-[0_8px_30px_rgba(20,184,166,0.3)] z-10'
-                        : 'bg-surface backdrop-blur-xl border-border shadow-sm hover:-translate-y-1 hover:shadow-[0_12px_25px_rgba(20,184,166,0.12)] hover:border-teal-400'}`}
-                  >
-                    <div className={`p-2.5 rounded-xl mb-3 transition-all duration-300 ${isActive ? 'bg-teal-600 text-white shadow-lg scale-110' : 'bg-surface border border-border text-muted group-hover:bg-teal-100 group-hover:text-teal-600 group-hover:scale-110 group-hover:border-teal-200'}`}>
-                      <Icon size={20} />
-                    </div>
-                    <h3 className={`font-bold text-sm mb-1 transition-colors ${isActive ? 'text-teal-950 dark:text-teal-50' : 'text-foreground group-hover:text-teal-700 dark:group-hover:text-teal-300'}`}>{label}</h3>
-                    <p className={`text-[10px] line-clamp-1 transition-colors ${isActive ? 'text-teal-800 dark:text-teal-300' : 'text-muted'}`}>{isNav ? 'External Configuration' : 'Manage ' + label}</p>
-                    {isNav && <span className={`absolute top-3 right-3 text-[10px] ${isActive ? 'text-teal-600' : 'text-muted group-hover:text-teal-500'}`}>↗</span>}
-                  </motion.button>
-                )
-              })}
-            </motion.div>
-          ) : (
-            <motion.div
-              key="minimized"
-              initial={{ opacity: 0, height: 0 }}
-              animate={{ opacity: 1, height: 'auto' }}
-              exit={{ opacity: 0, height: 0 }}
-              className="flex flex-wrap items-center gap-2 pb-4 mb-4"
-            >
-              {visibleTabs.map(({ key, label, Icon, isNav, navTo }) => {
-                const isActive = activeTab === key && !isNav;
-                return (
-                  <button
-                    key={key}
-                    onClick={() => isNav ? navigate(navTo) : setActiveTab(key)}
-                    className={`flex items-center gap-2 px-4 py-2 rounded-xl border text-sm font-semibold transition-all shrink-0
-                      ${isActive
-                        ? 'bg-teal-100 dark:bg-teal-900/60 border-teal-500 ring-2 ring-teal-500 text-teal-950 dark:text-teal-50 shadow-[0_4px_20px_rgba(20,184,166,0.25)] z-10'
-                        : 'bg-surface backdrop-blur-xl border-border text-muted shadow-sm hover:-translate-y-0.5 hover:shadow-[0_4px_15px_rgba(20,184,166,0.1)] hover:border-teal-400 hover:text-teal-600'}`}
-                  >
-                    <Icon size={16} className={isActive ? 'text-teal-600 dark:text-teal-400' : 'text-muted group-hover:text-teal-500'} />
-                    {label}
-                    {isNav && <span className={`text-[10px] ml-1 ${isActive ? 'text-teal-500' : 'text-muted'}`}>↗</span>}
-                  </button>
-                )
-              })}
-            </motion.div>
-          )}
-        </AnimatePresence>
+          <div className="flex flex-wrap items-center gap-2 pb-4 mb-4">
+            {navTabs.map(({ key, label, Icon, isNav, navTo }) => {
+              const isActive = activeTab === key && !isNav;
+              return (
+                <button
+                  key={key}
+                  onClick={() => isNav ? navigate(navTo) : setActiveTab(key)}
+                  className={`flex items-center gap-2 px-4 py-2 rounded-xl border text-sm font-semibold transition-all shrink-0
+                    ${isActive
+                      ? 'bg-teal-100 dark:bg-teal-900/60 border-teal-500 ring-2 ring-teal-500 text-teal-950 dark:text-teal-50 shadow-[0_4px_20px_rgba(20,184,166,0.25)] z-10'
+                      : 'bg-surface backdrop-blur-xl border-border text-muted shadow-sm hover:-translate-y-0.5 hover:shadow-[0_4px_15px_rgba(20,184,166,0.1)] hover:border-teal-400 hover:text-teal-600'}`}
+                >
+                  <Icon size={16} className={isActive ? 'text-teal-600 dark:text-teal-400' : 'text-muted group-hover:text-teal-500'} />
+                  {label}
+                  {isNav && <span className={`text-[10px] ml-1 ${isActive ? 'text-teal-500' : 'text-muted'}`}>↗</span>}
+                </button>
+              )
+            })}
+          </div>
         </div>
 
+
+
         {/* Tab content */}
-        <div className="relative z-30 pointer-events-auto mt-6">
+        <div id="tab-content" className="relative z-30 pointer-events-auto mt-6">
           {TAB_CONTENT[safeActiveTab]}
         </div>
       </div>
 
       {/* Floating Action Button */}
       <div className="fixed bottom-8 right-8 z-50 flex flex-col items-end pointer-events-none">
-        <AnimatePresence>
-          {fabOpen && (
-            <motion.div
-              initial={{ opacity: 0, y: 20, scale: 0.8 }}
-              animate={{ opacity: 1, y: 0, scale: 1 }}
-              exit={{ opacity: 0, y: 20, scale: 0.8 }}
-              className="flex flex-col gap-3 mb-4 items-end pointer-events-auto"
-            >
-              {[
-                { label: 'Create Event', icon: Plus, action: () => setActiveTab('createevent') },
-                { label: 'Send Announcement', icon: Send, action: () => setActiveTab('communications') },
-                { label: 'Generate Teams', icon: GitBranch, action: () => setActiveTab('teams') },
-                { label: 'Add Participant', icon: Users, action: () => setActiveTab('participants') },
-                { label: 'Export Data', icon: Download, action: () => alert('Export functionality to be implemented.') },
-              ].map((btn, i) => (
-                <motion.button
-                  key={i}
-                  whileHover={{ scale: 1.05, x: -5 }}
-                  whileTap={{ scale: 0.95 }}
-                  onClick={() => { btn.action(); setFabOpen(false); }}
-                  className="flex items-center gap-3 bg-background border border-border text-foreground px-4 py-2.5 rounded-xl shadow-lg hover:border-teal-500/50 hover:text-teal-600 transition-colors"
-                >
-                  <span className="text-sm font-semibold">{btn.label}</span>
-                  <btn.icon size={16} />
-                </motion.button>
-              ))}
-            </motion.div>
-          )}
-        </AnimatePresence>
         <motion.button
-          whileHover={{ scale: 1.1 }}
+          whileHover={{ scale: 1.1, rotate: 90 }}
           whileTap={{ scale: 0.9 }}
-          onClick={() => setFabOpen(!fabOpen)}
-          className={`pointer-events-auto w-14 h-14 rounded-full flex items-center justify-center shadow-2xl transition-colors duration-300 ${fabOpen ? 'bg-background text-teal-600 border border-teal-500/50 shadow-teal-500/20' : 'bg-gradient-to-r from-teal-600 to-teal-800 text-white shadow-teal-500/40 hover:from-teal-500 hover:to-teal-700'}`}
+          onClick={() => setActiveTab('settings')}
+          className="pointer-events-auto w-14 h-14 rounded-full flex items-center justify-center shadow-2xl transition-all duration-300 bg-gradient-to-r from-teal-600 to-teal-800 text-white shadow-teal-500/40 hover:from-teal-500 hover:to-teal-700 hover:shadow-teal-500/60"
         >
-          <Plus size={24} className={`transition-transform duration-300 ${fabOpen ? 'rotate-45' : ''}`} />
+          <Settings size={24} />
         </motion.button>
       </div>
     </AppLayout>
