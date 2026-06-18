@@ -26,22 +26,18 @@ export default function TeamChatPanel({
 }) {
   const [open, setOpen] = useState(false)
   const [draft, setDraft] = useState('')
-  const [seenCount, setSeenCount] = useState(0)
+  const [seenCount, setSeenCount] = useState(0) // Restored
   const bottomRef = useRef(null)
 
   const { messages, connectionState, historyError, sendMessage, isConnected } = useChat({
     eventId, teamId, kind, token, enabled: !!teamId,
   })
 
-  // Unread badge: derived directly from messages.length vs. seenCount (how
-  // many were present the last time the panel was opened) — plain state
-  // read during render, no ref access.
-  const unseenCount = open ? 0 : Math.max(0, messages.length - seenCount)
+  // Unread badge: derived directly from messages.length vs. seenCount
+  const unseenCount = open ? 0 : Math.max(0, messages.length - seenCount) // Restored
 
-  // Opening the panel is a real user event (a click), so mark everything as
-  // seen right there — not via an effect reacting to `open` having changed,
-  // which is what triggered the "setState in effect" lint rule.
-  const handleToggle = () => {
+  // Opening the panel marks everything as seen
+  const handleToggle = () => { // Restored
     setOpen((wasOpen) => {
       const willOpen = !wasOpen
       if (willOpen) setSeenCount(messages.length)
@@ -64,7 +60,7 @@ export default function TeamChatPanel({
     <>
       {/* Floating toggle button */}
       <button
-        onClick={() => setOpen((v) => !v)}
+        onClick={handleToggle} // FIXED: Now using the handleToggle function!
         className={`fixed bottom-6 z-40 flex items-center gap-2 px-4 py-3 rounded-full text-white text-sm font-semibold shadow-lg transition-colors ${accentClass} ${
           kind === 'mentor' ? 'right-6' : 'right-24'
         }`}
