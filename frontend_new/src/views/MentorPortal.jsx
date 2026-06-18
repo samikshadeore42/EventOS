@@ -23,7 +23,6 @@ function Badge({ children, colour = 'gray' }) {
     green:  'bg-green-50 border border-green-200 text-green-700',
     red:    'bg-red-50 border border-red-200 text-red-700',
     amber:  'bg-amber-50 border border-amber-200 text-amber-700',
-    red: 'bg-red-50 border border-red-200 text-red-700',
     teal:   'bg-teal-50 border border-teal-200 text-teal-700',
     gray:   'bg-slate-100 border border-slate-200 text-slate-700',
   }[colour] ?? 'bg-slate-100 border border-slate-200 text-slate-700'
@@ -56,7 +55,6 @@ function StatCard({ label, value, icon: Icon, colour = 'red' }) {
     red: 'bg-red-50 text-red-700 border-red-100',
     teal:   'bg-teal-50 text-teal-700 border-teal-100',
     amber:  'bg-amber-50 text-amber-700 border-amber-100',
-    red:    'bg-red-50 text-red-700 border-red-100',
   }[colour] ?? 'bg-red-50 text-red-700 border-red-100'
 
   return (

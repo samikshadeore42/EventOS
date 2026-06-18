@@ -24,7 +24,7 @@ import SettingsTab from '../components/SettingsTab'
 import NotificationBell from '../components/NotificationBell'
 import StageTimelinePanel from '../components/StageTimelinePanel'
 import { motion, AnimatePresence } from 'framer-motion'
-import { PieChart, Pie, Cell, Tooltip as RechartsTooltip, ResponsiveContainer, LineChart, Line, XAxis, YAxis, CartesianGrid } from 'recharts'
+import { PieChart, Pie, Cell, Tooltip as RechartsTooltip, ResponsiveContainer } from 'recharts'
 import {
   participantsApi,
   solverApi,
@@ -83,7 +83,6 @@ function Badge({ children, colour = 'gray' }) {
     green: 'bg-emerald-500/10 border border-emerald-500/20 text-emerald-600',
     red: 'bg-red-500/10 border border-red-500/20 text-red-600',
     amber: 'bg-amber-500/10 border border-amber-500/20 text-amber-600',
-    red: 'bg-red-500/10 border border-red-500/20 text-red-600',
     teal: 'bg-teal-500/10 border border-teal-500/20 text-teal-600',
     gray: 'bg-slate-100 border border-slate-200 text-slate-700',
     slate: 'bg-slate-100 border border-slate-200 text-slate-700',
@@ -256,9 +255,6 @@ function OverviewTab() {
   const { data: pending } = useQuery({ queryKey: ['pending-approvals'], queryFn: approvalsApi.pending, refetchInterval: 15_000 })
   const { data: lb } = useQuery({ queryKey: ['leaderboard'], queryFn: leaderboardApi.get, refetchInterval: 60_000 })
   const { data: anomalies } = useQuery({ queryKey: ['anomalies'], queryFn: leaderboardApi.anomalies, refetchInterval: 30_000 })
-  const { data: commsData } = useQuery({ queryKey: ['comms-log'], queryFn: () => commsApi.log({ page_size: 6 }), refetchInterval: 30_000 })
-
-  const COLORS = ['#ef4444', '#dc2626', '#b91c1c', '#991b1b', '#7f1d1d'];
 
   const pieData = useMemo(() => {
     if (!summary?.institution_counts) return []
