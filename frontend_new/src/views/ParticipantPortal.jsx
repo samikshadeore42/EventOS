@@ -124,8 +124,8 @@ const STAGE_LABELS = {
 function PortalHeader({ name, email, eventName, stage }) {
   return (
     <div className="text-center mb-10 flex flex-col items-center">
-      <EventOSLogo className="text-indigo-600 mb-4" size={56} />
-      <p className="text-xs font-bold text-indigo-600 uppercase tracking-widest mb-2">
+      <EventOSLogo className="text-red-600 mb-4" size={56} />
+      <p className="text-xs font-bold text-red-600 uppercase tracking-widest mb-2">
         {eventName}
       </p>
       <h1 className="text-3xl font-black text-slate-900 mb-1">
@@ -133,8 +133,8 @@ function PortalHeader({ name, email, eventName, stage }) {
       </h1>
       <p className="text-sm text-slate-500">{email}</p>
       {stage && (
-        <div className="inline-flex items-center gap-1.5 mt-3 px-3 py-1 rounded-full bg-indigo-50 border border-indigo-200 text-xs font-medium text-indigo-700 shadow-sm">
-          <span className="w-1.5 h-1.5 rounded-full bg-indigo-500 animate-pulse" />
+        <div className="inline-flex items-center gap-1.5 mt-3 px-3 py-1 rounded-full bg-red-50 border border-red-200 text-xs font-medium text-red-700 shadow-sm">
+          <span className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse" />
           Current stage: {STAGE_LABELS[stage] ?? stage}
         </div>
       )}
@@ -166,14 +166,14 @@ function EventTimeline({ timeline }) {
                 {/* Node */}
                 <div className={`relative z-10 w-8 h-8 rounded-full border-2 flex items-center justify-center shrink-0 ${
                   isCompleted ? 'bg-teal-50  border-teal-500'   :
-                  isActive    ? 'btn-primary border-indigo-600' :
+                  isActive    ? 'btn-primary border-red-600' :
                                 'bg-white border-slate-300'
                 }`}>
                   {isCompleted && <CheckCircle size={16} className="text-teal-600" />}
                   {isActive    && <Clock       size={14} className="text-white" />}
                   {isPending   && <Circle      size={14} className="text-slate-300" />}
                   {isActive && (
-                    <span className="absolute inset-0 rounded-full bg-indigo-400 animate-ping opacity-30" />
+                    <span className="absolute inset-0 rounded-full bg-red-400 animate-ping opacity-30" />
                   )}
                 </div>
 
@@ -181,13 +181,13 @@ function EventTimeline({ timeline }) {
                 <div className={`flex-1 pt-1 pb-1 ${isPending ? 'opacity-50' : ''}`}>
                   <div className="flex items-center gap-2">
                     <p className={`text-sm font-bold ${
-                      isActive    ? 'text-indigo-700' :
+                      isActive    ? 'text-red-700' :
                       isCompleted ? 'text-teal-700'   : 'text-slate-500'
                     }`}>
                       {phase.phase}
                     </p>
                     {isActive && (
-                      <span className="text-xs font-semibold text-indigo-700 bg-indigo-50 px-2 py-0.5 rounded-full border border-indigo-100">
+                      <span className="text-xs font-semibold text-red-700 bg-red-50 px-2 py-0.5 rounded-full border border-red-100">
                         In progress
                       </span>
                     )}
@@ -210,11 +210,11 @@ function EventTimeline({ timeline }) {
 // ── Teammate card ──────────────────────────────────────────────────────────
 
 const AVATAR_COLOURS = [
-  'bg-indigo-50 border border-indigo-200 text-indigo-700',
+  'bg-red-50 border border-red-200 text-red-700',
   'bg-teal-50 border border-teal-200 text-teal-700',
   'bg-amber-50 border border-amber-200 text-amber-700',
   'bg-rose-50 border border-rose-200 text-rose-700',
-  'bg-violet-50 border border-violet-200 text-violet-700',
+  'bg-red-50 border border-red-200 text-red-700',
 ]
 
 function TeammateCard({ teammate, index }) {
@@ -241,7 +241,7 @@ function TeamRevealSection({ teamName, rationale, teammates }) {
   return (
     <div className="mb-6">
       {/* Team name hero */}
-      <div className="bg-gradient-to-br from-indigo-600 to-violet-600 rounded-2xl p-6 mb-4 text-white text-center shadow-md">
+      <div className="bg-gradient-to-br from-red-600 to-red-600 rounded-2xl p-6 mb-4 text-white text-center shadow-md">
         <p className="text-xs font-bold uppercase tracking-widest opacity-80 mb-2">
           You have been assigned to
         </p>
@@ -258,7 +258,7 @@ function TeamRevealSection({ teamName, rationale, teammates }) {
           >
             <div className="flex items-center gap-2 text-left">
               <span className="text-sm font-bold text-slate-800">Why was this team formed?</span>
-              <span className="text-xs text-indigo-700 bg-indigo-50 border border-indigo-100 px-2 py-0.5 rounded-full font-semibold">AI analysis</span>
+              <span className="text-xs text-red-700 bg-red-50 border border-red-100 px-2 py-0.5 rounded-full font-semibold">AI analysis</span>
             </div>
             {rationaleOpen
               ? <ChevronUp   size={16} className="text-slate-500 shrink-0" />
@@ -277,7 +277,7 @@ function TeamRevealSection({ teamName, rationale, teammates }) {
       {teammates?.length > 0 && (
         <div className="glass-card rounded-2xl border border-slate-200 p-5">
           <div className="flex items-center gap-2 mb-4">
-            <Users size={16} className="text-indigo-600" />
+            <Users size={16} className="text-red-600" />
             <h3 className="text-sm font-bold text-slate-800">
               Your Teammates ({teammates.length})
             </h3>
@@ -358,21 +358,21 @@ function MentorInfoSection({ mentorData }) {
       {/* Next meeting */}
       <div className="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm">
         <div className="flex items-center gap-2 mb-4">
-          <Video size={16} className="text-indigo-600" />
+          <Video size={16} className="text-red-600" />
           <h3 className="text-sm font-bold text-slate-800">Next Mentor Meeting</h3>
         </div>
         {mentorData.next_meeting ? (
-          <div className="bg-indigo-50 border border-indigo-100 rounded-xl p-4">
-            <p className="text-sm font-bold text-indigo-900">{mentorData.next_meeting.title}</p>
-            <p className="text-xs text-indigo-700 mt-1 font-medium">
+          <div className="bg-red-50 border border-red-100 rounded-xl p-4">
+            <p className="text-sm font-bold text-red-900">{mentorData.next_meeting.title}</p>
+            <p className="text-xs text-red-700 mt-1 font-medium">
               {new Date(mentorData.next_meeting.scheduled_at).toLocaleString()} · {mentorData.next_meeting.duration_minutes}min
             </p>
             {mentorData.next_meeting.agenda && (
-              <p className="text-xs text-indigo-700 mt-1 font-medium">Agenda: {mentorData.next_meeting.agenda}</p>
+              <p className="text-xs text-red-700 mt-1 font-medium">Agenda: {mentorData.next_meeting.agenda}</p>
             )}
             {mentorData.next_meeting.meeting_url && (
               <a href={mentorData.next_meeting.meeting_url} target="_blank" rel="noreferrer"
-                className="inline-flex items-center gap-1 mt-3 text-xs font-semibold text-white bg-indigo-600 px-3 py-1.5 rounded-lg hover:bg-indigo-700 transition-colors shadow-sm">
+                className="inline-flex items-center gap-1 mt-3 text-xs font-semibold text-white bg-red-600 px-3 py-1.5 rounded-lg hover:bg-red-700 transition-colors shadow-sm">
                 <Video size={12} /> Join Meeting
               </a>
             )}
@@ -442,7 +442,7 @@ function KeyDatesCard({ stage }) {
   return (
     <div className="glass-card rounded-2xl border border-slate-200 p-5 mb-6">
       <div className="flex items-center gap-2 mb-4">
-        <CalendarDays size={16} className="text-indigo-600" />
+        <CalendarDays size={16} className="text-red-600" />
         <h3 className="text-sm font-bold text-slate-800">Key Dates</h3>
       </div>
       <div className="space-y-2.5">
@@ -521,7 +521,7 @@ function ProjectSubmissionSection({ token }) {
   return (
     <div className="glass-card rounded-2xl border border-slate-200 p-6 mb-6">
        <div className="flex items-center gap-2 mb-4">
-         <Send size={16} className="text-indigo-600" />
+         <Send size={16} className="text-red-600" />
          <h3 className="text-sm font-bold text-slate-800">Submit Final Project (ZIP, max 50MB)</h3>
        </div>
 
@@ -540,7 +540,7 @@ function ProjectSubmissionSection({ token }) {
                 <p><span className="font-semibold">Last updated:</span> {new Date(existingSub.updated_at).toLocaleString()}</p>
               )}
             </div>
-            <button onClick={() => setShowReplace(true)} className="text-xs text-indigo-600 font-semibold hover:underline">Upload a replacement?</button>
+            <button onClick={() => setShowReplace(true)} className="text-xs text-red-600 font-semibold hover:underline">Upload a replacement?</button>
          </div>
        ) : (
          <div className="flex flex-col gap-2">
@@ -551,7 +551,7 @@ function ProjectSubmissionSection({ token }) {
              <input 
                type="file" 
                accept=".zip"
-               className="flex-1 bg-white border border-slate-300 rounded-lg px-4 py-2 text-sm text-slate-900 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 shadow-sm"
+               className="flex-1 bg-white border border-slate-300 rounded-lg px-4 py-2 text-sm text-slate-900 focus:outline-none focus:border-red-500 focus:ring-1 focus:ring-red-500 shadow-sm"
                onChange={e => { setFile(e.target.files[0]); setError(''); }}
              />
              <button 
@@ -579,7 +579,7 @@ function ResultsSection({ data }) {
   const hasRank = typeof data?.rank === 'number'
 
   return (
-    <div className="bg-indigo-50 rounded-2xl border border-indigo-200 p-6 mb-6 text-center shadow-sm">
+    <div className="bg-red-50 rounded-2xl border border-red-200 p-6 mb-6 text-center shadow-sm">
       <div className="flex items-center justify-center gap-2 mb-4">
         <Trophy size={20} className="text-amber-500" />
         <h3 className="text-lg font-bold text-slate-900">Final Results</h3>
@@ -587,7 +587,7 @@ function ResultsSection({ data }) {
       <div className="flex justify-center gap-12 mt-2">
         <div>
           <p className="text-xs font-bold text-slate-500 uppercase tracking-widest mb-1">Your Score</p>
-          <p className="text-4xl font-black text-indigo-600">
+          <p className="text-4xl font-black text-red-600">
             {hasScore ? data.total_score.toFixed(2) : 'Pending'}
           </p>
         </div>
@@ -612,7 +612,7 @@ function SupportFooter({ supportEmail }) {
         Questions? Reach the committee at{' '}
         <a
           href={`mailto:${supportEmail}`}
-          className="text-indigo-600 font-bold hover:underline"
+          className="text-red-600 font-bold hover:underline"
         >
           {supportEmail}
         </a>
@@ -693,7 +693,7 @@ function ProgressionInvitationSection({ participantId, currentStatus }) {
   }
 
   return (
-    <div className="bg-gradient-to-br from-indigo-600 to-violet-600 rounded-2xl p-6 mb-6 shadow-md text-white">
+    <div className="bg-gradient-to-br from-red-600 to-red-600 rounded-2xl p-6 mb-6 shadow-md text-white">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div className="min-w-0">
           <h3 className="text-base font-bold text-white flex items-center gap-2">
@@ -845,7 +845,7 @@ export default function ParticipantPortal() {
   return (
     <div className="min-h-screen bg-slate-50">
       {/* Thin top accent bar */}
-      <div className="h-1 bg-gradient-to-r from-indigo-500 via-violet-500 to-teal-500" />
+      <div className="h-1 bg-gradient-to-r from-red-500 via-red-500 to-teal-500" />
 
       <div className="max-w-5xl mx-auto px-4 py-10">
 

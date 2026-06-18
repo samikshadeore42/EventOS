@@ -8,21 +8,21 @@ function Navbar() {
     <nav className="border-b border-slate-200 bg-white/90 backdrop-blur-md sticky top-0 z-50">
       <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <EventOSLogo className="text-indigo-700" size={48} />
+          <EventOSLogo className="text-red-700" size={48} />
         </div>
         
         <div className="hidden md:flex items-center gap-6 text-sm font-semibold tracking-wide">
-          <a href="#about" className="text-slate-600 hover:text-indigo-600 transition-colors">About</a>
-          <a href="#features" className="text-slate-600 hover:text-indigo-600 transition-colors">Features</a>
+          <a href="#about" className="text-slate-600 hover:text-red-600 transition-colors">About</a>
+          <a href="#features" className="text-slate-600 hover:text-red-600 transition-colors">Features</a>
           
           <div className="h-4 w-px bg-slate-300 mx-2"></div>
           
           <Link to="/participant" className="text-slate-600 hover:text-cyan-600 transition-colors">Participant</Link>
           <Link to="/mentor" className="text-slate-600 hover:text-blue-600 transition-colors">Mentor</Link>
-          <Link to="/judge" className="text-slate-600 hover:text-indigo-600 transition-colors">Judge</Link>
+          <Link to="/judge" className="text-slate-600 hover:text-red-600 transition-colors">Judge</Link>
             <Link
               to="/admin"
-              className="px-4 py-2 bg-indigo-600 text-white border border-indigo-700 rounded hover:bg-indigo-700 transition-all"
+              className="px-4 py-2 bg-red-600 text-white border border-red-700 rounded hover:bg-red-700 transition-all"
             >
               Admin Console
             </Link>
@@ -41,13 +41,13 @@ function CommandCenterVisual() {
       <div className="relative w-full max-w-lg aspect-video bg-white/80 backdrop-blur-xl border border-slate-200 rounded-xl p-4 shadow-xl shadow-slate-200/50 flex flex-col gap-4">
         <div className="flex justify-between items-center border-b border-slate-100 pb-3">
           <div className="flex items-center gap-2">
-            <Activity className="text-indigo-600" size={16} />
+            <Activity className="text-red-600" size={16} />
             <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Live Telemetry</span>
           </div>
           <div className="flex gap-1.5">
             <div className="w-1.5 h-1.5 rounded-full bg-slate-300"></div>
             <div className="w-1.5 h-1.5 rounded-full bg-slate-300"></div>
-            <div className="w-1.5 h-1.5 rounded-full bg-indigo-500 animate-pulse"></div>
+            <div className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse"></div>
           </div>
         </div>
         
@@ -55,13 +55,13 @@ function CommandCenterVisual() {
           <div className="col-span-2 grid grid-rows-2 gap-3">
              <div className="bg-slate-50/80 rounded border border-slate-200 p-3 flex flex-col justify-center shadow-sm">
                <span className="text-[9px] text-slate-500 uppercase tracking-widest font-bold">Active Competitions</span>
-               <div className="text-2xl font-mono text-indigo-900 mt-1 font-bold">24</div>
+               <div className="text-2xl font-mono text-red-900 mt-1 font-bold">24</div>
                <div className="w-full h-1.5 bg-slate-200 mt-2 rounded-full overflow-hidden">
-                 <div className="h-full bg-indigo-500 w-[60%]"></div>
+                 <div className="h-full bg-red-500 w-[60%]"></div>
                </div>
              </div>
              <div className="bg-slate-50/80 rounded border border-slate-200 p-3 flex flex-col justify-center relative overflow-hidden shadow-sm">
-                <LineChart className="absolute right-[-10px] bottom-[-10px] w-20 h-20 text-indigo-500/10" />
+                <LineChart className="absolute right-[-10px] bottom-[-10px] w-20 h-20 text-red-500/10" />
                <span className="text-[9px] text-slate-500 uppercase tracking-widest font-bold">Innovation Index</span>
                <div className="text-2xl font-mono text-blue-600 mt-1 font-bold">+14.2%</div>
              </div>
@@ -82,7 +82,7 @@ function CommandCenterVisual() {
       
       <div className="absolute top-1/4 right-4 md:right-8 w-32 bg-white/90 backdrop-blur-md border border-slate-200 rounded p-2 shadow-lg animate-float">
          <div className="text-[8px] text-slate-500 uppercase tracking-widest font-bold mb-1">Data Stream</div>
-         <div className="h-1 w-full bg-gradient-to-r from-indigo-500 to-cyan-500 rounded-full"></div>
+         <div className="h-1 w-full bg-gradient-to-r from-red-500 to-cyan-500 rounded-full"></div>
       </div>
     </div>
   )
@@ -91,7 +91,7 @@ function CommandCenterVisual() {
 function SmartCityVisual() {
   return (
     <div className="w-full h-full relative flex items-center justify-center p-8">
-      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-indigo-50 via-transparent to-transparent" />
+      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-red-50 via-transparent to-transparent" />
       
       <div className="relative w-full max-w-md aspect-square">
         <svg className="absolute inset-0 w-full h-full" viewBox="0 0 100 100">
@@ -100,7 +100,7 @@ function SmartCityVisual() {
            <path d="M20,30 L80,30" stroke="rgba(59,130,246,0.3)" strokeWidth="0.5" strokeDasharray="1,1" className="animate-pulse" />
         </svg>
         
-        <div className="absolute top-1/2 left-1/2 -mt-6 -ml-6 w-12 h-12 bg-indigo-600 border border-indigo-400 rounded-lg shadow-[0_0_20px_rgba(79,70,229,0.3)] flex items-center justify-center z-10">
+        <div className="absolute top-1/2 left-1/2 -mt-6 -ml-6 w-12 h-12 bg-red-600 border border-red-400 rounded-lg shadow-[0_0_20px_rgba(79,70,229,0.3)] flex items-center justify-center z-10">
           <Database size={20} className="text-white" />
         </div>
         
@@ -108,7 +108,7 @@ function SmartCityVisual() {
           <Building2 size={14} className="text-blue-600" />
         </div>
         <div className="absolute top-[30%] left-[80%] -mt-4 -ml-4 w-8 h-8 bg-white border border-slate-200 shadow-md rounded-lg flex items-center justify-center z-10 animate-float" style={{ animationDuration: '4s', animationDirection: 'reverse' }}>
-          <Network size={14} className="text-indigo-600" />
+          <Network size={14} className="text-red-600" />
         </div>
         <div className="absolute top-[70%] left-[20%] -mt-4 -ml-4 w-8 h-8 bg-white border border-slate-200 shadow-md rounded-lg flex items-center justify-center z-10 animate-float" style={{ animationDuration: '3.5s' }}>
           <Cpu size={14} className="text-teal-600" />
@@ -118,7 +118,7 @@ function SmartCityVisual() {
         </div>
         
         <div className="absolute top-[40%] left-[35%] w-2 h-2 bg-cyan-400 rounded-full shadow-[0_0_8px_#22d3ee] animate-ping" />
-        <div className="absolute top-[60%] left-[65%] w-2 h-2 bg-indigo-400 rounded-full shadow-[0_0_8px_#818cf8] animate-ping" style={{ animationDelay: '1s' }} />
+        <div className="absolute top-[60%] left-[65%] w-2 h-2 bg-red-400 rounded-full shadow-[0_0_8px_#818cf8] animate-ping" style={{ animationDelay: '1s' }} />
       </div>
     </div>
   )
@@ -135,12 +135,12 @@ function HolographicEcosystemVisual() {
         </div>
         
         <div className="absolute inset-8" style={{ transform: 'translateZ(96px)', transformStyle: 'preserve-3d' }}>
-           <div className="w-full h-full border border-indigo-300 rounded-full bg-indigo-50/50 animate-[spin_15s_linear_infinite_reverse] shadow-sm" />
+           <div className="w-full h-full border border-red-300 rounded-full bg-red-50/50 animate-[spin_15s_linear_infinite_reverse] shadow-sm" />
         </div>
         
-        <div className="absolute top-1/2 left-1/2 w-[2px] h-48 bg-gradient-to-b from-transparent via-indigo-400 to-transparent -mt-24 -ml-[1px] animate-[pulse_2s_infinite]" style={{ transform: 'rotateX(-90deg) rotateY(-45deg)' }} />
+        <div className="absolute top-1/2 left-1/2 w-[2px] h-48 bg-gradient-to-b from-transparent via-red-400 to-transparent -mt-24 -ml-[1px] animate-[pulse_2s_infinite]" style={{ transform: 'rotateX(-90deg) rotateY(-45deg)' }} />
         
-        <div className="absolute top-1/2 left-1/2 -mt-4 -ml-4 w-8 h-8 rounded-full bg-indigo-500 shadow-[0_0_20px_rgba(99,102,241,0.5)] blur-[2px]" style={{ transform: 'translateZ(64px)' }} />
+        <div className="absolute top-1/2 left-1/2 -mt-4 -ml-4 w-8 h-8 rounded-full bg-red-500 shadow-[0_0_20px_rgba(99,102,241,0.5)] blur-[2px]" style={{ transform: 'translateZ(64px)' }} />
       </div>
     </div>
   )
@@ -161,19 +161,19 @@ function InnovationHubVisual() {
           <div className="h-1.5 w-1/2 bg-slate-200 rounded"></div>
         </div>
         <div className="bg-white backdrop-blur-sm border border-slate-200 p-5 rounded shadow-lg transform translate-x-2">
-          <Globe2 className="text-indigo-600 mb-3" size={24} />
+          <Globe2 className="text-red-600 mb-3" size={24} />
           <div className="h-1.5 w-full bg-slate-200 rounded mb-2"></div>
           <div className="h-1.5 w-1/3 bg-slate-200 rounded"></div>
         </div>
         <div className="bg-white backdrop-blur-sm border border-slate-200 p-5 rounded shadow-lg transform -translate-x-2 relative overflow-hidden">
-          <div className="absolute -right-4 -top-4 w-16 h-16 bg-indigo-100 rounded-full blur-xl" />
+          <div className="absolute -right-4 -top-4 w-16 h-16 bg-red-100 rounded-full blur-xl" />
           <Activity className="text-teal-600 mb-3 relative z-10" size={24} />
           <div className="h-1.5 w-1/2 bg-slate-200 rounded mb-2 relative z-10"></div>
           <div className="h-1.5 w-2/3 bg-slate-200 rounded relative z-10"></div>
         </div>
       </div>
       
-      <div className="absolute top-1/2 left-1/2 -mt-32 -ml-32 w-64 h-64 bg-indigo-500/5 rounded-full blur-3xl pointer-events-none" />
+      <div className="absolute top-1/2 left-1/2 -mt-32 -ml-32 w-64 h-64 bg-red-500/5 rounded-full blur-3xl pointer-events-none" />
     </div>
   )
 }
@@ -224,7 +224,7 @@ function EnterpriseHero() {
       `}</style>
       
       <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none z-0">
-        <div className="absolute top-[-20%] left-[-10%] w-[50%] h-[50%] bg-indigo-100/50 rounded-full blur-[120px] mix-blend-multiply" />
+        <div className="absolute top-[-20%] left-[-10%] w-[50%] h-[50%] bg-red-100/50 rounded-full blur-[120px] mix-blend-multiply" />
         <div className="absolute bottom-[-20%] right-[-10%] w-[60%] h-[60%] bg-cyan-100/50 rounded-full blur-[150px] mix-blend-multiply" />
       </div>
 
@@ -249,7 +249,7 @@ function EnterpriseHero() {
           </div>
 
           <div className="flex flex-col sm:flex-row gap-4 mt-14">
-            <Link to="/participant" className="flex items-center justify-center gap-2 px-8 py-3.5 bg-indigo-600 text-white text-sm font-semibold hover:bg-indigo-700 transition-colors rounded shadow-md shadow-indigo-600/20">
+            <Link to="/participant" className="flex items-center justify-center gap-2 px-8 py-3.5 bg-red-600 text-white text-sm font-semibold hover:bg-red-700 transition-colors rounded shadow-md shadow-red-600/20">
               Explore Competitions <ArrowRight size={16} />
             </Link>
             <a href="#about" className="flex items-center justify-center gap-2 px-8 py-3.5 bg-white border border-slate-300 text-slate-700 text-sm font-semibold hover:bg-slate-50 transition-colors rounded shadow-sm">
@@ -259,19 +259,19 @@ function EnterpriseHero() {
 
           <div className="mt-16 grid grid-cols-2 md:grid-cols-4 lg:grid-cols-2 xl:grid-cols-4 gap-6 pt-8 border-t border-slate-200">
             <div>
-              <div className="text-2xl font-mono text-indigo-900 font-bold mb-1">10k+</div>
+              <div className="text-2xl font-mono text-red-900 font-bold mb-1">10k+</div>
               <div className="text-xs text-slate-500 uppercase tracking-wider font-semibold">Participants</div>
             </div>
             <div>
-              <div className="text-2xl font-mono text-indigo-900 font-bold mb-1">500+</div>
+              <div className="text-2xl font-mono text-red-900 font-bold mb-1">500+</div>
               <div className="text-xs text-slate-500 uppercase tracking-wider font-semibold">Competitions</div>
             </div>
             <div>
-              <div className="text-2xl font-mono text-indigo-900 font-bold mb-1">100+</div>
+              <div className="text-2xl font-mono text-red-900 font-bold mb-1">100+</div>
               <div className="text-xs text-slate-500 uppercase tracking-wider font-semibold">Organizations</div>
             </div>
             <div>
-              <div className="text-2xl font-mono text-indigo-900 font-bold mb-1">50+</div>
+              <div className="text-2xl font-mono text-red-900 font-bold mb-1">50+</div>
               <div className="text-xs text-slate-500 uppercase tracking-wider font-semibold">Case Studies</div>
             </div>
           </div>
@@ -295,7 +295,7 @@ function EnterpriseHero() {
               <button 
                 key={idx}
                 onClick={() => setCurrentSlide(idx)}
-                className={`w-2 h-2 rounded-full transition-all duration-300 ${idx === currentSlide ? 'bg-indigo-600 scale-125' : 'bg-slate-300 hover:bg-slate-400'}`}
+                className={`w-2 h-2 rounded-full transition-all duration-300 ${idx === currentSlide ? 'bg-red-600 scale-125' : 'bg-slate-300 hover:bg-slate-400'}`}
               />
             ))}
           </div>
@@ -317,7 +317,7 @@ function About() {
         
         <div className="grid md:grid-cols-2 gap-8 text-slate-600 font-medium leading-relaxed">
           <div className="bg-slate-50 border border-slate-200 rounded-lg p-8 shadow-sm hover:shadow-md transition-shadow">
-            <h3 className="text-xl font-bold text-indigo-700 mb-3">What is EventOS?</h3>
+            <h3 className="text-xl font-bold text-red-700 mb-3">What is EventOS?</h3>
             <p className="mb-6">
               EventOS is a comprehensive event orchestration engine originally built for the WiSE@TI Hackathon. It is designed to handle the complex logistics of large-scale competitions in a single unified environment.
             </p>
@@ -327,7 +327,7 @@ function About() {
           </div>
           
           <div className="bg-slate-50 border border-slate-200 rounded-lg p-8 shadow-sm hover:shadow-md transition-shadow">
-            <h3 className="text-xl font-bold text-indigo-700 mb-3">Core Philosophy</h3>
+            <h3 className="text-xl font-bold text-red-700 mb-3">Core Philosophy</h3>
             <p className="mb-6">
               <strong className="text-slate-800">For Participants:</strong> Remove friction. A unified hub to manage team formation, track milestones, and submit deliverables securely.
             </p>
@@ -352,7 +352,7 @@ function Features() {
       description: "AI-powered heuristics that automatically form balanced teams based on multidimensional skill vectors."
     },
     {
-      icon: <ShieldCheck className="text-indigo-600" size={24} />,
+      icon: <ShieldCheck className="text-red-600" size={24} />,
       title: "Anomaly Detection",
       description: "Real-time monitoring of evaluation streams to automatically flag suspicious statistical variances."
     },
@@ -367,7 +367,7 @@ function Features() {
       description: "Enterprise tools for mentors to track team velocity, schedule syncs, and submit structured feedback."
     },
     {
-      icon: <Users className="text-indigo-600" size={24} />,
+      icon: <Users className="text-red-600" size={24} />,
       title: "Participant Hub",
       description: "A centralized dashboard for participants to manage repositories, submit deliverables, and track milestones."
     },
@@ -382,7 +382,7 @@ function Features() {
       description: "Dynamic ranking systems that update instantly as evaluation streams are processed."
     },
     {
-      icon: <FileText className="text-indigo-600" size={24} />,
+      icon: <FileText className="text-red-600" size={24} />,
       title: "Resource Management",
       description: "Centralized repository for distributing guidelines, templates, and datasets to participants securely."
     },
@@ -403,8 +403,8 @@ function Features() {
         
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
           {features.map((f, i) => (
-            <div key={i} className="bg-white border border-slate-200 p-6 rounded-lg shadow-sm hover:shadow-md hover:border-indigo-300 transition-all duration-300 group">
-              <div className="w-12 h-12 rounded bg-indigo-50 border border-indigo-100 flex items-center justify-center mb-6 group-hover:bg-indigo-100 transition-all duration-300">
+            <div key={i} className="bg-white border border-slate-200 p-6 rounded-lg shadow-sm hover:shadow-md hover:border-red-300 transition-all duration-300 group">
+              <div className="w-12 h-12 rounded bg-red-50 border border-red-100 flex items-center justify-center mb-6 group-hover:bg-red-100 transition-all duration-300">
                 {f.icon}
               </div>
               <h3 className="text-lg font-bold text-slate-900 mb-2">{f.title}</h3>
@@ -421,7 +421,7 @@ function Portals() {
   const portals = [
     { title: 'Participant Portal', path: '/participant', desc: 'Join teams and submit deliverables', colorClass: 'text-cyan-700' },
     { title: 'Mentor Portal', path: '/mentor', desc: 'Guide teams to success', colorClass: 'text-blue-700' },
-    { title: 'Judge Portal', path: '/judge', desc: 'Evaluate project submissions', colorClass: 'text-indigo-700' },
+    { title: 'Judge Portal', path: '/judge', desc: 'Evaluate project submissions', colorClass: 'text-red-700' },
     { title: 'Admin Console', path: '/admin', desc: 'Manage event operations', colorClass: 'text-slate-800' },
   ]
   
@@ -433,8 +433,8 @@ function Portals() {
         
         <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
           {portals.map((p, i) => (
-            <Link key={i} to={p.path} className="block p-6 rounded-lg border border-slate-200 shadow-sm hover:shadow-md hover:border-indigo-300 transition-all text-left bg-slate-50 group relative overflow-hidden">
-              <div className="absolute top-0 left-0 w-1 h-full bg-slate-200 group-hover:bg-indigo-500 transition-colors" />
+            <Link key={i} to={p.path} className="block p-6 rounded-lg border border-slate-200 shadow-sm hover:shadow-md hover:border-red-300 transition-all text-left bg-slate-50 group relative overflow-hidden">
+              <div className="absolute top-0 left-0 w-1 h-full bg-slate-200 group-hover:bg-red-500 transition-colors" />
               <h3 className={`text-lg font-bold mb-1 ml-2 transition-colors ${p.colorClass}`}>{p.title}</h3>
               <p className="text-sm text-slate-600 font-medium ml-2">{p.desc}</p>
             </Link>
@@ -452,7 +452,7 @@ function Footer() {
     <footer className="border-t border-slate-200 bg-white py-12 px-6 relative z-10">
       <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-6">
         <div className="flex items-center gap-2">
-          <EventOSLogo className="text-indigo-700" size={32} />
+          <EventOSLogo className="text-red-700" size={32} />
         </div>
         
         <p className="text-sm text-slate-500 font-medium">
@@ -460,9 +460,9 @@ function Footer() {
         </p>
         
         <div className="flex items-center gap-6 text-sm text-slate-500 font-medium">
-          <a href="#" className="hover:text-indigo-600 transition-colors">Privacy Policy</a>
-          <a href="#" className="hover:text-indigo-600 transition-colors">Terms of Service</a>
-          <a href="#" className="hover:text-indigo-600 transition-colors">System Status</a>
+          <a href="#" className="hover:text-red-600 transition-colors">Privacy Policy</a>
+          <a href="#" className="hover:text-red-600 transition-colors">Terms of Service</a>
+          <a href="#" className="hover:text-red-600 transition-colors">System Status</a>
         </div>
       </div>
     </footer>
@@ -471,7 +471,7 @@ function Footer() {
 
 export default function LandingPage() {
   return (
-    <div className="min-h-screen bg-white text-slate-600 selection:bg-indigo-100 selection:text-indigo-900 font-sans">
+    <div className="min-h-screen bg-white text-slate-600 selection:bg-red-100 selection:text-red-900 font-sans">
       <Navbar />
       <main>
         <EnterpriseHero />

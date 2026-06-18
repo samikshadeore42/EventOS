@@ -9,7 +9,7 @@ function Badge({ children, colour = 'gray' }) {
     green:  'bg-green-50 border border-green-200 text-green-700',
     red:    'bg-red-50 border border-red-200 text-red-700',
     amber:  'bg-amber-50 border border-amber-200 text-amber-700',
-    indigo: 'bg-indigo-50 border border-indigo-200 text-indigo-700',
+    red: 'bg-red-50 border border-red-200 text-red-700',
     teal:   'bg-teal-50 border border-teal-200 text-teal-700',
     gray:   'bg-slate-100 border border-slate-200 text-slate-700',
   }[colour] ?? 'bg-slate-100 border border-slate-200 text-slate-700'
@@ -21,7 +21,7 @@ function Badge({ children, colour = 'gray' }) {
 }
 
 function SectionTitle({ children }) {
-  return <h2 className="text-lg font-bold text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 to-violet-600 font-black mb-4">{children}</h2>
+  return <h2 className="text-lg font-bold text-transparent bg-clip-text bg-gradient-to-r from-red-600 to-red-600 font-black mb-4">{children}</h2>
 }
 
 export default function SettingsTab() {
@@ -114,7 +114,7 @@ export default function SettingsTab() {
             <input 
               value={orgName} 
               onChange={e => setOrgName(e.target.value)}
-              className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" 
+              className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-red-500" 
             />
           </div>
           <div>
@@ -122,13 +122,13 @@ export default function SettingsTab() {
             <textarea 
               value={orgDesc} 
               onChange={e => setOrgDesc(e.target.value)}
-              className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 min-h-[80px]" 
+              className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-red-500 min-h-[80px]" 
             />
           </div>
           <button 
             onClick={() => updateOrgMutation.mutate({ name: orgName, description: orgDesc })}
             disabled={updateOrgMutation.isPending || (orgName === activeOrganization?.name && orgDesc === (activeOrganization?.description || ''))}
-            className="flex items-center gap-1.5 text-sm px-4 py-2 rounded-lg btn-primary text-white hover:bg-indigo-700 disabled:opacity-50"
+            className="flex items-center gap-1.5 text-sm px-4 py-2 rounded-lg btn-primary text-white hover:bg-red-700 disabled:opacity-50"
           >
             {updateOrgMutation.isPending ? <Loader2 size={14} className="animate-spin"/> : <Save size={14} />}
             Save Changes
@@ -243,7 +243,7 @@ export default function SettingsTab() {
           <SectionTitle><Mail size={18} className="inline mr-2" /> Pending Invitations</SectionTitle>
           <button 
             onClick={() => setShowInviteForm(!showInviteForm)}
-            className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg border border-indigo-200 text-indigo-700 bg-indigo-50 hover:bg-indigo-100 font-medium"
+            className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg border border-red-200 text-red-700 bg-red-50 hover:bg-red-100 font-medium"
           >
             {showInviteForm ? <X size={14} /> : <Plus size={14} />}
             {showInviteForm ? "Cancel" : "Invite Member"}
@@ -259,7 +259,7 @@ export default function SettingsTab() {
                 value={inviteEmail} 
                 onChange={e => setInviteEmail(e.target.value)}
                 placeholder="colleague@example.com"
-                className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" 
+                className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-red-500" 
               />
             </div>
             <div className="w-48">
@@ -267,7 +267,7 @@ export default function SettingsTab() {
               <select 
                 value={inviteRole} 
                 onChange={e => setInviteRole(e.target.value)}
-                className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white"
+                className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-red-500 bg-white"
               >
                 <option value="admin">Admin</option>
                 <option value="member">Member</option>
@@ -276,7 +276,7 @@ export default function SettingsTab() {
             <button 
               onClick={() => inviteMutation.mutate({ email: inviteEmail, role: inviteRole })}
               disabled={inviteMutation.isPending || !inviteEmail}
-              className="flex items-center gap-1.5 text-sm px-4 py-2 rounded-lg bg-indigo-600 text-white hover:bg-indigo-700 disabled:opacity-50 h-[38px]"
+              className="flex items-center gap-1.5 text-sm px-4 py-2 rounded-lg bg-red-600 text-white hover:bg-red-700 disabled:opacity-50 h-[38px]"
             >
               {inviteMutation.isPending ? <Loader2 size={14} className="animate-spin" /> : <Mail size={14} />}
               Send Invite

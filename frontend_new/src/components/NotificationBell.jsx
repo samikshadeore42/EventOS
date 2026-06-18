@@ -66,7 +66,7 @@ export default function NotificationBell() {
             {unread > 0 && (
               <button
                 onClick={() => markAll.mutate()}
-                className="text-xs text-indigo-600 hover:underline disabled:opacity-50"
+                className="text-xs text-red-600 hover:underline disabled:opacity-50"
                 disabled={markAll.isPending}
               >
                 Mark all read
@@ -85,7 +85,7 @@ export default function NotificationBell() {
               {items.map((n) => (
                 <li
                   key={n.id}
-                  className={`px-4 py-3 flex gap-3 ${n.read ? 'opacity-60' : 'bg-indigo-50/40'}`}
+                  className={`px-4 py-3 flex gap-3 ${n.read ? 'opacity-60' : 'bg-red-50/40'}`}
                 >
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-medium text-gray-800 truncate">{n.title}</p>
