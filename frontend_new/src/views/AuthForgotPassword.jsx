@@ -31,10 +31,10 @@ export default function AuthForgotPassword() {
       <div className="absolute inset-0 bg-[url('data:image/svg+xml,%3Csvg width=\\'60\\' height=\\'60\\' viewBox=\\'0 0 60 60\\' xmlns=\\'http://www.w3.org/2000/svg\\'%3E%3Cg fill=\\'none\\' fill-rule=\\'evenodd\\'%3E%3Cg fill=\\'%230f172a\\' fill-opacity=\\'0.03\\'%3E%3Cpath d=\\'M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z\\'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E')] pointer-events-none opacity-50 z-0"></div>
       
       <div className="sm:mx-auto sm:w-full sm:max-w-md z-10">
-        <div className="flex justify-center text-indigo-600">
+        <div className="flex justify-center text-red-600">
           <EventOSLogo size={64} />
         </div>
-        <h2 className="mt-4 text-center text-3xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 to-sky-600">
+        <h2 className="mt-4 text-center text-3xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-red-600 to-sky-600">
           Reset Password
         </h2>
         <p className="mt-2 text-center text-sm text-slate-500">
@@ -49,7 +49,7 @@ export default function AuthForgotPassword() {
               <div className="bg-green-50 border border-green-200 text-green-700 p-4 rounded-lg mb-6">
                 If an account exists for that email, we have sent a password reset link.
               </div>
-              <Link to="/auth/login" className="font-medium text-indigo-600 hover:text-indigo-500">
+              <Link to="/auth/login" className="font-medium text-red-600 hover:text-red-500">
                 Return to sign in
               </Link>
             </div>
@@ -72,7 +72,7 @@ export default function AuthForgotPassword() {
                     required
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    className="block w-full pl-10 bg-slate-50 text-slate-900 placeholder-slate-400 border border-slate-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm p-2.5"
+                    className="block w-full pl-10 bg-slate-50 text-slate-900 placeholder-slate-400 border border-slate-300 rounded-lg focus:ring-red-500 focus:border-red-500 sm:text-sm p-2.5"
                     placeholder="you@example.com"
                   />
                 </div>
@@ -81,7 +81,7 @@ export default function AuthForgotPassword() {
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full flex justify-center py-2.5 px-4 border border-indigo-400/20 rounded-lg shadow-lg shadow-indigo-500/25 text-sm font-medium text-white bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 focus:outline-none transition-all disabled:opacity-50"
+                className="w-full flex justify-center py-2.5 px-4 border border-red-400/20 rounded-lg shadow-lg shadow-red-500/25 text-sm font-medium text-white bg-gradient-to-r from-red-600 to-red-600 hover:from-red-500 hover:to-red-500 focus:outline-none transition-all disabled:opacity-50"
               >
                 {loading ? <Loader2 className="animate-spin h-5 w-5" /> : 'Send reset link'}
               </button>

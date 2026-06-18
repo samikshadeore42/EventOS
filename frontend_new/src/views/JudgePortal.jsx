@@ -28,7 +28,7 @@ function weightedTotal(scores) {
 
 function qualityLabel(total) {
   if (total >= 8.5) return { label: 'Excellent', colour: 'text-teal-600' }
-  if (total >= 7.0) return { label: 'Good',      colour: 'text-indigo-600' }
+  if (total >= 7.0) return { label: 'Good',      colour: 'text-red-600' }
   if (total >= 5.5) return { label: 'Average',   colour: 'text-amber-600' }
   return                    { label: 'Needs work', colour: 'text-red-500' }
 }
@@ -54,7 +54,7 @@ function CriterionSlider({ criterion, value, onChange }) {
 
   const trackColor =
     value >= 8 ? 'accent-teal-500'   :
-    value >= 6 ? 'accent-indigo-500' :
+    value >= 6 ? 'accent-red-500' :
     value >= 4 ? 'accent-amber-500'  : 'accent-red-400'
 
   return (
@@ -72,7 +72,7 @@ function CriterionSlider({ criterion, value, onChange }) {
         <div className="shrink-0 text-right">
           <span className={`text-2xl font-black tabular-nums ${
             value >= 8 ? 'text-teal-600'   :
-            value >= 6 ? 'text-indigo-600' :
+            value >= 6 ? 'text-red-600' :
             value >= 4 ? 'text-amber-600'  : 'text-red-500'
           }`}>{value.toFixed(1)}</span>
           <span className="text-xs font-medium text-slate-400">/10</span>
@@ -142,7 +142,7 @@ function ScoringForm({ team, onSubmitted, alreadySubmitted, token }) {
     <div>
       {/* Team header */}
       <div className="mb-6 pb-5 border-b border-slate-200">
-        <p className="text-xs font-bold text-indigo-600 uppercase tracking-wide mb-1">Evaluating</p>
+        <p className="text-xs font-bold text-red-600 uppercase tracking-wide mb-1">Evaluating</p>
         <h2 className="text-2xl font-black text-slate-900">{team.team_name}</h2>
         <p className="text-sm font-medium text-slate-500 mt-1">
           Score each criterion honestly. Your evaluation is anonymised in the final aggregate.
@@ -185,13 +185,13 @@ function ScoringForm({ team, onSubmitted, alreadySubmitted, token }) {
       {!confirming ? (
         <button
           onClick={() => setConfirming(true)}
-          className="w-full flex items-center justify-center gap-2 text-sm py-3 rounded-xl btn-primary text-white font-bold hover:bg-indigo-700 transition-colors shadow-sm"
+          className="w-full flex items-center justify-center gap-2 text-sm py-3 rounded-xl btn-primary text-white font-bold hover:bg-red-700 transition-colors shadow-sm"
         >
           <Send size={16} /> Review & Submit Scorecard
         </button>
       ) : (
-        <div className="bg-indigo-50 border border-indigo-200 rounded-xl p-4 shadow-sm">
-          <p className="text-sm font-bold text-indigo-900 mb-3">Confirm submission</p>
+        <div className="bg-red-50 border border-red-200 rounded-xl p-4 shadow-sm">
+          <p className="text-sm font-bold text-red-900 mb-3">Confirm submission</p>
           <div className="space-y-1.5 mb-4">
             {CRITERIA.map((c) => (
               <div key={c.key} className="flex justify-between text-xs">
@@ -199,12 +199,12 @@ function ScoringForm({ team, onSubmitted, alreadySubmitted, token }) {
                 <span className="font-bold text-slate-900">{scores[c.key].toFixed(1)}</span>
               </div>
             ))}
-            <div className="flex justify-between text-sm font-black border-t border-indigo-200 pt-2 mt-2">
-              <span className="text-indigo-800">Weighted total</span>
+            <div className="flex justify-between text-sm font-black border-t border-red-200 pt-2 mt-2">
+              <span className="text-red-800">Weighted total</span>
               <span className={quality.colour}>{total.toFixed(2)}</span>
             </div>
           </div>
-          <p className="text-xs font-medium text-indigo-700 mb-3">
+          <p className="text-xs font-medium text-red-700 mb-3">
             Please review carefully. After submission, this scorecard cannot be edited from the portal.
           </p>
           <div className="flex gap-2">
@@ -217,7 +217,7 @@ function ScoringForm({ team, onSubmitted, alreadySubmitted, token }) {
             <button
               onClick={() => submitMutation.mutate()}
               disabled={submitMutation.isPending}
-              className="flex-1 flex items-center justify-center gap-2 py-2 rounded-lg btn-primary text-white text-sm font-bold hover:bg-indigo-700 disabled:opacity-50 shadow-sm"
+              className="flex-1 flex items-center justify-center gap-2 py-2 rounded-lg btn-primary text-white text-sm font-bold hover:bg-red-700 disabled:opacity-50 shadow-sm"
             >
               {submitMutation.isPending ? <Loader2 size={14} className="animate-spin" /> : <CheckCircle size={14} />}
               {submitMutation.isPending ? 'Submitting…' : 'Confirm & Submit'}
@@ -274,7 +274,7 @@ function TeamSubmissionSection({ teamId, token }) {
       </p>
       {isLoading ? (
         <div className="flex items-center gap-2 text-xs font-medium text-slate-500">
-          <Loader2 size={11} className="animate-spin text-indigo-500" /> Loading submission info…
+          <Loader2 size={11} className="animate-spin text-red-500" /> Loading submission info…
         </div>
       ) : error || !sub ? (
         <p className="text-sm font-medium text-slate-500">No project ZIP submitted yet.</p>
@@ -290,7 +290,7 @@ function TeamSubmissionSection({ teamId, token }) {
           <button
             onClick={handleDownload}
             disabled={downloading}
-            className="flex items-center gap-1.5 text-sm font-semibold px-4 py-2 rounded-lg btn-primary text-white hover:bg-indigo-700 disabled:opacity-50 shadow-sm shrink-0"
+            className="flex items-center gap-1.5 text-sm font-semibold px-4 py-2 rounded-lg btn-primary text-white hover:bg-red-700 disabled:opacity-50 shadow-sm shrink-0"
           >
             {downloading ? <Loader2 size={14} className="animate-spin" /> : <Download size={14} />}
             Download ZIP
@@ -308,7 +308,7 @@ function TeamQueueSidebar({ teams, selectedId, submittedIds, onSelect, evaluator
     <aside className="w-full lg:w-72 bg-white border-b lg:border-b-0 lg:border-r border-slate-200 flex flex-col shadow-sm z-10">
       {/* Evaluator header */}
       <div className="px-5 py-5 border-b border-slate-200 bg-slate-50">
-        <p className="text-xs font-bold text-indigo-600 uppercase tracking-wide mb-1">Judge Portal</p>
+        <p className="text-xs font-bold text-red-600 uppercase tracking-wide mb-1">Judge Portal</p>
         <h1 className="text-base font-black text-slate-900 truncate">{evaluatorName}</h1>
         <div className="mt-3">
           <div className="flex justify-between text-xs font-medium text-slate-500 mb-1">
@@ -339,7 +339,7 @@ function TeamQueueSidebar({ teams, selectedId, submittedIds, onSelect, evaluator
               onClick={() => onSelect(team)}
               className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-left mb-1 transition-colors ${
                 isActive
-                  ? 'bg-indigo-50 border border-indigo-200'
+                  ? 'bg-red-50 border border-red-200'
                   : 'hover:bg-slate-50 border border-transparent'
               }`}
             >
@@ -347,7 +347,7 @@ function TeamQueueSidebar({ teams, selectedId, submittedIds, onSelect, evaluator
                 done ? 'bg-teal-500' : 'bg-amber-400 animate-pulse'
               }`} />
               <div className="flex-1 min-w-0">
-                <p className={`text-sm font-bold truncate ${isActive ? 'text-indigo-700' : 'text-slate-700'}`}>
+                <p className={`text-sm font-bold truncate ${isActive ? 'text-red-700' : 'text-slate-700'}`}>
                   {team.team_name}
                 </p>
                 <p className={`text-xs mt-0.5 font-medium ${done ? 'text-teal-600' : 'text-slate-500'}`}>
@@ -475,7 +475,7 @@ export default function JudgePortal() {
     return (
       <div className="min-h-screen flex items-center justify-center bg-slate-50">
         <div className="text-center">
-          <Loader2 size={32} className="text-indigo-600 animate-spin mx-auto mb-3" />
+          <Loader2 size={32} className="text-red-600 animate-spin mx-auto mb-3" />
           <p className="text-sm font-medium text-slate-500">Loading your evaluation portal…</p>
         </div>
       </div>
@@ -584,7 +584,7 @@ export default function JudgePortal() {
                     {criteria.map((c) => (
                       <div key={c.key} className="flex items-center justify-between text-sm">
                         <span className="font-semibold text-slate-700">{c.label}</span>
-                        <span className="text-indigo-600 font-bold">
+                        <span className="text-red-600 font-bold">
                           {(c.weight * 100).toFixed(0)}%
                         </span>
                       </div>
@@ -604,13 +604,13 @@ export default function JudgePortal() {
                 </p>
                 {rubricLoading ? (
                   <div className="flex items-center gap-2 text-xs font-medium text-slate-500">
-                    <Loader2 size={11} className="animate-spin text-indigo-500" /> Generating rubric…
+                    <Loader2 size={11} className="animate-spin text-red-500" /> Generating rubric…
                   </div>
                 ) : rubric?.criteria?.length > 0 ? (
                   <div className="space-y-3">
                     {rubric.criteria.map((c, i) => (
                       <div key={i} className="bg-slate-50 border border-slate-100 rounded-lg p-3">
-                        <p className="text-xs font-bold text-indigo-700 mb-1">{c.name}</p>
+                        <p className="text-xs font-bold text-red-700 mb-1">{c.name}</p>
                         <p className="text-xs font-medium text-slate-600 mb-2">{c.description}</p>
                         {c.scoring_guide && (
                           <div className="space-y-1">

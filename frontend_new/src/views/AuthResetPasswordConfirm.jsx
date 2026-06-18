@@ -50,7 +50,7 @@ export default function AuthResetPasswordConfirm() {
         <XCircle className="h-12 w-12 text-red-500 mx-auto mb-4" />
         <h3 className="text-lg font-medium text-slate-900 mb-2">Invalid Reset Link</h3>
         <p className="text-sm text-slate-600 mb-6">This password reset link is invalid or has already been used.</p>
-        <Link to="/auth/forgot-password" className="font-medium text-indigo-600 hover:text-indigo-500">Request a new link</Link>
+        <Link to="/auth/forgot-password" className="font-medium text-red-600 hover:text-red-500">Request a new link</Link>
       </PageWrapper>
     );
   }
@@ -61,7 +61,7 @@ export default function AuthResetPasswordConfirm() {
         <AlertTriangle className="h-12 w-12 text-amber-500 mx-auto mb-4" />
         <h3 className="text-lg font-medium text-slate-900 mb-2">Link Expired</h3>
         <p className="text-sm text-slate-600 mb-6">This password reset link has expired.</p>
-        <Link to="/auth/forgot-password" className="font-medium text-indigo-600 hover:text-indigo-500">Request a new link</Link>
+        <Link to="/auth/forgot-password" className="font-medium text-red-600 hover:text-red-500">Request a new link</Link>
       </PageWrapper>
     );
   }
@@ -72,7 +72,7 @@ export default function AuthResetPasswordConfirm() {
         <CheckCircle className="h-12 w-12 text-green-500 mx-auto mb-4" />
         <h3 className="text-lg font-medium text-slate-900 mb-2">Password Reset!</h3>
         <p className="text-sm text-slate-600 mb-6">Your password has been updated. You can now sign in with your new password.</p>
-        <Link to="/auth/login" className="inline-flex items-center px-4 py-2 rounded-lg text-sm font-medium text-white bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500">
+        <Link to="/auth/login" className="inline-flex items-center px-4 py-2 rounded-lg text-sm font-medium text-white bg-gradient-to-r from-red-600 to-red-600 hover:from-red-500 hover:to-red-500">
           Sign in
         </Link>
       </PageWrapper>
@@ -82,10 +82,10 @@ export default function AuthResetPasswordConfirm() {
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8 relative overflow-hidden text-slate-700">
       <div className="sm:mx-auto sm:w-full sm:max-w-md z-10">
-        <div className="flex justify-center text-indigo-600">
+        <div className="flex justify-center text-red-600">
           <EventOSLogo size={64} />
         </div>
-        <h2 className="mt-4 text-center text-3xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 to-sky-600">
+        <h2 className="mt-4 text-center text-3xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-red-600 to-sky-600">
           Set New Password
         </h2>
       </div>
@@ -110,7 +110,7 @@ export default function AuthResetPasswordConfirm() {
                   minLength={8}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="block w-full pl-10 bg-slate-50 text-slate-900 placeholder-slate-400 border border-slate-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm p-2.5"
+                  className="block w-full pl-10 bg-slate-50 text-slate-900 placeholder-slate-400 border border-slate-300 rounded-lg focus:ring-red-500 focus:border-red-500 sm:text-sm p-2.5"
                   placeholder="••••••••"
                 />
               </div>
@@ -127,7 +127,7 @@ export default function AuthResetPasswordConfirm() {
                   minLength={8}
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
-                  className="block w-full pl-10 bg-slate-50 text-slate-900 placeholder-slate-400 border border-slate-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm p-2.5"
+                  className="block w-full pl-10 bg-slate-50 text-slate-900 placeholder-slate-400 border border-slate-300 rounded-lg focus:ring-red-500 focus:border-red-500 sm:text-sm p-2.5"
                   placeholder="••••••••"
                 />
               </div>
@@ -135,7 +135,7 @@ export default function AuthResetPasswordConfirm() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full flex justify-center py-2.5 px-4 border border-indigo-400/20 rounded-lg shadow-lg shadow-indigo-500/25 text-sm font-medium text-white bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 focus:outline-none transition-all disabled:opacity-50"
+              className="w-full flex justify-center py-2.5 px-4 border border-red-400/20 rounded-lg shadow-lg shadow-red-500/25 text-sm font-medium text-white bg-gradient-to-r from-red-600 to-red-600 hover:from-red-500 hover:to-red-500 focus:outline-none transition-all disabled:opacity-50"
             >
               {loading ? <Loader2 className="animate-spin h-5 w-5" /> : 'Reset Password'}
             </button>

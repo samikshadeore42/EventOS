@@ -9,7 +9,7 @@ import {
 import { stagesApi, eventLifecycleApi, eventsApi, eventStorage } from '../services/api'
 
 const DEFAULT_TZ = 'Asia/Kolkata'
-const INPUT_CLASS = 'w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white text-slate-900'
+const INPUT_CLASS = 'w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-red-500 bg-white text-slate-900'
 const ICON_BUTTON_CLASS = 'p-1.5 rounded border border-slate-200 text-slate-600 hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed'
 const CAPABILITY_OPTIONS = [
   { key: 'teams', label: 'Teams' },
@@ -321,7 +321,7 @@ export default function StageTimelinePanel({ eventStatus }) {
             <button
               onClick={() => publish.mutate()}
               disabled={!isValid || publish.isPending}
-              className="inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 disabled:opacity-40"
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-white bg-red-600 hover:bg-red-700 disabled:opacity-40"
             >
               {publish.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Rocket className="w-4 h-4" />}
               Publish event
@@ -339,7 +339,7 @@ export default function StageTimelinePanel({ eventStatus }) {
       {awaiting.length > 0 && (
         <div className="rounded-xl border border-gray-200 p-4">
           <h3 className="flex items-center gap-2 font-semibold text-sm text-gray-800 mb-3">
-            <Clock className="w-4 h-4 text-indigo-600" /> Stages awaiting approval
+            <Clock className="w-4 h-4 text-red-600" /> Stages awaiting approval
           </h3>
           <ul className="space-y-2">
             {awaiting.map((s) => (
@@ -367,7 +367,7 @@ export default function StageTimelinePanel({ eventStatus }) {
           </div>
           <button
             onClick={startCreate}
-            className="inline-flex items-center gap-1.5 text-sm px-3 py-2 rounded-lg bg-indigo-600 text-white hover:bg-indigo-700"
+            className="inline-flex items-center gap-1.5 text-sm px-3 py-2 rounded-lg bg-red-600 text-white hover:bg-red-700"
           >
             <Plus className="w-4 h-4" /> Add stage
           </button>
@@ -491,7 +491,7 @@ export default function StageTimelinePanel({ eventStatus }) {
                     type="button"
                     onClick={generateReminderJson}
                     disabled={!reminderPrompt.trim()}
-                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-indigo-200 text-xs font-medium text-indigo-700 bg-indigo-50 hover:bg-indigo-100 disabled:opacity-40"
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-red-200 text-xs font-medium text-red-700 bg-red-50 hover:bg-red-100 disabled:opacity-40"
                   >
                     Generate editable JSON
                   </button>
@@ -533,7 +533,7 @@ export default function StageTimelinePanel({ eventStatus }) {
               <button
                 onClick={() => saveStage.mutate()}
                 disabled={saveStage.isPending}
-                className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg bg-indigo-600 text-white text-sm disabled:opacity-50"
+                className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg bg-red-600 text-white text-sm disabled:opacity-50"
               >
                 {saveStage.isPending ? (
                   <Loader2 className="w-4 h-4 animate-spin" />
@@ -608,7 +608,7 @@ function Field({ label, children }) {
 
 function StatusPill({ status }) {
   const map = {
-    active: 'bg-indigo-100 text-indigo-700',
+    active: 'bg-red-100 text-red-700',
     completed: 'bg-emerald-100 text-emerald-700',
     awaiting_approval: 'bg-amber-100 text-amber-700',
     pending: 'bg-gray-100 text-gray-500',

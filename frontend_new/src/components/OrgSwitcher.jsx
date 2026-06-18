@@ -97,7 +97,7 @@ export default function OrgSwitcher() {
             onClick={() => setOpen(!open)}
             className="flex items-center gap-2 text-sm px-3 py-1.5 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 transition-colors text-slate-700"
           >
-            <Building size={14} className="text-indigo-500" />
+            <Building size={14} className="text-red-500" />
             <span className="max-w-[160px] truncate font-medium">
               {activeOrganization?.name || 'Select Organization'}
             </span>
@@ -117,13 +117,13 @@ export default function OrgSwitcher() {
                     setOpen(false)
                   }}
                   className={`w-full text-left px-3 py-2 text-sm flex items-center gap-2 hover:bg-slate-50 transition-colors ${
-                    activeOrganization?.id === org.id ? 'bg-indigo-50 text-indigo-700 font-medium' : 'text-slate-700'
+                    activeOrganization?.id === org.id ? 'bg-red-50 text-red-700 font-medium' : 'text-slate-700'
                   }`}
                 >
-                  <Building size={14} className={activeOrganization?.id === org.id ? 'text-indigo-500' : 'text-slate-400'} />
+                  <Building size={14} className={activeOrganization?.id === org.id ? 'text-red-500' : 'text-slate-400'} />
                   <span className="truncate">{org.name}</span>
                   {activeOrganization?.id === org.id && (
-                    <span className="ml-auto w-2 h-2 rounded-full bg-indigo-500" />
+                    <span className="ml-auto w-2 h-2 rounded-full bg-red-500" />
                   )}
                 </button>
               ))}
@@ -144,7 +144,7 @@ export default function OrgSwitcher() {
 
       {/* User identity badge */}
       <div className="flex items-center gap-2 text-xs text-slate-500">
-        <div className="w-7 h-7 rounded-full bg-gradient-to-br from-indigo-500 to-purple-500 text-white text-xs font-bold flex items-center justify-center">
+        <div className="w-7 h-7 rounded-full bg-gradient-to-br from-red-500 to-red-500 text-white text-xs font-bold flex items-center justify-center">
           {userName[0]?.toUpperCase() || '?'}
         </div>
       </div>

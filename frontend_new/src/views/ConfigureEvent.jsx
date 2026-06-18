@@ -40,7 +40,7 @@ function ChatBubble({ role, text }) {
     <div className={`flex items-end gap-2 ${isUser ? 'justify-end' : 'justify-start'}`}>
       {/* AI avatar */}
       {!isUser && (
-        <div className="w-7 h-7 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center flex-shrink-0 shadow-sm">
+        <div className="w-7 h-7 rounded-full bg-gradient-to-br from-red-500 to-red-600 flex items-center justify-center flex-shrink-0 shadow-sm">
           <Bot size={14} className="text-white" />
         </div>
       )}
@@ -48,7 +48,7 @@ function ChatBubble({ role, text }) {
       <div className={`
         max-w-[78%] px-4 py-2.5 rounded-2xl text-sm leading-relaxed shadow-sm
         ${isUser
-          ? 'bg-gradient-to-br from-indigo-600 to-purple-600 text-white rounded-br-sm'
+          ? 'bg-gradient-to-br from-red-600 to-red-600 text-white rounded-br-sm'
           : 'bg-white/80 backdrop-blur text-slate-800 border border-slate-200 rounded-bl-sm'
         }
       `}>
@@ -68,14 +68,14 @@ function ChatBubble({ role, text }) {
 function TypingIndicator() {
   return (
     <div className="flex items-end gap-2 justify-start">
-      <div className="w-7 h-7 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center flex-shrink-0 shadow-sm">
+      <div className="w-7 h-7 rounded-full bg-gradient-to-br from-red-500 to-red-600 flex items-center justify-center flex-shrink-0 shadow-sm">
         <Bot size={14} className="text-white" />
       </div>
       <div className="bg-white/80 backdrop-blur border border-slate-200 px-4 py-3 rounded-2xl rounded-bl-sm shadow-sm">
         <span className="flex gap-1 items-center">
-          <span className="w-1.5 h-1.5 bg-indigo-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
-          <span className="w-1.5 h-1.5 bg-indigo-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
-          <span className="w-1.5 h-1.5 bg-indigo-400 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
+          <span className="w-1.5 h-1.5 bg-red-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
+          <span className="w-1.5 h-1.5 bg-red-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
+          <span className="w-1.5 h-1.5 bg-red-400 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
         </span>
       </div>
     </div>
@@ -255,7 +255,7 @@ export default function ConfigureEvent() {
       {/* Top bar — matches AdminDashboard */}
       <header className="glass-card border-b border-slate-200 px-6 py-4 flex items-center justify-between">
         <div className="flex items-center gap-4">
-          <EventOSLogo className="text-indigo-600" size={48} />
+          <EventOSLogo className="text-red-600" size={48} />
           <div className="border-l border-slate-200 pl-4">
             <h1 className="text-sm font-bold text-slate-800 uppercase tracking-wide">
               AI Event Builder
@@ -276,7 +276,7 @@ export default function ConfigureEvent() {
         {/* Intro */}
         <div className="mb-6">
           <h2 className="text-xl font-bold text-slate-800 mb-1 flex items-center gap-2">
-            <Sparkles size={20} className="text-indigo-500" />
+            <Sparkles size={20} className="text-red-500" />
             Configure Your Event with AI
           </h2>
           <p className="text-sm text-slate-500">
@@ -303,7 +303,7 @@ export default function ConfigureEvent() {
           <div className="border-t border-slate-200 p-3 flex gap-2">
             <input
               ref={inputRef}
-              className="flex-1 bg-white border border-slate-200 text-slate-800 placeholder-slate-400 rounded-xl px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-indigo-400 focus:border-indigo-400 transition-all"
+              className="flex-1 bg-white border border-slate-200 text-slate-800 placeholder-slate-400 rounded-xl px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-red-400 focus:border-red-400 transition-all"
               placeholder={config ? 'Configuration complete ✓' : 'Describe your event…'}
               value={input}
               onChange={e => setInput(e.target.value)}

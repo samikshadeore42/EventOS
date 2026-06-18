@@ -37,7 +37,7 @@ export default function AutoAssignModal({
         {/* Header */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-slate-200">
           <div className="flex items-center gap-2">
-            <Wand2 size={18} className="text-indigo-600" />
+            <Wand2 size={18} className="text-red-600" />
             <h3 className="text-base font-bold text-slate-900">
               Auto-assign {entityLabel}s
             </h3>
@@ -57,7 +57,7 @@ export default function AutoAssignModal({
               <button
                 onClick={() => proposeMutation.mutate()}
                 disabled={proposeMutation.isPending}
-                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg bg-indigo-600 text-white text-sm font-semibold hover:bg-indigo-700 disabled:opacity-50"
+                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg bg-red-600 text-white text-sm font-semibold hover:bg-red-700 disabled:opacity-50"
               >
                 {proposeMutation.isPending
                   ? <Loader2 size={16} className="animate-spin" />
@@ -132,7 +132,7 @@ export default function AutoAssignModal({
                       </span>
                     </div>
                     {kind === 'mentor' && a.matched_skills?.length > 0 && (
-                      <span className="text-xs text-indigo-600 font-medium">
+                      <span className="text-xs text-red-600 font-medium">
                         {a.matched_skills.join(', ')}
                       </span>
                     )}

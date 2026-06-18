@@ -39,7 +39,7 @@ function StageNode({ stage, status, isLast, index }) {
 
   const ring = {
     completed: 'border-teal-500 bg-teal-50',
-    active: 'border-indigo-600 bg-indigo-600',
+    active: 'border-red-600 bg-red-600',
     pending: 'border-slate-200 bg-slate-50',
   }[status]
 
@@ -51,7 +51,7 @@ function StageNode({ stage, status, isLast, index }) {
 
   const labelColor = {
     completed: 'text-teal-700 font-semibold',
-    active: 'text-indigo-700 font-semibold',
+    active: 'text-red-700 font-semibold',
     pending: 'text-slate-500 font-normal',
   }[status]
 
@@ -60,7 +60,7 @@ function StageNode({ stage, status, isLast, index }) {
       <div className="flex flex-col items-center shrink-0">
         <div className={`relative w-10 h-10 rounded-full border-2 flex items-center justify-center ${ring}`}>
           {status === 'active' && (
-            <span className="absolute inset-0 rounded-full bg-indigo-400 animate-ping opacity-30" />
+            <span className="absolute inset-0 rounded-full bg-red-400 animate-ping opacity-30" />
           )}
           {status === 'completed'
             ? <CheckCircle size={18} className={iconColor} />
@@ -178,7 +178,7 @@ export default function PipelineStepper({ showAdvanceButton = false, className =
           </div>
           <p className="text-xs text-slate-500 mt-0.5">
             Stage {activeIndex + 1} of {sortedStages.length} —{' '}
-            <span className="text-indigo-600 font-medium">
+            <span className="text-red-600 font-medium">
               {activeStage?.name || 'Not started'}
             </span>
           </p>
@@ -188,7 +188,7 @@ export default function PipelineStepper({ showAdvanceButton = false, className =
           <button
             onClick={() => advanceMutation.mutate()}
             disabled={advanceMutation.isPending}
-            className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg btn-primary text-white hover:bg-indigo-700 disabled:opacity-50 transition-colors"
+            className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg btn-primary text-white hover:bg-red-700 disabled:opacity-50 transition-colors"
           >
             {advanceMutation.isPending ? <Loader2 size={12} className="animate-spin" /> : <ChevronRight size={12} />}
             {advanceMutation.isPending ? 'Advancing...' : 'Advance Stage'}
