@@ -12,6 +12,7 @@ import {
   Check, X
 } from 'lucide-react'
 import EventOSLogo from '../components/EventOSLogo'
+import TeamChatPanel from '../components/TeamChatPanel'
 import { portalApi, mentorApi, submissionsApi, dailyUpdateApi, eventStorage } from '../services/api'
 import { useAuth } from '../context/AuthContext'
 
@@ -831,6 +832,7 @@ export default function ParticipantPortal() {
     email          = '',
     stage          = 'registration',
     team_assigned  = false,
+    team_id,
     team_name,
     team_rationale,
     teammates      = [],
@@ -892,6 +894,31 @@ export default function ParticipantPortal() {
             {team_assigned && <MentorInfoSection mentorData={mentorData} />}
           </div>
         </div>
+
+        {team_assigned && team_id && (
+          <TeamChatPanel
+            eventId={eventId}
+            teamId={team_id}
+            token={urlToken}
+            kind="internal"
+            title="Team Chat"
+            accentClass="bg-slate-700 hover:bg-slate-800"
+            currentSenderId={participant_id}
+            currentSenderRole="participant"
+          />
+        )}
+        {team_assigned && team_id && mentorData?.mentor_name && (
+          <TeamChatPanel
+            eventId={eventId}
+            teamId={team_id}
+            token={urlToken}
+            kind="mentor"
+            title="Chat with Mentor"
+            accentClass="bg-teal-700 hover:bg-teal-800"
+            currentSenderId={participant_id}
+            currentSenderRole="participant"
+          />
+        )}
 
         {/* Support */}
         <SupportFooter supportEmail={supportEmail} />

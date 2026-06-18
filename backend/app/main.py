@@ -47,6 +47,7 @@ from app.api.risk_routes import router as risk_router
 # Phase 10 & 12 — Daily Updates + Team Health Dashboard
 from app.api.daily_update_routes import router as daily_update_router
 from app.api.health_routes import router as health_router
+from app.api.chat_routes import router as chat_router
 
 
 legacy_dependency = [Depends(RequireOrganizationRole('owner', 'admin'))]
@@ -137,6 +138,10 @@ app.include_router(risk_router)
 # Phase 10 & 12 — no legacy_dependency: participants auth via JWT query param
 app.include_router(daily_update_router)
 app.include_router(health_router)
+
+# Chat — no legacy_dependency: participants/mentors auth via portal JWT
+# (query param on both the REST history route and the WebSocket route).
+app.include_router(chat_router)
 
 
 @app.get("/health")

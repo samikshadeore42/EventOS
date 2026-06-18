@@ -366,6 +366,7 @@ class LinkService:
             institution    = participant.institution,
             stage          = current_stage,
             team_assigned  = participant.team_id is not None,
+            team_id        = str(team.id) if team else None,
             team_name      = team.team_name if team else None,
             team_rationale = team.rationale if team else None,
             teammates      = teammates,

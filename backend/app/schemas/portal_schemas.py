@@ -16,6 +16,7 @@ class ParticipantPortalResponse(BaseModel):
     institution:      str
     stage:            str
     team_assigned:    bool
+    team_id:          Optional[str]         = None
     team_name:        Optional[str]         = None
     team_rationale:   Optional[str]         = None
     teammates:        List[TeamMemberPortalView] = []
