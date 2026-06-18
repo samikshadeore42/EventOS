@@ -47,7 +47,7 @@ export default function OrgSwitcher() {
         <div className="relative">
           <button
             onClick={() => setEventOpen(!eventOpen)}
-            className="flex items-center gap-2 text-sm px-3 py-1.5 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 transition-colors text-slate-700"
+            className="flex items-center gap-2 text-sm px-3 py-1.5 rounded-lg border border-border bg-background hover:bg-surface transition-colors text-foreground"
           >
             <CalendarDays size={14} className="text-teal-500" />
             <span className="max-w-[180px] truncate font-medium">
@@ -57,8 +57,8 @@ export default function OrgSwitcher() {
           </button>
 
           {eventOpen && (
-            <div className="absolute right-0 mt-1 w-72 bg-white rounded-xl border border-slate-200 shadow-lg z-50 py-1 overflow-hidden">
-              <div className="px-3 py-2 text-xs font-medium text-slate-400 uppercase tracking-wider">
+            <div className="absolute right-0 mt-1 w-72 bg-background rounded-xl border border-border shadow-lg z-50 py-1 overflow-hidden">
+              <div className="px-3 py-2 text-xs font-medium text-muted uppercase tracking-wider">
                 Events
               </div>
 
@@ -69,15 +69,15 @@ export default function OrgSwitcher() {
               switchEvent(event)
               setEventOpen(false)
             }}
-            className={`w-full text-left px-3 py-2 text-sm flex items-center gap-2 hover:bg-slate-50 transition-colors ${
+            className={`w-full text-left px-3 py-2 text-sm flex items-center gap-2 hover:bg-surface transition-colors ${
               activeEvent?.id === event.id
                 ? 'bg-teal-50 text-teal-700 font-medium'
-                : 'text-slate-700'
+                : 'text-foreground'
             }`}
           >
             <CalendarDays
               size={14}
-              className={activeEvent?.id === event.id ? 'text-teal-500' : 'text-slate-400'}
+              className={activeEvent?.id === event.id ? 'text-teal-500' : 'text-muted'}
             />
             <span className="truncate">{event.name}</span>
 
@@ -95,9 +95,9 @@ export default function OrgSwitcher() {
         <div className="relative">
           <button
             onClick={() => setOpen(!open)}
-            className="flex items-center gap-2 text-sm px-3 py-1.5 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 transition-colors text-slate-700"
+            className="flex items-center gap-2 text-sm px-3 py-1.5 rounded-lg border border-border bg-background hover:bg-surface transition-colors text-foreground"
           >
-            <Building size={14} className="text-red-500" />
+            <Building size={14} className="text-teal-500" />
             <span className="max-w-[160px] truncate font-medium">
               {activeOrganization?.name || 'Select Organization'}
             </span>
@@ -105,8 +105,8 @@ export default function OrgSwitcher() {
           </button>
 
           {open && (
-            <div className="absolute right-0 mt-1 w-64 bg-white rounded-xl border border-slate-200 shadow-lg z-50 py-1 overflow-hidden">
-              <div className="px-3 py-2 text-xs font-medium text-slate-400 uppercase tracking-wider">
+            <div className="absolute right-0 mt-1 w-64 bg-background rounded-xl border border-border shadow-lg z-50 py-1 overflow-hidden">
+              <div className="px-3 py-2 text-xs font-medium text-muted uppercase tracking-wider">
                 Organizations
               </div>
               {availableOrganizations.map((org) => (
@@ -116,22 +116,22 @@ export default function OrgSwitcher() {
                     switchOrganization(org)
                     setOpen(false)
                   }}
-                  className={`w-full text-left px-3 py-2 text-sm flex items-center gap-2 hover:bg-slate-50 transition-colors ${
-                    activeOrganization?.id === org.id ? 'bg-red-50 text-red-700 font-medium' : 'text-slate-700'
+                  className={`w-full text-left px-3 py-2 text-sm flex items-center gap-2 hover:bg-surface transition-colors ${
+                    activeOrganization?.id === org.id ? 'bg-teal-50 text-teal-700 font-medium' : 'text-foreground'
                   }`}
                 >
-                  <Building size={14} className={activeOrganization?.id === org.id ? 'text-red-500' : 'text-slate-400'} />
+                  <Building size={14} className={activeOrganization?.id === org.id ? 'text-teal-500' : 'text-muted'} />
                   <span className="truncate">{org.name}</span>
                   {activeOrganization?.id === org.id && (
-                    <span className="ml-auto w-2 h-2 rounded-full bg-red-500" />
+                    <span className="ml-auto w-2 h-2 rounded-full bg-teal-500" />
                   )}
                 </button>
               ))}
 
-              <div className="border-t border-slate-100 mt-1 pt-1">
+              <div className="border-t border-border mt-1 pt-1">
                 <button
                   onClick={handleLogout}
-                  className="w-full text-left px-3 py-2 text-sm flex items-center gap-2 text-red-600 hover:bg-red-50 transition-colors"
+                  className="w-full text-left px-3 py-2 text-sm flex items-center gap-2 text-teal-600 hover:bg-teal-50 transition-colors"
                 >
                   <LogOut size={14} />
                   Sign out
@@ -143,8 +143,8 @@ export default function OrgSwitcher() {
       )}
 
       {/* User identity badge */}
-      <div className="flex items-center gap-2 text-xs text-slate-500">
-        <div className="w-7 h-7 rounded-full bg-gradient-to-br from-red-500 to-red-500 text-white text-xs font-bold flex items-center justify-center">
+      <div className="flex items-center gap-2 text-xs text-muted">
+        <div className="w-7 h-7 rounded-full bg-gradient-to-br from-teal-500 to-teal-500 text-white text-xs font-bold flex items-center justify-center">
           {userName[0]?.toUpperCase() || '?'}
         </div>
       </div>

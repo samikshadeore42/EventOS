@@ -69,7 +69,7 @@ export default function TeamChatPanel({
         {open ? <X size={18} /> : <MessageCircle size={18} />}
         <span className="hidden sm:inline">{title}</span>
         {!open && unseenCount > 0 && (
-          <span className="absolute -top-1 -right-1 min-w-[20px] h-5 px-1 flex items-center justify-center text-[11px] font-bold bg-red-500 rounded-full">
+          <span className="absolute -top-1 -right-1 min-w-[20px] h-5 px-1 flex items-center justify-center text-[11px] font-bold bg-teal-500 rounded-full">
             {unseenCount > 9 ? '9+' : unseenCount}
           </span>
         )}
@@ -78,30 +78,30 @@ export default function TeamChatPanel({
       {/* Panel */}
       {open && (
         <div
-          className={`fixed bottom-24 z-40 w-[92vw] max-w-sm h-[28rem] bg-white border border-slate-200 rounded-2xl shadow-2xl flex flex-col ${
+          className={`fixed bottom-24 z-40 w-[92vw] max-w-sm h-[28rem] bg-background border border-border rounded-2xl shadow-2xl flex flex-col ${
             kind === 'mentor' ? 'right-6' : 'right-24'
           }`}
         >
-          <div className="flex items-center justify-between px-4 py-3 border-b border-slate-200 rounded-t-2xl bg-slate-50">
+          <div className="flex items-center justify-between px-4 py-3 border-b border-border rounded-t-2xl bg-surface">
             <div>
-              <p className="text-sm font-bold text-slate-800">{title}</p>
-              <p className="text-[11px] text-slate-400">
+              <p className="text-sm font-bold text-foreground">{title}</p>
+              <p className="text-[11px] text-muted">
                 {isConnected ? 'Live' : connectionState === 'connecting' ? 'Connecting…' : 'Reconnecting…'}
               </p>
             </div>
-            <button onClick={() => setOpen(false)} className="text-slate-400 hover:text-slate-600">
+            <button onClick={() => setOpen(false)} className="text-muted hover:text-muted">
               <X size={18} />
             </button>
           </div>
 
           <div className="flex-1 overflow-y-auto px-3 py-3 space-y-2">
             {historyError && (
-              <p className="text-xs text-red-500 flex items-center gap-1.5">
+              <p className="text-xs text-teal-500 flex items-center gap-1.5">
                 <AlertTriangle size={12} /> Couldn't load history: {historyError}
               </p>
             )}
             {messages.length === 0 && !historyError && (
-              <p className="text-xs text-slate-400 text-center mt-8">No messages yet — say hello.</p>
+              <p className="text-xs text-muted text-center mt-8">No messages yet — say hello.</p>
             )}
             {messages.map((m) => {
               const senderId = m.sender_role === 'mentor' ? m.sender_mentor_id : m.sender_participant_id
@@ -111,13 +111,13 @@ export default function TeamChatPanel({
               return (
                 <div key={m.id} className={`flex flex-col max-w-[85%] ${isMine ? 'ml-auto items-end' : 'items-start'}`}>
                   {!isMine && (
-                    <span className="text-[10px] font-semibold text-slate-400 px-1">
+                    <span className="text-[10px] font-semibold text-muted px-1">
                       {m.sender_name}{m.sender_role === 'mentor' ? ' (Mentor)' : ''}
                     </span>
                   )}
                   <div
                     className={`px-3 py-2 rounded-2xl text-sm leading-relaxed ${
-                      isMine ? 'bg-slate-700 text-white rounded-br-sm' : 'bg-slate-100 text-slate-800 rounded-bl-sm'
+                      isMine ? 'bg-slate-700 text-white rounded-br-sm' : 'bg-surface text-foreground rounded-bl-sm'
                     }`}
                   >
                     {m.body}
@@ -129,14 +129,14 @@ export default function TeamChatPanel({
             <div ref={bottomRef} />
           </div>
 
-          <form onSubmit={handleSend} className="flex items-center gap-2 p-3 border-t border-slate-200">
+          <form onSubmit={handleSend} className="flex items-center gap-2 p-3 border-t border-border">
             <input
               type="text"
               value={draft}
               onChange={(e) => setDraft(e.target.value)}
               placeholder={isConnected ? 'Type a message…' : 'Connecting…'}
               disabled={!isConnected}
-              className="flex-1 bg-slate-50 border border-slate-200 rounded-full px-4 py-2 text-sm outline-none focus:ring-2 focus:ring-slate-300 disabled:opacity-50"
+              className="flex-1 bg-surface border border-border rounded-full px-4 py-2 text-sm outline-none focus:ring-2 focus:ring-slate-300 disabled:opacity-50"
             />
             <button
               type="submit"

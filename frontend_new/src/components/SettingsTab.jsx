@@ -7,11 +7,11 @@ import { Building, Users, Mail, Save, Plus, X, Loader2 } from 'lucide-react'
 function Badge({ children, colour = 'gray' }) {
   const cls = {
     green:  'bg-green-50 border border-green-200 text-green-700',
-    red:    'bg-red-50 border border-red-200 text-red-700',
+    red:    'bg-teal-50 border border-teal-200 text-teal-700',
     amber:  'bg-amber-50 border border-amber-200 text-amber-700',
     teal:   'bg-teal-50 border border-teal-200 text-teal-700',
-    gray:   'bg-slate-100 border border-slate-200 text-slate-700',
-  }[colour] ?? 'bg-slate-100 border border-slate-200 text-slate-700'
+    gray:   'bg-surface border border-border text-foreground',
+  }[colour] ?? 'bg-surface border border-border text-foreground'
   return (
     <span className={`inline-flex items-center gap-1 text-[11px] font-bold px-2 py-0.5 rounded-full ${cls}`}>
       {children}
@@ -20,7 +20,7 @@ function Badge({ children, colour = 'gray' }) {
 }
 
 function SectionTitle({ children }) {
-  return <h2 className="text-lg font-bold text-transparent bg-clip-text bg-gradient-to-r from-red-600 to-red-600 font-black mb-4">{children}</h2>
+  return <h2 className="text-lg font-bold text-transparent bg-clip-text bg-gradient-to-r from-teal-600 to-teal-600 font-black mb-4">{children}</h2>
 }
 
 export default function SettingsTab() {
@@ -100,34 +100,34 @@ export default function SettingsTab() {
   const [inviteEmail, setInviteEmail] = useState('')
   const [inviteRole, setInviteRole] = useState('admin')
 
-  if (!orgId) return <div className="text-sm text-slate-500">No active organization.</div>
+  if (!orgId) return <div className="text-sm text-muted">No active organization.</div>
 
   return (
     <div className="space-y-6">
       {/* Organization Info */}
-      <div className="glass-card rounded-xl border border-slate-200 p-5">
+      <div className="glass-card rounded-xl border border-border p-5">
         <SectionTitle><Building size={18} className="inline mr-2" /> Organization Settings</SectionTitle>
         <div className="max-w-xl space-y-4">
           <div>
-            <label className="block text-xs font-medium text-slate-500 mb-1">Organization Name</label>
+            <label className="block text-xs font-medium text-muted mb-1">Organization Name</label>
             <input 
               value={orgName} 
               onChange={e => setOrgName(e.target.value)}
-              className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-red-500" 
+              className="w-full border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500" 
             />
           </div>
           <div>
-            <label className="block text-xs font-medium text-slate-500 mb-1">Description</label>
+            <label className="block text-xs font-medium text-muted mb-1">Description</label>
             <textarea 
               value={orgDesc} 
               onChange={e => setOrgDesc(e.target.value)}
-              className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-red-500 min-h-[80px]" 
+              className="w-full border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 min-h-[80px]" 
             />
           </div>
           <button 
             onClick={() => updateOrgMutation.mutate({ name: orgName, description: orgDesc })}
             disabled={updateOrgMutation.isPending || (orgName === activeOrganization?.name && orgDesc === (activeOrganization?.description || ''))}
-            className="flex items-center gap-1.5 text-sm px-4 py-2 rounded-lg btn-primary text-white hover:bg-red-700 disabled:opacity-50"
+            className="flex items-center gap-1.5 text-sm px-4 py-2 rounded-lg btn-primary text-white hover:bg-teal-700 disabled:opacity-50"
           >
             {updateOrgMutation.isPending ? <Loader2 size={14} className="animate-spin"/> : <Save size={14} />}
             Save Changes
@@ -136,16 +136,16 @@ export default function SettingsTab() {
       </div>
 
       {/* Members */}
-      <div className="glass-card rounded-xl border border-slate-200 p-5">
+      <div className="glass-card rounded-xl border border-border p-5">
         <SectionTitle><Users size={18} className="inline mr-2" /> Members</SectionTitle>
-        <div className="overflow-hidden border border-slate-200 rounded-xl">
+        <div className="overflow-hidden border border-border rounded-xl">
           <table className="w-full text-sm">
             <thead>
-              <tr className="bg-slate-50 border-b border-slate-200 text-left">
-                <th className="px-4 py-3 text-xs font-medium text-slate-500 uppercase tracking-wide">User</th>
-                <th className="px-4 py-3 text-xs font-medium text-slate-500 uppercase tracking-wide">Role</th>
-                <th className="px-4 py-3 text-xs font-medium text-slate-500 uppercase tracking-wide">Joined</th>
-                <th className="px-4 py-3 text-xs font-medium text-slate-500 uppercase tracking-wide">Status</th>
+              <tr className="bg-surface border-b border-border text-left">
+                <th className="px-4 py-3 text-xs font-medium text-muted uppercase tracking-wide">User</th>
+                <th className="px-4 py-3 text-xs font-medium text-muted uppercase tracking-wide">Role</th>
+                <th className="px-4 py-3 text-xs font-medium text-muted uppercase tracking-wide">Joined</th>
+                <th className="px-4 py-3 text-xs font-medium text-muted uppercase tracking-wide">Status</th>
                 <th className="px-4 py-3 text-right"></th>
               </tr>
             </thead>
@@ -153,15 +153,15 @@ export default function SettingsTab() {
             <tbody>
               {loadingMembers ? (
                 <tr>
-                  <td colSpan="5" className="p-4 text-center text-slate-500">
+                  <td colSpan="5" className="p-4 text-center text-muted">
                     <Loader2 size={16} className="animate-spin inline" />
                   </td>
                 </tr>
               ) : members?.map(m => (
-                <tr key={m.membership_id} className="border-b border-slate-200 last:border-0 hover:bg-slate-50">
+                <tr key={m.membership_id} className="border-b border-border last:border-0 hover:bg-surface">
                   <td className="px-4 py-3">
-                    <p className="font-medium text-slate-900">{m.first_name} {m.last_name}</p>
-                    <p className="text-xs text-slate-500">{m.email}</p>
+                    <p className="font-medium text-foreground">{m.first_name} {m.last_name}</p>
+                    <p className="text-xs text-muted">{m.email}</p>
                   </td>
 
                   <td className="px-4 py-3">
@@ -172,7 +172,7 @@ export default function SettingsTab() {
                           updateRoleMutation.mutate({ memberId: m.membership_id, role: e.target.value })
                         }
                       }}
-                      className="text-xs border border-slate-200 rounded px-2 py-1 bg-white focus:outline-none"
+                      className="text-xs border border-border rounded px-2 py-1 bg-background focus:outline-none"
                       disabled={m.role === 'owner'}
                     >
                       <option value="owner" disabled>Owner</option>
@@ -181,7 +181,7 @@ export default function SettingsTab() {
                     </select>
                   </td>
 
-                  <td className="px-4 py-3 text-xs text-slate-500">
+                  <td className="px-4 py-3 text-xs text-muted">
                     {m.joined_at ? new Date(m.joined_at).toLocaleDateString() : '—'}
                   </td>
 
@@ -223,7 +223,7 @@ export default function SettingsTab() {
                             setMemberStatusMutation.mutate({ memberId: m.membership_id, status: 'revoked' })
                           }
                         }}
-                        className="text-xs text-red-500 hover:text-red-700"
+                        className="text-xs text-teal-500 hover:text-teal-700"
                       >
                         Revoke
                       </button>
@@ -237,12 +237,12 @@ export default function SettingsTab() {
       </div>
 
       {/* Invitations */}
-      <div className="glass-card rounded-xl border border-slate-200 p-5">
+      <div className="glass-card rounded-xl border border-border p-5">
         <div className="flex items-center justify-between mb-4">
           <SectionTitle><Mail size={18} className="inline mr-2" /> Pending Invitations</SectionTitle>
           <button 
             onClick={() => setShowInviteForm(!showInviteForm)}
-            className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg border border-red-200 text-red-700 bg-red-50 hover:bg-red-100 font-medium"
+            className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg border border-teal-200 text-teal-700 bg-teal-50 hover:bg-teal-100 font-medium"
           >
             {showInviteForm ? <X size={14} /> : <Plus size={14} />}
             {showInviteForm ? "Cancel" : "Invite Member"}
@@ -250,23 +250,23 @@ export default function SettingsTab() {
         </div>
 
         {showInviteForm && (
-          <div className="mb-4 p-4 bg-slate-50 border border-slate-200 rounded-lg flex items-end gap-4">
+          <div className="mb-4 p-4 bg-surface border border-border rounded-lg flex items-end gap-4">
             <div className="flex-1">
-              <label className="block text-xs font-medium text-slate-500 mb-1">Email Address</label>
+              <label className="block text-xs font-medium text-muted mb-1">Email Address</label>
               <input 
                 type="email" 
                 value={inviteEmail} 
                 onChange={e => setInviteEmail(e.target.value)}
                 placeholder="colleague@example.com"
-                className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-red-500" 
+                className="w-full border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500" 
               />
             </div>
             <div className="w-48">
-              <label className="block text-xs font-medium text-slate-500 mb-1">Role</label>
+              <label className="block text-xs font-medium text-muted mb-1">Role</label>
               <select 
                 value={inviteRole} 
                 onChange={e => setInviteRole(e.target.value)}
-                className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-red-500 bg-white"
+                className="w-full border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 bg-background"
               >
                 <option value="admin">Admin</option>
                 <option value="member">Member</option>
@@ -275,7 +275,7 @@ export default function SettingsTab() {
             <button 
               onClick={() => inviteMutation.mutate({ email: inviteEmail, role: inviteRole })}
               disabled={inviteMutation.isPending || !inviteEmail}
-              className="flex items-center gap-1.5 text-sm px-4 py-2 rounded-lg bg-red-600 text-white hover:bg-red-700 disabled:opacity-50 h-[38px]"
+              className="flex items-center gap-1.5 text-sm px-4 py-2 rounded-lg bg-teal-600 text-white hover:bg-teal-700 disabled:opacity-50 h-[38px]"
             >
               {inviteMutation.isPending ? <Loader2 size={14} className="animate-spin" /> : <Mail size={14} />}
               Send Invite
@@ -283,25 +283,25 @@ export default function SettingsTab() {
           </div>
         )}
 
-        <div className="overflow-hidden border border-slate-200 rounded-xl">
+        <div className="overflow-hidden border border-border rounded-xl">
           <table className="w-full text-sm">
             <thead>
-              <tr className="bg-slate-50 border-b border-slate-200 text-left">
-                <th className="px-4 py-3 text-xs font-medium text-slate-500 uppercase tracking-wide">Email</th>
-                <th className="px-4 py-3 text-xs font-medium text-slate-500 uppercase tracking-wide">Role</th>
-                <th className="px-4 py-3 text-xs font-medium text-slate-500 uppercase tracking-wide">Status</th>
+              <tr className="bg-surface border-b border-border text-left">
+                <th className="px-4 py-3 text-xs font-medium text-muted uppercase tracking-wide">Email</th>
+                <th className="px-4 py-3 text-xs font-medium text-muted uppercase tracking-wide">Role</th>
+                <th className="px-4 py-3 text-xs font-medium text-muted uppercase tracking-wide">Status</th>
                 <th className="px-4 py-3 text-right"></th>
               </tr>
             </thead>
             <tbody>
               {loadingInvites ? (
-                <tr><td colSpan="4" className="p-4 text-center text-slate-500"><Loader2 size={16} className="animate-spin inline" /></td></tr>
+                <tr><td colSpan="4" className="p-4 text-center text-muted"><Loader2 size={16} className="animate-spin inline" /></td></tr>
               ) : invitations?.length === 0 ? (
-                <tr><td colSpan="4" className="p-4 text-center text-xs text-slate-500">No pending invitations.</td></tr>
+                <tr><td colSpan="4" className="p-4 text-center text-xs text-muted">No pending invitations.</td></tr>
               ) : invitations?.map(inv => (
-                <tr key={inv.id} className="border-b border-slate-200 last:border-0 hover:bg-slate-50">
-                  <td className="px-4 py-3 text-slate-900">{inv.email}</td>
-                  <td className="px-4 py-3 text-slate-600 capitalize">{inv.role}</td>
+                <tr key={inv.id} className="border-b border-border last:border-0 hover:bg-surface">
+                  <td className="px-4 py-3 text-foreground">{inv.email}</td>
+                  <td className="px-4 py-3 text-muted capitalize">{inv.role}</td>
                   <td className="px-4 py-3">
                     <Badge colour={inv.status === 'pending' ? 'amber' : 'gray'}>{inv.status}</Badge>
                   </td>
@@ -310,7 +310,7 @@ export default function SettingsTab() {
                       onClick={() => {
                         if(window.confirm('Revoke invitation?')) revokeMutation.mutate(inv.id)
                       }}
-                      className="text-xs text-red-500 hover:text-red-700"
+                      className="text-xs text-teal-500 hover:text-teal-700"
                     >
                       Revoke
                     </button>

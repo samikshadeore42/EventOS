@@ -20,7 +20,7 @@ const ICONS = [Users, GitBranch, ClipboardList, Trophy, CalendarDays]
 
 function SkeletonStepper() {
   return (
-    <div className="glass-card border border-slate-200 rounded-xl p-5">
+    <div className="glass-card border border-border rounded-xl p-5">
       <div className="h-4 w-40 bg-slate-200 rounded animate-pulse mb-5" />
       <div className="flex items-center">
         {[1, 2, 3].map((i) => (
@@ -39,20 +39,20 @@ function StageNode({ stage, status, isLast, index }) {
 
   const ring = {
     completed: 'border-teal-500 bg-teal-50',
-    active: 'border-red-600 bg-red-600',
-    pending: 'border-slate-200 bg-slate-50',
+    active: 'border-teal-600 bg-teal-600',
+    pending: 'border-border bg-surface',
   }[status]
 
   const iconColor = {
     completed: 'text-teal-600',
     active: 'text-white',
-    pending: 'text-slate-400',
+    pending: 'text-muted',
   }[status]
 
   const labelColor = {
     completed: 'text-teal-700 font-semibold',
-    active: 'text-red-700 font-semibold',
-    pending: 'text-slate-500 font-normal',
+    active: 'text-teal-700 font-semibold',
+    pending: 'text-muted font-normal',
   }[status]
 
   return (
@@ -60,7 +60,7 @@ function StageNode({ stage, status, isLast, index }) {
       <div className="flex flex-col items-center shrink-0">
         <div className={`relative w-10 h-10 rounded-full border-2 flex items-center justify-center ${ring}`}>
           {status === 'active' && (
-            <span className="absolute inset-0 rounded-full bg-red-400 animate-ping opacity-30" />
+            <span className="absolute inset-0 rounded-full bg-teal-400 animate-ping opacity-30" />
           )}
           {status === 'completed'
             ? <CheckCircle size={18} className={iconColor} />
@@ -69,7 +69,7 @@ function StageNode({ stage, status, isLast, index }) {
 
         <div className="mt-2 text-center px-1 hidden sm:block w-28">
           <p className={`text-xs truncate ${labelColor}`}>{stage.name}</p>
-          <p className="text-xs text-slate-500 mt-0.5 leading-tight line-clamp-2">
+          <p className="text-xs text-muted mt-0.5 leading-tight line-clamp-2">
             {stage.description || stage.key}
           </p>
         </div>
@@ -154,7 +154,7 @@ export default function PipelineStepper({ showAdvanceButton = false, className =
       <div className={`glass-card border border-amber-200 bg-amber-50 rounded-xl p-5 shadow-sm ${className}`}>
         <div className="flex items-start justify-between gap-4">
           <div>
-            <h3 className="text-sm font-semibold text-slate-900">{eventName}</h3>
+            <h3 className="text-sm font-semibold text-foreground">{eventName}</h3>
             <p className="text-sm text-amber-800 mt-1">
               Stages have not yet been created for this event.
             </p>
@@ -169,16 +169,16 @@ export default function PipelineStepper({ showAdvanceButton = false, className =
   }
 
   return (
-    <div className={`glass-card border border-slate-200 rounded-xl p-5 shadow-sm ${className}`}>
+    <div className={`glass-card border border-border rounded-xl p-5 shadow-sm ${className}`}>
       <div className="flex items-center justify-between mb-5">
         <div className="min-w-0">
           <div className="flex items-center gap-2">
-            <h3 className="text-sm font-semibold text-slate-900 truncate">{eventName}</h3>
-            {isFetching && <RefreshCw size={12} className="text-slate-500 animate-spin shrink-0" />}
+            <h3 className="text-sm font-semibold text-foreground truncate">{eventName}</h3>
+            {isFetching && <RefreshCw size={12} className="text-muted animate-spin shrink-0" />}
           </div>
-          <p className="text-xs text-slate-500 mt-0.5">
+          <p className="text-xs text-muted mt-0.5">
             Stage {activeIndex + 1} of {sortedStages.length} —{' '}
-            <span className="text-red-600 font-medium">
+            <span className="text-teal-600 font-medium">
               {activeStage?.name || 'Not started'}
             </span>
           </p>
@@ -188,7 +188,7 @@ export default function PipelineStepper({ showAdvanceButton = false, className =
           <button
             onClick={() => advanceMutation.mutate()}
             disabled={advanceMutation.isPending}
-            className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg btn-primary text-white hover:bg-red-700 disabled:opacity-50 transition-colors"
+            className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg btn-primary text-white hover:bg-teal-700 disabled:opacity-50 transition-colors"
           >
             {advanceMutation.isPending ? <Loader2 size={12} className="animate-spin" /> : <ChevronRight size={12} />}
             {advanceMutation.isPending ? 'Advancing...' : 'Advance Stage'}
@@ -217,7 +217,7 @@ export default function PipelineStepper({ showAdvanceButton = false, className =
       </div>
 
       {advanceMutation.isError && (
-        <p className="mt-3 text-xs text-red-500">
+        <p className="mt-3 text-xs text-teal-500">
           {advanceMutation.error?.response?.data?.detail || advanceMutation.error?.message || 'Failed to advance stage.'}
         </p>
       )}

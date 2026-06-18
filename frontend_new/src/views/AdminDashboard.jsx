@@ -22,7 +22,9 @@ import PipelineStepper from '../components/PipelineStepper'
 import OrgSwitcher from '../components/OrgSwitcher'
 import SettingsTab from '../components/SettingsTab'
 import NotificationBell from '../components/NotificationBell'
+import AppLayout from '../components/AppLayout'
 import StageTimelinePanel from '../components/StageTimelinePanel'
+import ThemeToggle from '../components/ThemeToggle'
 import { motion, AnimatePresence } from 'framer-motion'
 import { PieChart, Pie, Cell, Tooltip as RechartsTooltip, ResponsiveContainer } from 'recharts'
 import {
@@ -48,7 +50,7 @@ import {
 function StatCard({ label, value, sub, colour = 'red', icon: Icon, trend }) {
   const colorMap = {
     emerald: { icon: 'bg-emerald-50 text-emerald-600 border border-emerald-200', glow: 'from-emerald-500/20', border: 'border-t-emerald-500' },
-    red: { icon: 'bg-red-50 text-red-600 border border-red-200', glow: 'from-red-500/20', border: 'border-t-red-500' },
+    red: { icon: 'bg-teal-50 text-teal-600 border border-teal-200', glow: 'from-teal-500/20', border: 'border-t-teal-500' },
     amber: { icon: 'bg-amber-50 text-amber-600 border border-amber-200', glow: 'from-amber-500/20', border: 'border-t-amber-500' },
     teal: { icon: 'bg-teal-50 text-teal-600 border border-teal-200', glow: 'from-teal-500/20', border: 'border-t-teal-500' },
   }
@@ -63,16 +65,16 @@ function StatCard({ label, value, sub, colour = 'red', icon: Icon, trend }) {
           {Icon && <Icon size={24} />}
         </div>
         {trend !== undefined && trend !== null && (
-          <span className={`text-xs font-bold px-2.5 py-1 rounded-full shadow-sm border ${trend > 0 ? 'bg-emerald-50 border-emerald-200 text-emerald-700' : 'bg-red-50 border-red-200 text-red-700'}`}>
+          <span className={`text-xs font-bold px-2.5 py-1 rounded-full shadow-sm border ${trend > 0 ? 'bg-emerald-50 border-emerald-200 text-emerald-700' : 'bg-teal-50 border-teal-200 text-teal-700'}`}>
             {trend > 0 ? '↗' : '↘'} {Math.abs(trend)}%
           </span>
         )}
       </div>
 
       <div className="relative z-10 mt-auto">
-        <p className={`text-4xl font-black leading-none tracking-tight text-slate-900 mb-2`}>{value ?? '—'}</p>
-        <p className="text-sm font-bold text-slate-500 uppercase tracking-wider">{label}</p>
-        {sub && <p className="text-xs font-medium text-slate-400 mt-1">{sub}</p>}
+        <p className={`text-4xl font-black leading-none tracking-tight text-foreground mb-2`}>{value ?? '—'}</p>
+        <p className="text-sm font-bold text-muted uppercase tracking-wider">{label}</p>
+        {sub && <p className="text-xs font-medium text-muted mt-1">{sub}</p>}
       </div>
     </motion.div>
   )
@@ -81,12 +83,12 @@ function StatCard({ label, value, sub, colour = 'red', icon: Icon, trend }) {
 function Badge({ children, colour = 'gray' }) {
   const cls = {
     green: 'bg-emerald-500/10 border border-emerald-500/20 text-emerald-600',
-    red: 'bg-red-500/10 border border-red-500/20 text-red-600',
+    red: 'bg-teal-500/10 border border-teal-500/20 text-teal-600',
     amber: 'bg-amber-500/10 border border-amber-500/20 text-amber-600',
     teal: 'bg-teal-500/10 border border-teal-500/20 text-teal-600',
-    gray: 'bg-slate-100 border border-slate-200 text-slate-700',
-    slate: 'bg-slate-100 border border-slate-200 text-slate-700',
-  }[colour] ?? 'bg-slate-100 border border-slate-200 text-slate-700'
+    gray: 'bg-surface border border-border text-foreground',
+    slate: 'bg-surface border border-border text-foreground',
+  }[colour] ?? 'bg-surface border border-border text-foreground'
   return (
     <span className={`inline-flex items-center gap-1 text-[11px] font-bold px-2.5 py-0.5 rounded-full backdrop-blur-md ${cls}`}>
       {children}
@@ -95,12 +97,12 @@ function Badge({ children, colour = 'gray' }) {
 }
 
 function SectionTitle({ children }) {
-  return <h2 className="text-xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-red-600 to-red-800 font-black mb-6">{children}</h2>
+  return <h2 className="text-xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-teal-600 to-teal-800 font-black mb-6">{children}</h2>
 }
 
 function InstitutionDonutChart({ data, total }) {
   const [activeIndex, setActiveIndex] = useState(null);
-  const MODERN_COLORS = ['#ef4444', '#f87171', '#dc2626', '#fca5a5', '#b91c1c', '#fecaca', '#991b1b', '#7f1d1d'];
+  const MODERN_COLORS = ['#14B8A6', '#2DD4BF', '#0F766E', '#5EEAD4', '#115E59', '#99F6E4', '#134E4A', '#042F2E'];
   
   const hasData = data && data.length > 0;
   
@@ -147,12 +149,12 @@ function InstitutionDonutChart({ data, total }) {
         </ResponsiveContainer>
         
         <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-          <span className="text-4xl font-black text-slate-900">{displayTotal}</span>
-          <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mt-1">Participants</span>
+          <span className="text-4xl font-black text-foreground">{displayTotal}</span>
+          <span className="text-[10px] font-bold text-muted uppercase tracking-widest mt-1">Participants</span>
         </div>
         {!hasData && (
           <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-20 backdrop-blur-[2px] rounded-full">
-            <span className="bg-white/90 text-slate-800 text-xs font-bold px-4 py-1.5 rounded-full shadow-lg border border-slate-200">Waiting for Data</span>
+            <span className="bg-white/90 dark:bg-slate-900/90 text-foreground text-xs font-bold px-4 py-1.5 rounded-full shadow-lg border border-border">Waiting for Data</span>
           </div>
         )}
       </div>
@@ -162,21 +164,21 @@ function InstitutionDonutChart({ data, total }) {
             key={entry.name}
             onMouseEnter={hasData ? () => setActiveIndex(index) : undefined}
             onMouseLeave={hasData ? () => setActiveIndex(null) : undefined}
-            className={`flex items-center justify-between p-3 rounded-xl border transition-all ${hasData ? 'cursor-pointer' : ''} ${activeIndex === index ? 'bg-red-50 border-red-200 shadow-sm scale-[1.02]' : 'bg-white border-slate-100 hover:bg-slate-50'}`}
+            className={`flex items-center justify-between p-3 rounded-xl border transition-all ${hasData ? 'cursor-pointer' : ''} ${activeIndex === index ? 'bg-teal-50 border-teal-200 shadow-sm scale-[1.02]' : 'bg-background border-border hover:bg-surface'}`}
           >
             <div className="flex items-center gap-3">
               <div className="w-3 h-3 rounded-full" style={{ backgroundColor: MODERN_COLORS[index % MODERN_COLORS.length] }} />
-              <span className={`text-sm font-semibold line-clamp-1 ${activeIndex === index ? 'text-red-700' : 'text-slate-700'}`} title={entry.name}>{entry.name}</span>
+              <span className={`text-sm font-semibold line-clamp-1 ${activeIndex === index ? 'text-teal-700' : 'text-foreground'}`} title={entry.name}>{entry.name}</span>
             </div>
             <div className="text-right shrink-0 ml-4">
-              <span className="text-sm font-bold text-slate-900">{entry.value}</span>
-              <span className="text-xs text-slate-500 ml-1">({((entry.value/displayTotal)*100).toFixed(0)}%)</span>
+              <span className="text-sm font-bold text-foreground">{entry.value}</span>
+              <span className="text-xs text-muted ml-1">({((entry.value/displayTotal)*100).toFixed(0)}%)</span>
             </div>
           </div>
         ))}
         {!hasData && (
-          <div className="absolute inset-0 z-20 bg-white/40 backdrop-blur-[1px] flex items-center justify-center">
-             <span className="bg-white/90 text-slate-800 text-xs font-bold px-4 py-1.5 rounded-full shadow-lg border border-slate-200">Awaiting Participants</span>
+          <div className="absolute inset-0 z-20 bg-white/40 dark:bg-slate-900/40 backdrop-blur-[1px] flex items-center justify-center">
+             <span className="bg-white/90 dark:bg-slate-900/90 text-foreground text-xs font-bold px-4 py-1.5 rounded-full shadow-lg border border-border">Awaiting Participants</span>
           </div>
         )}
       </div>
@@ -192,24 +194,24 @@ function ApprovalStatusChart({ pending, approved, rejected }) {
     <div className="flex flex-col justify-center h-full pt-2">
       <div className="flex justify-between items-end mb-3">
         <div>
-          <span className="text-2xl font-black text-slate-900">{percentage}%</span>
-          <span className="text-[10px] text-slate-500 font-bold ml-1.5 uppercase tracking-wider">Approved</span>
+          <span className="text-2xl font-black text-foreground">{percentage}%</span>
+          <span className="text-[10px] text-muted font-bold ml-1.5 uppercase tracking-wider">Approved</span>
         </div>
         <div className="text-right">
-          <p className="text-sm font-bold text-slate-700">{approved || 0} / {total}</p>
-          <p className="text-[10px] text-slate-400 uppercase font-semibold">Total Teams</p>
+          <p className="text-sm font-bold text-foreground">{approved || 0} / {total}</p>
+          <p className="text-[10px] text-muted uppercase font-semibold">Total Teams</p>
         </div>
       </div>
-      <div className="w-full h-2.5 bg-slate-100 rounded-full overflow-hidden mb-3">
+      <div className="w-full h-2.5 bg-surface rounded-full overflow-hidden mb-3">
         <motion.div
           initial={{ width: 0 }}
           animate={{ width: `${percentage}%` }}
           transition={{ duration: 1, delay: 0.2, ease: 'easeOut' }}
-          className="h-full bg-gradient-to-r from-red-500 to-red-600 rounded-full"
+          className="h-full bg-gradient-to-r from-teal-500 to-teal-600 rounded-full"
         />
       </div>
-      <div className="flex justify-between text-[11px] font-bold text-slate-500">
-        <span className="flex items-center gap-1.5"><div className="w-1.5 h-1.5 rounded-full bg-red-500" /> Approved ({approved || 0})</span>
+      <div className="flex justify-between text-[11px] font-bold text-muted">
+        <span className="flex items-center gap-1.5"><div className="w-1.5 h-1.5 rounded-full bg-teal-500" /> Approved ({approved || 0})</span>
         <div className="flex items-center gap-3">
           <span className="flex items-center gap-1.5"><div className="w-1.5 h-1.5 rounded-full bg-slate-300" /> Pending ({pending || 0})</span>
           {(rejected || 0) > 0 && <span className="flex items-center gap-1.5"><div className="w-1.5 h-1.5 rounded-full bg-slate-800" /> Rejected ({rejected || 0})</span>}
@@ -225,24 +227,24 @@ function EvaluationProgressChart({ evaluated, total }) {
     <div className="flex flex-col justify-center h-full pt-2">
       <div className="flex justify-between items-end mb-3">
         <div>
-          <span className="text-2xl font-black text-slate-900">{percentage}%</span>
-          <span className="text-[10px] text-slate-500 font-bold ml-1.5 uppercase tracking-wider">Completed</span>
+          <span className="text-2xl font-black text-foreground">{percentage}%</span>
+          <span className="text-[10px] text-muted font-bold ml-1.5 uppercase tracking-wider">Completed</span>
         </div>
         <div className="text-right">
-          <p className="text-sm font-bold text-slate-700">{evaluated} / {total}</p>
-          <p className="text-[10px] text-slate-400 uppercase font-semibold">Teams Evaluated</p>
+          <p className="text-sm font-bold text-foreground">{evaluated} / {total}</p>
+          <p className="text-[10px] text-muted uppercase font-semibold">Teams Evaluated</p>
         </div>
       </div>
-      <div className="w-full h-2.5 bg-slate-100 rounded-full overflow-hidden mb-3">
+      <div className="w-full h-2.5 bg-surface rounded-full overflow-hidden mb-3">
         <motion.div
           initial={{ width: 0 }}
           animate={{ width: `${percentage}%` }}
           transition={{ duration: 1, delay: 0.2, ease: 'easeOut' }}
-          className="h-full bg-gradient-to-r from-red-500 to-red-600 rounded-full"
+          className="h-full bg-gradient-to-r from-teal-500 to-teal-600 rounded-full"
         />
       </div>
-      <div className="flex justify-between text-[11px] font-bold text-slate-500">
-        <span className="flex items-center gap-1.5"><div className="w-1.5 h-1.5 rounded-full bg-red-500" /> Reviewed ({evaluated})</span>
+      <div className="flex justify-between text-[11px] font-bold text-muted">
+        <span className="flex items-center gap-1.5"><div className="w-1.5 h-1.5 rounded-full bg-teal-500" /> Reviewed ({evaluated})</span>
         <span className="flex items-center gap-1.5"><div className="w-1.5 h-1.5 rounded-full bg-slate-300" /> Pending ({Math.max(0, total - evaluated)})</span>
       </div>
     </div>
@@ -267,7 +269,7 @@ function OverviewTab() {
     <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, staggerChildren: 0.1 }}>
       {/* Stats row */}
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 mb-8">
-        <StatCard label="Participants" value={summary?.total_participants || 0} colour="red" sub="Total registered" icon={Users} />
+        <StatCard label="Participants" value={summary?.total_participants || 0} colour="teal" sub="Total registered" icon={Users} />
 
         <motion.div whileHover={{ y: -4, scale: 1.02 }} transition={{ type: 'spring', stiffness: 300 }} className="glass-card rounded-2xl p-6 relative overflow-hidden group flex flex-col justify-between h-full border-t-4 border-t-teal-500">
           <div className="absolute -right-8 -top-8 w-40 h-40 bg-gradient-to-br from-teal-500/20 to-transparent rounded-full blur-3xl group-hover:scale-125 transition-transform duration-700" />
@@ -275,7 +277,7 @@ function OverviewTab() {
             <div className="w-10 h-10 rounded-xl flex items-center justify-center shadow-sm bg-teal-50 text-teal-600 border border-teal-200 shrink-0">
               <CheckSquare size={20} />
             </div>
-            <h3 className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Approval Status</h3>
+            <h3 className="text-[11px] font-bold text-muted uppercase tracking-wider">Approval Status</h3>
           </div>
           <div className="relative z-10 flex-1">
             <ApprovalStatusChart
@@ -292,7 +294,7 @@ function OverviewTab() {
             <div className="w-10 h-10 rounded-xl flex items-center justify-center shadow-sm bg-amber-50 text-amber-600 border border-amber-200 shrink-0">
               <BarChart2 size={20} />
             </div>
-            <h3 className="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Evaluation Progress</h3>
+            <h3 className="text-[11px] font-bold text-muted uppercase tracking-wider">Evaluation Progress</h3>
           </div>
           <div className="relative z-10 flex-1">
             <EvaluationProgressChart
@@ -302,7 +304,7 @@ function OverviewTab() {
           </div>
         </motion.div>
 
-        <StatCard label="Anomaly Flags" value={anomalies?.total_flagged} colour="red" sub="Scorecards on hold" icon={Activity} />
+        <StatCard label="Anomaly Flags" value={anomalies?.total_flagged} colour="teal" sub="Scorecards on hold" icon={Activity} />
       </div>
 
       <div className="w-full mb-8">
@@ -325,19 +327,19 @@ function OverviewTab() {
                 <motion.div
                   initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: idx * 0.1 }}
                   key={team.team_id}
-                  className="group flex items-center justify-between p-3 rounded-xl bg-white border border-slate-200 hover:bg-slate-50 hover:border-red-500/30 transition-all"
+                  className="group flex items-center justify-between p-3 rounded-xl bg-background border border-border hover:bg-surface hover:border-teal-500/30 transition-all"
                 >
                   <div className="flex items-center gap-4">
                     <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm shadow-inner
                       ${idx === 0 ? 'bg-gradient-to-br from-yellow-300 to-yellow-600 text-yellow-900 shadow-yellow-500/50' :
-                        idx === 1 ? 'bg-gradient-to-br from-slate-200 to-slate-400 text-slate-800 shadow-slate-500/50' :
-                          idx === 2 ? 'bg-gradient-to-br from-orange-300 to-orange-600 text-orange-950 shadow-orange-500/50' :
-                            'bg-slate-100 text-slate-600 border border-slate-300'}`}>
+                        idx === 1 ? 'bg-gradient-to-br from-slate-200 to-slate-400 text-foreground shadow-slate-500/50' :
+                          idx === 2 ? 'bg-gradient-to-br from-teal-300 to-teal-600 text-teal-950 shadow-teal-500/50' :
+                            'bg-surface text-muted border border-border'}`}>
                       {team.rank ?? (idx + 1)}
                     </div>
                     <div>
-                      <p className="text-sm font-bold text-slate-800 group-hover:text-red-600 transition-colors">{team.team_name}</p>
-                      <p className="text-xs text-slate-500">{team.members?.[0]?.institution || 'Institution hidden'}</p>
+                      <p className="text-sm font-bold text-foreground group-hover:text-teal-600 transition-colors">{team.team_name}</p>
+                      <p className="text-xs text-muted">{team.members?.[0]?.institution || 'Institution hidden'}</p>
                     </div>
                   </div>
                   <div className="text-right">
@@ -345,11 +347,11 @@ function OverviewTab() {
                       <Badge colour="amber"><AlertTriangle size={10} /> Flagged</Badge>
                     ) : (
                       <div className="flex flex-col items-end">
-                        <span className="text-lg font-black text-transparent bg-clip-text bg-gradient-to-r from-red-600 to-red-800">
+                        <span className="text-lg font-black text-transparent bg-clip-text bg-gradient-to-r from-teal-600 to-teal-800">
                           {team.weighted_total?.toFixed(2)}
                         </span>
                         <div className="w-16 h-1 bg-slate-200 rounded-full mt-1 overflow-hidden">
-                          <div className="h-full bg-gradient-to-r from-red-500 to-red-600" style={{ width: `${Math.min(100, team.weighted_total)}%` }} />
+                          <div className="h-full bg-gradient-to-r from-teal-500 to-teal-600" style={{ width: `${Math.min(100, team.weighted_total)}%` }} />
                         </div>
                       </div>
                     )}
@@ -358,10 +360,10 @@ function OverviewTab() {
               ))}
             </div>
           ) : (
-            <div className="flex flex-col items-center justify-center py-12 text-slate-500">
+            <div className="flex flex-col items-center justify-center py-12 text-muted">
               <Trophy size={48} className="opacity-20 mb-4" />
               <p className="text-sm">No evaluations submitted yet.</p>
-              <button className="mt-4 px-4 py-2 rounded-lg bg-red-500/10 text-red-600 text-xs font-semibold hover:bg-red-500/20 transition-colors">Start Evaluating</button>
+              <button className="mt-4 px-4 py-2 rounded-lg bg-teal-500/10 text-teal-600 text-xs font-semibold hover:bg-teal-500/20 transition-colors">Start Evaluating</button>
             </div>
           )}
         </motion.div>
@@ -452,7 +454,7 @@ function ParticipantsTab() {
   // Guard clauses — never render event-scoped UI (or call eventPath) without an event.
   if (!eventsLoaded) {
     return (
-      <div className="flex flex-col items-center justify-center py-20 text-slate-400">
+      <div className="flex flex-col items-center justify-center py-20 text-muted">
         <Loader2 size={28} className="animate-spin mb-3" />
         <p className="text-sm">Loading event…</p>
       </div>
@@ -462,8 +464,8 @@ function ParticipantsTab() {
     return (
       <div className="flex flex-col items-center justify-center py-20 text-center">
         <Calendar size={32} className="text-slate-300 mb-3" />
-        <p className="text-sm font-medium text-slate-600">No event selected</p>
-        <p className="text-xs text-slate-400 mt-1">Pick an event from the switcher to manage participants.</p>
+        <p className="text-sm font-medium text-muted">No event selected</p>
+        <p className="text-xs text-muted mt-1">Pick an event from the switcher to manage participants.</p>
       </div>
     )
   }
@@ -473,20 +475,20 @@ function ParticipantsTab() {
       {/* Summary cards */}
       {summary && (
         <div className="grid grid-cols-3 gap-4 mb-6">
-          <StatCard label="Total" value={summary.total_participants} colour="red" icon={Users} />
+          <StatCard label="Total" value={summary.total_participants} colour="teal" icon={Users} />
           <StatCard label="Assigned" value={summary.assigned_to_team} colour="teal" icon={UserCheck} />
           <StatCard label="Unassigned Participants" value={summary.unassigned} colour="amber" sub="not yet in a team" icon={AlertTriangle} />
         </div>
       )}
 
       {/* CSV dropzone */}
-      <div className="glass-card rounded-xl border border-slate-200 p-5 mb-6">
+      <div className="glass-card rounded-xl border border-border p-5 mb-6">
         <div className="flex items-center justify-between mb-3">
           <SectionTitle>Upload Roster CSV</SectionTitle>
           <a
             href={participantsApi.csvTemplateUrl()}
             download
-            className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg border border-slate-200 text-slate-600 hover:bg-slate-50 transition-colors"
+            className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg border border-border text-muted hover:bg-surface transition-colors"
           >
             <Download size={13} /> Download Template
           </a>
@@ -498,8 +500,8 @@ function ParticipantsTab() {
           onDragLeave={onDragLeave}
           onClick={() => fileInputRef.current?.click()}
           className={`border-2 border-dashed rounded-xl p-10 text-center cursor-pointer transition-colors ${dragActive
-              ? 'border-red-500 bg-red-50 border border-red-100'
-              : 'border-slate-200 hover:border-red-300 hover:bg-slate-50'
+              ? 'border-teal-500 bg-teal-50 border border-teal-100'
+              : 'border-border hover:border-teal-300 hover:bg-surface'
             }`}
         >
           <input
@@ -511,15 +513,15 @@ function ParticipantsTab() {
           />
           {uploadMutation.isPending
             ? <div className="flex flex-col items-center gap-2">
-              <Loader2 size={28} className="text-red-500 animate-spin" />
-              <p className="text-sm text-slate-500">Uploading roster…</p>
+              <Loader2 size={28} className="text-teal-500 animate-spin" />
+              <p className="text-sm text-muted">Uploading roster…</p>
             </div>
             : <div className="flex flex-col items-center gap-2">
-              <Upload size={28} className={dragActive ? 'text-red-500' : 'text-slate-400'} />
-              <p className="text-sm font-medium text-slate-800">
-                Drop a CSV here or <span className="text-red-600">click to browse</span>
+              <Upload size={28} className={dragActive ? 'text-teal-500' : 'text-muted'} />
+              <p className="text-sm font-medium text-foreground">
+                Drop a CSV here or <span className="text-teal-600">click to browse</span>
               </p>
-              <p className="text-xs text-slate-500">
+              <p className="text-xs text-muted">
                 Required columns: first_name, last_name, email, institution + any skill columns
               </p>
             </div>
@@ -528,23 +530,23 @@ function ParticipantsTab() {
 
         {/* Upload result */}
         {uploadResult && (
-          <div className="mt-4 p-4 bg-slate-50 rounded-lg border border-slate-200">
+          <div className="mt-4 p-4 bg-surface rounded-lg border border-border">
             <div className="flex justify-between mb-2">
-              <p className="text-sm font-medium text-slate-800">{uploadResult.message}</p>
-              <button onClick={() => setUploadResult(null)} className="text-slate-500 hover:text-slate-600">
+              <p className="text-sm font-medium text-foreground">{uploadResult.message}</p>
+              <button onClick={() => setUploadResult(null)} className="text-muted hover:text-muted">
                 <X size={14} />
               </button>
             </div>
             <div className="flex gap-4 text-xs">
               <span className="text-teal-600 font-semibold">{uploadResult.created} created</span>
-              <span className="text-red-600 font-semibold">{uploadResult.updated} updated</span>
+              <span className="text-teal-600 font-semibold">{uploadResult.updated} updated</span>
               <span className="text-amber-600 font-semibold">{uploadResult.skipped} skipped</span>
               {uploadResult.errors > 0 && (
-                <span className="text-red-600 font-semibold">{uploadResult.errors} errors</span>
+                <span className="text-teal-600 font-semibold">{uploadResult.errors} errors</span>
               )}
             </div>
             {uploadResult.rows?.filter(r => r.status === 'error').map((r) => (
-              <p key={r.row} className="text-xs text-red-500 mt-1">
+              <p key={r.row} className="text-xs text-teal-500 mt-1">
                 Row {r.row} ({r.email}): {r.error}
               </p>
             ))}
@@ -559,12 +561,12 @@ function ParticipantsTab() {
             value={search}
             onChange={(e) => { setSearch(e.target.value); setPage(1) }}
             placeholder="Search by name or email…"
-            className="flex-1 sm:w-64 text-sm border border-slate-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-red-500"
+            className="flex-1 sm:w-64 text-sm border border-border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-teal-500"
           />
           <select
             value={teamFilter}
             onChange={(e) => { setTeamFilter(e.target.value); setPage(1) }}
-            className="text-sm border border-slate-200 rounded-lg px-3 py-2 focus:outline-none bg-white"
+            className="text-sm border border-border rounded-lg px-3 py-2 focus:outline-none bg-background"
           >
             <option value="">All</option>
             <option value="false">Unassigned</option>
@@ -580,7 +582,7 @@ function ParticipantsTab() {
             }
           }}
           disabled={sendLinksMutation.isPending || !summary?.total_participants}
-          className="relative z-40 pointer-events-auto flex items-center gap-1.5 text-sm px-4 py-2 rounded-lg bg-red-600 text-white hover:bg-red-700 disabled:opacity-50 shadow-md whitespace-nowrap"
+          className="relative z-40 pointer-events-auto flex items-center gap-1.5 text-sm px-4 py-2 rounded-lg bg-teal-600 text-white hover:bg-teal-700 disabled:opacity-50 shadow-md whitespace-nowrap"
         >
           {sendLinksMutation.isPending ? <Loader2 size={16} className="animate-spin" /> : <Send size={16} />}
           {sendLinksMutation.isPending ? 'Dispatching...' : 'Dispatch Magic Links'}
@@ -588,19 +590,19 @@ function ParticipantsTab() {
       </div>
 
       {/* Participants table */}
-      <div className="glass-card rounded-xl border border-slate-200 overflow-hidden">
+      <div className="glass-card rounded-xl border border-border overflow-hidden">
         <table className="w-full text-sm">
           <thead>
-            <tr className="bg-slate-50 border-b border-slate-200 text-left">
+            <tr className="bg-surface border-b border-border text-left">
               {['Name', 'Institution', 'Skills (avg)', 'Team', 'Team Link Status', ''].map((h) => (
-                <th key={h} className="px-4 py-3 text-xs font-medium text-slate-500 uppercase tracking-wide">{h}</th>
+                <th key={h} className="px-4 py-3 text-xs font-medium text-muted uppercase tracking-wide">{h}</th>
               ))}
             </tr>
           </thead>
           <tbody>
             {isLoading
               ? Array.from({ length: 6 }).map((_, i) => (
-                <tr key={i} className="border-b border-slate-200">
+                <tr key={i} className="border-b border-border">
                   {[1, 2, 3, 4, 5].map((j) => (
                     <td key={j} className="px-4 py-3">
                       <div className="h-3 bg-slate-200 rounded animate-pulse w-24" />
@@ -615,16 +617,16 @@ function ParticipantsTab() {
                   : null
 
                 return (
-                  <tr key={p.id} className="border-b border-slate-200 hover:bg-slate-50">
+                  <tr key={p.id} className="border-b border-border hover:bg-surface">
                     <td className="px-4 py-3">
-                      <p className="font-medium text-slate-900">{p.first_name} {p.last_name}</p>
-                      <p className="text-xs text-slate-500">{p.email}</p>
+                      <p className="font-medium text-foreground">{p.first_name} {p.last_name}</p>
+                      <p className="text-xs text-muted">{p.email}</p>
                     </td>
-                    <td className="px-4 py-3 text-slate-600">{p.institution}</td>
+                    <td className="px-4 py-3 text-muted">{p.institution}</td>
                     <td className="px-4 py-3">
                       {avg
-                        ? <Badge colour="red">{avg}/10</Badge>
-                        : <span className="text-slate-400 text-xs">—</span>
+                        ? <Badge colour="teal">{avg}/10</Badge>
+                        : <span className="text-muted text-xs">—</span>
                       }
                     </td>
                     <td className="px-4 py-3">
@@ -632,7 +634,7 @@ function ParticipantsTab() {
                         ? <Badge colour="teal">{p.team_name}</Badge>
                         : p.team_status === "pending_approval"
                           ? <Badge colour="amber">Pending Approval</Badge>
-                          : <span className="text-xs text-slate-500">Unassigned</span>
+                          : <span className="text-xs text-muted">Unassigned</span>
                       }
                     </td>
                     <td className="px-4 py-3">
@@ -649,7 +651,7 @@ function ParticipantsTab() {
                             deleteMutation.mutate(p.id)
                           }
                         }}
-                        className="p-1 text-slate-400 hover:text-red-500 rounded transition-colors"
+                        className="p-1 text-muted hover:text-teal-500 rounded transition-colors"
                       >
                         <Trash2 size={14} />
                       </button>
@@ -658,7 +660,7 @@ function ParticipantsTab() {
                 )
               }) : (
                 <tr>
-                  <td colSpan="6" className="px-4 py-8 text-center text-sm text-slate-500">
+                  <td colSpan="6" className="px-4 py-8 text-center text-sm text-muted">
                     {search || teamFilter !== '' ? "No participants found matching the current filters." : "No participants registered yet."}
                   </td>
                 </tr>
@@ -669,13 +671,13 @@ function ParticipantsTab() {
 
         {/* Pagination */}
         {data && data.total_pages > 1 && (
-          <div className="flex justify-between items-center px-4 py-3 border-t border-slate-200 text-xs text-slate-500">
+          <div className="flex justify-between items-center px-4 py-3 border-t border-border text-xs text-muted">
             <span>Page {data.page} of {data.total_pages} ({data.total} total)</span>
             <div className="flex gap-2">
               <button disabled={page === 1} onClick={() => setPage(p => p - 1)}
-                className="px-3 py-1.5 rounded border border-slate-200 disabled:opacity-40 hover:bg-slate-50">Prev</button>
+                className="px-3 py-1.5 rounded border border-border disabled:opacity-40 hover:bg-surface">Prev</button>
               <button disabled={page >= data.total_pages} onClick={() => setPage(p => p + 1)}
-                className="px-3 py-1.5 rounded border border-slate-200 disabled:opacity-40 hover:bg-slate-50">Next</button>
+                className="px-3 py-1.5 rounded border border-border disabled:opacity-40 hover:bg-surface">Next</button>
             </div>
           </div>
         )}
@@ -777,16 +779,16 @@ function TeamsTab() {
     : 0
 
   const statusColor = {
-    pending: 'text-slate-500',
-    running: 'text-red-600',
+    pending: 'text-muted',
+    running: 'text-teal-600',
     success: 'text-teal-600',
-    failed: 'text-red-600',
-  }[taskStatus?.status] ?? 'text-slate-500'
+    failed: 'text-teal-600',
+  }[taskStatus?.status] ?? 'text-muted'
 
   return (
     <div>
       {/* Solver config form */}
-      <div className="glass-card rounded-xl border border-slate-200 p-5 mb-6">
+      <div className="glass-card rounded-xl border border-border p-5 mb-6">
         <SectionTitle>Solver Configuration</SectionTitle>
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 mb-5">
           {[
@@ -797,23 +799,23 @@ function TeamsTab() {
             { key: 'max_per_institution', label: 'Max / institution', min: 1, max: 5 },
           ].map(({ key, label, min, max }) => (
             <div key={key}>
-              <label className="block text-xs font-medium text-slate-500 mb-1.5">{label}</label>
+              <label className="block text-xs font-medium text-muted mb-1.5">{label}</label>
               <input
                 type="number" min={min} max={max}
                 value={config[key]}
                 onChange={(e) => setConfig((c) => ({ ...c, [key]: +e.target.value }))}
-                className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-red-500"
+                className="w-full border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500"
               />
             </div>
           ))}
 
           <div className="flex items-end">
-            <label className="flex items-center gap-2 text-sm text-slate-800 cursor-pointer pb-2">
+            <label className="flex items-center gap-2 text-sm text-foreground cursor-pointer pb-2">
               <input
                 type="checkbox"
                 checked={config.use_mock_data}
                 onChange={(e) => setConfig((c) => ({ ...c, use_mock_data: e.target.checked }))}
-                className="rounded border-slate-300 text-red-600 focus:ring-red-500"
+                className="rounded border-border text-teal-600 focus:ring-teal-500"
               />
               Use mock data
             </label>
@@ -823,7 +825,7 @@ function TeamsTab() {
         <button
           onClick={() => runMutation.mutate()}
           disabled={runMutation.isPending || taskStatus?.status === 'running'}
-          className="flex items-center gap-2 text-sm px-5 py-2.5 rounded-lg btn-primary text-white hover:bg-red-700 disabled:opacity-50 transition-colors"
+          className="flex items-center gap-2 text-sm px-5 py-2.5 rounded-lg btn-primary text-white hover:bg-teal-700 disabled:opacity-50 transition-colors"
         >
           {runMutation.isPending || taskStatus?.status === 'running'
             ? <Loader2 size={16} className="animate-spin" />
@@ -833,15 +835,15 @@ function TeamsTab() {
         </button>
 
         {runMutation.isError && (
-          <p className="mt-2 text-xs text-red-500">{runMutation.error?.message}</p>
+          <p className="mt-2 text-xs text-teal-500">{runMutation.error?.message}</p>
         )}
       </div>
 
       {/* Task progress panel */}
       {taskId && taskStatus && (
-        <div className="glass-card rounded-xl border border-slate-200 p-5 mb-6">
+        <div className="glass-card rounded-xl border border-border p-5 mb-6">
           <div className="flex items-center justify-between mb-2">
-            <p className="text-sm font-medium text-slate-800">Solver progress</p>
+            <p className="text-sm font-medium text-foreground">Solver progress</p>
             <span className={`text-sm font-semibold capitalize ${statusColor}`}>
               {taskStatus.status}
             </span>
@@ -849,18 +851,18 @@ function TeamsTab() {
           <div className="w-full bg-slate-200 rounded-full h-2 mb-3">
             <div
               className={`h-2 rounded-full transition-all duration-500 ${taskStatus.status === 'success' ? 'bg-teal-500' :
-                  taskStatus.status === 'failed' ? 'bg-red-500' : 'bg-red-500'
+                  taskStatus.status === 'failed' ? 'bg-teal-500' : 'bg-teal-500'
                 }`}
               style={{ width: `${progress}%` }}
             />
           </div>
-          <p className="text-xs text-slate-500">{taskStatus.message}</p>
+          <p className="text-xs text-muted">{taskStatus.message}</p>
 
           {taskStatus.status === 'success' && taskStatus.result?.evaluation && (
             <div className="mt-3 flex flex-wrap gap-4 text-xs">
               <span>Quality: <strong className={
                 taskStatus.result.evaluation.quality === 'excellent' ? 'text-teal-600' :
-                  taskStatus.result.evaluation.quality === 'good' ? 'text-red-600' : 'text-amber-600'
+                  taskStatus.result.evaluation.quality === 'good' ? 'text-teal-600' : 'text-amber-600'
               }>{taskStatus.result.evaluation.quality}</strong></span>
               <span>Variance: <strong>{taskStatus.result.evaluation.variance_score}</strong></span>
               <span>Nodes visited: <strong>{taskStatus.result.evaluation.nodes_visited ?? '—'}</strong></span>
@@ -869,7 +871,7 @@ function TeamsTab() {
           )}
 
           {taskStatus.status === 'failed' && (
-            <p className="mt-2 text-xs text-red-500">Error: {taskStatus.error}</p>
+            <p className="mt-2 text-xs text-teal-500">Error: {taskStatus.error}</p>
           )}
         </div>
       )}
@@ -878,7 +880,7 @@ function TeamsTab() {
       {drafts?.teams && (
         <div>
           <div className="flex items-center justify-between mb-3">
-            <h3 className="text-sm font-semibold text-slate-800">
+            <h3 className="text-sm font-semibold text-foreground">
               Draft lineups — {drafts.teams.length} teams, {drafts.total_participants} participants
             </h3>
             {!committed && (
@@ -886,7 +888,7 @@ function TeamsTab() {
                 <button
                   onClick={generateAllRationale}
                   disabled={generatingAll}
-                  className="flex items-center gap-1.5 text-sm px-4 py-2 rounded-lg border border-red-500/50 text-red-600 hover:bg-red-50 border border-red-100 disabled:opacity-50"
+                  className="flex items-center gap-1.5 text-sm px-4 py-2 rounded-lg border border-teal-500/50 text-teal-600 hover:bg-teal-50 border border-teal-100 disabled:opacity-50"
                 >
                   {generatingAll
                     ? <Loader2 size={14} className="animate-spin" />
@@ -912,7 +914,7 @@ function TeamsTab() {
           </div>
 
           {commitMutation.isError && (
-            <p className="mb-3 text-xs text-red-500">
+            <p className="mb-3 text-xs text-teal-500">
               {commitMutation.error?.message?.includes('already exist')
                 ? 'Teams already exist. Use Demo Controls → Reset Demo Data before forming new teams again.'
                 : commitMutation.error?.message}
@@ -921,30 +923,30 @@ function TeamsTab() {
 
           <div className="grid md:grid-cols-2 xl:grid-cols-3 gap-4">
             {drafts.teams.map((team) => (
-              <div key={team.team_id} className="glass-card rounded-xl border border-slate-200 p-4">
+              <div key={team.team_id} className="glass-card rounded-xl border border-border p-4">
                 <div className="flex items-center justify-between mb-3">
-                  <p className="font-semibold text-sm text-slate-900">{team.team_name}</p>
-                  <Badge colour="red">{team.size} members</Badge>
+                  <p className="font-semibold text-sm text-foreground">{team.team_name}</p>
+                  <Badge colour="teal">{team.size} members</Badge>
                 </div>
                 <div className="space-y-2">
                   {team.members.map((m) => (
                     <div key={m.id} className="flex items-center gap-2">
-                      <div className="w-7 h-7 rounded-full bg-red-50 border border-red-100 border border-red-200 text-red-700 text-xs font-semibold flex items-center justify-center shrink-0">
+                      <div className="w-7 h-7 rounded-full bg-teal-50 border border-teal-100 border border-teal-200 text-teal-700 text-xs font-semibold flex items-center justify-center shrink-0">
                         {m.name[0]}
                       </div>
                       <div className="min-w-0">
-                        <p className="text-xs font-medium text-slate-800 truncate">{m.name}</p>
-                        <p className="text-xs text-slate-500 truncate">{m.institution}</p>
+                        <p className="text-xs font-medium text-foreground truncate">{m.name}</p>
+                        <p className="text-xs text-muted truncate">{m.institution}</p>
                       </div>
                     </div>
                   ))}
                 </div>
                 {team.average_skill_vector?.length > 0 && (
-                  <div className="mt-3 pt-3 border-t border-slate-200">
-                    <p className="text-xs text-slate-500 mb-1">Skill avg</p>
+                  <div className="mt-3 pt-3 border-t border-border">
+                    <p className="text-xs text-muted mb-1">Skill avg</p>
                     <div className="flex gap-1 flex-wrap">
                       {team.average_skill_vector.map((v, i) => (
-                        <span key={i} className="text-xs bg-slate-50 border border-slate-200 text-slate-600 px-1.5 py-0.5 rounded">
+                        <span key={i} className="text-xs bg-surface border border-border text-muted px-1.5 py-0.5 rounded">
                           {Number(v).toFixed(1)}
                         </span>
                       ))}
@@ -953,29 +955,29 @@ function TeamsTab() {
                 )}
 
                 {/* ── AI Rationale ── */}
-                <div className="mt-3 pt-3 border-t border-slate-200">
+                <div className="mt-3 pt-3 border-t border-border">
                   {!rationales[team.team_id] ? (
                     <button
                       onClick={() => generateRationale(team)}
-                      className="flex items-center gap-1 text-xs text-red-600 hover:text-red-700 transition-colors"
+                      className="flex items-center gap-1 text-xs text-teal-600 hover:text-teal-700 transition-colors"
                     >
                       <Wand2 size={11} /> Generate rationale
                     </button>
                   ) : rationales[team.team_id].status === 'loading' ? (
-                    <div className="flex items-center gap-1.5 text-xs text-slate-500">
+                    <div className="flex items-center gap-1.5 text-xs text-muted">
                       <Loader2 size={11} className="animate-spin" /> Generating…
                     </div>
                   ) : rationales[team.team_id].status === 'done' ? (
-                    <div className="bg-red-50 border border-red-100 border border-red-200 rounded-lg p-2.5">
-                      <p className="text-xs font-medium text-red-600 mb-1 flex items-center gap-1">
+                    <div className="bg-teal-50 border border-teal-100 border border-teal-200 rounded-lg p-2.5">
+                      <p className="text-xs font-medium text-teal-600 mb-1 flex items-center gap-1">
                         <Wand2 size={11} /> AI Rationale
                       </p>
-                      <p className="text-xs text-red-800 leading-relaxed">
+                      <p className="text-xs text-teal-800 leading-relaxed">
                         {rationales[team.team_id].text}
                       </p>
                     </div>
                   ) : (
-                    <p className="text-xs text-red-600 flex items-center gap-1">
+                    <p className="text-xs text-teal-600 flex items-center gap-1">
                       <AlertTriangle size={11} /> {rationales[team.team_id].text}
                     </p>
                   )}
@@ -1059,15 +1061,15 @@ function ApprovalsTab() {
       {/* Header actions */}
       <div className="flex items-center justify-between mb-5">
         <div>
-          <h2 className="text-base font-semibold text-slate-900">Pending Approvals</h2>
-          <p className="text-sm text-slate-500">{pending?.total_pending ?? 0} team(s) awaiting review</p>
+          <h2 className="text-base font-semibold text-foreground">Pending Approvals</h2>
+          <p className="text-sm text-muted">{pending?.total_pending ?? 0} team(s) awaiting review</p>
         </div>
         {(pending?.total_pending ?? 0) > 0 && (
           <div className="flex gap-2">
             <button
               onClick={() => bulkMutation.mutate('reject')}
               disabled={bulkMutation.isPending}
-              className="flex items-center gap-1.5 text-sm px-3 py-1.5 rounded-lg border border-red-200 text-red-600 hover:bg-red-50"
+              className="flex items-center gap-1.5 text-sm px-3 py-1.5 rounded-lg border border-teal-200 text-teal-600 hover:bg-teal-50"
             >
               <X size={14} /> Reject all
             </button>
@@ -1088,13 +1090,13 @@ function ApprovalsTab() {
 
       {/* Global Status Banner */}
       {activeTeams.length > 0 && !hasPublished && (
-        <div className={`mb-6 p-4 rounded-xl border ${hasRejected ? 'bg-red-50 border-red-200' : allApproved ? 'bg-teal-50 border-teal-200' : 'bg-slate-50 border-slate-200'}`}>
+        <div className={`mb-6 p-4 rounded-xl border ${hasRejected ? 'bg-teal-50 border-teal-200' : allApproved ? 'bg-teal-50 border-teal-200' : 'bg-surface border-border'}`}>
           {hasRejected && (
             <div className="flex items-start gap-3">
-              <AlertTriangle className="text-red-500 shrink-0 mt-0.5" size={20} />
+              <AlertTriangle className="text-teal-500 shrink-0 mt-0.5" size={20} />
               <div>
-                <h3 className="text-sm font-bold text-red-900">Formation Rejected</h3>
-                <p className="text-xs text-red-700 mt-1">One or more teams in this formation have been rejected. You cannot publish this formation. Please go to the <strong>Teams</strong> tab and rerun the solver to generate a new valid lineup.</p>
+                <h3 className="text-sm font-bold text-teal-900">Formation Rejected</h3>
+                <p className="text-xs text-teal-700 mt-1">One or more teams in this formation have been rejected. You cannot publish this formation. Please go to the <strong>Teams</strong> tab and rerun the solver to generate a new valid lineup.</p>
               </div>
             </div>
           )}
@@ -1123,10 +1125,10 @@ function ApprovalsTab() {
           )}
           {!hasRejected && !allApproved && (
             <div className="flex items-start gap-3">
-              <Loader2 className="text-slate-400 shrink-0 mt-0.5 animate-spin" size={20} />
+              <Loader2 className="text-muted shrink-0 mt-0.5 animate-spin" size={20} />
               <div>
-                <h3 className="text-sm font-bold text-slate-800">Formation in Review</h3>
-                <p className="text-xs text-slate-600 mt-1">Review all pending teams. All teams must be approved before the formation can be published to participants.</p>
+                <h3 className="text-sm font-bold text-foreground">Formation in Review</h3>
+                <p className="text-xs text-muted mt-1">Review all pending teams. All teams must be approved before the formation can be published to participants.</p>
               </div>
             </div>
           )}
@@ -1134,11 +1136,11 @@ function ApprovalsTab() {
       )}
 
       {hasPublished && (
-        <div className="mb-6 p-4 rounded-xl bg-red-50 border border-red-200 flex items-start gap-3">
-          <Check className="text-red-600 shrink-0 mt-0.5" size={20} />
+        <div className="mb-6 p-4 rounded-xl bg-teal-50 border border-teal-200 flex items-start gap-3">
+          <Check className="text-teal-600 shrink-0 mt-0.5" size={20} />
           <div>
-            <h3 className="text-sm font-bold text-red-900">Formation Published</h3>
-            <p className="text-xs text-red-700 mt-1">This formation has been fully published. Participants have been notified and can view their teams.</p>
+            <h3 className="text-sm font-bold text-teal-900">Formation Published</h3>
+            <p className="text-xs text-teal-700 mt-1">This formation has been fully published. Participants have been notified and can view their teams.</p>
           </div>
         </div>
       )}
@@ -1150,48 +1152,48 @@ function ApprovalsTab() {
       )}
 
       {!isLoading && pending?.total_pending === 0 && (
-        <div className="text-center py-16 text-slate-400">
+        <div className="text-center py-16 text-muted">
           <Shield size={36} className="mx-auto mb-3 opacity-50" />
-          <p className="text-sm text-slate-500 font-medium">All teams reviewed</p>
-          <p className="text-xs text-slate-500 mt-1">Run the solver and commit lineups to populate this queue.</p>
+          <p className="text-sm text-muted font-medium">All teams reviewed</p>
+          <p className="text-xs text-muted mt-1">Run the solver and commit lineups to populate this queue.</p>
         </div>
       )}
 
       <div className="space-y-3">
         {pending?.teams.map((team) => (
-          <div key={team.team_id} className="glass-card rounded-xl border border-slate-200 overflow-hidden">
+          <div key={team.team_id} className="glass-card rounded-xl border border-border overflow-hidden">
             {/* Row */}
             <div
-              className="flex items-center gap-3 px-4 py-3 cursor-pointer hover:bg-slate-50"
+              className="flex items-center gap-3 px-4 py-3 cursor-pointer hover:bg-surface"
               onClick={() => setExpanded(expanded === team.team_id ? null : team.team_id)}
             >
-              <div className="w-9 h-9 rounded-lg bg-red-50 text-red-700 border border-red-100 flex items-center justify-center font-semibold text-sm shrink-0">
+              <div className="w-9 h-9 rounded-lg bg-teal-50 text-teal-700 border border-teal-100 flex items-center justify-center font-semibold text-sm shrink-0">
                 {team.team_name[0]}
               </div>
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-semibold text-slate-900">{team.team_name}</p>
-                <p className="text-xs text-slate-500">{team.member_count} members</p>
+                <p className="text-sm font-semibold text-foreground">{team.team_name}</p>
+                <p className="text-xs text-muted">{team.member_count} members</p>
               </div>
               <Badge colour="amber">Pending</Badge>
               {expanded === team.team_id
-                ? <ChevronDown size={16} className="text-slate-500 shrink-0" />
-                : <ChevronRight size={16} className="text-slate-500 shrink-0" />
+                ? <ChevronDown size={16} className="text-muted shrink-0" />
+                : <ChevronRight size={16} className="text-muted shrink-0" />
               }
             </div>
 
             {/* Expanded detail */}
             {expanded === team.team_id && detail && (
-              <div className="border-t border-slate-200 px-4 py-4">
+              <div className="border-t border-border px-4 py-4">
                 {/* Members grid */}
                 <div className="grid grid-cols-2 gap-2 mb-4">
                   {detail.members?.map((m) => (
                     <div key={m.id} className="flex items-center gap-2">
-                      <div className="w-7 h-7 rounded-full bg-slate-200 text-slate-600 text-xs font-semibold flex items-center justify-center shrink-0">
+                      <div className="w-7 h-7 rounded-full bg-slate-200 text-muted text-xs font-semibold flex items-center justify-center shrink-0">
                         {m.name[0]}
                       </div>
                       <div className="min-w-0">
-                        <p className="text-xs font-medium text-slate-800 truncate">{m.name}</p>
-                        <p className="text-xs text-slate-500 truncate">{m.institution}</p>
+                        <p className="text-xs font-medium text-foreground truncate">{m.name}</p>
+                        <p className="text-xs text-muted truncate">{m.institution}</p>
                       </div>
                     </div>
                   ))}
@@ -1199,11 +1201,11 @@ function ApprovalsTab() {
 
                 {/* AI rationale */}
                 {detail.rationale && (
-                  <div className="bg-red-50 border border-red-100 border border-red-100 rounded-lg p-3 mb-4">
-                    <p className="text-xs font-medium text-red-700 mb-1 flex items-center gap-1">
+                  <div className="bg-teal-50 border border-teal-100 border border-teal-100 rounded-lg p-3 mb-4">
+                    <p className="text-xs font-medium text-teal-700 mb-1 flex items-center gap-1">
                       <Wand2 size={12} /> AI Rationale
                     </p>
-                    <p className="text-xs text-red-800 leading-relaxed">{detail.rationale}</p>
+                    <p className="text-xs text-teal-800 leading-relaxed">{detail.rationale}</p>
                   </div>
                 )}
 
@@ -1213,13 +1215,13 @@ function ApprovalsTab() {
                   onChange={(e) => setNotes(e.target.value)}
                   placeholder="Notes (required when rejecting)…"
                   rows={2}
-                  className="w-full text-sm border border-slate-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-red-500 mb-3 resize-none"
+                  className="w-full text-sm border border-border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-teal-500 mb-3 resize-none"
                 />
                 <div className="flex justify-end gap-2">
                   <button
                     onClick={() => decideMutation.mutate({ id: team.team_id, decision: 'reject' })}
                     disabled={decideMutation.isPending}
-                    className="flex items-center gap-1.5 text-sm px-3 py-1.5 rounded-lg border border-red-200 text-red-600 hover:bg-red-50"
+                    className="flex items-center gap-1.5 text-sm px-3 py-1.5 rounded-lg border border-teal-200 text-teal-600 hover:bg-teal-50"
                   >
                     <X size={14} /> Reject
                   </button>
@@ -1233,7 +1235,7 @@ function ApprovalsTab() {
                   </button>
                 </div>
                 {decideMutation.isError && (
-                  <p className="mt-2 text-xs text-red-500">{decideMutation.error?.message}</p>
+                  <p className="mt-2 text-xs text-teal-500">{decideMutation.error?.message}</p>
                 )}
               </div>
             )}
@@ -1324,13 +1326,13 @@ function EvaluatorsTab() {
 
   const fieldFor = (key, label, type = 'text', placeholder = '') => (
     <div>
-      <label className="block text-xs font-medium text-slate-500 mb-1">{label}</label>
+      <label className="block text-xs font-medium text-muted mb-1">{label}</label>
       <input
         type={type}
         value={form[key]}
         onChange={(e) => setForm((f) => ({ ...f, [key]: e.target.value }))}
         placeholder={placeholder}
-        className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-red-500"
+        className="w-full border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500"
       />
     </div>
   )
@@ -1347,40 +1349,40 @@ function EvaluatorsTab() {
     <>
       <div>
         <div className="flex items-center justify-between mb-5">
-          <h2 className="text-base font-semibold text-slate-900">Evaluators / Judges</h2>
+          <h2 className="text-base font-semibold text-foreground">Evaluators / Judges</h2>
           <div className="flex items-center gap-2">
-            <button onClick={() => evaluatorsApi.downloadTemplate()} className="text-sm px-3 py-1.5 rounded-lg border border-slate-200 text-slate-600 hover:bg-slate-50">CSV Template</button>
-            <button onClick={() => evaluatorsApi.downloadExport()} className="text-sm px-3 py-1.5 rounded-lg border border-slate-200 text-slate-600 hover:bg-slate-50">Export</button>
+            <button onClick={() => evaluatorsApi.downloadTemplate()} className="text-sm px-3 py-1.5 rounded-lg border border-border text-muted hover:bg-surface">CSV Template</button>
+            <button onClick={() => evaluatorsApi.downloadExport()} className="text-sm px-3 py-1.5 rounded-lg border border-border text-muted hover:bg-surface">Export</button>
             <button
               onClick={() => setShowAutoAssign(true)}
-              className="flex items-center gap-1.5 text-sm px-3 py-1.5 rounded-lg border border-red-200 text-red-700 hover:bg-red-50"
+              className="flex items-center gap-1.5 text-sm px-3 py-1.5 rounded-lg border border-teal-200 text-teal-700 hover:bg-teal-50"
             >
               <Wand2 size={14} /> Auto-assign
             </button>
             <button
               onClick={() => setShowForm((s) => !s)}
-              className="flex items-center gap-1.5 text-sm px-3 py-1.5 rounded-lg btn-primary text-white hover:bg-red-700"
+              className="flex items-center gap-1.5 text-sm px-3 py-1.5 rounded-lg btn-primary text-white hover:bg-teal-700"
             >
               <Plus size={14} /> Add Evaluator
             </button>
           </div>
         </div>
-        <p className="text-xs text-slate-500 mb-6 italic">
+        <p className="text-xs text-muted mb-6 italic">
           Evaluators receive secure magic links and score approved teams in the Judge Portal. Submitted scorecards update the leaderboard and anomaly scanner.
         </p>
 
-        <div className="glass-card rounded-xl border border-slate-200 p-4 mb-5">
+        <div className="glass-card rounded-xl border border-border p-4 mb-5">
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
             <div>
-              <p className="text-sm font-semibold text-slate-900">Evaluation audit integrity</p>
-              <p className="text-xs text-slate-500 mt-1">
+              <p className="text-sm font-semibold text-foreground">Evaluation audit integrity</p>
+              <p className="text-xs text-muted mt-1">
                 Check event-scoped scorecard integrity, evaluator assignments, and suspicious scoring state.
               </p>
             </div>
             <button
               onClick={() => auditMutation.mutate()}
               disabled={auditMutation.isPending}
-              className="inline-flex items-center justify-center gap-2 text-sm px-4 py-2 rounded-lg border border-red-200 text-red-700 hover:bg-red-50 disabled:opacity-50"
+              className="inline-flex items-center justify-center gap-2 text-sm px-4 py-2 rounded-lg border border-teal-200 text-teal-700 hover:bg-teal-50 disabled:opacity-50"
             >
               {auditMutation.isPending ? <Loader2 size={14} className="animate-spin" /> : <ShieldCheck size={14} />}
               Run audit
@@ -1392,17 +1394,17 @@ function EvaluatorsTab() {
             </div>
           )}
           {auditMutation.isError && (
-            <div className="mt-3 rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700">
+            <div className="mt-3 rounded-lg border border-teal-200 bg-teal-50 p-3 text-sm text-teal-700">
               {auditMutation.error?.message || 'Audit failed.'}
             </div>
           )}
         </div>
 
         {/* Bulk Import */}
-        <div className="glass-card rounded-xl border border-slate-200 p-4 mb-5 flex flex-col gap-3">
+        <div className="glass-card rounded-xl border border-border p-4 mb-5 flex flex-col gap-3">
           <div className="flex items-center gap-4">
             <input type="file" accept=".csv" onChange={(e) => setImportFile(e.target.files[0])} className="text-sm" />
-            <label className="flex items-center gap-2 text-sm text-slate-700">
+            <label className="flex items-center gap-2 text-sm text-foreground">
               <input type="checkbox" checked={importUpsert} onChange={e => setImportUpsert(e.target.checked)} />
               Update existing (upsert)
             </label>
@@ -1415,16 +1417,16 @@ function EvaluatorsTab() {
             </button>
           </div>
           {importSummary && (
-            <div className="bg-slate-50 p-3 rounded-lg text-sm border border-slate-200">
-              <p className="font-semibold text-slate-800">Import Summary</p>
-              <div className="flex gap-4 mt-1 mb-2 text-slate-600">
+            <div className="bg-surface p-3 rounded-lg text-sm border border-border">
+              <p className="font-semibold text-foreground">Import Summary</p>
+              <div className="flex gap-4 mt-1 mb-2 text-muted">
                 <span>Total: {importSummary.total_rows}</span>
                 <span className="text-emerald-600">Created: {importSummary.created}</span>
-                <span className="text-red-600">Updated: {importSummary.updated}</span>
-                <span className="text-red-600">Errors: {importSummary.errors}</span>
+                <span className="text-teal-600">Updated: {importSummary.updated}</span>
+                <span className="text-teal-600">Errors: {importSummary.errors}</span>
               </div>
               {importSummary.errors > 0 && (
-                <ul className="text-xs text-red-600 list-disc pl-4 space-y-1">
+                <ul className="text-xs text-teal-600 list-disc pl-4 space-y-1">
                   {importSummary.results.filter(r => r.status === 'error').map((r, idx) => (
                     <li key={idx}>Row {r.row_number} ({r.email || 'No email'}): {r.message}</li>
                   ))}
@@ -1433,14 +1435,14 @@ function EvaluatorsTab() {
             </div>
           )}
         </div>
-        <p className="text-xs text-slate-500 mb-6 italic">
+        <p className="text-xs text-muted mb-6 italic">
           Evaluators receive secure magic links and score approved teams in the Judge Portal. Submitted scorecards update the leaderboard and anomaly scanner.
         </p>
 
         {/* Add form */}
         {showForm && (
-          <div className="glass-card rounded-xl border border-slate-200 p-5 mb-5">
-            <p className="text-sm font-semibold text-slate-800 mb-4">New Evaluator</p>
+          <div className="glass-card rounded-xl border border-border p-5 mb-5">
+            <p className="text-sm font-semibold text-foreground mb-4">New Evaluator</p>
             <div className="grid grid-cols-2 gap-3 mb-3">
               {fieldFor('first_name', 'First name', 'text', 'Dr. Meena')}
               {fieldFor('last_name', 'Last name', 'text', 'Sharma')}
@@ -1449,17 +1451,17 @@ function EvaluatorsTab() {
               {fieldFor('passed_out_institution', 'Passed-out college / institution (optional)', 'text', 'IIT Madras')}
             </div>
             <div className="flex gap-2 justify-end">
-              <button onClick={() => setShowForm(false)} className="text-sm px-3 py-1.5 rounded-lg border border-slate-200 text-slate-600 hover:bg-slate-50">Cancel</button>
+              <button onClick={() => setShowForm(false)} className="text-sm px-3 py-1.5 rounded-lg border border-border text-muted hover:bg-surface">Cancel</button>
               <button
                 onClick={() => createMutation.mutate()}
                 disabled={createMutation.isPending || !form.email}
-                className="flex items-center gap-1.5 text-sm px-4 py-1.5 rounded-lg btn-primary text-white hover:bg-red-700 disabled:opacity-50"
+                className="flex items-center gap-1.5 text-sm px-4 py-1.5 rounded-lg btn-primary text-white hover:bg-teal-700 disabled:opacity-50"
               >
                 {createMutation.isPending ? <Loader2 size={14} className="animate-spin" /> : <Check size={14} />}
                 Save
               </button>
             </div>
-            {createMutation.isError && <p className="mt-2 text-xs text-red-500">{createMutation.error?.message}</p>}
+            {createMutation.isError && <p className="mt-2 text-xs text-teal-500">{createMutation.error?.message}</p>}
           </div>
         )}
 
@@ -1467,20 +1469,20 @@ function EvaluatorsTab() {
         {isLoading
           ? Array.from({ length: 3 }).map((_, i) => <div key={i} className="h-14 bg-slate-200 rounded-xl animate-pulse mb-3" />)
           : (
-            <div className="glass-card rounded-xl border border-slate-200 overflow-hidden mb-6">
+            <div className="glass-card rounded-xl border border-border overflow-hidden mb-6">
               {(!data?.evaluators?.length)
-                ? <div className="text-center py-12 text-slate-500 text-sm">No evaluators registered yet.</div>
+                ? <div className="text-center py-12 text-muted text-sm">No evaluators registered yet.</div>
                 : data.evaluators.map((ev) => (
-                  <div key={ev.id} className="border-b border-slate-200 last:border-0">
-                    <div className="flex items-center gap-4 px-4 py-3 hover:bg-slate-50">
+                  <div key={ev.id} className="border-b border-border last:border-0">
+                    <div className="flex items-center gap-4 px-4 py-3 hover:bg-surface">
                       <div className="w-9 h-9 rounded-full bg-amber-50 border border-amber-200 text-amber-700 font-semibold text-sm flex items-center justify-center shrink-0">
                         {ev.first_name[0]}
                       </div>
                       <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium text-slate-900">{ev.first_name} {ev.last_name}</p>
-                        <p className="text-xs text-slate-500">{ev.email}</p>
+                        <p className="text-sm font-medium text-foreground">{ev.first_name} {ev.last_name}</p>
+                        <p className="text-xs text-muted">{ev.email}</p>
                         {ev.passed_out_institution && (
-                          <p className="text-xs text-slate-500 mt-0.5">🏛️ {ev.passed_out_institution}</p>
+                          <p className="text-xs text-muted mt-0.5">🏛️ {ev.passed_out_institution}</p>
                         )}
                         {ev.expertise_areas?.length > 0 && (
                           <div className="flex gap-1 mt-1 flex-wrap">
@@ -1495,7 +1497,7 @@ function EvaluatorsTab() {
                       <div className="flex gap-2 shrink-0">
                         <button
                           onClick={() => setExpandedEval(expandedEval === ev.id ? null : ev.id)}
-                          className="flex items-center gap-1 text-xs px-2.5 py-1.5 rounded-lg border border-slate-200 text-slate-600 hover:bg-slate-50"
+                          className="flex items-center gap-1 text-xs px-2.5 py-1.5 rounded-lg border border-border text-muted hover:bg-surface"
                         >
                           <UserCheck size={12} />
                           Assignments
@@ -1504,7 +1506,7 @@ function EvaluatorsTab() {
                           onClick={() => sendLinkMutation.mutate(ev.id)}
                           disabled={sendLinkMutation.isPending}
                           title={ev.access_link_sent ? "Send access link again" : "Send access link"}
-                          className="flex items-center gap-1 text-xs px-2.5 py-1.5 rounded-lg border border-red-200 text-red-600 hover:bg-red-50 disabled:opacity-50"
+                          className="flex items-center gap-1 text-xs px-2.5 py-1.5 rounded-lg border border-teal-200 text-teal-600 hover:bg-teal-50 disabled:opacity-50"
                         >
                           {sendLinkMutation.isPending
                             ? <Loader2 size={12} className="animate-spin" />
@@ -1514,7 +1516,7 @@ function EvaluatorsTab() {
                         </button>
                         <button
                           onClick={() => { if (window.confirm('Remove this evaluator?')) deleteMutation.mutate(ev.id) }}
-                          className="p-1.5 text-slate-400 hover:text-red-500 rounded transition-colors"
+                          className="p-1.5 text-muted hover:text-teal-500 rounded transition-colors"
                         >
                           <Trash2 size={14} />
                         </button>
@@ -1523,22 +1525,22 @@ function EvaluatorsTab() {
 
                     {/* Expanded: team assignments */}
                     {expandedEval === ev.id && (
-                      <div className="px-4 py-4 bg-slate-50 border-t border-slate-200">
-                        <p className="text-xs font-bold text-slate-600 mb-2">Current Assignments</p>
+                      <div className="px-4 py-4 bg-surface border-t border-border">
+                        <p className="text-xs font-bold text-muted mb-2">Current Assignments</p>
                         {assignData?.teams?.length > 0 ? (
                           <div className="flex gap-1.5 flex-wrap mb-3">
                             {assignData.teams.map(t => (
-                              <Badge key={t.team_id} colour="red">{t.team_name}</Badge>
+                              <Badge key={t.team_id} colour="teal">{t.team_name}</Badge>
                             ))}
                           </div>
                         ) : (
-                          <p className="text-xs text-slate-500 mb-3">No teams assigned yet.</p>
+                          <p className="text-xs text-muted mb-3">No teams assigned yet.</p>
                         )}
 
-                        <p className="text-xs font-bold text-slate-600 mb-2">Assign to teams</p>
+                        <p className="text-xs font-bold text-muted mb-2">Assign to teams</p>
                         <div className="flex flex-wrap gap-2 mb-3">
                           {approvedTeams.length === 0 ? (
-                            <p className="text-xs text-slate-500">No approved teams available.</p>
+                            <p className="text-xs text-muted">No approved teams available.</p>
                           ) : approvedTeams.map(t => {
                             const selected = assignTeamIds.includes(t.team_id)
                             return (
@@ -1546,8 +1548,8 @@ function EvaluatorsTab() {
                                 key={t.team_id}
                                 onClick={() => toggleTeamId(t.team_id)}
                                 className={`text-xs px-2.5 py-1.5 rounded-lg border transition-colors ${selected
-                                    ? 'bg-red-50 border-red-300 text-red-700 font-semibold'
-                                    : 'border-slate-200 text-slate-600 hover:bg-slate-50'
+                                    ? 'bg-teal-50 border-teal-300 text-teal-700 font-semibold'
+                                    : 'border-border text-muted hover:bg-surface'
                                   }`}
                               >
                                 {t.team_name}
@@ -1558,12 +1560,12 @@ function EvaluatorsTab() {
                         <button
                           onClick={() => assignMutation.mutate({ evaluator_id: ev.id, team_ids: assignTeamIds })}
                           disabled={assignMutation.isPending || assignTeamIds.length === 0}
-                          className="flex items-center gap-1.5 text-sm px-4 py-1.5 rounded-lg btn-primary text-white hover:bg-red-700 disabled:opacity-50"
+                          className="flex items-center gap-1.5 text-sm px-4 py-1.5 rounded-lg btn-primary text-white hover:bg-teal-700 disabled:opacity-50"
                         >
                           {assignMutation.isPending ? <Loader2 size={14} className="animate-spin" /> : <Check size={14} />}
                           Assign Evaluator
                         </button>
-                        {assignMutation.isError && <p className="mt-2 text-xs text-red-500">{assignMutation.error?.message}</p>}
+                        {assignMutation.isError && <p className="mt-2 text-xs text-teal-500">{assignMutation.error?.message}</p>}
                       </div>
                     )}
                   </div>
@@ -1698,13 +1700,13 @@ function LeaderboardTab() {
             {anomalies.scorecards.map((sc) => (
               <div key={sc.id} className="flex items-start gap-3 glass-card rounded-lg p-3 border border-amber-100">
                 <div className="flex-1 min-w-0">
-                  <p className="text-xs font-medium text-slate-800">
-                    Evaluator <span className="font-semibold text-slate-900">{sc.evaluator_name}</span>
-                    {' → '}Team <span className="font-semibold text-slate-900">{sc.team_name}</span>
+                  <p className="text-xs font-medium text-foreground">
+                    Evaluator <span className="font-semibold text-foreground">{sc.evaluator_name}</span>
+                    {' → '}Team <span className="font-semibold text-foreground">{sc.team_name}</span>
                   </p>
-                  <p className="text-xs text-red-600 mt-0.5 leading-relaxed">{sc.flag_reason}</p>
+                  <p className="text-xs text-teal-600 mt-0.5 leading-relaxed">{sc.flag_reason}</p>
                   {sc.anomaly_score != null && (
-                    <p className="text-xs text-slate-500 mt-0.5">Z-score: {Number(sc.anomaly_score).toFixed(2)}</p>
+                    <p className="text-xs text-muted mt-0.5">Z-score: {Number(sc.anomaly_score).toFixed(2)}</p>
                   )}
                 </div>
                 <button
@@ -1722,21 +1724,21 @@ function LeaderboardTab() {
 
       {/* Header Actions */}
       <div className="flex items-center justify-between mb-4 mt-2">
-        <h2 className="text-base font-semibold text-slate-900">Event Rankings</h2>
+        <h2 className="text-base font-semibold text-foreground">Event Rankings</h2>
         <div className="flex gap-2 items-center">
           {toastMsg && <span className="text-teal-600 text-xs mr-2 animate-pulse">{toastMsg}</span>}
-          <button onClick={exportCSV} disabled={!lb?.leaderboard?.length} className="flex items-center gap-1.5 text-sm px-3 py-1.5 rounded-lg border border-slate-200 text-slate-600 hover:bg-slate-50 disabled:opacity-50">
+          <button onClick={exportCSV} disabled={!lb?.leaderboard?.length} className="flex items-center gap-1.5 text-sm px-3 py-1.5 rounded-lg border border-border text-muted hover:bg-surface disabled:opacity-50">
             <FileText size={14} /> Export CSV
           </button>
-          <button onClick={exportPDF} disabled={!lb?.leaderboard?.length} className="flex items-center gap-1.5 text-sm px-3 py-1.5 rounded-lg bg-red-600 text-white hover:bg-red-700 disabled:opacity-50">
+          <button onClick={exportPDF} disabled={!lb?.leaderboard?.length} className="flex items-center gap-1.5 text-sm px-3 py-1.5 rounded-lg bg-teal-600 text-white hover:bg-teal-700 disabled:opacity-50">
             <Download size={14} /> Export PDF
           </button>
         </div>
       </div>
 
       {/* Rankings table */}
-      <div className="glass-card rounded-xl border border-slate-200 overflow-hidden">
-        <div className="grid grid-cols-12 bg-slate-50 border-b border-slate-200 px-4 py-3 text-xs font-medium text-slate-500 uppercase tracking-wide">
+      <div className="glass-card rounded-xl border border-border overflow-hidden">
+        <div className="grid grid-cols-12 bg-surface border-b border-border px-4 py-3 text-xs font-medium text-muted uppercase tracking-wide">
           <div className="col-span-1">#</div>
           <div className="col-span-3">Team</div>
           <div className="col-span-2">Technical</div>
@@ -1747,20 +1749,20 @@ function LeaderboardTab() {
         </div>
 
         {!lb?.leaderboard?.length
-          ? <div className="text-center py-12 text-sm text-slate-500">No evaluations submitted yet.</div>
+          ? <div className="text-center py-12 text-sm text-muted">No evaluations submitted yet.</div>
           : lb.leaderboard.map((team, i) => (
             <div
               key={team.team_id}
-              className={`grid grid-cols-12 items-center px-4 py-3 border-b border-slate-200 text-sm ${i === 0 && !team.has_flags ? 'bg-amber-50 border-l-2 border-l-amber-400' : ''}`}
+              className={`grid grid-cols-12 items-center px-4 py-3 border-b border-border text-sm ${i === 0 && !team.has_flags ? 'bg-amber-50 border-l-2 border-l-amber-400' : ''}`}
             >
-              <div className="col-span-1 font-mono font-semibold text-slate-500">
-                {team.rank ?? <span className="text-slate-400">—</span>}
+              <div className="col-span-1 font-mono font-semibold text-muted">
+                {team.rank ?? <span className="text-muted">—</span>}
               </div>
-              <div className="col-span-3 font-medium text-slate-900 truncate">{team.team_name}</div>
-              <div className="col-span-2 text-slate-600">{team.average_scores?.technical_depth?.toFixed(1) ?? '—'}</div>
-              <div className="col-span-2 text-slate-600">{team.average_scores?.innovation?.toFixed(1) ?? '—'}</div>
-              <div className="col-span-2 text-slate-600">{team.average_scores?.presentation?.toFixed(1) ?? '—'}</div>
-              <div className="col-span-1 font-bold text-red-700">{team.weighted_total?.toFixed(2) ?? '—'}</div>
+              <div className="col-span-3 font-medium text-foreground truncate">{team.team_name}</div>
+              <div className="col-span-2 text-muted">{team.average_scores?.technical_depth?.toFixed(1) ?? '—'}</div>
+              <div className="col-span-2 text-muted">{team.average_scores?.innovation?.toFixed(1) ?? '—'}</div>
+              <div className="col-span-2 text-muted">{team.average_scores?.presentation?.toFixed(1) ?? '—'}</div>
+              <div className="col-span-1 font-bold text-teal-700">{team.weighted_total?.toFixed(2) ?? '—'}</div>
               <div className="col-span-1">
                 {team.has_flags
                   ? <Badge colour="amber"><AlertTriangle size={10} /> Flag</Badge>
@@ -1870,11 +1872,11 @@ function CommunicationsTab() {
 
   return (
     <div>
-      <div className="glass-card rounded-xl border border-slate-200 p-5 mb-6">
+      <div className="glass-card rounded-xl border border-border p-5 mb-6">
         <div className="flex items-start justify-between gap-4 mb-4">
           <div>
             <SectionTitle>Email Diagnostics</SectionTitle>
-            <p className="text-sm text-slate-500">
+            <p className="text-sm text-muted">
               Verify event-scoped email delivery configuration before sending participant, mentor, or evaluator links.
             </p>
           </div>
@@ -1884,26 +1886,26 @@ function CommunicationsTab() {
         </div>
 
         {diagnosticsLoading ? (
-          <div className="h-20 bg-slate-100 rounded-lg animate-pulse" />
+          <div className="h-20 bg-surface rounded-lg animate-pulse" />
         ) : (
           <div className="grid md:grid-cols-4 gap-3 mb-4 text-sm">
-            <div className="rounded-lg border border-slate-200 bg-slate-50 p-3">
-              <p className="text-xs text-slate-500 mb-1">From email</p>
-              <p className="font-semibold text-slate-800 truncate">{diagnostics?.from_email || 'missing'}</p>
+            <div className="rounded-lg border border-border bg-surface p-3">
+              <p className="text-xs text-muted mb-1">From email</p>
+              <p className="font-semibold text-foreground truncate">{diagnostics?.from_email || 'missing'}</p>
             </div>
-            <div className="rounded-lg border border-slate-200 bg-slate-50 p-3">
-              <p className="text-xs text-slate-500 mb-1">SendGrid key</p>
-              <p className="font-semibold text-slate-800">
+            <div className="rounded-lg border border-border bg-surface p-3">
+              <p className="text-xs text-muted mb-1">SendGrid key</p>
+              <p className="font-semibold text-foreground">
                 {diagnostics?.sendgrid_api_key_present ? diagnostics?.sendgrid_key_prefix : 'missing'}
               </p>
             </div>
-            <div className="rounded-lg border border-slate-200 bg-slate-50 p-3">
-              <p className="text-xs text-slate-500 mb-1">Frontend base</p>
-              <p className="font-semibold text-slate-800 truncate">{diagnostics?.frontend_base_url}</p>
+            <div className="rounded-lg border border-border bg-surface p-3">
+              <p className="text-xs text-muted mb-1">Frontend base</p>
+              <p className="font-semibold text-foreground truncate">{diagnostics?.frontend_base_url}</p>
             </div>
-            <div className="rounded-lg border border-slate-200 bg-slate-50 p-3">
-              <p className="text-xs text-slate-500 mb-1">Redis</p>
-              <p className="font-semibold text-slate-800">{diagnostics?.redis_url_present ? 'configured' : 'missing'}</p>
+            <div className="rounded-lg border border-border bg-surface p-3">
+              <p className="text-xs text-muted mb-1">Redis</p>
+              <p className="font-semibold text-foreground">{diagnostics?.redis_url_present ? 'configured' : 'missing'}</p>
             </div>
           </div>
         )}
@@ -1914,26 +1916,26 @@ function CommunicationsTab() {
         )}
         <div className="grid md:grid-cols-[1fr_1fr_auto] gap-3 items-end">
           <div>
-            <label className="block text-xs font-medium text-slate-500 mb-1">Preflight recipient email</label>
+            <label className="block text-xs font-medium text-muted mb-1">Preflight recipient email</label>
             <input
               value={preflightEmail}
               onChange={(e) => setPreflightEmail(e.target.value)}
               placeholder="optional@example.com"
-              className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-red-500"
+              className="w-full border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500"
             />
           </div>
           <div>
-            <label className="block text-xs font-medium text-slate-500 mb-1">Recipient name</label>
+            <label className="block text-xs font-medium text-muted mb-1">Recipient name</label>
             <input
               value={preflightName}
               onChange={(e) => setPreflightName(e.target.value)}
-              className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-red-500"
+              className="w-full border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500"
             />
           </div>
           <button
             onClick={() => preflightMutation.mutate()}
             disabled={preflightMutation.isPending}
-            className="px-4 py-2 rounded-lg bg-red-600 text-white text-sm font-semibold disabled:opacity-50"
+            className="px-4 py-2 rounded-lg bg-teal-600 text-white text-sm font-semibold disabled:opacity-50"
           >
             {preflightMutation.isPending ? 'Checking...' : 'Run preflight'}
           </button>
@@ -1946,26 +1948,26 @@ function CommunicationsTab() {
           </div>
         )}
         {preflightMutation.isError && (
-          <div className="mt-3 rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700">
+          <div className="mt-3 rounded-lg border border-teal-200 bg-teal-50 p-3 text-sm text-teal-700">
             {preflightMutation.error?.message || 'Preflight failed.'}
           </div>
         )}
       </div>
       {/* Communication log */}
-      <div className="glass-card rounded-xl border border-slate-200 overflow-hidden mb-8">
-        <div className="flex items-center justify-between px-4 py-3 border-b border-slate-200">
-          <p className="text-sm font-semibold text-slate-800">Communication Log</p>
+      <div className="glass-card rounded-xl border border-border overflow-hidden mb-8">
+        <div className="flex items-center justify-between px-4 py-3 border-b border-border">
+          <p className="text-sm font-semibold text-foreground">Communication Log</p>
           <div className="flex gap-2">
             <input
               value={templateFilter}
               onChange={(e) => setTemplateFilter(e.target.value)}
               placeholder="Filter by template…"
-              className="text-xs border border-slate-200 rounded-lg px-2.5 py-1.5 focus:outline-none w-36"
+              className="text-xs border border-border rounded-lg px-2.5 py-1.5 focus:outline-none w-36"
             />
             <select
               value={successFilter}
               onChange={(e) => setSuccessFilter(e.target.value)}
-              className="text-xs border border-slate-200 rounded-lg px-2.5 py-1.5 focus:outline-none"
+              className="text-xs border border-border rounded-lg px-2.5 py-1.5 focus:outline-none"
             >
               <option value="">All statuses</option>
               <option value="true">Sent</option>
@@ -1973,43 +1975,43 @@ function CommunicationsTab() {
             </select>
           </div>
         </div>
-        <div className="px-4 py-2 bg-white/30 border-b border-slate-200 text-[11px] text-slate-500">
+        <div className="px-4 py-2 bg-white/30 dark:bg-slate-900/30 border-b border-border text-[11px] text-muted">
           <span className="font-medium">Note:</span> Queued means the background worker accepted the job. Sent/Failed is recorded after provider response.
         </div>
 
         {isLoading
           ? <div className="p-4 space-y-2">{Array.from({ length: 5 }).map((_, i) => <div key={i} className="h-8 bg-slate-200 rounded animate-pulse" />)}</div>
           : !commsData?.logs?.length
-            ? <div className="text-center py-10 text-sm text-slate-500">No emails dispatched yet.</div>
+            ? <div className="text-center py-10 text-sm text-muted">No emails dispatched yet.</div>
             : <table className="w-full text-sm">
               <thead>
-                <tr className="bg-slate-50 text-left border-b border-slate-200">
+                <tr className="bg-surface text-left border-b border-border">
                   {['Recipient', 'Template', 'Stage', 'Status', 'Sent at'].map(h => (
-                    <th key={h} className="px-4 py-2.5 text-xs font-medium text-slate-500 uppercase tracking-wide">{h}</th>
+                    <th key={h} className="px-4 py-2.5 text-xs font-medium text-muted uppercase tracking-wide">{h}</th>
                   ))}
                 </tr>
               </thead>
               <tbody>
                 {commsData.logs.map((log) => (
-                  <tr key={log.id} className="border-b border-slate-100 hover:bg-slate-50">
+                  <tr key={log.id} className="border-b border-border hover:bg-surface">
                     <td className="px-4 py-2.5">
-                      <p className="text-slate-800 font-medium truncate max-w-[160px]">{log.recipient_email}</p>
+                      <p className="text-foreground font-medium truncate max-w-[160px]">{log.recipient_email}</p>
                     </td>
                     <td className="px-4 py-2.5"><Badge colour="gray">{log.template}</Badge></td>
-                    <td className="px-4 py-2.5 text-slate-500 text-xs capitalize">{log.stage}</td>
+                    <td className="px-4 py-2.5 text-muted text-xs capitalize">{log.stage}</td>
                     <td className="px-4 py-2.5">
                       <div className="flex flex-col gap-1">
                         <div>
                           <Badge colour={log.success ? 'green' : 'red'}>{log.success ? 'Sent' : 'Failed'}</Badge>
                         </div>
                         {!log.success && (
-                          <span className="text-[10px] text-red-600 leading-tight max-w-[200px] block truncate" title={log.error_message || "No provider error captured. Check Celery worker logs."}>
+                          <span className="text-[10px] text-teal-600 leading-tight max-w-[200px] block truncate" title={log.error_message || "No provider error captured. Check Celery worker logs."}>
                             {log.error_message || "No provider error captured. Check Celery worker logs."}
                           </span>
                         )}
                       </div>
                     </td>
-                    <td className="px-4 py-2.5 text-xs text-slate-500">
+                    <td className="px-4 py-2.5 text-xs text-muted">
                       {new Date(log.sent_at).toLocaleString()}
                     </td>
                   </tr>
@@ -2026,7 +2028,7 @@ function CommunicationsTab() {
           {/* Config */}
           <div className="space-y-4">
             <div>
-              <label className="block text-xs font-medium text-slate-500 mb-2">Draft type</label>
+              <label className="block text-xs font-medium text-muted mb-2">Draft type</label>
               <div className="flex flex-wrap gap-2">
                 {DRAFT_TYPES.map((t) => (
                   <button
@@ -2037,8 +2039,8 @@ function CommunicationsTab() {
                       setDraft(null)
                     }}
                     className={`text-xs px-3 py-1.5 rounded-lg border transition-colors ${draftType === t.value
-                        ? 'btn-primary text-white border-red-600'
-                        : 'border-slate-200 text-slate-600 hover:bg-slate-50'
+                        ? 'btn-primary text-white border-teal-600'
+                        : 'border-border text-muted hover:bg-surface'
                       }`}
                   >
                     {t.label}
@@ -2048,68 +2050,68 @@ function CommunicationsTab() {
             </div>
 
             <div>
-              <label className="block text-xs font-medium text-slate-500 mb-2">Tone</label>
+              <label className="block text-xs font-medium text-muted mb-2">Tone</label>
               <select
                 value={draftTone}
                 onChange={(e) => setDraftTone(e.target.value)}
-                className="text-sm border border-slate-200 rounded-lg px-3 py-2 focus:outline-none w-full"
+                className="text-sm border border-border rounded-lg px-3 py-2 focus:outline-none w-full"
               >
                 {['professional', 'encouraging', 'formal'].map(t => <option key={t} value={t}>{t}</option>)}
               </select>
             </div>
 
             <div>
-              <label className="block text-xs font-medium text-slate-500 mb-2">Context (JSON)</label>
+              <label className="block text-xs font-medium text-muted mb-2">Context (JSON)</label>
               <textarea
                 value={draftContext}
                 onChange={(e) => setDraftContext(e.target.value)}
                 rows={8}
-                className="w-full font-mono text-xs border border-slate-200 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-red-500 resize-none"
+                className="w-full font-mono text-xs border border-border rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-teal-500 resize-none"
               />
             </div>
 
             <button
               onClick={() => draftMutation.mutate()}
               disabled={draftMutation.isPending}
-              className="w-full flex items-center justify-center gap-2 text-sm px-4 py-2.5 rounded-lg btn-primary text-white hover:bg-red-700 disabled:opacity-50"
+              className="w-full flex items-center justify-center gap-2 text-sm px-4 py-2.5 rounded-lg btn-primary text-white hover:bg-teal-700 disabled:opacity-50"
             >
               {draftMutation.isPending ? <Loader2 size={14} className="animate-spin" /> : <Wand2 size={14} />}
               {draftMutation.isPending ? 'Generating…' : 'Generate Draft'}
             </button>
-            {draftMutation.isError && <p className="text-xs text-red-500">{draftMutation.error?.message}</p>}
+            {draftMutation.isError && <p className="text-xs text-teal-500">{draftMutation.error?.message}</p>}
           </div>
 
           {/* Preview */}
-          <div className="glass-card rounded-xl border border-slate-200 p-5 flex flex-col min-h-64">
+          <div className="glass-card rounded-xl border border-border p-5 flex flex-col min-h-64">
             {draft ? (
               <>
                 <div className="flex items-center justify-between mb-3">
-                  <p className="text-xs font-medium text-slate-500 uppercase tracking-wide">Draft Preview</p>
+                  <p className="text-xs font-medium text-muted uppercase tracking-wide">Draft Preview</p>
                   <button
                     onClick={() => {
                       navigator.clipboard.writeText(draft.body_text)
                       setCopied(true)
                       setTimeout(() => setCopied(false), 2000)
                     }}
-                    className="flex items-center gap-1 text-xs px-2 py-1 rounded border border-slate-200 hover:bg-slate-50"
+                    className="flex items-center gap-1 text-xs px-2 py-1 rounded border border-border hover:bg-surface"
                   >
                     <Copy size={12} /> {copied ? 'Copied!' : 'Copy'}
                   </button>
                 </div>
-                <div className="pb-3 mb-3 border-b border-slate-200">
-                  <p className="text-xs text-slate-500 mb-0.5">Subject</p>
-                  <p className="text-sm font-semibold text-slate-900">{draft.subject}</p>
+                <div className="pb-3 mb-3 border-b border-border">
+                  <p className="text-xs text-muted mb-0.5">Subject</p>
+                  <p className="text-sm font-semibold text-foreground">{draft.subject}</p>
                 </div>
                 <div className="flex-1 overflow-auto">
-                  <p className="text-xs text-slate-500 mb-1.5">Body</p>
-                  <p className="text-sm text-slate-800 whitespace-pre-wrap leading-relaxed">{draft.body_text}</p>
+                  <p className="text-xs text-muted mb-1.5">Body</p>
+                  <p className="text-sm text-foreground whitespace-pre-wrap leading-relaxed">{draft.body_text}</p>
                 </div>
-                <p className="mt-4 pt-3 border-t border-slate-200 text-xs text-amber-600">
+                <p className="mt-4 pt-3 border-t border-border text-xs text-amber-600">
                   ⚠ Review carefully before dispatching. This draft has not been sent.
                 </p>
               </>
             ) : (
-              <div className="flex-1 flex items-center justify-center text-slate-400">
+              <div className="flex-1 flex items-center justify-center text-muted">
                 <div className="text-center">
                   <Wand2 size={28} className="mx-auto mb-2 opacity-40" />
                   <p className="text-sm">Generate a draft to preview it here</p>
@@ -2207,14 +2209,14 @@ function MentorOpsTab() {
 
   const fieldFor = (key, label, type, placeholder) => (
     <div>
-      <label className="block text-xs font-medium text-slate-500 mb-1">{label}</label>
+      <label className="block text-xs font-medium text-muted mb-1">{label}</label>
       <input type={type} value={form[key]} onChange={e => setForm(f => ({ ...f, [key]: e.target.value }))}
-        placeholder={placeholder} className="w-full border border-slate-200 bg-white shadow-sm text-slate-900 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-red-500" />
+        placeholder={placeholder} className="w-full border border-border bg-background shadow-sm text-foreground rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500" />
     </div>
   )
 
   const riskBadge = (level) => {
-    const cls = { low: 'bg-green-50 border border-green-200 text-green-700', medium: 'bg-amber-50 text-amber-700 border border-amber-200', high: 'bg-red-50 text-red-700 border border-red-200', critical: 'bg-red-100 text-red-800 border border-red-400 font-bold' }[level] ?? 'bg-slate-100 text-slate-600'
+    const cls = { low: 'bg-green-50 border border-green-200 text-green-700', medium: 'bg-amber-50 text-amber-700 border border-amber-200', high: 'bg-teal-50 text-teal-700 border border-teal-200', critical: 'bg-teal-100 text-teal-800 border border-teal-400 font-bold' }[level] ?? 'bg-surface text-muted'
     return <span className={`inline-flex items-center text-xs font-medium px-2 py-0.5 rounded-full ${cls}`}>{level}</span>
   }
 
@@ -2228,8 +2230,8 @@ function MentorOpsTab() {
           { label: 'Missing daily update', value: ops.teams_missing_daily_update, icon: MessageSquare, colour: ops.teams_missing_daily_update > 0 ? 'red' : 'teal' },
           { label: 'Low progress teams', value: ops.low_progress_teams, icon: BarChart2, colour: ops.low_progress_teams > 0 ? 'red' : 'teal' },
           ].map(({ label, value, icon: Icon, colour }) => (
-            <div key={label} className="glass-card rounded-xl border border-slate-200 p-4">
-              <div className="flex items-center gap-2 mb-1"><Icon size={14} className="text-slate-500" /><p className="text-xs font-medium text-slate-500 uppercase tracking-wide">{label}</p></div>
+            <div key={label} className="glass-card rounded-xl border border-border p-4">
+              <div className="flex items-center gap-2 mb-1"><Icon size={14} className="text-muted" /><p className="text-xs font-medium text-muted uppercase tracking-wide">{label}</p></div>
               <p className={`text-2xl font-bold px-2 py-0.5 rounded inline-block bg-${colour}-50 text-${colour}-700 border border-${colour}-200`}>{value ?? '—'}</p>
             </div>
           ))}
@@ -2237,27 +2239,27 @@ function MentorOpsTab() {
 
         {/* Mentors list */}
         <div className="flex items-center justify-between mb-5">
-          <h2 className="text-base font-semibold text-slate-900">Mentors</h2>
+          <h2 className="text-base font-semibold text-foreground">Mentors</h2>
           <div className="flex items-center gap-2">
-            <button onClick={() => mentorApi.downloadTemplate()} className="text-sm px-3 py-1.5 rounded-lg border border-slate-200 text-slate-600 hover:bg-slate-50">CSV Template</button>
-            <button onClick={() => mentorApi.downloadExport()} className="text-sm px-3 py-1.5 rounded-lg border border-slate-200 text-slate-600 hover:bg-slate-50">Export</button>
+            <button onClick={() => mentorApi.downloadTemplate()} className="text-sm px-3 py-1.5 rounded-lg border border-border text-muted hover:bg-surface">CSV Template</button>
+            <button onClick={() => mentorApi.downloadExport()} className="text-sm px-3 py-1.5 rounded-lg border border-border text-muted hover:bg-surface">Export</button>
             <button
               onClick={() => setShowAutoAssign(true)}
-              className="flex items-center gap-1.5 text-sm px-3 py-1.5 rounded-lg border border-red-200 text-red-700 hover:bg-red-50"
+              className="flex items-center gap-1.5 text-sm px-3 py-1.5 rounded-lg border border-teal-200 text-teal-700 hover:bg-teal-50"
             >
               <Wand2 size={14} /> Auto-assign
             </button>
-            <button onClick={() => setShowForm(s => !s)} className="flex items-center gap-1.5 text-sm px-3 py-1.5 rounded-lg btn-primary text-white hover:bg-red-700">
+            <button onClick={() => setShowForm(s => !s)} className="flex items-center gap-1.5 text-sm px-3 py-1.5 rounded-lg btn-primary text-white hover:bg-teal-700">
               <Plus size={14} /> Add Mentor
             </button>
           </div>
         </div>
 
         {/* Bulk Import */}
-        <div className="glass-card rounded-xl border border-slate-200 p-4 mb-5 flex flex-col gap-3">
+        <div className="glass-card rounded-xl border border-border p-4 mb-5 flex flex-col gap-3">
           <div className="flex items-center gap-4">
             <input type="file" accept=".csv" onChange={(e) => setImportFile(e.target.files[0])} className="text-sm" />
-            <label className="flex items-center gap-2 text-sm text-slate-700">
+            <label className="flex items-center gap-2 text-sm text-foreground">
               <input type="checkbox" checked={importUpsert} onChange={e => setImportUpsert(e.target.checked)} />
               Update existing (upsert)
             </label>
@@ -2270,16 +2272,16 @@ function MentorOpsTab() {
             </button>
           </div>
           {importSummary && (
-            <div className="bg-slate-50 p-3 rounded-lg text-sm border border-slate-200">
-              <p className="font-semibold text-slate-800">Import Summary</p>
-              <div className="flex gap-4 mt-1 mb-2 text-slate-600">
+            <div className="bg-surface p-3 rounded-lg text-sm border border-border">
+              <p className="font-semibold text-foreground">Import Summary</p>
+              <div className="flex gap-4 mt-1 mb-2 text-muted">
                 <span>Total: {importSummary.total_rows}</span>
                 <span className="text-emerald-600">Created: {importSummary.created}</span>
-                <span className="text-red-600">Updated: {importSummary.updated}</span>
-                <span className="text-red-600">Errors: {importSummary.errors}</span>
+                <span className="text-teal-600">Updated: {importSummary.updated}</span>
+                <span className="text-teal-600">Errors: {importSummary.errors}</span>
               </div>
               {importSummary.errors > 0 && (
-                <ul className="text-xs text-red-600 list-disc pl-4 space-y-1">
+                <ul className="text-xs text-teal-600 list-disc pl-4 space-y-1">
                   {importSummary.results.filter(r => r.status === 'error').map((r, idx) => (
                     <li key={idx}>Row {r.row_number} ({r.email || 'No email'}): {r.message}</li>
                   ))}
@@ -2290,8 +2292,8 @@ function MentorOpsTab() {
         </div>
 
         {showForm && (
-          <div className="glass-card rounded-xl border border-slate-200 p-5 mb-5">
-            <p className="text-sm font-semibold text-slate-800 mb-4">New Mentor</p>
+          <div className="glass-card rounded-xl border border-border p-5 mb-5">
+            <p className="text-sm font-semibold text-foreground mb-4">New Mentor</p>
             <div className="grid grid-cols-2 gap-3 mb-3">
               {fieldFor('first_name', 'First name', 'text', 'Dr. Priya')}
               {fieldFor('last_name', 'Last name', 'text', 'Kumar')}
@@ -2300,33 +2302,33 @@ function MentorOpsTab() {
             </div>
             <div className="mb-3">{fieldFor('expertise_areas', 'Expertise (comma-separated)', 'text', 'embedded systems, signal processing')}</div>
             <div className="flex gap-2 justify-end">
-              <button onClick={() => setShowForm(false)} className="text-sm px-3 py-1.5 rounded-lg border border-slate-200 text-slate-600 hover:bg-slate-50">Cancel</button>
+              <button onClick={() => setShowForm(false)} className="text-sm px-3 py-1.5 rounded-lg border border-border text-muted hover:bg-surface">Cancel</button>
               <button onClick={() => createMutation.mutate()} disabled={createMutation.isPending || !form.email}
                 className="flex items-center gap-1.5 text-sm px-4 py-1.5 rounded-lg btn-primary disabled:opacity-50">
                 {createMutation.isPending ? <Loader2 size={14} className="animate-spin" /> : <Check size={14} />} Save
               </button>
             </div>
-            {createMutation.isError && <p className="mt-2 text-xs text-red-500">{createMutation.error?.message}</p>}
+            {createMutation.isError && <p className="mt-2 text-xs text-teal-500">{createMutation.error?.message}</p>}
           </div>
         )}
 
         {isLoading
           ? Array.from({ length: 3 }).map((_, i) => <div key={i} className="h-14 bg-slate-200 rounded-xl animate-pulse mb-3" />)
           : (
-            <div className="glass-card rounded-xl border border-slate-200 overflow-hidden mb-8">
+            <div className="glass-card rounded-xl border border-border overflow-hidden mb-8">
               {(!mentors.length)
-                ? <div className="text-center py-12 text-slate-500 text-sm">No mentors registered yet.</div>
+                ? <div className="text-center py-12 text-muted text-sm">No mentors registered yet.</div>
                 : mentors.map(m => {
                   const activeAssignmentsForMentor = assignments.filter(
                     a => a.mentor_id === m.id && a.is_active !== false
                   ).length
                   const effectiveAssignedTeamCount = activeAssignmentsForMentor || m.assigned_team_count || 0
                   return (
-                    <div key={m.id} className="flex items-center gap-4 px-4 py-3 border-b border-slate-200 last:border-0 hover:bg-slate-50">
+                    <div key={m.id} className="flex items-center gap-4 px-4 py-3 border-b border-border last:border-0 hover:bg-surface">
                       <div className="w-9 h-9 rounded-full bg-teal-50 text-teal-700 border border-teal-200 font-semibold text-sm flex items-center justify-center shrink-0">{m.first_name[0]}</div>
                       <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium text-slate-900">{m.first_name} {m.last_name}</p>
-                        <p className="text-xs text-slate-500">{m.email}{m.organization ? ` · ${m.organization}` : ''}</p>
+                        <p className="text-sm font-medium text-foreground">{m.first_name} {m.last_name}</p>
+                        <p className="text-xs text-muted">{m.email}{m.organization ? ` · ${m.organization}` : ''}</p>
                         {m.expertise_areas?.length > 0 && (
                           <div className="flex gap-1 mt-1 flex-wrap">
                             {m.expertise_areas.map(a => <Badge key={a} colour="gray">{a}</Badge>)}
@@ -2334,21 +2336,21 @@ function MentorOpsTab() {
                         )}
                       </div>
                       <div className="flex items-center gap-2 shrink-0">
-                        <Badge colour="red">{effectiveAssignedTeamCount} teams</Badge>
+                        <Badge colour="teal">{effectiveAssignedTeamCount} teams</Badge>
                         <Badge colour={m.is_active ? 'teal' : 'red'}>{m.is_active ? 'Active' : 'Inactive'}</Badge>
                         {m.access_link_sent && <Badge colour="green"><Check size={10} /> Link sent</Badge>}
                       </div>
                       <div className="flex gap-2 shrink-0 items-center">
                         {effectiveAssignedTeamCount > 0 ? (
                           <button onClick={() => sendLinkMutation.mutate(m.id)} disabled={sendLinkMutation.isPending}
-                            title={m.access_link_sent ? "Send access link again" : "Send access link"} className="flex items-center gap-1 text-xs px-2.5 py-1.5 rounded-lg border border-red-200 text-red-600 hover:bg-red-50 border border-red-100 disabled:opacity-50">
+                            title={m.access_link_sent ? "Send access link again" : "Send access link"} className="flex items-center gap-1 text-xs px-2.5 py-1.5 rounded-lg border border-teal-200 text-teal-600 hover:bg-teal-50 border border-teal-100 disabled:opacity-50">
                             {sendLinkMutation.isPending ? <Loader2 size={12} className="animate-spin" /> : <Send size={12} />} {m.access_link_sent ? "Resend Link" : "Send Link"}
                           </button>
                         ) : (
                           <span className="text-[10px] text-amber-500/70 mr-1 italic">Assign to a team first</span>
                         )}
                         <button onClick={() => { if (window.confirm('Deactivate this mentor?')) deleteMutation.mutate(m.id) }}
-                          className="p-1.5 text-slate-600 hover:text-red-500 rounded transition-colors"><Trash2 size={14} /></button>
+                          className="p-1.5 text-muted hover:text-teal-500 rounded transition-colors"><Trash2 size={14} /></button>
                       </div>
                     </div>
                   )
@@ -2360,56 +2362,56 @@ function MentorOpsTab() {
 
         {/* Assignments */}
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-base font-semibold text-slate-900">Assignments</h2>
+          <h2 className="text-base font-semibold text-foreground">Assignments</h2>
           <button onClick={() => setShowAssignForm(s => !s)} className="flex items-center gap-1.5 text-sm px-3 py-1.5 rounded-lg btn-secondary">
             <Plus size={14} /> Assign
           </button>
         </div>
 
         {showAssignForm && (
-          <div className="glass-card rounded-xl border border-slate-200 p-5 mb-5">
-            <p className="text-sm font-semibold text-slate-800 mb-4">Assign Mentor to Team</p>
+          <div className="glass-card rounded-xl border border-border p-5 mb-5">
+            <p className="text-sm font-semibold text-foreground mb-4">Assign Mentor to Team</p>
             <div className="grid grid-cols-2 gap-3 mb-3">
               <div>
-                <label className="block text-xs font-medium text-slate-500 mb-1">Mentor</label>
+                <label className="block text-xs font-medium text-muted mb-1">Mentor</label>
                 <select value={assignForm.mentor_id} onChange={e => setAssignForm(f => ({ ...f, mentor_id: e.target.value }))}
-                  className="w-full border border-slate-200 bg-white shadow-sm text-slate-900 rounded-lg px-3 py-2 text-sm focus:outline-none">
+                  className="w-full border border-border bg-background shadow-sm text-foreground rounded-lg px-3 py-2 text-sm focus:outline-none">
                   <option value="">-- select mentor --</option>
                   {mentors.filter(m => m.is_active).map(m => <option key={m.id} value={m.id}>{m.first_name} {m.last_name}</option>)}
                 </select>
               </div>
               <div>
-                <label className="block text-xs font-medium text-slate-500 mb-1">Team</label>
+                <label className="block text-xs font-medium text-muted mb-1">Team</label>
                 <select value={assignForm.team_id} onChange={e => setAssignForm(f => ({ ...f, team_id: e.target.value }))}
-                  className="w-full border border-slate-200 bg-white shadow-sm text-slate-900 rounded-lg px-3 py-2 text-sm focus:outline-none">
+                  className="w-full border border-border bg-background shadow-sm text-foreground rounded-lg px-3 py-2 text-sm focus:outline-none">
                   <option value="">-- select team --</option>
                   {allTeams.filter(t => t.is_approved && getTeamId(t)).map(t => <option key={getTeamId(t)} value={getTeamId(t)}>{getTeamName(t)}</option>)}
                 </select>
               </div>
             </div>
             <div className="flex gap-2 justify-end">
-              <button onClick={() => setShowAssignForm(false)} className="text-sm px-3 py-1.5 rounded-lg border border-slate-200 text-slate-600 hover:bg-slate-50">Cancel</button>
+              <button onClick={() => setShowAssignForm(false)} className="text-sm px-3 py-1.5 rounded-lg border border-border text-muted hover:bg-surface">Cancel</button>
               <button onClick={() => assignMutation.mutate()} disabled={assignMutation.isPending || !assignForm.mentor_id || !assignForm.team_id}
                 className="flex items-center gap-1.5 text-sm px-4 py-1.5 rounded-lg btn-secondary disabled:opacity-50">
                 {assignMutation.isPending ? <Loader2 size={14} className="animate-spin" /> : <Check size={14} />} Assign
               </button>
             </div>
-            {assignMutation.isError && <p className="mt-2 text-xs text-red-500">{assignMutation.error?.message}</p>}
+            {assignMutation.isError && <p className="mt-2 text-xs text-teal-500">{assignMutation.error?.message}</p>}
           </div>
         )}
 
         {assignments.length > 0 && (
-          <div className="glass-card rounded-xl border border-slate-200 overflow-hidden mb-8">
+          <div className="glass-card rounded-xl border border-border overflow-hidden mb-8">
             {assignments.map(a => (
-              <div key={a.id} className="flex items-center gap-4 px-4 py-3 border-b border-slate-200 last:border-0 hover:bg-slate-50">
+              <div key={a.id} className="flex items-center gap-4 px-4 py-3 border-b border-border last:border-0 hover:bg-surface">
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-slate-900">{a.mentor_name} → {a.team_name}</p>
-                  <p className="text-xs text-slate-500">Stage: {a.stage}</p>
+                  <p className="text-sm font-medium text-foreground">{a.mentor_name} → {a.team_name}</p>
+                  <p className="text-xs text-muted">Stage: {a.stage}</p>
                 </div>
                 <Badge colour={a.is_active ? 'teal' : 'gray'}>{a.is_active ? 'Active' : 'Inactive'}</Badge>
                 {a.is_active && (
                   <button onClick={() => { if (window.confirm('Unassign?')) unassignMutation.mutate(a.id) }}
-                    className="text-xs px-2 py-1 rounded border border-red-200 text-red-600 hover:bg-red-50">Unassign</button>
+                    className="text-xs px-2 py-1 rounded border border-teal-200 text-teal-600 hover:bg-teal-50">Unassign</button>
                 )}
               </div>
             ))}
@@ -2419,16 +2421,16 @@ function MentorOpsTab() {
         {/* Suggestions */}
         {suggestions.length > 0 && (
           <div className="mb-8">
-            <h2 className="text-base font-semibold text-slate-900 mb-4 flex items-center gap-2"><Wand2 size={16} className="text-red-500" /> Skill-Gap Mentor Suggestions</h2>
+            <h2 className="text-base font-semibold text-foreground mb-4 flex items-center gap-2"><Wand2 size={16} className="text-teal-500" /> Skill-Gap Mentor Suggestions</h2>
             <div className="space-y-3">
               {suggestions.map(s => (
-                <div key={String(s.team_id)} className="glass-card rounded-xl border border-slate-200 p-4">
-                  <p className="text-sm font-semibold text-slate-900 mb-1">{s.team_name}</p>
-                  <p className="text-xs text-slate-500 mb-2">{s.reason}</p>
+                <div key={String(s.team_id)} className="glass-card rounded-xl border border-border p-4">
+                  <p className="text-sm font-semibold text-foreground mb-1">{s.team_name}</p>
+                  <p className="text-xs text-muted mb-2">{s.reason}</p>
                   {s.suggested_mentors?.map(c => (
-                    <div key={String(c.mentor_id)} className="flex items-center gap-2 text-xs text-slate-600 mb-1">
+                    <div key={String(c.mentor_id)} className="flex items-center gap-2 text-xs text-muted mb-1">
                       <span className="font-medium flex-1">{c.mentor_name}</span>
-                      <Badge colour="red">load: {c.current_load}</Badge>
+                      <Badge colour="teal">load: {c.current_load}</Badge>
                       <Badge colour="teal">score: {c.match_score}</Badge>
                       <button
                         onClick={() => assignMutation.mutate({ mentor_id: c.mentor_id, team_id: getTeamId(s) })}
@@ -2448,9 +2450,9 @@ function MentorOpsTab() {
         {/* Risk table */}
         {riskTeams.length > 0 && (
           <div className="mb-8">
-            <h2 className="text-base font-semibold text-slate-900 mb-4 flex items-center gap-2"><Shield size={16} className="text-red-500" /> Risk Scores</h2>
-            <div className="glass-card rounded-xl border border-slate-200 overflow-hidden">
-              <div className="grid grid-cols-12 bg-slate-50 border-b border-slate-200 px-4 py-3 text-xs font-medium text-slate-500 uppercase tracking-wide">
+            <h2 className="text-base font-semibold text-foreground mb-4 flex items-center gap-2"><Shield size={16} className="text-teal-500" /> Risk Scores</h2>
+            <div className="glass-card rounded-xl border border-border overflow-hidden">
+              <div className="grid grid-cols-12 bg-surface border-b border-border px-4 py-3 text-xs font-medium text-muted uppercase tracking-wide">
                 <div className="col-span-3">Team</div>
                 <div className="col-span-2">Mentor</div>
                 <div className="col-span-1">Score</div>
@@ -2459,13 +2461,13 @@ function MentorOpsTab() {
                 <div className="col-span-4">Reasons</div>
               </div>
               {riskTeams.map(t => (
-                <div key={String(t.team_id)} className="grid grid-cols-12 items-center px-4 py-3 border-b border-slate-200 text-sm last:border-0">
-                  <div className="col-span-3 font-medium text-slate-900 truncate">{t.team_name}</div>
-                  <div className="col-span-2 text-slate-500 truncate">{t.mentor_name ?? '—'}</div>
-                  <div className="col-span-1 font-bold text-slate-800">{t.risk_score}</div>
+                <div key={String(t.team_id)} className="grid grid-cols-12 items-center px-4 py-3 border-b border-border text-sm last:border-0">
+                  <div className="col-span-3 font-medium text-foreground truncate">{t.team_name}</div>
+                  <div className="col-span-2 text-muted truncate">{t.mentor_name ?? '—'}</div>
+                  <div className="col-span-1 font-bold text-foreground">{t.risk_score}</div>
                   <div className="col-span-1">{riskBadge(t.risk_level)}</div>
-                  <div className="col-span-1 text-slate-600">{t.latest_progress_score?.toFixed(1) ?? '—'}</div>
-                  <div className="col-span-4 text-xs text-slate-500">{t.reasons?.join(', ') || '—'}</div>
+                  <div className="col-span-1 text-muted">{t.latest_progress_score?.toFixed(1) ?? '—'}</div>
+                  <div className="col-span-4 text-xs text-muted">{t.reasons?.join(', ') || '—'}</div>
                 </div>
               ))}
             </div>
@@ -2485,7 +2487,7 @@ function MentorOpsTab() {
               ) : (
                 <>
                   <p className="font-semibold">{reminderMutation.data?.message}</p>
-                  <ul className="mt-1 space-y-0.5 text-[10px] text-slate-500">
+                  <ul className="mt-1 space-y-0.5 text-[10px] text-muted">
                     <li>• queued: {reminderMutation.data?.queued} (total processed)</li>
                     <li>• sent: {reminderMutation.data?.sent} (real SendGrid email sent)</li>
                     <li>• simulated: {reminderMutation.data?.simulated} (mock-mode email logged)</li>
@@ -2499,11 +2501,11 @@ function MentorOpsTab() {
 
         {/* AI Summary */}
         <div className="mb-6">
-          <h2 className="text-base font-semibold text-slate-900 mb-4 flex items-center gap-2"><Wand2 size={16} className="text-red-500" /> AI Team Summary</h2>
+          <h2 className="text-base font-semibold text-foreground mb-4 flex items-center gap-2"><Wand2 size={16} className="text-teal-500" /> AI Team Summary</h2>
           <div className="flex gap-2 items-end mb-4">
             <div className="flex-1">
               <select value={aiTeamId} onChange={e => setAiTeamId(e.target.value)}
-                className="w-full border border-slate-200 bg-white shadow-sm text-slate-900 rounded-lg px-3 py-2 text-sm focus:outline-none">
+                className="w-full border border-border bg-background shadow-sm text-foreground rounded-lg px-3 py-2 text-sm focus:outline-none">
                 <option value="">-- select team --</option>
                 {allTeams.filter(t => t.is_approved && getTeamId(t)).map(t => <option key={getTeamId(t)} value={getTeamId(t)}>{getTeamName(t)}</option>)}
               </select>
@@ -2514,17 +2516,17 @@ function MentorOpsTab() {
             </button>
           </div>
           {aiResult && (
-            <div className="glass-card rounded-xl border border-slate-200 p-5">
+            <div className="glass-card rounded-xl border border-border p-5">
               <div className="flex items-center gap-2 mb-3">
-                <p className="text-sm font-semibold text-slate-900">{aiResult.team_name}</p>
+                <p className="text-sm font-semibold text-foreground">{aiResult.team_name}</p>
                 <Badge colour={aiResult.tone === 'urgent' ? 'red' : aiResult.tone === 'watchlist' ? 'amber' : 'teal'}>{aiResult.tone}</Badge>
               </div>
-              <p className="text-sm text-slate-800 leading-relaxed mb-2">{aiResult.summary}</p>
-              {aiResult.recommended_focus && <p className="text-xs text-red-600 mb-1"><strong>Focus:</strong> {aiResult.recommended_focus}</p>}
-              {aiResult.committee_note && <p className="text-xs text-slate-500"><strong>Committee note:</strong> {aiResult.committee_note}</p>}
+              <p className="text-sm text-foreground leading-relaxed mb-2">{aiResult.summary}</p>
+              {aiResult.recommended_focus && <p className="text-xs text-teal-600 mb-1"><strong>Focus:</strong> {aiResult.recommended_focus}</p>}
+              {aiResult.committee_note && <p className="text-xs text-muted"><strong>Committee note:</strong> {aiResult.committee_note}</p>}
             </div>
           )}
-          {aiMutation.isError && <p className="text-xs text-red-500 mt-2">{aiMutation.error?.message}</p>}
+          {aiMutation.isError && <p className="text-xs text-teal-500 mt-2">{aiMutation.error?.message}</p>}
         </div>
       </div>
 
@@ -2554,8 +2556,8 @@ function HealthTab() {
   })
 
   const riskColour = {
-    critical: { bg: 'bg-red-50', border: 'border-red-300', badge: 'bg-red-100 text-red-700', dot: 'bg-red-500' },
-    high: { bg: 'bg-orange-50', border: 'border-orange-300', badge: 'bg-orange-100 text-orange-700', dot: 'bg-orange-500' },
+    critical: { bg: 'bg-teal-50', border: 'border-teal-300', badge: 'bg-teal-100 text-teal-700', dot: 'bg-teal-500' },
+    high: { bg: 'bg-teal-50', border: 'border-teal-300', badge: 'bg-teal-100 text-teal-700', dot: 'bg-teal-500' },
     medium: { bg: 'bg-yellow-50', border: 'border-yellow-200', badge: 'bg-yellow-100 text-yellow-700', dot: 'bg-yellow-400' },
     low: { bg: 'bg-green-50', border: 'border-green-200', badge: 'bg-green-100 text-green-700', dot: 'bg-green-500' },
   }
@@ -2566,7 +2568,7 @@ function HealthTab() {
   }
 
   if (isLoading) return (
-    <div className="flex items-center gap-2 text-slate-500 py-10 justify-center">
+    <div className="flex items-center gap-2 text-muted py-10 justify-center">
       <Loader2 size={18} className="animate-spin" /> Loading health data...
     </div>
   )
@@ -2575,15 +2577,15 @@ function HealthTab() {
     <div className="space-y-5">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-xl font-bold text-slate-800">Team Health Dashboard</h2>
-          <p className="text-sm text-slate-500 mt-0.5">
+          <h2 className="text-xl font-bold text-foreground">Team Health Dashboard</h2>
+          <p className="text-sm text-muted mt-0.5">
             Risk scores based on evaluation status, daily updates, and member activity.
           </p>
         </div>
         <button
           onClick={handleRefresh}
           disabled={isRefetching}
-          className="flex items-center gap-2 bg-slate-100 hover:bg-slate-200 text-slate-700 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors"
+          className="flex items-center gap-2 bg-surface hover:bg-slate-200 text-foreground px-3 py-1.5 rounded-lg text-sm font-medium transition-colors"
         >
           {isRefetching ? <Loader2 size={14} className="animate-spin" /> : <Activity size={14} />}
           Refresh
@@ -2601,8 +2603,8 @@ function HealthTab() {
                   <span className={`w-1.5 h-1.5 rounded-full ${c.dot}`} />
                   {level}
                 </div>
-                <p className="text-2xl font-bold text-slate-800">{count}</p>
-                <p className="text-xs text-slate-500">team{count !== 1 ? 's' : ''}</p>
+                <p className="text-2xl font-bold text-foreground">{count}</p>
+                <p className="text-xs text-muted">team{count !== 1 ? 's' : ''}</p>
               </div>
             )
           })}
@@ -2610,7 +2612,7 @@ function HealthTab() {
       )}
 
       {(!teams || teams.length === 0) && (
-        <div className="text-center py-16 text-slate-400">
+        <div className="text-center py-16 text-muted">
           <Activity size={40} className="mx-auto mb-3 opacity-30" />
           <p className="font-medium">No approved teams yet.</p>
           <p className="text-sm mt-1">Health scores appear once teams are approved.</p>
@@ -2625,19 +2627,19 @@ function HealthTab() {
               <div className="flex items-start justify-between gap-3">
                 <div className="flex-1">
                   <div className="flex items-center gap-3 mb-2">
-                    <span className="font-semibold text-slate-800">{team.team_name}</span>
+                    <span className="font-semibold text-foreground">{team.team_name}</span>
                     <span className={`${c.badge} px-2 py-0.5 rounded-full text-xs font-semibold uppercase`}>
                       {team.risk_level}
                     </span>
-                    <span className="text-xs text-slate-400">{team.member_count} member{team.member_count !== 1 ? 's' : ''}</span>
+                    <span className="text-xs text-muted">{team.member_count} member{team.member_count !== 1 ? 's' : ''}</span>
                   </div>
                   <div className="space-y-1">
                     {team.signals.map((s, i) => (
                       <div key={i} className="flex items-start gap-2 text-sm">
-                        <span className={`mt-1 w-1.5 h-1.5 rounded-full flex-shrink-0 ${s.severity === 'high' ? 'bg-red-500' : 'bg-yellow-500'}`} />
+                        <span className={`mt-1 w-1.5 h-1.5 rounded-full flex-shrink-0 ${s.severity === 'high' ? 'bg-teal-500' : 'bg-yellow-500'}`} />
                         <span>
-                          <span className="font-medium text-slate-700">{s.label}</span>
-                          {s.detail && <span className="text-slate-500"> — {s.detail}</span>}
+                          <span className="font-medium text-foreground">{s.label}</span>
+                          {s.detail && <span className="text-muted"> — {s.detail}</span>}
                         </span>
                       </div>
                     ))}
@@ -2647,10 +2649,10 @@ function HealthTab() {
                   </div>
                 </div>
                 <div className="text-right flex-shrink-0">
-                  <p className="text-2xl font-bold text-slate-800">{team.risk_score}</p>
-                  <p className="text-xs text-slate-400">risk score</p>
+                  <p className="text-2xl font-bold text-foreground">{team.risk_score}</p>
+                  <p className="text-xs text-muted">risk score</p>
                   {team.last_update && (
-                    <p className="text-xs text-slate-400 mt-1">Last update: {team.last_update}</p>
+                    <p className="text-xs text-muted mt-1">Last update: {team.last_update}</p>
                   )}
                 </div>
               </div>
@@ -2725,8 +2727,8 @@ function AnomalyTab() {
 
   if (isLoading) {
     return (
-      <div className="flex flex-col items-center justify-center py-20 text-slate-500">
-        <Loader2 size={32} className="animate-spin mb-4 text-red-500" />
+      <div className="flex flex-col items-center justify-center py-20 text-muted">
+        <Loader2 size={32} className="animate-spin mb-4 text-teal-500" />
         <p>Scanning for anomalies...</p>
       </div>
     )
@@ -2740,10 +2742,10 @@ function AnomalyTab() {
       {/* Stats Header */}
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h2 className="text-xl font-bold text-slate-900 flex items-center gap-2">
-            <Activity className="text-red-600" /> Anomaly Detector Scanner
+          <h2 className="text-xl font-bold text-foreground flex items-center gap-2">
+            <Activity className="text-teal-600" /> Anomaly Detector Scanner
           </h2>
-          <p className="text-sm text-slate-500 mt-1">Real-time monitoring of judge evaluations and score distributions.</p>
+          <p className="text-sm text-muted mt-1">Real-time monitoring of judge evaluations and score distributions.</p>
         </div>
 
         {totalFlagged > 0 && (
@@ -2760,29 +2762,29 @@ function AnomalyTab() {
 
       {/* Stats Cards & Analytics */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
-        <div className="glass-card p-5 rounded-xl border border-slate-200">
-          <p className="text-xs font-medium text-slate-500 uppercase mb-1">Total Flagged Teams</p>
-          <p className="text-3xl font-bold text-red-600">{totalFlagged}</p>
+        <div className="glass-card p-5 rounded-xl border border-border">
+          <p className="text-xs font-medium text-muted uppercase mb-1">Total Flagged Teams</p>
+          <p className="text-3xl font-bold text-teal-600">{totalFlagged}</p>
 
-          <div className="mt-4 pt-4 border-t border-slate-200">
-            <p className="text-xs text-slate-500 mb-2">Historical Frequency</p>
+          <div className="mt-4 pt-4 border-t border-border">
+            <p className="text-xs text-muted mb-2">Historical Frequency</p>
             <div className="flex items-end h-8 gap-1">
               {[2, 5, 3, 7, 4, 1, totalFlagged].map((val, idx) => (
-                <div key={idx} className="flex-1 bg-red-500/20 rounded-t" style={{ height: `${Math.max(10, val * 10)}%` }}>
-                  {idx === 6 && <div className="w-full h-full bg-red-500/50 rounded-t border-t-2 border-red-400" />}
+                <div key={idx} className="flex-1 bg-teal-500/20 rounded-t" style={{ height: `${Math.max(10, val * 10)}%` }}>
+                  {idx === 6 && <div className="w-full h-full bg-teal-500/50 rounded-t border-t-2 border-teal-400" />}
                 </div>
               ))}
             </div>
           </div>
         </div>
 
-        <div className="glass-card p-5 rounded-xl border border-slate-200 flex flex-col justify-between">
+        <div className="glass-card p-5 rounded-xl border border-border flex flex-col justify-between">
           <div>
-            <p className="text-xs font-medium text-slate-500 uppercase mb-1">Sweep Status</p>
+            <p className="text-xs font-medium text-muted uppercase mb-1">Sweep Status</p>
             <p className="text-xl font-bold text-teal-600 flex items-center gap-2 mt-1">
               <span className="w-2.5 h-2.5 rounded-full bg-teal-400 animate-pulse"></span> Active Pipeline
             </p>
-            <p className="text-xs text-slate-500 mt-2">Checking every 15s</p>
+            <p className="text-xs text-muted mt-2">Checking every 15s</p>
           </div>
           <div className="mt-4">
             <div className="w-full bg-slate-200 rounded-full h-1.5 mb-1">
@@ -2791,12 +2793,12 @@ function AnomalyTab() {
           </div>
         </div>
 
-        <div className="glass-card p-5 rounded-xl border border-slate-200 flex flex-col justify-between">
+        <div className="glass-card p-5 rounded-xl border border-border flex flex-col justify-between">
           <div>
-            <p className="text-xs font-medium text-slate-500 uppercase mb-1">AI Confidence Score</p>
-            <p className="text-3xl font-bold text-red-600">98.2%</p>
+            <p className="text-xs font-medium text-muted uppercase mb-1">AI Confidence Score</p>
+            <p className="text-3xl font-bold text-teal-600">98.2%</p>
           </div>
-          <p className="text-xs text-slate-500 leading-relaxed mt-3">
+          <p className="text-xs text-muted leading-relaxed mt-3">
             Detector model operates with high precision. Overriding a flag will permanently unblock the team's progression.
           </p>
         </div>
@@ -2804,25 +2806,25 @@ function AnomalyTab() {
 
       {/* Flagged Cards List */}
       <div className="space-y-4">
-        <h3 className="text-lg font-semibold text-slate-900 mb-2">Flagged Evaluations Pipeline</h3>
+        <h3 className="text-lg font-semibold text-foreground mb-2">Flagged Evaluations Pipeline</h3>
         {flaggedTeams.length === 0 ? (
-          <div className="glass-card py-16 text-center rounded-xl border border-slate-200">
+          <div className="glass-card py-16 text-center rounded-xl border border-border">
             <CheckSquare size={48} className="mx-auto text-teal-500/50 mb-3" />
-            <p className="text-slate-900 font-medium">No Anomalies Detected</p>
-            <p className="text-sm text-slate-500">All scorecards are currently within expected variance thresholds.</p>
+            <p className="text-foreground font-medium">No Anomalies Detected</p>
+            <p className="text-sm text-muted">All scorecards are currently within expected variance thresholds.</p>
           </div>
         ) : (
           flaggedTeams.map(team => (
-            <div key={team.id} className="glass-card p-5 rounded-xl border border-red-200 flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div key={team.id} className="glass-card p-5 rounded-xl border border-teal-200 flex flex-col md:flex-row md:items-center justify-between gap-4">
               <div className="flex-1">
                 <div className="flex items-center gap-2 mb-2">
-                  <h4 className="font-bold text-slate-900 text-lg">{team.team_name}</h4>
-                  <Badge colour="red"><AlertTriangle size={12} /> Flagged</Badge>
+                  <h4 className="font-bold text-foreground text-lg">{team.team_name}</h4>
+                  <Badge colour="teal"><AlertTriangle size={12} /> Flagged</Badge>
                 </div>
-                <div className="text-sm text-slate-600 space-y-1">
-                  <p><span className="text-slate-500">Weighted Score:</span> {team.weighted_total?.toFixed(2) || team.total_score}</p>
+                <div className="text-sm text-muted space-y-1">
+                  <p><span className="text-muted">Weighted Score:</span> {team.weighted_total?.toFixed(2) || team.total_score}</p>
                   <p>
-                    <span className="text-slate-500">Anomaly Reason:</span>{' '}
+                    <span className="text-muted">Anomaly Reason:</span>{' '}
                     <span className="text-amber-600 font-mono text-xs">
                       {team.flag_reason || 'Statistical Variance Exception'}
                     </span>
@@ -2833,28 +2835,28 @@ function AnomalyTab() {
                     {!explanations[team.team_id] ? (
                       <button
                         onClick={() => generateExplanation(team)}
-                        className="flex items-center gap-1 text-xs text-red-600 hover:text-red-700"
+                        className="flex items-center gap-1 text-xs text-teal-600 hover:text-teal-700"
                       >
                         <Wand2 size={11} /> AI Explain
                       </button>
                     ) : explanations[team.team_id].status === 'loading' ? (
-                      <div className="flex items-center gap-1.5 text-xs text-slate-500">
+                      <div className="flex items-center gap-1.5 text-xs text-muted">
                         <Loader2 size={11} className="animate-spin" /> Generating explanation…
                       </div>
                     ) : explanations[team.team_id].status === 'done' ? (
-                      <div className="bg-red-50 border border-red-100 border border-red-200 rounded-lg p-2.5 mt-1">
-                        <p className="text-xs font-medium text-red-600 mb-1 flex items-center gap-1">
+                      <div className="bg-teal-50 border border-teal-100 border border-teal-200 rounded-lg p-2.5 mt-1">
+                        <p className="text-xs font-medium text-teal-600 mb-1 flex items-center gap-1">
                           <Wand2 size={11} /> AI Explanation
                         </p>
-                        <p className="text-xs text-red-800 leading-relaxed">
+                        <p className="text-xs text-teal-800 leading-relaxed">
                           {explanations[team.team_id].text}
                         </p>
                       </div>
                     ) : (
-                      <p className="text-xs text-red-600">{explanations[team.team_id].text}</p>
+                      <p className="text-xs text-teal-600">{explanations[team.team_id].text}</p>
                     )}
                   </div>
-                  <p><span className="text-slate-500">Detector Confidence:</span> 99.4%</p>
+                  <p><span className="text-muted">Detector Confidence:</span> 99.4%</p>
                 </div>
               </div>
 
@@ -2862,7 +2864,7 @@ function AnomalyTab() {
                 <button
                   onClick={() => { if (window.confirm(`Override flag for ${team.team_name}?`)) overrideMutation.mutate(team.id) }}
                   disabled={overrideMutation.isPending}
-                  className="btn-secondary px-4 py-2 rounded-lg text-sm flex justify-center items-center gap-2 border-red-200 hover:border-red-400/60"
+                  className="btn-secondary px-4 py-2 rounded-lg text-sm flex justify-center items-center gap-2 border-teal-200 hover:border-teal-400/60"
                 >
                   {overrideMutation.isPending ? <Loader2 size={16} className="animate-spin" /> : <Shield size={16} />}
                   Force Override
@@ -2916,19 +2918,19 @@ function RiskTab() {
 
   if (capabilityDisabled) {
     return (
-      <div className="glass-card py-16 text-center rounded-xl border border-slate-200">
-        <ShieldAlert size={48} className="mx-auto text-red-500/50 mb-3" />
-        <p className="text-slate-900 font-medium">Risk monitoring is not enabled for this event.</p>
+      <div className="glass-card py-16 text-center rounded-xl border border-border">
+        <ShieldAlert size={48} className="mx-auto text-teal-500/50 mb-3" />
+        <p className="text-foreground font-medium">Risk monitoring is not enabled for this event.</p>
       </div>
     )
   }
 
   if (summaryError || teamsError) {
     return (
-      <div className="glass-card py-16 text-center rounded-xl border border-red-200">
-        <AlertTriangle size={48} className="mx-auto text-red-500/50 mb-3" />
-        <p className="text-slate-900 font-medium">Unable to load risk intelligence.</p>
-        <p className="text-sm text-slate-500 mt-1">{summaryError?.message || teamsError?.message}</p>
+      <div className="glass-card py-16 text-center rounded-xl border border-teal-200">
+        <AlertTriangle size={48} className="mx-auto text-teal-500/50 mb-3" />
+        <p className="text-foreground font-medium">Unable to load risk intelligence.</p>
+        <p className="text-sm text-muted mt-1">{summaryError?.message || teamsError?.message}</p>
       </div>
     )
   }
@@ -2939,13 +2941,13 @@ function RiskTab() {
     <div>
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h2 className="text-lg font-bold text-slate-900">AI Risk Intelligence</h2>
-          <p className="text-sm text-slate-500">Continuous monitoring of team health and participant engagement.</p>
+          <h2 className="text-lg font-bold text-foreground">AI Risk Intelligence</h2>
+          <p className="text-sm text-muted">Continuous monitoring of team health and participant engagement.</p>
         </div>
         <button
           onClick={() => sweepMutation.mutate()}
           disabled={sweepMutation.isPending}
-          className="btn-primary px-4 py-2 rounded-lg text-sm flex items-center gap-2 text-white bg-red-600 hover:bg-red-700 disabled:opacity-50"
+          className="btn-primary px-4 py-2 rounded-lg text-sm flex items-center gap-2 text-white bg-teal-600 hover:bg-teal-700 disabled:opacity-50"
         >
           {sweepMutation.isPending ? <Loader2 size={16} className="animate-spin" /> : <Activity size={16} />}
           Run risk sweep
@@ -2953,24 +2955,24 @@ function RiskTab() {
       </div>
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-        <StatCard label="Total Teams" value={loading ? '—' : summary?.total_teams ?? 0} colour="red" />
+        <StatCard label="Total Teams" value={loading ? '—' : summary?.total_teams ?? 0} colour="teal" />
         <StatCard label="Average Risk Score" value={loading ? '—' : (summary?.average_risk_score ?? 0).toFixed(1)} colour="teal" />
         <StatCard label="High Risk" value={loading ? '—' : summary?.high_count ?? 0} colour="amber" />
-        <StatCard label="Critical Risk" value={loading ? '—' : summary?.critical_count ?? 0} colour="red" />
+        <StatCard label="Critical Risk" value={loading ? '—' : summary?.critical_count ?? 0} colour="teal" />
       </div>
 
-      <h3 className="text-lg font-semibold text-slate-900 mb-4">Team Risk Dashboard</h3>
+      <h3 className="text-lg font-semibold text-foreground mb-4">Team Risk Dashboard</h3>
 
       {loading ? (
-        <div className="glass-card py-16 text-center rounded-xl border border-slate-200">
-          <Loader2 size={48} className="mx-auto text-red-300 mb-3 animate-spin" />
-          <p className="text-slate-900 font-medium">Loading risk intelligence...</p>
+        <div className="glass-card py-16 text-center rounded-xl border border-border">
+          <Loader2 size={48} className="mx-auto text-teal-300 mb-3 animate-spin" />
+          <p className="text-foreground font-medium">Loading risk intelligence...</p>
         </div>
       ) : teams.length === 0 ? (
-        <div className="glass-card py-16 text-center rounded-xl border border-slate-200">
-          <Activity size={48} className="mx-auto text-red-300 mb-3" />
-          <p className="text-slate-900 font-medium">No risk snapshots yet.</p>
-          <p className="text-sm text-slate-500">Run a risk sweep to generate the first report.</p>
+        <div className="glass-card py-16 text-center rounded-xl border border-border">
+          <Activity size={48} className="mx-auto text-teal-300 mb-3" />
+          <p className="text-foreground font-medium">No risk snapshots yet.</p>
+          <p className="text-sm text-muted">Run a risk sweep to generate the first report.</p>
         </div>
       ) : (
         <div className="space-y-4">
@@ -2978,29 +2980,29 @@ function RiskTab() {
             <div
               key={team.team_id}
               className={`glass-card p-5 rounded-xl border ${team.risk_level === 'critical'
-                  ? 'border-red-300 bg-red-50'
+                  ? 'border-teal-300 bg-teal-50'
                   : team.risk_level === 'high'
                     ? 'border-amber-300 bg-amber-50'
-                    : 'border-slate-200'
+                    : 'border-border'
                 }`}
             >
               <div className="flex flex-col md:flex-row justify-between gap-4">
                 <div className="flex-1">
                   <div className="flex items-center gap-2 mb-2">
-                    <h4 className="font-bold text-slate-900 text-lg">{team.team_name || 'Unnamed team'}</h4>
+                    <h4 className="font-bold text-foreground text-lg">{team.team_name || 'Unnamed team'}</h4>
                     <Badge colour={team.risk_level === 'critical' ? 'red' : team.risk_level === 'high' ? 'amber' : team.risk_level === 'medium' ? 'red' : 'green'}>
                       {team.risk_level.toUpperCase()}
                     </Badge>
                   </div>
 
-                  <p className="text-sm text-slate-600 mb-3">
-                    <span className="text-slate-500 font-medium">Risk Score:</span> {team.risk_score}/100
+                  <p className="text-sm text-muted mb-3">
+                    <span className="text-muted font-medium">Risk Score:</span> {team.risk_score}/100
                   </p>
 
                   {team.reasons?.length > 0 && (
                     <div className="mb-3">
-                      <p className="text-xs font-bold text-slate-700 uppercase tracking-wide mb-1">Reasons</p>
-                      <ul className="list-disc pl-5 text-sm text-slate-600 space-y-1">
+                      <p className="text-xs font-bold text-foreground uppercase tracking-wide mb-1">Reasons</p>
+                      <ul className="list-disc pl-5 text-sm text-muted space-y-1">
                         {team.reasons.map((reason, index) => <li key={index}>{reason}</li>)}
                       </ul>
                     </div>
@@ -3008,8 +3010,8 @@ function RiskTab() {
 
                   {team.recommended_actions?.length > 0 && (
                     <div>
-                      <p className="text-xs font-bold text-slate-700 uppercase tracking-wide mb-1">Recommended Actions</p>
-                      <ul className="list-disc pl-5 text-sm text-red-700 space-y-1">
+                      <p className="text-xs font-bold text-foreground uppercase tracking-wide mb-1">Recommended Actions</p>
+                      <ul className="list-disc pl-5 text-sm text-teal-700 space-y-1">
                         {team.recommended_actions.map((action, index) => <li key={index}>{action}</li>)}
                       </ul>
                     </div>
@@ -3017,7 +3019,7 @@ function RiskTab() {
                 </div>
 
                 <div className="text-right">
-                  <p className="text-xs text-slate-400">Computed: {new Date(team.created_at).toLocaleString()}</p>
+                  <p className="text-xs text-muted">Computed: {new Date(team.created_at).toLocaleString()}</p>
                 </div>
               </div>
             </div>
@@ -3112,22 +3114,22 @@ function DemoControlsTab() {
   return (
     <div>
       <div className="mb-8">
-        <h2 className="text-lg font-semibold text-slate-900 mb-4">Demo Controls</h2>
+        <h2 className="text-lg font-semibold text-foreground mb-4">Demo Controls</h2>
 
         <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-6">
-          <StatCard label="Participants" value={status?.participants} colour="red" />
+          <StatCard label="Participants" value={status?.participants} colour="teal" />
           <StatCard label="Teams" value={status?.teams} colour="teal" />
           <StatCard label="Evaluations" value={status?.evaluations} colour="amber" />
-          <StatCard label="Mentors" value={status?.mentors} colour="red" />
+          <StatCard label="Mentors" value={status?.mentors} colour="teal" />
           <StatCard label="Mentor Assignments" value={status?.mentor_assignments} colour="teal" />
           <StatCard label="Comms Logs" value={status?.communication_logs} colour="amber" />
         </div>
 
-        <div className="glass-card rounded-xl border border-red-300 p-6 bg-red-50 mb-8">
-          <h3 className="text-base font-bold text-red-600 flex items-center gap-2 mb-2">
+        <div className="glass-card rounded-xl border border-teal-300 p-6 bg-teal-50 mb-8">
+          <h3 className="text-base font-bold text-teal-600 flex items-center gap-2 mb-2">
             <AlertTriangle size={18} /> Reset Demo Data
           </h3>
-          <p className="text-sm text-slate-500 mb-4">
+          <p className="text-sm text-muted mb-4">
             This clears participants, teams, evaluations, mentor assignments, feedback, sessions, and communication logs so you can restart the demo with the same CSV. Admin accounts are preserved.
           </p>
           <div className="flex gap-3 items-center">
@@ -3136,12 +3138,12 @@ function DemoControlsTab() {
               value={confirmText}
               onChange={e => setConfirmText(e.target.value)}
               placeholder="Type RESET_DEMO_DATA"
-              className="bg-white shadow-sm border border-red-200 text-slate-900 rounded-lg px-4 py-2 text-sm focus:outline-none focus:border-red-500 w-64"
+              className="bg-background shadow-sm border border-teal-200 text-foreground rounded-lg px-4 py-2 text-sm focus:outline-none focus:border-teal-500 w-64"
             />
             <button
               onClick={() => resetMutation.mutate()}
               disabled={confirmText !== 'RESET_DEMO_DATA' || resetMutation.isPending}
-              className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white text-sm font-medium rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+              className="px-4 py-2 bg-teal-600 hover:bg-teal-700 text-white text-sm font-medium rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
             >
               {resetMutation.isPending ? <Loader2 size={16} className="animate-spin" /> : <Trash2 size={16} />}
               Reset Data
@@ -3149,14 +3151,14 @@ function DemoControlsTab() {
           </div>
         </div>
 
-        <div className="glass-card rounded-xl border border-red-300 p-6 bg-red-50 mb-8">
-          <h3 className="text-base font-bold text-red-600 flex items-center gap-2 mb-2">
+        <div className="glass-card rounded-xl border border-teal-300 p-6 bg-teal-50 mb-8">
+          <h3 className="text-base font-bold text-teal-600 flex items-center gap-2 mb-2">
             <AlertTriangle size={18} /> Delete Current Event
           </h3>
-          <p className="text-sm text-slate-500 mb-2">
+          <p className="text-sm text-muted mb-2">
             This permanently deletes the selected event and its event-scoped data. Use this only for demo/test events.
           </p>
-          <p className="text-sm font-semibold text-slate-800 mb-4">
+          <p className="text-sm font-semibold text-foreground mb-4">
             Selected event: {activeEvent?.name || 'No event selected'}
           </p>
 
@@ -3166,7 +3168,7 @@ function DemoControlsTab() {
               value={deleteEventConfirm}
               onChange={(e) => setDeleteEventConfirm(e.target.value)}
               placeholder="Type DELETE_EVENT"
-              className="bg-white shadow-sm border border-red-200 text-slate-900 rounded-lg px-4 py-2 text-sm focus:outline-none focus:border-red-500 w-full md:w-64"
+              className="bg-background shadow-sm border border-teal-200 text-foreground rounded-lg px-4 py-2 text-sm focus:outline-none focus:border-teal-500 w-full md:w-64"
             />
 
             <button
@@ -3176,7 +3178,7 @@ function DemoControlsTab() {
                 }
               }}
               disabled={!activeEvent?.id || deleteEventConfirm !== 'DELETE_EVENT' || deleteEventMutation.isPending}
-              className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white text-sm font-medium rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+              className="px-4 py-2 bg-teal-600 hover:bg-teal-700 text-white text-sm font-medium rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
             >
               {deleteEventMutation.isPending ? <Loader2 size={16} className="animate-spin" /> : <Trash2 size={16} />}
               Delete Event
@@ -3185,19 +3187,19 @@ function DemoControlsTab() {
         </div>
 
         <div className="mb-8">
-          <h2 className="text-lg font-semibold text-slate-900 mb-4">Security & Integrity</h2>
-          <div className="glass-card rounded-xl border border-slate-200 p-6">
+          <h2 className="text-lg font-semibold text-foreground mb-4">Security & Integrity</h2>
+          <div className="glass-card rounded-xl border border-border p-6">
             <div className="flex items-center justify-between mb-4">
               <div>
-                <h3 className="text-base font-bold text-slate-900 flex items-center gap-2">
-                  <Shield className="text-red-600" /> Zero-Trust Integrity Audit
+                <h3 className="text-base font-bold text-foreground flex items-center gap-2">
+                  <Shield className="text-teal-600" /> Zero-Trust Integrity Audit
                 </h3>
-                <p className="text-sm text-slate-500 mt-1">Cryptographically verify that no scorecards have been manipulated.</p>
+                <p className="text-sm text-muted mt-1">Cryptographically verify that no scorecards have been manipulated.</p>
               </div>
               <button
                 onClick={runSecurityAudit}
                 disabled={isAuditing}
-                className="bg-red-600 hover:bg-red-500 text-white px-4 py-2 rounded-lg text-sm font-medium transition-all disabled:opacity-50 flex items-center gap-2"
+                className="bg-teal-600 hover:bg-teal-500 text-white px-4 py-2 rounded-lg text-sm font-medium transition-all disabled:opacity-50 flex items-center gap-2"
               >
                 {isAuditing ? <Loader2 size={16} className="animate-spin" /> : <ShieldCheck size={16} />}
                 {isAuditing ? "Scanning..." : "Run System Audit"}
@@ -3205,7 +3207,7 @@ function DemoControlsTab() {
             </div>
 
             {auditResult && (
-              <div className={`p-4 rounded-xl border ${auditResult.is_secure ? 'bg-emerald-50 border-emerald-300' : 'bg-red-50 border-red-300'}`}>
+              <div className={`p-4 rounded-xl border ${auditResult.is_secure ? 'bg-emerald-50 border-emerald-300' : 'bg-teal-50 border-teal-300'}`}>
                 {auditResult.is_secure ? (
                   <p className="text-emerald-700 text-sm font-medium flex items-center gap-2">
                     <ShieldCheck size={18} />
@@ -3213,11 +3215,11 @@ function DemoControlsTab() {
                   </p>
                 ) : (
                   <div>
-                    <p className="text-red-700 text-sm font-bold flex items-center gap-2 mb-2">
+                    <p className="text-teal-700 text-sm font-bold flex items-center gap-2 mb-2">
                       <ShieldAlert size={18} />
                       CRITICAL ALERT: Database tampering detected!
                     </p>
-                    <ul className="text-xs text-red-600 list-disc pl-5 space-y-1">
+                    <ul className="text-xs text-teal-600 list-disc pl-5 space-y-1">
                       {auditResult.tampered_records.map(record => (
                         <li key={record.evaluation_id}>
                           Evaluation <span className="font-mono">{record.evaluation_id.slice(0, 8)}...</span> fails signature check.
@@ -3229,7 +3231,7 @@ function DemoControlsTab() {
               </div>
             )}
             {auditError && (
-              <div className="p-4 rounded-xl border border-red-200 bg-red-50 text-red-700 text-sm">
+              <div className="p-4 rounded-xl border border-teal-200 bg-teal-50 text-teal-700 text-sm">
                 {auditError}
               </div>
             )}
@@ -3238,30 +3240,30 @@ function DemoControlsTab() {
       </div>
 
       <div>
-        <h2 className="text-lg font-semibold text-slate-900 mb-4">Stage Controls</h2>
-        <div className="glass-card rounded-xl border border-slate-200 p-6">
+        <h2 className="text-lg font-semibold text-foreground mb-4">Stage Controls</h2>
+        <div className="glass-card rounded-xl border border-border p-6">
           <div className="flex items-center justify-between mb-6">
             <div>
-              <p className="text-sm font-medium text-slate-500">Current Stage</p>
-              <p className="text-xl font-bold text-red-600 uppercase tracking-wide mt-1">
+              <p className="text-sm font-medium text-muted">Current Stage</p>
+              <p className="text-xl font-bold text-teal-600 uppercase tracking-wide mt-1">
                 {eventState?.current_stage?.replace('_', ' ') || 'loading...'}
               </p>
             </div>
             <div className="flex gap-2">
-              <button onClick={() => stepMutation.mutate('prev')} className="px-4 py-2 bg-slate-200 hover:bg-slate-300 text-slate-800 text-sm font-semibold rounded-lg transition-colors">Previous</button>
-              <button onClick={() => stepMutation.mutate('next')} className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white text-sm font-semibold rounded-lg transition-colors">Next</button>
-              <button onClick={() => resetStageMutation.mutate()} disabled={resetStageMutation.isPending} className="px-4 py-2 border border-slate-300 text-slate-600 hover:bg-slate-50 text-sm font-semibold rounded-lg transition-colors ml-2 disabled:opacity-50">
+              <button onClick={() => stepMutation.mutate('prev')} className="px-4 py-2 bg-slate-200 hover:bg-slate-300 text-foreground text-sm font-semibold rounded-lg transition-colors">Previous</button>
+              <button onClick={() => stepMutation.mutate('next')} className="px-4 py-2 bg-teal-600 hover:bg-teal-700 text-white text-sm font-semibold rounded-lg transition-colors">Next</button>
+              <button onClick={() => resetStageMutation.mutate()} disabled={resetStageMutation.isPending} className="px-4 py-2 border border-border text-muted hover:bg-surface text-sm font-semibold rounded-lg transition-colors ml-2 disabled:opacity-50">
                 {resetStageMutation.isPending ? 'Resetting...' : 'Reset to Registration'}
               </button>
             </div>
           </div>
 
           <div>
-            <label className="block text-xs font-medium text-slate-500 mb-2">Jump directly to stage:</label>
+            <label className="block text-xs font-medium text-muted mb-2">Jump directly to stage:</label>
             <select
               value={eventState?.current_stage || ''}
               onChange={e => stageMutation.mutate(e.target.value)}
-              className="w-full md:w-64 bg-white shadow-sm text-slate-900 border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-red-500"
+              className="w-full md:w-64 bg-background shadow-sm text-foreground border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500"
             >
               <option value="registration">Registration</option>
               <option value="team_formation">Team Formation</option>
@@ -3325,11 +3327,11 @@ function CreateEventTab() {
 
   return (
     <div className="grid lg:grid-cols-[1fr_320px] gap-6">
-      <div className="glass-card rounded-xl border border-slate-200 p-6">
+      <div className="glass-card rounded-xl border border-border p-6">
         <div className="flex items-start justify-between gap-4 mb-5">
           <div>
             <SectionTitle>Create Event</SectionTitle>
-            <p className="text-sm text-slate-500">
+            <p className="text-sm text-muted">
               Create from a system template. The event receives a copied template config and its own active capabilities.
             </p>
           </div>
@@ -3338,7 +3340,7 @@ function CreateEventTab() {
 
         <div className="grid md:grid-cols-2 gap-4 mb-4">
           <div>
-            <label className="block text-xs font-medium text-slate-500 mb-1">Event name</label>
+            <label className="block text-xs font-medium text-muted mb-1">Event name</label>
             <input
               value={form.name}
               onChange={(e) => setForm((f) => ({
@@ -3347,26 +3349,26 @@ function CreateEventTab() {
                 slug: f.slug || slugifyEventName(e.target.value),
               }))}
               placeholder="Smart India Hackathon Demo"
-              className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-red-500"
+              className="w-full border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500"
             />
           </div>
           <div>
-            <label className="block text-xs font-medium text-slate-500 mb-1">Slug</label>
+            <label className="block text-xs font-medium text-muted mb-1">Slug</label>
             <input
               value={form.slug}
               onChange={(e) => setForm((f) => ({ ...f, slug: slugifyEventName(e.target.value) }))}
               placeholder="smart-india-hackathon-demo"
-              className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-red-500"
+              className="w-full border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500"
             />
           </div>
         </div>
 
         <div className="mb-4">
-          <label className="block text-xs font-medium text-slate-500 mb-1">Template</label>
+          <label className="block text-xs font-medium text-muted mb-1">Template</label>
           <select
             value={form.template_id}
             onChange={(e) => setForm((f) => ({ ...f, template_id: e.target.value }))}
-            className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-red-500 bg-white"
+            className="w-full border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 bg-background"
           >
             <option value="">{isLoading ? 'Loading templates...' : 'Choose a template'}</option>
             {templates.map((template) => (
@@ -3378,25 +3380,25 @@ function CreateEventTab() {
         </div>
 
         {selectedTemplate && (
-          <div className="rounded-lg border border-slate-200 bg-slate-50 p-4 mb-4">
-            <p className="text-sm font-semibold text-slate-800">{selectedTemplate.name}</p>
-            <p className="text-xs text-slate-500 mt-1">{selectedTemplate.description}</p>
+          <div className="rounded-lg border border-border bg-surface p-4 mb-4">
+            <p className="text-sm font-semibold text-foreground">{selectedTemplate.name}</p>
+            <p className="text-xs text-muted mt-1">{selectedTemplate.description}</p>
             <div className="flex gap-2 flex-wrap mt-3">
               {(selectedTemplate.default_capabilities || []).map((cap) => (
-                <Badge key={cap} colour="red">{cap}</Badge>
+                <Badge key={cap} colour="teal">{cap}</Badge>
               ))}
             </div>
           </div>
         )}
 
         <div className="mb-5">
-          <label className="block text-xs font-medium text-slate-500 mb-1">Description</label>
+          <label className="block text-xs font-medium text-muted mb-1">Description</label>
           <textarea
             value={form.description}
             onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))}
             rows={3}
             placeholder="Optional internal description for this event..."
-            className="w-full border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-red-500 resize-none"
+            className="w-full border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 resize-none"
           />
         </div>
         <button
@@ -3407,20 +3409,20 @@ function CreateEventTab() {
           {createMutation.isPending ? 'Creating...' : 'Create from template'}
         </button>
         {createMutation.isError && (
-          <p className="text-xs text-red-600 mt-3">{createMutation.error?.message}</p>
+          <p className="text-xs text-teal-600 mt-3">{createMutation.error?.message}</p>
         )}
       </div>
-      <div className="glass-card rounded-xl border border-red-200 bg-red-50 p-5 h-fit">
+      <div className="glass-card rounded-xl border border-teal-200 bg-teal-50 p-5 h-fit">
         <div className="flex items-center gap-2 mb-3">
-          <Sparkles size={16} className="text-red-600" />
-          <p className="text-sm font-bold text-red-900">Need AI help?</p>
+          <Sparkles size={16} className="text-teal-600" />
+          <p className="text-sm font-bold text-teal-900">Need AI help?</p>
         </div>
-        <p className="text-sm text-red-800 mb-4">
+        <p className="text-sm text-teal-800 mb-4">
           Use the AI event builder when you do not know the template, stages, team size, or scoring structure yet.
         </p>
         <button
           onClick={() => navigate('/configure')}
-          className="w-full rounded-lg bg-red-600 text-white px-4 py-2 text-sm font-semibold hover:bg-red-700"
+          className="w-full rounded-lg bg-teal-600 text-white px-4 py-2 text-sm font-semibold hover:bg-teal-700"
         >
           Create with AI
         </button>
@@ -3518,37 +3520,37 @@ export default function AdminDashboard() {
     settings: <SettingsTab key={activeOrganization?.id || 'no-org'} />,
   }
 
+  const navItems = visibleTabs.map((tab) => ({
+    key: tab.key,
+    label: tab.label,
+    Icon: tab.Icon,
+    isActive: activeTab === tab.key && !tab.isNav,
+    onClick: () => tab.isNav ? navigate(tab.navTo) : setActiveTab(tab.key),
+    suffix: tab.isNav ? '↗' : undefined
+  }))
+
   return (
-    <div className="min-h-screen bg-slate-50 overflow-x-hidden text-slate-900 selection:bg-red-500/30 font-['Plus_Jakarta_Sans']">
-      {/* Top bar */}
-      <header className="glass-panel border-b border-slate-200 px-6 py-4 flex items-center justify-between relative z-40 sticky top-0">
-        <div className="flex items-center gap-4">
-          <EventOSLogo className="text-red-600" size={32} />
-          <div className="border-l border-slate-300 pl-4 hidden sm:block">
-            <h1 className="text-sm font-bold text-slate-900 uppercase tracking-wide">EventOS Platform</h1>
-            <p className="text-xs font-medium text-slate-500">Hackathon Operating System</p>
-          </div>
-        </div>
-        <div className="flex items-center gap-3 sm:gap-4">
-          <span className="hidden sm:flex items-center gap-2 text-xs font-semibold text-slate-600 bg-slate-200/50 px-3 py-1.5 rounded-full border border-slate-300/50">
-            <span className="w-2 h-2 rounded-full bg-emerald-500 inline-block animate-pulse shadow-[0_0_10px_rgba(16,185,129,0.8)]" />
-            System Live
-          </span>
+    <AppLayout
+      title="EventOS Platform"
+      subtitle="Hackathon Operating System"
+      customActions={
+        <>
           <NotificationBell />
           <OrgSwitcher />
-        </div>
-      </header>
-
-      <main className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 py-8">
+        </>
+      }
+      navigationItems={navItems}
+    >
+      <div className="relative z-10 w-full">
         {/* Large Event Banner */}
-        <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} className="relative w-full h-48 md:h-64 rounded-3xl overflow-hidden mb-8 border border-red-500/20 shadow-[0_0_40px_rgba(239,68,68,0.1)] group">
-          <div className="absolute inset-0 bg-gradient-to-r from-[#7f1d1d] via-[#dc2626] to-[#ef4444] opacity-80 mix-blend-multiply group-hover:opacity-100 transition-opacity duration-700"></div>
+        <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} className="relative w-full h-48 md:h-64 rounded-3xl overflow-hidden mb-8 border border-teal-500/20 shadow-[0_0_40px_rgba(20,184,166,0.1)] group">
+          <div className="absolute inset-0 bg-gradient-to-r from-[#042F2E] via-[#0F766E] to-[#14B8A6] opacity-80 mix-blend-multiply group-hover:opacity-100 transition-opacity duration-700"></div>
           <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1550751827-4bd374c3f58b?auto=format&fit=crop&q=80')] bg-cover bg-center mix-blend-overlay opacity-40"></div>
           <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent"></div>
           <div className="absolute bottom-0 left-0 p-6 md:p-8 w-full flex flex-col md:flex-row md:items-end justify-between gap-6">
             <div>
               <div className="flex items-center gap-3 mb-3">
-                <Badge colour="red">Live Event</Badge>
+                <Badge colour="teal">Live Event</Badge>
                 <Badge colour="slate">Registration Open</Badge>
               </div>
               <h1 className="text-3xl md:text-5xl font-black text-white tracking-tight drop-shadow-lg">{activeEvent?.name || 'Select an Event'}</h1>
@@ -3566,45 +3568,44 @@ export default function AdminDashboard() {
 
         {/* Navigation Deck Header */}
         <div className="flex items-center justify-between mb-4 mt-2">
-          <h2 className="text-sm font-bold text-slate-800 uppercase tracking-wide">Operating Command Deck</h2>
+          <h2 className="text-sm font-bold text-foreground uppercase tracking-wide">Operating Command Deck</h2>
           <button
             onClick={toggleNavSize}
-            className="text-xs font-semibold px-3 py-1.5 rounded-lg border border-red-200 text-red-600 bg-red-50 hover:bg-red-100 transition-colors"
+            className="text-xs font-semibold px-3 py-1.5 rounded-lg border border-teal-200 text-teal-600 bg-teal-50 hover:bg-teal-100 transition-colors"
           >
             {isNavMinimized ? 'Maximize Navigation Deck' : 'Minimize Navigation Deck'}
           </button>
         </div>
 
-        {/* Navigation Deck */}
-        <AnimatePresence mode="wait">
+        {/* Navigation Deck (Desktop Only) */}
+        <div className="hidden md:block">
+          <AnimatePresence mode="wait">
           {!isNavMinimized ? (
             <motion.div
               key="maximized"
               initial={{ opacity: 0, height: 0 }}
               animate={{ opacity: 1, height: 'auto' }}
               exit={{ opacity: 0, height: 0 }}
-              className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4 mb-8 overflow-hidden"
+              className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4 mb-8"
             >
               {visibleTabs.map(({ key, label, Icon, isNav, navTo }) => {
                 const isActive = activeTab === key && !isNav;
                 return (
                   <motion.button
                     key={key}
-                    whileHover={{ y: -4, scale: 1.02 }}
-                    whileTap={{ scale: 0.96 }}
+                    whileTap={{ scale: 0.98 }}
                     onClick={() => isNav ? navigate(navTo) : setActiveTab(key)}
-                    className={`relative flex flex-col items-start p-4 rounded-2xl border text-left transition-all overflow-hidden group
+                    className={`relative flex flex-col items-start p-4 rounded-2xl border text-left transition-all duration-300 group
                       ${isActive
-                        ? 'bg-gradient-to-br from-red-500 to-red-700 border-red-600 shadow-[0_8px_30px_rgba(239,68,68,0.4)] scale-[1.02] z-10'
-                        : 'bg-white/90 backdrop-blur-xl border-red-400 shadow-[0_8px_30px_rgba(239,68,68,0.06)] hover:shadow-[0_8px_30px_rgba(239,68,68,0.15)] hover:border-red-500 hover:bg-red-50/50'}`}
+                        ? 'bg-teal-100 dark:bg-teal-900/60 border-teal-500 ring-2 ring-teal-500 shadow-[0_8px_30px_rgba(20,184,166,0.3)] z-10'
+                        : 'bg-white/90 dark:bg-slate-900/90 backdrop-blur-xl border-border shadow-sm hover:-translate-y-1 hover:shadow-[0_12px_25px_rgba(20,184,166,0.12)] hover:border-teal-400'}`}
                   >
-                    {isActive && <div className="absolute inset-0 bg-white/10 blur-xl animate-pulse" />}
-                    <div className={`p-2.5 rounded-xl mb-3 transition-all ${isActive ? 'bg-white text-red-600 shadow-md scale-110' : 'bg-slate-50 border border-slate-100 text-slate-500 group-hover:text-red-600 group-hover:bg-red-100 group-hover:scale-110'}`}>
+                    <div className={`p-2.5 rounded-xl mb-3 transition-all duration-300 ${isActive ? 'bg-teal-600 text-white shadow-lg scale-110' : 'bg-surface border border-border text-muted group-hover:bg-teal-100 group-hover:text-teal-600 group-hover:scale-110 group-hover:border-teal-200'}`}>
                       <Icon size={20} />
                     </div>
-                    <h3 className={`font-bold text-sm mb-1 ${isActive ? 'text-white drop-shadow-sm' : 'text-slate-800 group-hover:text-red-700'}`}>{label}</h3>
-                    <p className={`text-[10px] line-clamp-1 ${isActive ? 'text-red-100' : 'text-slate-500'}`}>{isNav ? 'External Configuration' : 'Manage ' + label}</p>
-                    {isNav && <span className={`absolute top-3 right-3 text-[10px] ${isActive ? 'text-white' : 'text-slate-400 group-hover:text-red-600'}`}>↗</span>}
+                    <h3 className={`font-bold text-sm mb-1 transition-colors ${isActive ? 'text-teal-950 dark:text-teal-50' : 'text-foreground group-hover:text-teal-700 dark:group-hover:text-teal-300'}`}>{label}</h3>
+                    <p className={`text-[10px] line-clamp-1 transition-colors ${isActive ? 'text-teal-800 dark:text-teal-300' : 'text-muted'}`}>{isNav ? 'External Configuration' : 'Manage ' + label}</p>
+                    {isNav && <span className={`absolute top-3 right-3 text-[10px] ${isActive ? 'text-teal-600' : 'text-muted group-hover:text-teal-500'}`}>↗</span>}
                   </motion.button>
                 )
               })}
@@ -3623,35 +3624,27 @@ export default function AdminDashboard() {
                   <button
                     key={key}
                     onClick={() => isNav ? navigate(navTo) : setActiveTab(key)}
-                    className={`flex items-center gap-2 px-4 py-2 rounded-xl border text-sm font-semibold transition-all shrink-0 shadow-sm
+                    className={`flex items-center gap-2 px-4 py-2 rounded-xl border text-sm font-semibold transition-all shrink-0
                       ${isActive
-                        ? 'bg-gradient-to-br from-red-500 to-red-700 border-red-600 text-white shadow-[0_4px_15px_rgba(239,68,68,0.4)] scale-[1.02] z-10'
-                        : 'bg-white/90 backdrop-blur-xl border-red-400 text-slate-600 shadow-[0_4px_15px_rgba(239,68,68,0.06)] hover:shadow-[0_4px_15px_rgba(239,68,68,0.15)] hover:border-red-500 hover:bg-red-50 hover:text-red-600'}`}
+                        ? 'bg-teal-100 dark:bg-teal-900/60 border-teal-500 ring-2 ring-teal-500 text-teal-950 dark:text-teal-50 shadow-[0_4px_20px_rgba(20,184,166,0.25)] z-10'
+                        : 'bg-white/90 dark:bg-slate-900/90 backdrop-blur-xl border-border text-muted shadow-sm hover:-translate-y-0.5 hover:shadow-[0_4px_15px_rgba(20,184,166,0.1)] hover:border-teal-400 hover:text-teal-600'}`}
                   >
-                    <Icon size={16} className={isActive ? 'text-white' : 'text-slate-400'} />
+                    <Icon size={16} className={isActive ? 'text-teal-600 dark:text-teal-400' : 'text-muted group-hover:text-teal-500'} />
                     {label}
-                    {isNav && <span className={`text-[10px] ml-1 ${isActive ? 'text-red-100' : 'text-slate-400'}`}>↗</span>}
+                    {isNav && <span className={`text-[10px] ml-1 ${isActive ? 'text-teal-500' : 'text-muted'}`}>↗</span>}
                   </button>
                 )
               })}
             </motion.div>
           )}
         </AnimatePresence>
+        </div>
 
         {/* Tab content */}
-        <AnimatePresence mode="wait">
-          <motion.div
-            key={safeActiveTab}
-            initial={{ opacity: 0, y: 10, scale: 0.98 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: -10, scale: 0.98 }}
-            transition={{ duration: 0.3 }}
-            className="relative z-30 pointer-events-auto"
-          >
-            {TAB_CONTENT[safeActiveTab]}
-          </motion.div>
-        </AnimatePresence>
-      </main>
+        <div className="relative z-30 pointer-events-auto mt-6">
+          {TAB_CONTENT[safeActiveTab]}
+        </div>
+      </div>
 
       {/* Floating Action Button */}
       <div className="fixed bottom-8 right-8 z-50 flex flex-col items-end pointer-events-none">
@@ -3675,7 +3668,7 @@ export default function AdminDashboard() {
                   whileHover={{ scale: 1.05, x: -5 }}
                   whileTap={{ scale: 0.95 }}
                   onClick={() => { btn.action(); setFabOpen(false); }}
-                  className="flex items-center gap-3 bg-white border border-slate-200 text-slate-800 px-4 py-2.5 rounded-xl shadow-lg hover:border-red-500/50 hover:text-red-600 transition-colors"
+                  className="flex items-center gap-3 bg-background border border-border text-foreground px-4 py-2.5 rounded-xl shadow-lg hover:border-teal-500/50 hover:text-teal-600 transition-colors"
                 >
                   <span className="text-sm font-semibold">{btn.label}</span>
                   <btn.icon size={16} />
@@ -3688,11 +3681,11 @@ export default function AdminDashboard() {
           whileHover={{ scale: 1.1 }}
           whileTap={{ scale: 0.9 }}
           onClick={() => setFabOpen(!fabOpen)}
-          className={`pointer-events-auto w-14 h-14 rounded-full flex items-center justify-center shadow-2xl transition-colors duration-300 ${fabOpen ? 'bg-white text-red-600 border border-red-500/50 shadow-red-500/20' : 'bg-gradient-to-r from-red-600 to-red-800 text-white shadow-red-500/40 hover:from-red-500 hover:to-red-700'}`}
+          className={`pointer-events-auto w-14 h-14 rounded-full flex items-center justify-center shadow-2xl transition-colors duration-300 ${fabOpen ? 'bg-background text-teal-600 border border-teal-500/50 shadow-teal-500/20' : 'bg-gradient-to-r from-teal-600 to-teal-800 text-white shadow-teal-500/40 hover:from-teal-500 hover:to-teal-700'}`}
         >
           <Plus size={24} className={`transition-transform duration-300 ${fabOpen ? 'rotate-45' : ''}`} />
         </motion.button>
       </div>
-    </div>
+    </AppLayout>
   )
 }

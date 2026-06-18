@@ -4,8 +4,17 @@ export default {
     "./index.html",
     "./src/**/*.{js,ts,jsx,tsx}",
   ],
+  darkMode: 'class',
   theme: {
-    extend: {},
+    extend: {
+      colors: {
+        background: 'var(--bg-main)',
+        surface: 'var(--bg-card)',
+        foreground: 'var(--text-main)',
+        muted: 'var(--text-muted)',
+        border: 'var(--color-border)',
+      }
+    },
   },
   plugins: [],
 }

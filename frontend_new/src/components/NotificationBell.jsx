@@ -52,21 +52,21 @@ export default function NotificationBell() {
         <Bell className="w-5 h-5 text-gray-700" />
         {unread > 0 && (
           <span className="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] px-1 flex items-center justify-center
-                           text-[11px] font-semibold text-white bg-red-500 rounded-full">
+                           text-[11px] font-semibold text-white bg-teal-500 rounded-full">
             {unread > 99 ? '99+' : unread}
           </span>
         )}
       </button>
 
       {open && (
-        <div className="absolute right-0 mt-2 w-80 max-h-96 overflow-y-auto bg-white rounded-xl shadow-lg
+        <div className="absolute right-0 mt-2 w-80 max-h-96 overflow-y-auto bg-background rounded-xl shadow-lg
                         border border-gray-200 z-50">
           <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100">
             <span className="font-semibold text-sm text-gray-800">Notifications</span>
             {unread > 0 && (
               <button
                 onClick={() => markAll.mutate()}
-                className="text-xs text-red-600 hover:underline disabled:opacity-50"
+                className="text-xs text-teal-600 hover:underline disabled:opacity-50"
                 disabled={markAll.isPending}
               >
                 Mark all read
@@ -85,7 +85,7 @@ export default function NotificationBell() {
               {items.map((n) => (
                 <li
                   key={n.id}
-                  className={`px-4 py-3 flex gap-3 ${n.read ? 'opacity-60' : 'bg-red-50/40'}`}
+                  className={`px-4 py-3 flex gap-3 ${n.read ? 'opacity-60' : 'bg-teal-50/40'}`}
                 >
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-medium text-gray-800 truncate">{n.title}</p>
