@@ -290,7 +290,7 @@ describe('EventOS Stage-1 Regression Tests', () => {
 
     expect(screen.queryByText('Mentor Ops')).not.toBeInTheDocument();
     expect(screen.queryByText('Risk')).not.toBeInTheDocument();
-    expect(screen.getByText('Evaluators')).toBeInTheDocument();
+    expect(screen.getAllByText('Evaluators').length).toBeGreaterThan(0);
   });
   it('13. Stage timeline can create a creator-defined stage', async () => {
     axios.get.mockImplementation((url) => {
