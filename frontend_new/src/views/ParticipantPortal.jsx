@@ -9,7 +9,7 @@ import {
   CheckCircle, Clock, Circle, Users, AlertTriangle,
   ChevronDown, ChevronUp, CalendarDays,
   UserCheck, Video, ClipboardList, MessageSquare, Send, Trophy,
-  Check, X
+  Check, X, Loader2
 } from 'lucide-react'
 import AppLayout from '../components/AppLayout'
 import TeamChatPanel from '../components/TeamChatPanel'
@@ -52,15 +52,15 @@ function DailyUpdateForm({ token }) {
   )
 
   return (
-    <div className="bg-background border border-border rounded-xl p-5">
-      <h3 className="font-semibold text-foreground mb-3">Today's Progress Update</h3>
+    <div className="glass-card rounded-2xl border border-border p-6 shadow-sm mb-6">
+      <h3 className="text-sm font-bold text-foreground mb-4">Today's Progress Update</h3>
       <div className="space-y-3">
         <div>
           <label className="block text-sm font-medium text-muted mb-1">
             What did you build today? *
           </label>
           <textarea
-            className="w-full border border-border rounded-lg px-3 py-2 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full border border-border rounded-lg px-3 py-2 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500"
             rows={3}
             placeholder="Implemented the login flow, fixed the API integration..."
             value={what}
@@ -72,7 +72,7 @@ function DailyUpdateForm({ token }) {
             Any blockers? (optional)
           </label>
           <input
-            className="w-full border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500"
             placeholder="Stuck on Docker networking..."
             value={blockers}
             onChange={e => setBlockers(e.target.value)}
@@ -84,7 +84,7 @@ function DailyUpdateForm({ token }) {
           </label>
           <input
             type="number" min="0" max="24"
-            className="w-32 border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-32 border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-teal-500"
             placeholder="4"
             value={hours}
             onChange={e => setHours(e.target.value)}
@@ -94,8 +94,9 @@ function DailyUpdateForm({ token }) {
         <button
           onClick={handleSubmit}
           disabled={submitting || !what.trim()}
-          className="bg-blue-600 hover:bg-blue-500 disabled:opacity-40 text-white px-5 py-2 rounded-lg text-sm font-medium transition-colors"
+          className="btn-primary w-full disabled:opacity-40 px-5 py-2.5 rounded-lg text-sm font-semibold transition-colors mt-2 flex justify-center items-center gap-2"
         >
+          {submitting ? <Loader2 size={16} className="animate-spin" /> : <CheckCircle size={16} />}
           {submitting ? 'Submitting...' : 'Submit Update'}
         </button>
       </div>
@@ -122,86 +123,153 @@ const STAGE_LABELS = {
 
 // ── Sub-components ─────────────────────────────────────────────────────────
 
-function PortalHeader({ name, email, eventName, stage }) {
+function PortalHeader({ name, email, eventName, stage, timeline }) {
   return (
-    <div className="text-center mb-10 flex flex-col items-center">
-      <p className="text-xs font-bold text-teal-600 uppercase tracking-widest mb-2 mt-4">
-        {eventName}
-      </p>
-      <h1 className="text-3xl font-black text-foreground mb-1">
+    <div className="glass-card rounded-2xl border border-border p-8 h-full flex flex-col justify-center shadow-sm bg-gradient-to-br from-surface to-background mb-6">
+      <div className="flex items-center gap-2 mb-3">
+        <span className="w-2 h-2 rounded-full bg-teal-500 animate-pulse" />
+        <p className="text-xs font-bold text-teal-600 uppercase tracking-widest">
+          {eventName}
+        </p>
+      </div>
+      <h1 className="text-3xl lg:text-4xl font-black text-foreground mb-2 tracking-tight">
         Welcome back, {name.split(' ')[0]} 👋
       </h1>
-      <p className="text-sm text-muted">{email}</p>
+      <p className="text-sm text-muted font-medium mb-6">{email}</p>
+      
       {stage && (
-        <div className="inline-flex items-center gap-1.5 mt-3 px-3 py-1 rounded-full bg-teal-50 border border-teal-200 text-xs font-medium text-teal-700 shadow-sm">
-          <span className="w-1.5 h-1.5 rounded-full bg-teal-500 animate-pulse" />
-          Current stage: {STAGE_LABELS[stage] ?? stage}
+        <div className="inline-flex items-center self-start gap-2 px-4 py-2 rounded-lg bg-teal-50 border border-teal-200 text-sm font-semibold text-teal-800 shadow-sm">
+          <Clock size={16} className="text-teal-600" />
+          Current Phase: {STAGE_LABELS[stage] ?? stage}
         </div>
       )}
+
+      {/* Embedded Event Journey Timeline */}
+      <EventTimeline timeline={timeline} />
     </div>
   )
 }
 
-// ── Event timeline ─────────────────────────────────────────────────────────
-
+// ── Horizontal Event timeline ──────────────────────────────────────────────
 function EventTimeline({ timeline }) {
   if (!timeline?.length) return null
 
   return (
-    <div className="glass-card rounded-2xl border border-border p-6 mb-6">
-      <h2 className="text-sm font-semibold text-foreground mb-5">Your Event Journey</h2>
+    <div className="w-full mt-10 pt-8 border-t border-border">
+      <h2 className="text-sm font-bold text-foreground mb-6">Your Event Journey</h2>
 
-      <div className="relative">
-        {/* Vertical connector line */}
-        <div className="absolute left-4 top-5 bottom-5 w-0.5 bg-slate-200" />
-
-        <div className="space-y-5">
+      <div className="w-full pb-2">
+        <div className="flex items-center w-full px-4">
           {timeline.map((phase, index) => {
-            const isCompleted = phase.status === 'completed'
-            const isActive    = phase.status === 'active'
-            const isPending   = phase.status === 'pending'
+          const isCompleted = phase.status === 'completed'
+          const isActive    = phase.status === 'active'
+          const isPending   = phase.status === 'pending'
+          const isLast      = index === timeline.length - 1
 
-            return (
-              <div key={index} className="flex items-start gap-4 relative">
+          return (
+            <div key={index} className={`flex items-center ${isLast ? 'flex-shrink-0' : 'flex-1'}`}>
+              <div className="flex flex-col items-center relative group">
                 {/* Node */}
-                <div className={`relative z-10 w-8 h-8 rounded-full border-2 flex items-center justify-center shrink-0 ${
-                  isCompleted ? 'bg-teal-50  border-teal-500'   :
-                  isActive    ? 'btn-primary border-teal-600' :
-                                'bg-background border-border'
+                <div className={`relative z-10 w-10 h-10 rounded-full border-2 flex items-center justify-center shrink-0 transition-colors shadow-sm ${
+                  isCompleted ? 'bg-teal-50 border-teal-500 text-teal-600' :
+                  isActive    ? 'bg-teal-600 border-teal-600 text-white shadow-md shadow-teal-500/30' :
+                                'bg-surface border-border text-slate-300'
                 }`}>
-                  {isCompleted && <CheckCircle size={16} className="text-teal-600" />}
-                  {isActive    && <Clock       size={14} className="text-white" />}
-                  {isPending   && <Circle      size={14} className="text-slate-300" />}
+                  {isCompleted && <CheckCircle size={18} />}
+                  {isActive    && <Clock size={16} />}
+                  {isPending   && <Circle size={16} />}
                   {isActive && (
                     <span className="absolute inset-0 rounded-full bg-teal-400 animate-ping opacity-30" />
                   )}
                 </div>
-
-                {/* Content */}
-                <div className={`flex-1 pt-1 pb-1 ${isPending ? 'opacity-50' : ''}`}>
-                  <div className="flex items-center gap-2">
-                    <p className={`text-sm font-bold ${
-                      isActive    ? 'text-teal-700' :
-                      isCompleted ? 'text-teal-700'   : 'text-muted'
-                    }`}>
-                      {phase.phase}
-                    </p>
-                    {isActive && (
-                      <span className="text-xs font-semibold text-teal-700 bg-teal-50 px-2 py-0.5 rounded-full border border-teal-100">
-                        In progress
-                      </span>
-                    )}
-                    {isCompleted && (
-                      <span className="text-xs font-semibold text-teal-700 bg-teal-50 px-2 py-0.5 rounded-full border border-teal-100">
-                        Complete
-                      </span>
-                    )}
-                  </div>
+                {/* Label */}
+                <div className="absolute top-12 whitespace-nowrap text-center">
+                  <p className={`text-xs font-bold ${isActive ? 'text-teal-700' : isCompleted ? 'text-foreground' : 'text-muted'}`}>
+                    {phase.phase}
+                  </p>
+                  <p className={`text-[10px] font-semibold mt-0.5 ${isActive ? 'text-teal-600' : 'text-muted'}`}>
+                    {isActive ? 'In Progress' : isCompleted ? 'Complete' : 'Pending'}
+                  </p>
                 </div>
               </div>
-            )
-          })}
+              
+              {/* Connecting Line */}
+              {!isLast && (
+                <div className="flex-1 h-1 mx-2 rounded-full overflow-hidden bg-slate-200">
+                  <div className={`h-full transition-all duration-500 ${isCompleted ? 'bg-teal-500' : 'bg-transparent'}`} />
+                </div>
+              )}
+            </div>
+          )
+        })}
         </div>
+        <div className="h-12" /> {/* Spacing for absolute labels inside the scrolling container */}
+      </div>
+    </div>
+  )
+}
+
+// ── Inline Chat Center ───────────────────────────────────────────────────
+function InlineChatCenter({ eventId, teamId, token, mentorData, participantId, onClose }) {
+  const [activeTab, setActiveTab] = useState('team') // 'team' | 'mentor' | 'support'
+  
+  const hasMentor = !!mentorData?.mentor_name
+
+  if (!teamId) return null
+
+  return (
+    <div className="glass-card rounded-2xl border border-border shadow-sm overflow-hidden flex flex-col h-full min-h-[500px]">
+      <div className="flex items-center justify-between px-5 py-4 border-b border-border bg-surface">
+        <h3 className="text-sm font-bold text-foreground flex items-center gap-2">
+          <MessageSquare size={16} className="text-teal-600" /> Messages
+        </h3>
+        <button onClick={onClose} className="text-muted hover:text-foreground">
+          <X size={18} />
+        </button>
+      </div>
+      
+      {/* Tabs */}
+      <div className="flex px-4 pt-3 border-b border-border bg-surface gap-2 overflow-x-auto custom-scrollbar">
+        <button 
+          onClick={() => setActiveTab('team')}
+          className={`px-4 py-2 text-xs font-bold border-b-2 whitespace-nowrap transition-colors ${activeTab === 'team' ? 'border-teal-600 text-teal-700' : 'border-transparent text-muted hover:text-foreground'}`}
+        >
+          Team Chat
+        </button>
+        {hasMentor && (
+          <button 
+            onClick={() => setActiveTab('mentor')}
+            className={`px-4 py-2 text-xs font-bold border-b-2 whitespace-nowrap transition-colors ${activeTab === 'mentor' ? 'border-teal-600 text-teal-700' : 'border-transparent text-muted hover:text-foreground'}`}
+          >
+            Mentor Chat
+          </button>
+        )}
+        <button 
+          onClick={() => setActiveTab('support')}
+          className={`px-4 py-2 text-xs font-bold border-b-2 whitespace-nowrap transition-colors ${activeTab === 'support' ? 'border-teal-600 text-teal-700' : 'border-transparent text-muted hover:text-foreground'}`}
+        >
+          Event Support
+        </button>
+      </div>
+
+      {/* Chat Content */}
+      <div className="flex-1 bg-surface relative flex flex-col min-h-0">
+        {activeTab === 'team' && (
+          <TeamChatPanel inline eventId={eventId} teamId={teamId} token={token} kind="internal" currentSenderId={participantId} currentSenderRole="participant" title="Team Chat" />
+        )}
+        {activeTab === 'mentor' && (
+          <TeamChatPanel inline eventId={eventId} teamId={teamId} token={token} kind="mentor" currentSenderId={participantId} currentSenderRole="participant" title="Mentor Chat" />
+        )}
+        {activeTab === 'support' && (
+          <div className="flex flex-col items-center justify-center h-full text-center p-6">
+            <Send size={32} className="text-slate-300 mb-3" />
+            <h4 className="text-sm font-bold text-foreground mb-1">Need help?</h4>
+            <p className="text-xs font-medium text-muted mb-4">Contact the organizing committee for technical or event-related issues.</p>
+            <a href="mailto:support@eventos.com" className="btn-secondary px-4 py-2 text-xs font-semibold rounded-lg flex items-center gap-2">
+              <MessageSquare size={14} /> Email Support
+            </a>
+          </div>
+        )}
       </div>
     </div>
   )
@@ -239,7 +307,7 @@ function TeamRevealSection({ teamName, rationale, teammates }) {
   const [rationaleOpen, setRationaleOpen] = useState(false)
 
   return (
-    <div className="mb-6">
+    <div className="mb-6 h-full flex flex-col">
       {/* Team name hero */}
       <div className="bg-gradient-to-br from-teal-600 to-teal-600 rounded-2xl p-6 mb-4 text-white text-center shadow-md">
         <p className="text-xs font-bold uppercase tracking-widest opacity-80 mb-2">
@@ -297,7 +365,7 @@ function TeamRevealSection({ teamName, rationale, teammates }) {
 
 function AwaitingCard() {
   return (
-    <div className="bg-amber-50 border border-amber-200 rounded-2xl p-6 text-center mb-6 shadow-sm">
+    <div className="bg-amber-50 border border-amber-200 rounded-2xl p-6 text-center mb-6 shadow-sm h-full flex flex-col justify-center">
       <div className="w-12 h-12 rounded-full bg-background border border-amber-200 flex items-center justify-center mx-auto mb-3 shadow-sm">
         <Clock size={22} className="text-amber-600" />
       </div>
@@ -318,9 +386,9 @@ function MentorInfoSection({ mentorData }) {
   const hasMentor = !!mentorData.mentor_name
 
   return (
-    <div className="mb-6 space-y-4">
+    <div className="mb-6 space-y-6">
       {/* Your Mentor card */}
-      <div className="bg-background rounded-2xl border border-border p-5 shadow-sm">
+      <div className="glass-card rounded-2xl border border-border p-6 shadow-sm">
         <div className="flex items-center gap-2 mb-4">
           <UserCheck size={16} className="text-teal-600" />
           <h3 className="text-sm font-bold text-foreground">Your Mentor</h3>
@@ -356,7 +424,7 @@ function MentorInfoSection({ mentorData }) {
       </div>
 
       {/* Next meeting */}
-      <div className="bg-background rounded-2xl border border-border p-5 shadow-sm">
+      <div className="glass-card rounded-2xl border border-border p-6 shadow-sm">
         <div className="flex items-center gap-2 mb-4">
           <Video size={16} className="text-teal-600" />
           <h3 className="text-sm font-bold text-foreground">Next Mentor Meeting</h3>
@@ -387,7 +455,7 @@ function MentorInfoSection({ mentorData }) {
 
       {/* Visible feedback */}
       {mentorData.visible_feedback?.length > 0 && (
-        <div className="bg-background rounded-2xl border border-border p-5 shadow-sm">
+        <div className="glass-card rounded-2xl border border-border p-6 shadow-sm">
           <div className="flex items-center gap-2 mb-4">
             <MessageSquare size={16} className="text-teal-600" />
             <h3 className="text-sm font-bold text-foreground">Mentor Feedback</h3>
@@ -410,7 +478,7 @@ function MentorInfoSection({ mentorData }) {
 
       {/* Action items */}
       {mentorData.action_items?.length > 0 && (
-        <div className="bg-background rounded-2xl border border-border p-5 shadow-sm">
+        <div className="glass-card rounded-2xl border border-border p-6 shadow-sm">
           <div className="flex items-center gap-2 mb-4">
             <ClipboardList size={16} className="text-amber-600" />
             <h3 className="text-sm font-bold text-foreground">Action Items</h3>
@@ -429,41 +497,7 @@ function MentorInfoSection({ mentorData }) {
   )
 }
 
-// ── Key dates card ─────────────────────────────────────────────────────────
 
-function KeyDatesCard({ stage }) {
-  const dates = [
-    { label: 'Roster confirmed',    date: 'Day 1',  done: true },
-    { label: 'Team assignments',    date: 'Day 2',  done: stage !== 'registration' },
-    { label: 'Evaluation period',   date: 'Day 3–5', done: stage === 'results' },
-    { label: 'Results announced',   date: 'Day 6',  done: stage === 'results' },
-  ]
-
-  return (
-    <div className="glass-card rounded-2xl border border-border p-5 mb-6">
-      <div className="flex items-center gap-2 mb-4">
-        <CalendarDays size={16} className="text-teal-600" />
-        <h3 className="text-sm font-bold text-foreground">Key Dates</h3>
-      </div>
-      <div className="space-y-2.5">
-        {dates.map((d, i) => (
-          <div key={i} className="flex items-center justify-between text-sm">
-            <div className="flex items-center gap-2">
-              {d.done
-                ? <CheckCircle size={14} className="text-teal-600 shrink-0" />
-                : <Circle      size={14} className="text-slate-300 shrink-0" />
-              }
-              <span className={`font-medium ${d.done ? 'text-foreground' : 'text-muted'}`}>{d.label}</span>
-            </div>
-            <span className={`text-xs font-bold ${d.done ? 'text-teal-600' : 'text-muted'}`}>
-              {d.date}
-            </span>
-          </div>
-        ))}
-      </div>
-    </div>
-  )
-}
 
 // ── Project submission section ───────────────────────────────────────────────
 
@@ -556,7 +590,7 @@ function ProjectSubmissionSection({ token }) {
              />
              <button 
                onClick={handleUpload}
-               className="btn-primary px-4 py-2 rounded-lg text-sm font-semibold flex items-center gap-2 disabled:opacity-50"
+               className="btn-primary px-4 py-2 rounded-lg text-sm font-semibold flex items-center gap-2 disabled:opacity-100 disabled:bg-teal-100 dark:disabled:bg-teal-900/50 disabled:text-teal-400 dark:disabled:text-teal-600 disabled:border-transparent disabled:shadow-none disabled:cursor-not-allowed"
                disabled={!file || uploading}
              >
                {uploading ? 'Uploading...' : 'Submit'}
@@ -707,7 +741,7 @@ function ProgressionInvitationSection({ participantId, currentStatus }) {
           <button
             disabled={mutation.isPending}
             onClick={() => mutation.mutate(true)}
-            className="flex-1 sm:flex-none text-xs bg-teal-500 hover:bg-teal-400 text-white font-semibold px-4 py-2.5 rounded-xl transition-all disabled:opacity-50 flex items-center justify-center gap-2"
+            className="flex-1 sm:flex-none text-xs bg-teal-500 hover:bg-teal-400 text-white font-semibold px-4 py-2.5 rounded-xl transition-all disabled:opacity-100 disabled:bg-teal-100 dark:disabled:bg-teal-900/50 disabled:text-teal-400 dark:disabled:text-teal-600 disabled:border-transparent disabled:shadow-none disabled:cursor-not-allowed flex items-center justify-center gap-2"
           >
             {mutation.isPending && mutation.variables === true ? 'Saving...' : 'Accept Invite'}
           </button>
@@ -729,6 +763,7 @@ export default function ParticipantPortal() {
   const [searchParams] = useSearchParams()
   const rawUrlToken = searchParams.get('token')
   const { setToken } = useAuth()
+  const [isChatOpen, setIsChatOpen] = useState(false)
 
   const participantPortalTokenKey = eventId
     ? `eventos_portal_participant_token_${eventId}`
@@ -849,34 +884,26 @@ export default function ParticipantPortal() {
       subtitle="Participant Portal"
       userName={name}
     >
-      <div className="max-w-5xl mx-auto px-4 py-4">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8 space-y-6">
 
-        {/* Header */}
-        <PortalHeader
-          name={name}
-          email={email}
-          eventName="WiSE@TI Hackathon"
-          stage={stage}
-        />
-
-        {participant_id &&
-          stage === 'results' &&
-          typeof data?.rank === 'number' &&
-          data.rank >= 1 &&
-          data.rank <= 3 && (
-          <ProgressionInvitationSection
-            participantId={participant_id}
-            currentStatus={progression_confirmed}
-          />
-        )}
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div className="space-y-6">
-            <EventTimeline timeline={timeline} />
-            <KeyDatesCard stage={stage} />
+        {/* Top Row: Event Status, Phase, Notifications */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div className="lg:col-span-2 flex flex-col">
+            <PortalHeader
+              name={name}
+              email={email}
+              eventName="WiSE@TI Hackathon"
+              stage={stage}
+              timeline={timeline}
+            />
+            {participant_id && stage === 'results' && typeof data?.rank === 'number' && data.rank >= 1 && data.rank <= 3 && (
+              <ProgressionInvitationSection
+                participantId={participant_id}
+                currentStatus={progression_confirmed}
+              />
+            )}
           </div>
-          
-          <div className="space-y-6">
+          <div className="flex flex-col">
             {team_assigned && team_name
               ? <TeamRevealSection
                   teamName={team_name}
@@ -885,45 +912,58 @@ export default function ParticipantPortal() {
                 />
               : <AwaitingCard />
             }
-
-            {team_assigned && <DailyUpdateForm token={urlToken} />}
-            {team_assigned && (stage === 'evaluation' || stage === 'results') && <ProjectSubmissionSection token={urlToken} />}
-
-            {stage === 'results' && <ResultsSection data={data} />}
-
-            {team_assigned && <MentorInfoSection mentorData={mentorData} />}
           </div>
         </div>
 
-        {team_assigned && team_id && (
-          <TeamChatPanel
-            eventId={eventId}
-            teamId={team_id}
-            token={urlToken}
-            kind="internal"
-            title="Team Chat"
-            accentClass="bg-slate-700 hover:bg-slate-800"
-            currentSenderId={participant_id}
-            currentSenderRole="participant"
-          />
+        {/* Second Row: Project Submission */}
+        {team_assigned && (stage === 'evaluation' || stage === 'results') && (
+          <div className="mb-6">
+            <ProjectSubmissionSection token={urlToken} />
+          </div>
         )}
-        {team_assigned && team_id && mentorData?.mentor_name && (
-          <TeamChatPanel
-            eventId={eventId}
-            teamId={team_id}
-            token={urlToken}
-            kind="mentor"
-            title="Chat with Mentor"
-            accentClass="bg-teal-700 hover:bg-teal-800"
-            currentSenderId={participant_id}
-            currentSenderRole="participant"
-          />
+        {stage === 'results' && (
+          <div className="mb-6">
+             <ResultsSection data={data} />
+          </div>
         )}
+
+        {/* Third Row: Chat, Mentor Info, Daily Update */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {isChatOpen && team_assigned && team_id && (
+            <div className="lg:col-span-1 h-[600px] mb-6">
+              <InlineChatCenter 
+                eventId={eventId} 
+                teamId={team_id} 
+                token={urlToken} 
+                mentorData={mentorData} 
+                participantId={participant_id}
+                onClose={() => setIsChatOpen(false)}
+              />
+            </div>
+          )}
+          <div className={`${isChatOpen ? 'lg:col-span-1' : 'lg:col-span-2'} space-y-6`}>
+            {team_assigned && <MentorInfoSection mentorData={mentorData} />}
+          </div>
+          <div className="lg:col-span-1 space-y-6">
+            {team_assigned && <DailyUpdateForm token={urlToken} />}
+          </div>
+        </div>
 
         {/* Support */}
         <SupportFooter supportEmail={supportEmail} />
 
       </div>
+
+      {/* Floating Toggle Button */}
+      {team_assigned && team_id && !isChatOpen && (
+        <button
+          onClick={() => setIsChatOpen(true)}
+          className="fixed bottom-6 left-6 z-40 flex items-center gap-2 px-5 py-3.5 rounded-full btn-primary shadow-lg transition-transform hover:scale-105"
+        >
+          <MessageSquare size={20} className="text-white" />
+          <span className="hidden sm:inline text-white font-bold">Chat with others</span>
+        </button>
+      )}
     </AppLayout>
   )
 }

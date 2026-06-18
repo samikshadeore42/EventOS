@@ -123,7 +123,7 @@ function ScheduleMeetingForm({ teamId, token, onSuccess }) {
       </div>
       <div className="flex justify-end">
         <button onClick={() => mutation.mutate()} disabled={mutation.isPending || !form.title || !form.meeting_url || !form.scheduled_at}
-          className="flex items-center gap-1.5 text-sm font-semibold px-4 py-2 rounded-lg btn-primary text-white hover:bg-teal-700 disabled:opacity-50 shadow-sm">
+          className="flex items-center gap-1.5 text-sm font-semibold px-4 py-2 rounded-lg btn-primary text-white hover:bg-teal-700 disabled:opacity-100 disabled:bg-teal-100 dark:disabled:bg-teal-900/50 disabled:text-teal-400 dark:disabled:text-teal-600 disabled:border-transparent disabled:shadow-none disabled:cursor-not-allowed shadow-sm transition-all">
           {mutation.isPending ? <Loader2 size={14} className="animate-spin" /> : <Plus size={14} />} Schedule
         </button>
       </div>
@@ -238,7 +238,7 @@ function DailyProgressForm({ teamId, members, token, onSuccess }) {
           Visible to participant
         </label>
         <button onClick={() => mutation.mutate()} disabled={mutation.isPending || !form.feedback_text}
-          className="flex items-center gap-1.5 text-sm font-semibold px-4 py-2 rounded-lg btn-primary text-white hover:bg-teal-700 disabled:opacity-50 shadow-sm">
+          className="flex items-center gap-1.5 text-sm font-semibold px-4 py-2 rounded-lg btn-primary text-white hover:bg-teal-700 disabled:opacity-100 disabled:bg-teal-100 dark:disabled:bg-teal-900/50 disabled:text-teal-400 dark:disabled:text-teal-600 disabled:border-transparent disabled:shadow-none disabled:cursor-not-allowed shadow-sm transition-all">
           {mutation.isPending ? <Loader2 size={14} className="animate-spin" /> : <Send size={14} />} Submit
         </button>
       </div>

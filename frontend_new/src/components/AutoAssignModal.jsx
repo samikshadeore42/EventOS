@@ -57,7 +57,7 @@ export default function AutoAssignModal({
               <button
                 onClick={() => proposeMutation.mutate()}
                 disabled={proposeMutation.isPending}
-                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg bg-teal-600 text-white text-sm font-semibold hover:bg-teal-700 disabled:opacity-50"
+                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg bg-teal-600 text-white text-sm font-semibold hover:bg-teal-700 disabled:opacity-100 disabled:bg-teal-100 dark:disabled:bg-teal-900/50 disabled:text-teal-400 dark:disabled:text-teal-600 disabled:border-transparent disabled:shadow-none disabled:cursor-not-allowed"
               >
                 {proposeMutation.isPending
                   ? <Loader2 size={16} className="animate-spin" />
@@ -162,7 +162,7 @@ export default function AutoAssignModal({
             <button
               onClick={() => commitMutation.mutate()}
               disabled={commitMutation.isPending || proposal.assignments.length === 0}
-              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg bg-emerald-600 text-white text-sm font-semibold hover:bg-emerald-700 disabled:opacity-50"
+              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg bg-emerald-600 text-white text-sm font-semibold hover:bg-emerald-700 disabled:opacity-100 disabled:bg-teal-100 dark:disabled:bg-teal-900/50 disabled:text-teal-400 dark:disabled:text-teal-600 disabled:border-transparent disabled:shadow-none disabled:cursor-not-allowed"
             >
               {commitMutation.isPending
                 ? <Loader2 size={16} className="animate-spin" />

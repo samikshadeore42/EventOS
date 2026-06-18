@@ -348,7 +348,7 @@ export default function StageTimelinePanel({ eventStatus }) {
                 <button
                   onClick={() => approve.mutate(s.id)}
                   disabled={approve.isPending}
-                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium text-white bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50"
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium text-white bg-emerald-600 hover:bg-emerald-700 disabled:opacity-100 disabled:bg-teal-100 dark:disabled:bg-teal-900/50 disabled:text-teal-400 dark:disabled:text-teal-600 disabled:border-transparent disabled:shadow-none disabled:cursor-not-allowed"
                 >
                   <CheckCircle2 className="w-3.5 h-3.5" /> Approve & start
                 </button>
@@ -533,7 +533,7 @@ export default function StageTimelinePanel({ eventStatus }) {
               <button
                 onClick={() => saveStage.mutate()}
                 disabled={saveStage.isPending}
-                className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg bg-teal-600 text-white text-sm disabled:opacity-50"
+                className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg bg-teal-600 text-white text-sm disabled:opacity-100 disabled:bg-teal-100 dark:disabled:bg-teal-900/50 disabled:text-teal-400 dark:disabled:text-teal-600 disabled:border-transparent disabled:shadow-none disabled:cursor-not-allowed"
               >
                 {saveStage.isPending ? (
                   <Loader2 className="w-4 h-4 animate-spin" />

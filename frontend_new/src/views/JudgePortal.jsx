@@ -218,7 +218,7 @@ function ScoringForm({ team, onSubmitted, alreadySubmitted, token }) {
             <button
               onClick={() => submitMutation.mutate()}
               disabled={submitMutation.isPending}
-              className="flex-1 flex items-center justify-center gap-2 py-2 rounded-lg btn-primary text-white text-sm font-bold hover:bg-teal-700 disabled:opacity-50 shadow-sm"
+              className="flex-1 flex items-center justify-center gap-2 py-2 rounded-lg btn-primary text-white text-sm font-bold hover:bg-teal-700 disabled:opacity-100 disabled:bg-teal-100 dark:disabled:bg-teal-900/50 disabled:text-teal-400 dark:disabled:text-teal-600 disabled:border-transparent disabled:shadow-none disabled:cursor-not-allowed shadow-sm"
             >
               {submitMutation.isPending ? <Loader2 size={14} className="animate-spin" /> : <CheckCircle size={14} />}
               {submitMutation.isPending ? 'Submitting…' : 'Confirm & Submit'}
@@ -291,7 +291,7 @@ function TeamSubmissionSection({ teamId, token }) {
           <button
             onClick={handleDownload}
             disabled={downloading}
-            className="flex items-center gap-1.5 text-sm font-semibold px-4 py-2 rounded-lg btn-primary text-white hover:bg-teal-700 disabled:opacity-50 shadow-sm shrink-0"
+            className="flex items-center gap-1.5 text-sm font-semibold px-4 py-2 rounded-lg btn-primary text-white hover:bg-teal-700 disabled:opacity-100 disabled:bg-teal-100 dark:disabled:bg-teal-900/50 disabled:text-teal-400 dark:disabled:text-teal-600 disabled:border-transparent disabled:shadow-none disabled:cursor-not-allowed shadow-sm shrink-0"
           >
             {downloading ? <Loader2 size={14} className="animate-spin" /> : <Download size={14} />}
             Download ZIP

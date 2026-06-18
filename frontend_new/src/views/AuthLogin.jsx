@@ -139,7 +139,7 @@ export default function AuthLogin() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full flex justify-center py-2.5 px-4 border border-teal-400/20 rounded-lg shadow-lg shadow-teal-500/25 text-sm font-medium text-white bg-gradient-to-r from-teal-600 to-teal-600 hover:from-teal-500 hover:to-teal-500 focus:outline-none transition-all disabled:opacity-50"
+              className="w-full flex justify-center py-2.5 px-4 border border-teal-400/20 rounded-lg shadow-lg shadow-teal-500/25 text-sm font-medium text-white bg-gradient-to-r from-teal-600 to-teal-600 hover:from-teal-500 hover:to-teal-500 focus:outline-none transition-all disabled:opacity-100 disabled:bg-teal-100 dark:disabled:bg-teal-900/50 disabled:text-teal-400 dark:disabled:text-teal-600 disabled:border-transparent disabled:shadow-none disabled:cursor-not-allowed"
             >
               {loading ? <Loader2 className="animate-spin h-5 w-5" /> : 'Sign in'}
             </button>

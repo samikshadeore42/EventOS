@@ -157,7 +157,7 @@ function ConfigSummaryCard({ config, onConfirm, saving, saved }) {
         <button
           onClick={handleConfirm}
           disabled={saving}
-          className="w-full btn-primary rounded-xl px-4 py-3 font-semibold text-sm flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+          className="w-full btn-primary rounded-xl px-4 py-3 font-semibold text-sm flex items-center justify-center gap-2 disabled:opacity-100 disabled:bg-teal-100 dark:disabled:bg-teal-900/50 disabled:text-teal-400 dark:disabled:text-teal-600 disabled:border-transparent disabled:shadow-none disabled:cursor-not-allowed disabled:cursor-not-allowed"
         >
           {saving
             ? <><Loader2 size={15} className="animate-spin" /> Creating event…</>

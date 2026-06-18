@@ -127,7 +127,7 @@ export default function SettingsTab() {
           <button 
             onClick={() => updateOrgMutation.mutate({ name: orgName, description: orgDesc })}
             disabled={updateOrgMutation.isPending || (orgName === activeOrganization?.name && orgDesc === (activeOrganization?.description || ''))}
-            className="flex items-center gap-1.5 text-sm px-4 py-2 rounded-lg btn-primary text-white hover:bg-teal-700 disabled:opacity-50"
+            className="flex items-center gap-1.5 text-sm px-4 py-2 rounded-lg btn-primary text-white hover:bg-teal-700 disabled:opacity-100 disabled:bg-teal-100 dark:disabled:bg-teal-900/50 disabled:text-teal-400 dark:disabled:text-teal-600 disabled:border-transparent disabled:shadow-none disabled:cursor-not-allowed"
           >
             {updateOrgMutation.isPending ? <Loader2 size={14} className="animate-spin"/> : <Save size={14} />}
             Save Changes
@@ -275,7 +275,7 @@ export default function SettingsTab() {
             <button 
               onClick={() => inviteMutation.mutate({ email: inviteEmail, role: inviteRole })}
               disabled={inviteMutation.isPending || !inviteEmail}
-              className="flex items-center gap-1.5 text-sm px-4 py-2 rounded-lg bg-teal-600 text-white hover:bg-teal-700 disabled:opacity-50 h-[38px]"
+              className="flex items-center gap-1.5 text-sm px-4 py-2 rounded-lg bg-teal-600 text-white hover:bg-teal-700 disabled:opacity-100 disabled:bg-teal-100 dark:disabled:bg-teal-900/50 disabled:text-teal-400 dark:disabled:text-teal-600 disabled:border-transparent disabled:shadow-none disabled:cursor-not-allowed h-[38px]"
             >
               {inviteMutation.isPending ? <Loader2 size={14} className="animate-spin" /> : <Mail size={14} />}
               Send Invite

@@ -25,7 +25,10 @@ export default function OrgSwitcher() {
   // Close dropdown on outside click
   useEffect(() => {
     const handleClick = (e) => {
-      if (ref.current && !ref.current.contains(e.target)) setOpen(false)
+      if (ref.current && !ref.current.contains(e.target)) {
+        setOpen(false)
+        setEventOpen(false)
+      }
     }
     document.addEventListener('mousedown', handleClick)
     return () => document.removeEventListener('mousedown', handleClick)
@@ -46,7 +49,10 @@ export default function OrgSwitcher() {
       {availableEvents?.length > 0 && (
         <div className="relative">
           <button
-            onClick={() => setEventOpen(!eventOpen)}
+            onClick={() => {
+              setEventOpen(!eventOpen)
+              setOpen(false)
+            }}
             className="flex items-center gap-2 text-sm px-3 py-1.5 rounded-lg border border-border bg-background hover:bg-surface transition-colors text-foreground"
           >
             <CalendarDays size={14} className="text-teal-500" />
@@ -57,7 +63,7 @@ export default function OrgSwitcher() {
           </button>
 
           {eventOpen && (
-            <div className="absolute right-0 mt-1 w-72 bg-background rounded-xl border border-border shadow-lg z-50 py-1 overflow-hidden">
+            <div className="absolute right-0 mt-1 w-72 glass-card rounded-xl shadow-lg z-50 py-1 overflow-hidden">
               <div className="px-3 py-2 text-xs font-medium text-muted uppercase tracking-wider">
                 Events
               </div>
@@ -71,7 +77,7 @@ export default function OrgSwitcher() {
             }}
             className={`w-full text-left px-3 py-2 text-sm flex items-center gap-2 hover:bg-surface transition-colors ${
               activeEvent?.id === event.id
-                ? 'bg-teal-50 text-teal-700 font-medium'
+                ? 'bg-surface text-teal-600 font-medium'
                 : 'text-foreground'
             }`}
           >
@@ -94,7 +100,10 @@ export default function OrgSwitcher() {
       {availableOrganizations?.length > 0 && (
         <div className="relative">
           <button
-            onClick={() => setOpen(!open)}
+            onClick={() => {
+              setOpen(!open)
+              setEventOpen(false)
+            }}
             className="flex items-center gap-2 text-sm px-3 py-1.5 rounded-lg border border-border bg-background hover:bg-surface transition-colors text-foreground"
           >
             <Building size={14} className="text-teal-500" />
@@ -105,7 +114,7 @@ export default function OrgSwitcher() {
           </button>
 
           {open && (
-            <div className="absolute right-0 mt-1 w-64 bg-background rounded-xl border border-border shadow-lg z-50 py-1 overflow-hidden">
+            <div className="absolute right-0 mt-1 w-64 glass-card rounded-xl shadow-lg z-50 py-1 overflow-hidden">
               <div className="px-3 py-2 text-xs font-medium text-muted uppercase tracking-wider">
                 Organizations
               </div>
@@ -117,7 +126,7 @@ export default function OrgSwitcher() {
                     setOpen(false)
                   }}
                   className={`w-full text-left px-3 py-2 text-sm flex items-center gap-2 hover:bg-surface transition-colors ${
-                    activeOrganization?.id === org.id ? 'bg-teal-50 text-teal-700 font-medium' : 'text-foreground'
+                    activeOrganization?.id === org.id ? 'bg-surface text-teal-600 font-medium' : 'text-foreground'
                   }`}
                 >
                   <Building size={14} className={activeOrganization?.id === org.id ? 'text-teal-500' : 'text-muted'} />
@@ -131,7 +140,7 @@ export default function OrgSwitcher() {
               <div className="border-t border-border mt-1 pt-1">
                 <button
                   onClick={handleLogout}
-                  className="w-full text-left px-3 py-2 text-sm flex items-center gap-2 text-teal-600 hover:bg-teal-50 transition-colors"
+                  className="w-full text-left px-3 py-2 text-sm flex items-center gap-2 text-teal-600 hover:bg-surface transition-colors"
                 >
                   <LogOut size={14} />
                   Sign out

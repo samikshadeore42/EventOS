@@ -188,7 +188,7 @@ export default function PipelineStepper({ showAdvanceButton = false, className =
           <button
             onClick={() => advanceMutation.mutate()}
             disabled={advanceMutation.isPending}
-            className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg btn-primary text-white hover:bg-teal-700 disabled:opacity-50 transition-colors"
+            className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg btn-primary text-white hover:bg-teal-700 disabled:opacity-100 disabled:bg-teal-100 dark:disabled:bg-teal-900/50 disabled:text-teal-400 dark:disabled:text-teal-600 disabled:border-transparent disabled:shadow-none disabled:cursor-not-allowed transition-colors"
           >
             {advanceMutation.isPending ? <Loader2 size={12} className="animate-spin" /> : <ChevronRight size={12} />}
             {advanceMutation.isPending ? 'Advancing...' : 'Advance Stage'}
