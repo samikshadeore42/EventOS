@@ -36,7 +36,7 @@ function qualityLabel(total) {
 
 // ── Error / empty screens ─────────────────────────────────────────────────
 
-function FullPageMessage({ icon: Icon, title, message, iconClass = 'text-slate-400 dark:text-muted' }) {
+function FullPageMessage({ icon: Icon, title, message, iconClass = 'text-muted' }) {
   return (
     <div className="min-h-screen flex items-center justify-center bg-surface">
       <div className="text-center max-w-sm px-4">
@@ -318,7 +318,7 @@ function TeamQueueSidebar({ teams, selectedId, submittedIds, onSelect }) {
           </div>
           <div className="w-full bg-cardSoft rounded-full h-1.5 overflow-hidden">
             <div
-              className="bg-cardSoft0 h-1.5 rounded-full transition-all"
+              className="bg-primary h-1.5 rounded-full transition-all"
               style={{ width: `${teams.length ? (submittedIds.length / teams.length) * 100 : 0}%` }}
             />
           </div>
@@ -345,7 +345,7 @@ function TeamQueueSidebar({ teams, selectedId, submittedIds, onSelect }) {
               }`}
             >
               <div className={`w-2.5 h-2.5 rounded-full shrink-0 mt-0.5 ${
-                done ? 'bg-cardSoft0' : 'bg-amber-400 animate-pulse'
+                done ? 'bg-primary' : 'bg-amber-400 animate-pulse'
               }`} />
               <div className="flex-1 min-w-0">
                 <p className={`text-sm font-bold truncate ${isActive ? 'text-primary-dark' : 'text-foreground'}`}>

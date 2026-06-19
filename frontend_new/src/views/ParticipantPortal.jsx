@@ -46,30 +46,30 @@ function DailyUpdateForm({ token }) {
   }
 
   if (submitted) return (
-    <div className="bg-green-50 border border-green-200 rounded-xl p-4">
-      <p className="text-green-700 font-medium">✓ Daily update submitted!</p>
+    <div className="app-card-soft rounded-xl p-4">
+      <p className="font-medium">✓ Daily update submitted!</p>
       <p className="text-green-600 text-sm mt-1">Your mentor and organizers can see your progress.</p>
     </div>
   )
 
   return (
-    <div className="bg-card rounded-[20px] shadow-sm border border-slate-200 p-6">
+    <div className="app-card p-6">
       <div className="flex items-center gap-3 mb-6">
-        <div className="w-12 h-12 rounded-2xl bg-[#F8E8FA] dark:bg-[#3C0B40]/50 text-[#C84BEA] dark:text-[#DEA3E6] border border-[#F0D1F5] dark:border-[#5F1B69]/50 flex items-center justify-center shrink-0 shadow-sm">
+        <div className="w-12 h-12 rounded-2xl bg-[#F8E8FA] text-[#C84BEA] border border-[#F0D1F5] flex items-center justify-center shrink-0 shadow-sm">
           <ClipboardList size={22} />
         </div>
         <div>
-          <h3 className="text-lg font-bold text-foreground dark:text-white">Daily Progress</h3>
-          <p className="text-sm font-medium text-muted dark:text-slate-400">Log your team's work</p>
+          <h3 className="text-lg font-bold text-foreground">Daily Progress</h3>
+          <p className="text-sm font-medium text-muted">Log your team's work</p>
         </div>
       </div>
       <div className="space-y-5">
         <div>
-          <label className="block text-sm font-semibold text-slate-700 dark:text-muted mb-1.5">
+          <label className="block text-sm font-semibold text-foreground mb-1.5">
             What did you build today? <span className="text-primary">*</span>
           </label>
           <textarea
-            className="w-full bg-cardSoft border border-slate-200 rounded-xl px-4 py-3 text-sm text-foreground dark:text-white placeholder-muted focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary focus:border-transparent transition-all resize-none shadow-sm"
+            className="w-full bg-cardSoft border border-border rounded-xl px-4 py-3 text-sm text-foreground placeholder-muted focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary focus:border-transparent transition-all resize-none shadow-sm"
             rows={3}
             placeholder="Implemented the login flow, fixed the API integration..."
             value={what}
@@ -78,23 +78,23 @@ function DailyUpdateForm({ token }) {
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
           <div>
-            <label className="block text-sm font-semibold text-slate-700 dark:text-muted mb-1.5">
+            <label className="block text-sm font-semibold text-foreground mb-1.5">
               Any blockers?
             </label>
             <input
-              className="w-full bg-cardSoft border border-slate-200 rounded-xl px-4 py-2.5 text-sm text-foreground dark:text-white placeholder-muted focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary focus:border-transparent transition-all shadow-sm"
+              className="w-full bg-cardSoft border border-border rounded-xl px-4 py-2.5 text-sm text-foreground placeholder-muted focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary focus:border-transparent transition-all shadow-sm"
               placeholder="e.g. Docker networking..."
               value={blockers}
               onChange={e => setBlockers(e.target.value)}
             />
           </div>
           <div>
-            <label className="block text-sm font-semibold text-slate-700 dark:text-muted mb-1.5">
+            <label className="block text-sm font-semibold text-foreground mb-1.5">
               Hours worked
             </label>
             <input
               type="number" min="0" max="24"
-              className="w-full bg-cardSoft border border-slate-200 rounded-xl px-4 py-2.5 text-sm text-foreground dark:text-white placeholder-muted focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary focus:border-transparent transition-all shadow-sm"
+              className="w-full bg-cardSoft border border-border rounded-xl px-4 py-2.5 text-sm text-foreground placeholder-muted focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary focus:border-transparent transition-all shadow-sm"
               placeholder="e.g. 4"
               value={hours}
               onChange={e => setHours(e.target.value)}
@@ -103,11 +103,11 @@ function DailyUpdateForm({ token }) {
         </div>
         {error && <p className="text-primary text-sm font-medium">{error}</p>}
       </div>
-      <div className="pt-5 mt-5 border-t border-slate-100">
+      <div className="pt-5 mt-5 border-t">
         <button
           onClick={handleSubmit}
           disabled={submitting || !what.trim()}
-          className="w-full bg-primary hover:bg-primary-dark disabled:bg-cardSoft dark:disabled:bg-cardSoft disabled:text-slate-400 text-white shadow-sm px-5 py-3 rounded-xl text-sm font-bold transition-all flex justify-center items-center gap-2"
+          className="w-full bg-primary hover:bg-primary-dark disabled:bg-cardSoft disabled:text-muted text-white shadow-sm px-5 py-3 rounded-xl text-sm font-bold transition-all flex justify-center items-center gap-2"
         >
           {submitting ? <Loader2 size={18} className="animate-spin" /> : <CheckCircle size={18} />}
           {submitting ? 'Submitting...' : 'Submit Update'}
@@ -138,31 +138,31 @@ const STAGE_LABELS = {
 
 function PortalHeader({ name, email, eventName, stage, timeline }) {
   return (
-    <div className="bg-card rounded-[20px] shadow-sm border border-slate-200 p-8 flex flex-col justify-center relative overflow-hidden mb-6 h-full">
+    <div className="app-card p-8 flex flex-col justify-center relative overflow-hidden mb-6 h-full">
       {/* Background soft glow */}
-      <div className="absolute top-0 right-0 -mr-16 -mt-16 w-64 h-64 bg-cardSoft0/10 dark:bg-cardSoft0/5 rounded-full blur-3xl pointer-events-none" />
+      <div className="absolute top-0 right-0 -mr-16 -mt-16 w-64 h-64 bg-primary/10 dark:bg-primary/5 rounded-full blur-3xl pointer-events-none" />
       <div className="absolute bottom-0 left-0 -ml-16 -mb-16 w-64 h-64 bg-purple-500/10 dark:bg-purple-500/5 rounded-full blur-3xl pointer-events-none" />
 
       <div className="relative z-10 flex flex-col h-full">
         <div className="flex items-center gap-2.5 mb-4">
-          <span className="w-2.5 h-2.5 rounded-full bg-cardSoft0 animate-pulse shadow-[0_0_8px_rgba(20,184,166,0.6)]" />
+          <span className="w-2.5 h-2.5 rounded-full bg-primary animate-pulse shadow-[0_0_8px_rgba(20,184,166,0.6)]" />
           <p className="text-sm font-bold text-primary uppercase tracking-widest">
             {eventName}
           </p>
         </div>
 
-        <h1 className="text-4xl lg:text-5xl font-black text-foreground dark:text-white mb-2 tracking-tight">
+        <h1 className="text-4xl lg:text-5xl font-black text-foreground mb-2 tracking-tight">
           Welcome back, {name.split(' ')[0]} 👋
         </h1>
 
-        <p className="text-base text-muted dark:text-slate-400 font-medium mb-8 flex items-center gap-2">
+        <p className="text-base text-muted font-medium mb-8 flex items-center gap-2">
           {email}
         </p>
 
         {stage && (
-          <div className="inline-flex items-center self-start gap-2.5 px-5 py-2.5 rounded-xl bg-cardSoft border border-border/50 text-sm font-bold text-foreground dark:text-primary-light shadow-sm mb-6">
+          <div className="inline-flex items-center self-start gap-2.5 px-5 py-2.5 rounded-xl bg-cardSoft border border-border/50 text-sm font-bold text-foreground shadow-sm mb-6">
             <Clock size={18} className="text-primary" />
-            Current Phase: <span className="text-foreground dark:text-teal-100">{STAGE_LABELS[stage] ?? stage}</span>
+            Current Phase: <span className="text-foreground">{STAGE_LABELS[stage] ?? stage}</span>
           </div>
         )}
 
@@ -180,7 +180,7 @@ function EventTimeline({ timeline }) {
   if (!timeline?.length) return null
 
   return (
-    <div className="w-full mt-10 pt-8 border-t border-border">
+    <div className="w-full mt-10 pt-8 border-t">
       <h2 className="text-sm font-bold text-foreground mb-6">Your Event Journey</h2>
 
       <div className="w-full pb-2">
@@ -197,7 +197,7 @@ function EventTimeline({ timeline }) {
                 {/* Node */}
                 <div className={`relative z-10 w-10 h-10 rounded-full border-2 flex items-center justify-center shrink-0 transition-colors shadow-sm ${
                   isCompleted ? 'bg-cardSoft border-primary text-primary' :
-                  isActive    ? 'bg-primary border-primary text-white shadow-md shadow-teal-500/30' :
+                  isActive    ? 'bg-primary border-primary text-white shadow-md shadow-primary/20' :
                                 'bg-surface border-border text-muted'
                 }`}>
                   {isCompleted && <CheckCircle size={18} />}
@@ -221,7 +221,7 @@ function EventTimeline({ timeline }) {
               {/* Connecting Line */}
               {!isLast && (
                 <div className="flex-1 h-1 mx-2 rounded-full overflow-hidden bg-cardSoft">
-                  <div className={`h-full transition-all duration-500 ${isCompleted ? 'bg-cardSoft0' : 'bg-transparent'}`} />
+                  <div className={`h-full transition-all duration-500 ${isCompleted ? 'bg-primary' : 'bg-transparent'}`} />
                 </div>
               )}
             </div>
@@ -234,84 +234,92 @@ function EventTimeline({ timeline }) {
   )
 }
 
-// ── Inline Chat Center ───────────────────────────────────────────────────
-function InlineChatCenter({ eventId, teamId, token, mentorData, participantId, onClose }) {
+// ── Chat Drawer (right side) ───────────────────────────────────────────────
+function ChatDrawer({ eventId, teamId, token, mentorData, participantId, onClose }) {
   const [activeTab, setActiveTab] = useState('team') // 'team' | 'mentor' | 'support'
 
   const hasMentor = !!mentorData?.mentor_name
 
   if (!teamId) return null
 
+  const tabBtn = (key, label) => (
+    <button
+      onClick={() => setActiveTab(key)}
+      className="px-4 py-2.5 text-sm font-bold border-b-2 whitespace-nowrap transition-colors"
+      style={{
+        borderColor: activeTab === key ? 'var(--color-primary)' : 'transparent',
+        color: activeTab === key ? 'var(--color-primary)' : 'var(--text-muted)',
+      }}
+    >
+      {label}
+    </button>
+  )
+
   return (
-    <div className="bg-card rounded-[20px] shadow-2xl border border-slate-200 overflow-hidden flex flex-col w-full h-[600px] max-h-[85vh]">
-      <div className="flex items-center justify-between px-6 py-5 border-b border-slate-100 bg-cardSoft">
-        <h3 className="text-base font-bold text-foreground dark:text-white flex items-center gap-2.5">
-          <MessageSquare size={20} className="text-primary" /> Team & Mentor Chat
-        </h3>
-        <button onClick={onClose} className="w-8 h-8 flex items-center justify-center rounded-full bg-cardSoft text-muted hover:text-foreground dark:hover:text-white transition-colors">
-          <X size={16} />
-        </button>
-      </div>
+    <>
+      {/* Semi-transparent overlay */}
+      <div className="app-drawer-overlay" onClick={onClose} />
 
-      {/* Tabs */}
-      <div className="flex px-4 pt-3 border-b border-slate-100 bg-cardSoft gap-2 overflow-x-auto custom-scrollbar shrink-0">
-        <button
-          onClick={() => setActiveTab('team')}
-          className={`px-4 py-2.5 text-sm font-bold border-b-2 whitespace-nowrap transition-colors ${activeTab === 'team' ? 'border-primary text-primary-dark dark:text-primary-light' : 'border-transparent text-muted hover:text-foreground dark:hover:text-white'}`}
+      {/* Drawer */}
+      <div className="app-drawer">
+        <div className="flex items-center justify-between px-5 py-4 shrink-0"
+          style={{ borderBottom: '1px solid var(--border-soft)', backgroundColor: 'var(--bg-card)' }}
         >
-          Team Group Chat
-        </button>
-        <button
-          onClick={() => setActiveTab('mentor')}
-          className={`px-4 py-2.5 text-sm font-bold border-b-2 whitespace-nowrap transition-colors ${activeTab === 'mentor' ? 'border-primary text-primary-dark dark:text-primary-light' : 'border-transparent text-muted hover:text-foreground dark:hover:text-white'}`}
-        >
-          Chat with Mentor
-        </button>
-        <button
-          onClick={() => setActiveTab('support')}
-          className={`px-4 py-2.5 text-sm font-bold border-b-2 whitespace-nowrap transition-colors ${activeTab === 'support' ? 'border-primary text-primary-dark dark:text-primary-light' : 'border-transparent text-muted hover:text-foreground dark:hover:text-white'}`}
-        >
-          Event Support
-        </button>
-      </div>
+          <h3 className="text-base font-bold flex items-center gap-2.5" style={{ color: 'var(--text-main)' }}>
+            <MessageSquare size={20} style={{ color: 'var(--color-primary)' }} /> Team & Mentor Chat
+          </h3>
+          <button onClick={onClose} className="app-icon-button">
+            <X size={16} />
+          </button>
+        </div>
 
-      {/* Chat Content */}
-      <div className="flex-1 bg-card relative flex flex-col min-h-0">
-        {activeTab === 'team' && (
-          <TeamChatPanel inline eventId={eventId} teamId={teamId} token={token} kind="internal" currentSenderId={participantId} currentSenderRole="participant" title="Team Group Chat" />
-        )}
-        {activeTab === 'mentor' && (
-          hasMentor ? (
-            <TeamChatPanel inline eventId={eventId} teamId={teamId} token={token} kind="mentor" currentSenderId={participantId} currentSenderRole="participant" title="Chat with Mentor" />
-          ) : !mentorData ? (
-            <div className="flex flex-col items-center justify-center h-full text-center p-8 bg-cardSoft">
-              <Loader2 size={32} className="text-primary animate-spin mb-4" />
-              <h4 className="text-lg font-bold text-foreground dark:text-white mb-2">Loading Mentor Info...</h4>
-            </div>
-          ) : (
-            <div className="flex flex-col items-center justify-center h-full text-center p-8 bg-cardSoft">
-              <div className="w-16 h-16 bg-card rounded-2xl flex items-center justify-center mb-4 shadow-sm border border-slate-200">
-                <UserCheck size={24} className="text-slate-400" />
+        {/* Tabs */}
+        <div className="flex px-4 pt-1 gap-2 overflow-x-auto shrink-0"
+          style={{ borderBottom: '1px solid var(--border-soft)', backgroundColor: 'var(--bg-card)' }}
+        >
+          {tabBtn('team', 'Team Group Chat')}
+          {tabBtn('mentor', 'Chat with Mentor')}
+          {tabBtn('support', 'Event Support')}
+        </div>
+
+        {/* Chat Content */}
+        <div className="flex-1 relative flex flex-col min-h-0" style={{ backgroundColor: 'var(--bg-main)' }}>
+          {activeTab === 'team' && (
+            <TeamChatPanel inline eventId={eventId} teamId={teamId} token={token} kind="internal" currentSenderId={participantId} currentSenderRole="participant" title="Team Group Chat" />
+          )}
+          {activeTab === 'mentor' && (
+            hasMentor ? (
+              <TeamChatPanel inline eventId={eventId} teamId={teamId} token={token} kind="mentor" currentSenderId={participantId} currentSenderRole="participant" title="Chat with Mentor" />
+            ) : !mentorData ? (
+              <div className="flex flex-col items-center justify-center h-full text-center p-8" style={{ backgroundColor: 'var(--bg-card-soft)' }}>
+                <Loader2 size={32} className="animate-spin mb-4" style={{ color: 'var(--color-primary)' }} />
+                <h4 className="text-lg font-bold mb-2" style={{ color: 'var(--text-main)' }}>Loading Mentor Info...</h4>
               </div>
-              <h4 className="text-lg font-bold text-foreground dark:text-white mb-2">No Mentor Assigned</h4>
-              <p className="text-sm font-medium text-muted dark:text-slate-400 max-w-[250px] leading-relaxed">Your team will be able to chat with your mentor once they are assigned to your project.</p>
+            ) : (
+              <div className="flex flex-col items-center justify-center h-full text-center p-8" style={{ backgroundColor: 'var(--bg-card-soft)' }}>
+                <div className="w-16 h-16 rounded-2xl flex items-center justify-center mb-4 app-card-soft">
+                  <UserCheck size={24} style={{ color: 'var(--text-muted)' }} />
+                </div>
+                <h4 className="text-lg font-bold mb-2" style={{ color: 'var(--text-main)' }}>No Mentor Assigned</h4>
+                <p className="text-sm font-medium max-w-[250px] leading-relaxed" style={{ color: 'var(--text-muted)' }}>Your team will be able to chat with your mentor once they are assigned to your project.</p>
+              </div>
+            )
+          )}
+          {activeTab === 'support' && (
+            <div className="flex flex-col items-center justify-center h-full text-center p-8" style={{ backgroundColor: 'var(--bg-card-soft)' }}>
+              <div className="w-16 h-16 rounded-2xl flex items-center justify-center mb-4 app-card-soft">
+                <Send size={24} style={{ color: 'var(--text-muted)' }} />
+              </div>
+              <h4 className="text-lg font-bold mb-2" style={{ color: 'var(--text-main)' }}>Need help?</h4>
+              <p className="text-sm font-medium mb-6 max-w-[250px] leading-relaxed" style={{ color: 'var(--text-muted)' }}>Contact the organizing committee for technical or event-related issues.</p>
+              <a href="mailto:support@eventos.com" className="app-btn-secondary flex items-center gap-2">
+                <MessageSquare size={16} /> Email Support
+              </a>
             </div>
-          )
-        )}
-        {activeTab === 'support' && (
-          <div className="flex flex-col items-center justify-center h-full text-center p-8 bg-cardSoft">
-            <div className="w-16 h-16 bg-card rounded-2xl flex items-center justify-center mb-4 shadow-sm border border-slate-200">
-              <Send size={24} className="text-slate-400" />
-            </div>
-            <h4 className="text-lg font-bold text-foreground dark:text-white mb-2">Need help?</h4>
-            <p className="text-sm font-medium text-muted dark:text-slate-400 mb-6 max-w-[250px] leading-relaxed">Contact the organizing committee for technical or event-related issues.</p>
-            <a href="mailto:support@eventos.com" className="bg-cardSoft text-foreground dark:text-white hover:bg-cardSoft dark:hover:bg-cardSoft px-6 py-2.5 text-sm font-bold rounded-xl flex items-center gap-2 transition-colors border border-slate-200 shadow-sm">
-              <MessageSquare size={16} /> Email Support
-            </a>
-          </div>
-        )}
+          )}
+        </div>
       </div>
-    </div>
+    </>
   )
 }
 
@@ -329,13 +337,13 @@ function TeammateCard({ teammate, index }) {
   const colour = AVATAR_COLOURS[index % AVATAR_COLOURS.length]
 
   return (
-    <div className="flex items-center gap-3 bg-cardSoft rounded-xl p-3 border border-slate-200 shadow-sm transition-colors hover:bg-cardSoft dark:hover:bg-cardSoft">
+    <div className="flex items-center gap-3 bg-cardSoft rounded-xl p-3 border border-border shadow-sm transition-colors hover:bg-[var(--bg-card-soft)]">
       <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm shrink-0 ${colour}`}>
         {initials(teammate.name)}
       </div>
       <div className="min-w-0">
-        <p className="text-sm font-bold text-foreground dark:text-white truncate">{teammate.name}</p>
-        <p className="text-xs text-muted dark:text-slate-400 truncate font-medium">{teammate.institution}</p>
+        <p className="text-sm font-bold text-foreground truncate">{teammate.name}</p>
+        <p className="text-xs text-muted truncate font-medium">{teammate.institution}</p>
       </div>
     </div>
   )
@@ -349,36 +357,36 @@ function TeamRevealSection({ teamName, rationale, teammates }) {
   return (
     <div className="mb-6 h-full flex flex-col gap-4">
       {/* Team name hero */}
-      <div className="bg-card rounded-[20px] shadow-sm border border-slate-200 p-6 text-center relative overflow-hidden group border-l-2 border-l-primary transition-all hover:-translate-y-1">
+      <div className="app-card p-6 text-center relative overflow-hidden group border-l-2 border-l-primary transition-all hover:-translate-y-1">
         <div className="absolute -right-8 -top-8 w-40 h-40 bg-gradient-to-br from-primary/5 to-transparent rounded-full blur-3xl group-hover:scale-125 transition-transform duration-700 pointer-events-none" />
         <div className="relative z-10">
           <p className="text-xs font-bold uppercase tracking-widest text-primary mb-2">
             You have been assigned to
           </p>
-          <h2 className="text-3xl font-black mb-1 text-foreground dark:text-white">{teamName}</h2>
-          <p className="text-sm font-medium text-muted dark:text-slate-400">Your team assignment is confirmed</p>
+          <h2 className="text-3xl font-black mb-1 text-foreground">{teamName}</h2>
+          <p className="text-sm font-medium text-muted">Your team assignment is confirmed</p>
         </div>
       </div>
 
       {/* AI rationale accordion */}
       {rationale && (
-        <div className="bg-card rounded-[20px] shadow-sm border border-slate-200 overflow-hidden">
+        <div className="app-card overflow-hidden">
           <button
             onClick={() => setRationaleOpen((o) => !o)}
-            className="w-full flex items-center justify-between px-6 py-4 hover:bg-cardSoft dark:hover:bg-cardSoft/50 transition-colors"
+            className="w-full flex items-center justify-between px-6 py-4 hover:bg-[var(--bg-card-soft)]/50 transition-colors"
           >
             <div className="flex items-center gap-3 text-left">
-              <span className="text-sm font-bold text-foreground dark:text-white">Why was this team formed?</span>
+              <span className="text-sm font-bold text-foreground">Why was this team formed?</span>
               <span className="text-[10px] uppercase tracking-wider text-primary bg-cardSoft border border-border/50 px-2 py-0.5 rounded-md font-bold">AI analysis</span>
             </div>
             {rationaleOpen
-              ? <ChevronUp   size={18} className="text-slate-400 shrink-0" />
-              : <ChevronDown size={18} className="text-slate-400 shrink-0" />
+              ? <ChevronUp   size={18} className="text-muted shrink-0" />
+              : <ChevronDown size={18} className="text-muted shrink-0" />
             }
           </button>
           {rationaleOpen && (
-            <div className="px-6 pb-6 border-t border-slate-100">
-              <p className="text-sm text-muted dark:text-slate-400 leading-relaxed pt-4 font-medium">{rationale}</p>
+            <div className="px-6 pb-6 border-t">
+              <p className="text-sm text-muted leading-relaxed pt-4 font-medium">{rationale}</p>
             </div>
           )}
         </div>
@@ -386,11 +394,11 @@ function TeamRevealSection({ teamName, rationale, teammates }) {
 
       {/* Teammates */}
       {teammates?.length > 0 && (
-        <div className="bg-card rounded-[20px] shadow-sm border border-slate-200 p-6 flex-1">
+        <div className="app-card p-6 flex-1">
           <div className="flex items-center gap-2 mb-4">
             <Users size={18} className="text-primary" />
-            <h3 className="text-base font-bold text-foreground dark:text-white">
-              Your Teammates <span className="text-slate-400 font-medium">({teammates.length})</span>
+            <h3 className="text-base font-bold text-foreground">
+              Your Teammates <span className="text-muted font-medium">({teammates.length})</span>
             </h3>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -408,14 +416,14 @@ function TeamRevealSection({ teamName, rationale, teammates }) {
 
 function AwaitingCard() {
   return (
-    <div className="bg-card rounded-[20px] shadow-sm border border-slate-200 p-8 text-center mb-6 relative overflow-hidden group  flex flex-col justify-center h-full transition-all hover:-translate-y-1">
+    <div className="app-card p-8 text-center mb-6 relative overflow-hidden group  flex flex-col justify-center h-full transition-all hover:-translate-y-1">
       <div className="absolute -right-8 -top-8 w-40 h-40 bg-gradient-to-br from-primary/10 to-transparent rounded-full blur-3xl group-hover:scale-125 transition-transform duration-700 pointer-events-none" />
       <div className="relative z-10 flex flex-col items-center">
         <div className="w-16 h-16 rounded-2xl bg-cardSoft border border-border flex items-center justify-center mb-5 shadow-sm text-primary transition-transform group-hover:scale-105">
           <Clock size={28} />
         </div>
-        <h3 className="text-xl font-black text-foreground dark:text-white mb-2">Team assignment pending</h3>
-        <p className="text-sm text-muted dark:text-slate-400 leading-relaxed font-medium max-w-sm mx-auto">
+        <h3 className="text-xl font-black text-foreground mb-2">Team assignment pending</h3>
+        <p className="text-sm text-muted leading-relaxed font-medium max-w-sm mx-auto">
           The committee is currently running the team formation algorithm.
           You'll receive an email notification as soon as your team has been assigned and approved.
         </p>
@@ -429,29 +437,29 @@ function YourMentorCard({ mentorData }) {
   const hasMentor = !!mentorData.mentor_name
 
   return (
-    <div className="bg-card rounded-[20px] shadow-sm border border-slate-200 p-6 flex flex-col h-full">
+    <div className="app-card p-6 flex flex-col h-full">
       <div className="flex items-center gap-3 mb-6">
         <div className="w-12 h-12 rounded-2xl bg-cardSoft text-primary border border-border flex items-center justify-center shrink-0 shadow-sm transition-transform hover:scale-105">
           <UserCheck size={22} />
         </div>
         <div>
-          <h3 className="text-lg font-bold text-foreground dark:text-white">Your Mentor</h3>
-          <p className="text-sm font-medium text-muted dark:text-slate-400">Mentor Status</p>
+          <h3 className="text-lg font-bold text-foreground">Your Mentor</h3>
+          <p className="text-sm font-medium text-muted">Mentor Status</p>
         </div>
       </div>
 
       {hasMentor ? (
-        <div className="flex items-center gap-4 bg-cardSoft p-4 rounded-xl border border-slate-100 mt-auto">
-          <div className="w-14 h-14 rounded-full bg-card text-primary border border-slate-200 flex items-center justify-center font-black text-lg shrink-0 shadow-sm">
+        <div className="flex items-center gap-4 bg-cardSoft p-4 rounded-xl border border-border mt-auto">
+          <div className="w-14 h-14 rounded-full bg-card text-primary border border-border flex items-center justify-center font-black text-lg shrink-0 shadow-sm">
             {initials(mentorData.mentor_name)}
           </div>
           <div className="min-w-0">
-            <p className="text-base font-bold text-foreground dark:text-white truncate">{mentorData.mentor_name}</p>
+            <p className="text-base font-bold text-foreground truncate">{mentorData.mentor_name}</p>
             {mentorData.organization && (
-              <p className="text-sm text-muted dark:text-slate-400 font-medium mt-0.5 truncate">{mentorData.organization}</p>
+              <p className="text-sm text-muted font-medium mt-0.5 truncate">{mentorData.organization}</p>
             )}
             {mentorData.email && (
-              <p className="text-sm text-muted dark:text-slate-400 font-medium truncate">{mentorData.email}</p>
+              <p className="text-sm text-muted font-medium truncate">{mentorData.email}</p>
             )}
             {mentorData.expertise_areas?.length > 0 && (
               <div className="flex gap-1.5 mt-2 flex-wrap">
@@ -463,12 +471,12 @@ function YourMentorCard({ mentorData }) {
           </div>
         </div>
       ) : (
-        <div className="text-center py-8 bg-cardSoft rounded-xl border border-dashed border-slate-300 mt-auto">
-          <div className="w-14 h-14 bg-card rounded-2xl flex items-center justify-center mx-auto mb-3 shadow-sm border border-slate-200">
+        <div className="text-center py-8 bg-cardSoft rounded-xl border border-dashed mt-auto">
+          <div className="w-14 h-14 bg-card rounded-2xl flex items-center justify-center mx-auto mb-3 shadow-sm border border-border">
             <span className="text-2xl">👨‍🏫</span>
           </div>
-          <h4 className="text-base font-bold text-foreground dark:text-white mb-1">Mentor assignment pending</h4>
-          <p className="text-sm text-muted dark:text-slate-400 font-medium max-w-[220px] mx-auto leading-relaxed">A mentor will be assigned during the mentoring phase.</p>
+          <h4 className="text-base font-bold text-foreground mb-1">Mentor assignment pending</h4>
+          <p className="text-sm text-muted font-medium max-w-[220px] mx-auto leading-relaxed">A mentor will be assigned during the mentoring phase.</p>
         </div>
       )}
     </div>
@@ -479,26 +487,26 @@ function NextMeetingCard({ mentorData }) {
   if (!mentorData) return null
 
   return (
-    <div className="bg-card rounded-[20px] shadow-sm border border-slate-200 p-6 flex flex-col h-full">
+    <div className="app-card p-6 flex flex-col h-full">
       <div className="flex items-center gap-3 mb-6">
-        <div className="w-12 h-12 rounded-2xl bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 border border-blue-100 dark:border-blue-800/50 flex items-center justify-center shrink-0 shadow-sm transition-transform hover:scale-105">
+        <div className="w-12 h-12 rounded-2xl bg-info/10 text-info border border-border flex items-center justify-center shrink-0 shadow-sm transition-transform hover:scale-105">
           <Video size={22} />
         </div>
         <div>
-          <h3 className="text-lg font-bold text-foreground dark:text-white">Next Mentor Meeting</h3>
-          <p className="text-sm font-medium text-muted dark:text-slate-400">Scheduled Sessions</p>
+          <h3 className="text-lg font-bold text-foreground">Next Mentor Meeting</h3>
+          <p className="text-sm font-medium text-muted">Scheduled Sessions</p>
         </div>
       </div>
 
       {mentorData.next_meeting ? (
         <div className="bg-cardSoft border border-border/50 rounded-xl p-5 shadow-sm mt-auto">
-          <p className="text-base font-bold text-foreground dark:text-teal-100">{mentorData.next_meeting.title}</p>
+          <p className="text-base font-bold text-foreground">{mentorData.next_meeting.title}</p>
           <p className="text-sm text-primary mt-1 font-medium flex items-center gap-2">
             <CalendarDays size={14} />
             {new Date(mentorData.next_meeting.scheduled_at).toLocaleString()} · {mentorData.next_meeting.duration_minutes}min
           </p>
           {mentorData.next_meeting.agenda && (
-            <p className="text-sm text-foreground mt-2 font-medium bg-card/50 dark:bg-black/20 p-2.5 rounded-lg border border-border">
+            <p className="text-sm text-foreground mt-2 font-medium bg-card/50 p-2.5 rounded-lg border border-border">
               <span className="font-bold">Agenda:</span> {mentorData.next_meeting.agenda}
             </p>
           )}
@@ -510,12 +518,12 @@ function NextMeetingCard({ mentorData }) {
           )}
         </div>
       ) : (
-        <div className="text-center py-8 bg-cardSoft rounded-xl border border-dashed border-slate-300 mt-auto">
-          <div className="w-14 h-14 bg-card rounded-2xl flex items-center justify-center mx-auto mb-3 shadow-sm border border-slate-200">
-            <CalendarDays size={20} className="text-slate-400" />
+        <div className="text-center py-8 bg-cardSoft rounded-xl border border-dashed mt-auto">
+          <div className="w-14 h-14 bg-card rounded-2xl flex items-center justify-center mx-auto mb-3 shadow-sm border border-border">
+            <CalendarDays size={20} className="text-muted" />
           </div>
-          <h4 className="text-base font-bold text-foreground dark:text-white mb-1">No upcoming sessions</h4>
-          <p className="text-sm text-muted dark:text-slate-400 font-medium max-w-[220px] mx-auto leading-relaxed">Your mentor hasn't scheduled any check-ins yet.</p>
+          <h4 className="text-base font-bold text-foreground mb-1">No upcoming sessions</h4>
+          <p className="text-sm text-muted font-medium max-w-[220px] mx-auto leading-relaxed">Your mentor hasn't scheduled any check-ins yet.</p>
         </div>
       )}
     </div>
@@ -526,21 +534,21 @@ function MentorFeedbackCard({ mentorData }) {
   if (!mentorData?.visible_feedback?.length) return null
 
   return (
-    <div className="bg-card rounded-[20px] shadow-sm border border-slate-200 p-6 h-full">
+    <div className="app-card p-6 h-full">
       <div className="flex items-center gap-2.5 mb-5">
         <MessageSquare size={18} className="text-primary" />
-        <h3 className="text-lg font-bold text-foreground dark:text-white">Mentor Feedback</h3>
+        <h3 className="text-lg font-bold text-foreground">Mentor Feedback</h3>
       </div>
       <div className="space-y-4">
         {mentorData.visible_feedback.slice(0, 3).map((fb, i) => (
-          <div key={fb.id || i} className="bg-cardSoft rounded-xl p-4 border border-slate-200 relative">
-            <p className="text-sm text-slate-800 dark:text-slate-200 leading-relaxed font-medium">{fb.feedback_text}</p>
+          <div key={fb.id || i} className="bg-cardSoft rounded-xl p-4 border border-border relative">
+            <p className="text-sm text-foreground leading-relaxed font-medium">{fb.feedback_text}</p>
             {fb.progress_score != null && (
-              <div className="absolute top-4 right-4 bg-card text-primary text-[10px] font-black tracking-widest uppercase px-2 py-1 rounded-md border border-slate-200 shadow-sm">
+              <div className="absolute top-4 right-4 bg-card text-primary text-[10px] font-black tracking-widest uppercase px-2 py-1 rounded-md border border-border shadow-sm">
                 Score: {fb.progress_score}/10
               </div>
             )}
-            <p className="text-[11px] text-slate-400 dark:text-muted mt-2 font-semibold tracking-wider uppercase">
+            <p className="text-[11px] text-muted mt-2 font-semibold tracking-wider uppercase">
               {fb.created_at ? new Date(fb.created_at).toLocaleDateString() : ''}
             </p>
           </div>
@@ -554,18 +562,18 @@ function MentorActionItemsCard({ mentorData }) {
   if (!mentorData?.action_items?.length) return null
 
   return (
-    <div className="bg-card rounded-[20px] shadow-sm border border-slate-200 p-6 h-full">
+    <div className="app-card p-6 h-full">
       <div className="flex items-center gap-2.5 mb-5">
         <ClipboardList size={18} className="text-primary" />
-        <h3 className="text-lg font-bold text-foreground dark:text-white">Action Items</h3>
+        <h3 className="text-lg font-bold text-foreground">Action Items</h3>
       </div>
       <ul className="space-y-3">
         {mentorData.action_items.map((item, i) => (
-          <li key={i} className="flex items-start gap-3 bg-cardSoft dark:bg-amber-900/20 p-3.5 rounded-xl border border-border /30">
-            <div className="mt-0.5 shrink-0 w-4 h-4 rounded bg-amber-200 dark:bg-amber-800 flex items-center justify-center text-primary">
+          <li key={i} className="flex items-start gap-3 bg-cardSoft p-3.5 rounded-xl border border-border">
+            <div className="mt-0.5 shrink-0 w-4 h-4 rounded bg-primary/15 flex items-center justify-center text-primary">
               <Check size={10} strokeWidth={4} />
             </div>
-            <span className="text-sm font-semibold text-foreground dark:text-amber-100">{item}</span>
+            <span className="text-sm font-semibold text-foreground">{item}</span>
           </li>
         ))}
       </ul>
@@ -797,7 +805,7 @@ function ProgressionInvitationSection({ participantId, currentStatus }) {
   // OPTIMISTIC UI: Show declined instantly
   if (currentStatus === false || (mutation.isSuccess && mutation.variables === false)) {
     return (
-      <div className="bg-slate-900/60 border border-slate-700/50 rounded-2xl p-5 text-center mb-6">
+      <div className="app-card-soft rounded-2xl p-5 text-center mb-6">
         <p className="text-sm font-medium text-muted flex items-center justify-center gap-1.5">
           <X size={18} /> You have declined the grand finale progression slot.
         </p>
@@ -1041,31 +1049,24 @@ export default function ParticipantPortal() {
       {team_assigned && team_id && !isChatOpen && (
         <button
           onClick={() => setIsChatOpen(true)}
-          className="fixed bottom-6 right-6 z-40 flex items-center gap-2.5 px-6 py-4 rounded-full bg-primary hover:bg-primary-dark text-white shadow-xl shadow-teal-900/20 transition-transform hover:-translate-y-1"
+          className="fixed bottom-6 right-6 z-40 flex items-center gap-2.5 px-6 py-4 rounded-full text-white shadow-xl transition-transform hover:-translate-y-1"
+          style={{ backgroundColor: 'var(--color-primary)', boxShadow: '0 8px 24px rgba(232,121,50,0.25)' }}
         >
           <MessageSquare size={22} className="text-white" />
           <span className="hidden sm:inline font-bold">Team & Mentor Chat</span>
         </button>
       )}
 
-      {/* Chat Modal Portal */}
+      {/* Chat Drawer Portal */}
       {isChatOpen && team_assigned && team_id && createPortal(
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6 bg-black/50 backdrop-blur-sm">
-          {/* Overlay background */}
-          <div className="absolute inset-0 cursor-pointer" onClick={() => setIsChatOpen(false)} />
-
-          {/* Modal Container */}
-          <div className="relative w-full max-w-2xl z-10 animate-in fade-in zoom-in-95 duration-200">
-            <InlineChatCenter
-              eventId={eventId}
-              teamId={team_id}
-              token={urlToken}
-              mentorData={mentorData}
-              participantId={participant_id}
-              onClose={() => setIsChatOpen(false)}
-            />
-          </div>
-        </div>,
+        <ChatDrawer
+          eventId={eventId}
+          teamId={team_id}
+          token={urlToken}
+          mentorData={mentorData}
+          participantId={participant_id}
+          onClose={() => setIsChatOpen(false)}
+        />,
         document.body
       )}
     </AppLayout>

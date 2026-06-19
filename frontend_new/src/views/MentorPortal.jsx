@@ -58,9 +58,9 @@ function StatCard({ label, value, sub, statusText, statusColour = 'teal', colour
     emerald: { icon: 'bg-emerald-50 text-emerald-600 border border-emerald-200', glow: 'from-emerald-500/20', border: 'border-t-emerald-500', dot: 'bg-emerald-500', text: 'text-emerald-700 dark:text-emerald-400' },
     green: { icon: 'bg-emerald-50 text-emerald-600 border border-emerald-200', glow: 'from-emerald-500/20', border: 'border-t-emerald-500', dot: 'bg-emerald-500', text: 'text-emerald-700 dark:text-emerald-400' },
     red: { icon: 'bg-rose-50 text-rose-600 border border-rose-200', glow: 'from-rose-500/20', border: 'border-t-rose-500', dot: 'bg-rose-500', text: 'text-rose-700 dark:text-rose-400' },
-    amber: { icon: 'bg-cardSoft text-primary border border-border', glow: 'from-primary/10', border: 'border-t-amber-500', dot: 'bg-cardSoft0', text: 'text-primary-dark dark:text-amber-400' },
-    teal: { icon: 'bg-cardSoft text-primary border border-border', glow: 'from-primary/10', border: 'border-t-teal-500', dot: 'bg-cardSoft0', text: 'text-primary-dark dark:text-primary-light' },
-    slate: { icon: 'bg-cardSoft text-muted border border-slate-200', glow: 'from-slate-500/20', border: 'border-t-slate-500', dot: 'bg-cardSoft0', text: 'text-slate-700 dark:text-slate-400' },
+    amber: { icon: 'bg-cardSoft text-primary border border-border', glow: 'from-primary/10', border: 'border-t-amber-500', dot: 'bg-primary', text: 'text-primary-dark dark:text-amber-400' },
+    teal: { icon: 'bg-cardSoft text-primary border border-border', glow: 'from-primary/10', border: 'border-t-teal-500', dot: 'bg-primary', text: 'text-primary-dark' },
+    slate: { icon: 'bg-cardSoft text-muted border border-border', glow: 'from-slate-500/20', border: 'border-t-slate-500', dot: 'bg-primary', text: 'text-foreground' },
   }
   const theme = colorMap[colour] || colorMap.teal;
   const statusTheme = colorMap[statusColour] || colorMap.teal;
@@ -305,7 +305,7 @@ function WorkspaceCard({ title, icon: Icon, mainText, subText, actionText, onAct
         {mainText && <h4 className="text-lg font-black text-foreground mb-1 leading-tight">{mainText}</h4>}
         {subText && <p className="text-xs font-medium text-muted whitespace-pre-line truncate">{subText}</p>}
       </div>
-      <button onClick={onAction} className="w-full py-2 bg-surface hover:bg-cardSoft dark:hover:bg-cardSoft border border-border rounded-lg text-xs font-bold text-foreground transition-colors flex items-center justify-center gap-1.5">
+      <button onClick={onAction} className="w-full py-2 bg-surface hover:bg-[var(--bg-card-soft)] border border-border rounded-lg text-xs font-bold text-foreground transition-colors flex items-center justify-center gap-1.5">
         <Plus size={14} className="text-muted" /> {actionText}
       </button>
     </div>
@@ -419,10 +419,10 @@ function TeamCard({ team, token, eventId, mentorId }) {
               {/* Workspace Header */}
               <div className="flex items-center justify-between px-6 py-5 border-b border-border bg-cardSoft shrink-0">
                  <div>
-                   <h2 className="text-xl font-black text-foreground dark:text-white">{team.team_name} Workspace</h2>
-                   <p className="text-xs font-medium text-muted dark:text-slate-400 mt-1">Manage meetings, feedback, and team chat</p>
+                   <h2 className="text-xl font-black text-foreground">{team.team_name} Workspace</h2>
+                   <p className="text-xs font-medium text-muted mt-1">Manage meetings, feedback, and team chat</p>
                  </div>
-                 <button onClick={() => setExpanded(false)} className="w-8 h-8 rounded-full bg-card border border-slate-200 flex items-center justify-center text-muted hover:text-foreground dark:hover:text-white shadow-sm transition-colors hover:bg-cardSoft dark:hover:bg-cardSoft">
+                 <button onClick={() => setExpanded(false)} className="w-8 h-8 rounded-full bg-card border border-border flex items-center justify-center text-muted hover:text-foreground dark:hover:text-white shadow-sm transition-colors hover:bg-[var(--bg-card-soft)]">
                     <X size={16} />
                  </button>
               </div>
@@ -459,17 +459,17 @@ function TeamCard({ team, token, eventId, mentorId }) {
 
                  {/* Right Column: Chat */}
                  {eventId && mentorId && (
-                   <div className={`w-full sm:w-[340px] md:w-96 flex flex-col bg-background shrink-0 sm:h-auto border-t-4 sm:border-t-0 sm:border-l border-slate-200 relative z-10 shadow-[0_-10px_15px_rgba(0,0,0,0.03)] sm:shadow-none transition-all duration-300 ease-in-out ${isChatExpanded ? 'h-[60vh]' : 'h-[25vh]'}`}>
+                   <div className={`w-full sm:w-[340px] md:w-96 flex flex-col bg-background shrink-0 sm:h-auto border-t-4 sm:border-t-0 sm:border-l border-border relative z-10 shadow-[0_-10px_15px_rgba(0,0,0,0.03)] sm:shadow-none transition-all duration-300 ease-in-out ${isChatExpanded ? 'h-[60vh]' : 'h-[25vh]'}`}>
                      {/* Mobile Chat Header */}
                      <div
-                       className="sm:hidden flex items-center justify-between px-5 py-3 border-b border-border bg-cardSoft shrink-0 cursor-pointer hover:bg-cardSoft dark:hover:bg-cardSoft/50 transition-colors"
+                       className="sm:hidden flex items-center justify-between px-5 py-3 border-b border-border bg-cardSoft shrink-0 cursor-pointer hover:bg-[var(--bg-card-soft)]/50 transition-colors"
                        onClick={() => setIsChatExpanded(!isChatExpanded)}
                      >
                        <div className="flex items-center gap-2">
-                         <div className="w-2 h-2 rounded-full bg-cardSoft0 animate-pulse" />
+                         <div className="w-2 h-2 rounded-full bg-primary animate-pulse" />
                          <h3 className="text-sm font-bold text-foreground">Live Team Chat</h3>
                        </div>
-                       <button className="text-muted hover:text-foreground transition-colors p-1 rounded-full hover:bg-cardSoft dark:hover:bg-cardSoft">
+                       <button className="text-muted hover:text-foreground transition-colors p-1 rounded-full hover:bg-[var(--bg-card-soft)]">
                          {isChatExpanded ? <ChevronDown size={16} /> : <ChevronUp size={16} />}
                        </button>
                      </div>

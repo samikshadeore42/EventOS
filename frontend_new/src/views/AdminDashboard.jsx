@@ -87,10 +87,10 @@ function Badge({ children, colour = 'gray' }) {
     amber: 'bg-primary/10 border border-primary/20 text-primary',
     teal: 'bg-primary/10 border border-primary/20 text-primary',
     primary: 'bg-primary/10 border border-primary/20 text-primary',
-    gray: 'bg-surface border border-border text-foreground',
-    slate: 'bg-surface border border-border text-foreground',
+    gray: 'bg-[var(--bg-card-soft)] text-foreground',
+    slate: 'bg-[var(--bg-card-soft)] text-foreground',
     white: 'bg-card/20 border border-white/40 text-white shadow-sm drop-shadow-md',
-  }[colour] ?? 'bg-surface border border-border text-foreground'
+  }[colour] ?? 'bg-[var(--bg-card-soft)] text-foreground'
   return (
     <span className={`inline-flex items-center gap-1 text-[11px] font-bold px-2.5 py-0.5 rounded-full ${cls}`}>
       {children}
@@ -120,7 +120,7 @@ function ApprovalStatusChart({ pending, approved, rejected }) {
           <p className="text-[10px] text-muted uppercase font-semibold">Total Teams</p>
         </div>
       </div>
-      <div className="w-full h-2.5 bg-surface rounded-full overflow-hidden mb-3">
+      <div className="w-full h-2.5 bg-[var(--bg-card-soft)] rounded-full overflow-hidden mb-3">
         <motion.div
           initial={{ width: 0 }}
           animate={{ width: `${percentage}%` }}
@@ -129,7 +129,7 @@ function ApprovalStatusChart({ pending, approved, rejected }) {
         />
       </div>
       <div className="flex justify-between text-[11px] font-bold text-muted">
-        <span className="flex items-center gap-1.5"><div className="w-1.5 h-1.5 rounded-full bg-cardSoft0" /> Approved ({approved || 0})</span>
+        <span className="flex items-center gap-1.5"><div className="w-1.5 h-1.5 rounded-full bg-primary" /> Approved ({approved || 0})</span>
         <div className="flex items-center gap-3">
           <span className="flex items-center gap-1.5"><div className="w-1.5 h-1.5 rounded-full bg-slate-300" /> Pending ({pending || 0})</span>
           {(rejected || 0) > 0 && <span className="flex items-center gap-1.5"><div className="w-1.5 h-1.5 rounded-full bg-cardSoft" /> Rejected ({rejected || 0})</span>}
@@ -153,7 +153,7 @@ function EvaluationProgressChart({ evaluated, total }) {
           <p className="text-[10px] text-muted uppercase font-semibold">Teams Evaluated</p>
         </div>
       </div>
-      <div className="w-full h-2.5 bg-surface rounded-full overflow-hidden mb-3">
+      <div className="w-full h-2.5 bg-[var(--bg-card-soft)] rounded-full overflow-hidden mb-3">
         <motion.div
           initial={{ width: 0 }}
           animate={{ width: `${percentage}%` }}
@@ -162,7 +162,7 @@ function EvaluationProgressChart({ evaluated, total }) {
         />
       </div>
       <div className="flex justify-between text-[11px] font-bold text-muted">
-        <span className="flex items-center gap-1.5"><div className="w-1.5 h-1.5 rounded-full bg-cardSoft0" /> Reviewed ({evaluated})</span>
+        <span className="flex items-center gap-1.5"><div className="w-1.5 h-1.5 rounded-full bg-primary" /> Reviewed ({evaluated})</span>
         <span className="flex items-center gap-1.5"><div className="w-1.5 h-1.5 rounded-full bg-slate-300" /> Pending ({Math.max(0, total - evaluated)})</span>
       </div>
     </div>
@@ -190,10 +190,10 @@ function OverviewTab({ onTileClick }) {
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 mb-8">
         <StatCard onClick={() => onTileClick?.('participants')} label="Participants" value={summary?.total_participants || 0} colour="teal" sub="Total registered" icon={Users} />
 
-        <motion.div onClick={() => onTileClick?.('approvals')} whileHover={{ y: -4, scale: 1.02 }} transition={{ type: 'spring', stiffness: 300 }} className="cursor-pointer glass-card rounded-2xl p-6 relative overflow-hidden group flex flex-col justify-between h-full border-l-2 border-l-primary">
+        <motion.div onClick={() => onTileClick?.('approvals')} whileHover={{ y: -4, scale: 1.02 }} transition={{ type: 'spring', stiffness: 300 }} className="cursor-pointer app-card p-6 relative overflow-hidden group flex flex-col justify-between h-full border-l-2 border-l-primary">
           <div className="absolute -right-8 -top-8 w-40 h-40 bg-gradient-to-br from-primary/10 to-transparent rounded-full blur-3xl group-hover:scale-125 transition-transform duration-700" />
           <div className="flex items-center gap-4 relative z-10 mb-2">
-            <div className="w-10 h-10 rounded-xl flex items-center justify-center shadow-sm bg-cardSoft text-primary border border-border shrink-0">
+            <div className="w-10 h-10 rounded-xl flex items-center justify-center shadow-sm bg-cardSoft text-primary shrink-0">
               <CheckSquare size={20} />
             </div>
             <h3 className="text-[11px] font-bold text-muted uppercase tracking-wider">Approval Status</h3>
@@ -207,10 +207,10 @@ function OverviewTab({ onTileClick }) {
           </div>
         </motion.div>
 
-        <motion.div onClick={() => onTileClick?.('evaluators')} whileHover={{ y: -4, scale: 1.02 }} transition={{ type: 'spring', stiffness: 300 }} className="cursor-pointer glass-card rounded-2xl p-6 relative overflow-hidden group flex flex-col justify-between h-full ">
+        <motion.div onClick={() => onTileClick?.('evaluators')} whileHover={{ y: -4, scale: 1.02 }} transition={{ type: 'spring', stiffness: 300 }} className="cursor-pointer app-card p-6 relative overflow-hidden group flex flex-col justify-between h-full ">
           <div className="absolute -right-8 -top-8 w-40 h-40 bg-gradient-to-br from-primary/10 to-transparent rounded-full blur-3xl group-hover:scale-125 transition-transform duration-700" />
           <div className="flex items-center gap-4 relative z-10 mb-2">
-            <div className="w-10 h-10 rounded-xl flex items-center justify-center shadow-sm bg-cardSoft text-primary border border-border shrink-0">
+            <div className="w-10 h-10 rounded-xl flex items-center justify-center shadow-sm bg-cardSoft text-primary shrink-0">
               <BarChart2 size={20} />
             </div>
             <h3 className="text-[11px] font-bold text-muted uppercase tracking-wider">Evaluation Progress</h3>
@@ -342,14 +342,14 @@ function ParticipantsTab() {
       )}
 
       {/* CSV dropzone */}
-      <div className="glass-card rounded-xl border border-border p-5 mb-6 border-l-2 border-l-primary relative overflow-hidden group transition-all hover:-translate-y-1 hover:scale-[1.01]">
+      <div className="app-card p-5 mb-6 border-l-2 border-l-primary relative overflow-hidden group transition-all hover:-translate-y-1 hover:scale-[1.01]">
       <div className="absolute -right-8 -top-8 w-40 h-40 bg-gradient-to-br from-primary/10 to-transparent rounded-full blur-3xl group-hover:scale-125 transition-transform duration-700 pointer-events-none z-0" />
         <div className="flex items-center justify-between mb-3">
           <SectionTitle>Upload Roster CSV</SectionTitle>
           <a
             href={participantsApi.csvTemplateUrl()}
             download
-            className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg border border-border text-muted hover:bg-surface transition-colors"
+            className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg text-muted hover:bg-[var(--bg-card-soft)] transition-colors"
           >
             <Download size={13} /> Download Template
           </a>
@@ -361,8 +361,8 @@ function ParticipantsTab() {
           onDragLeave={onDragLeave}
           onClick={() => fileInputRef.current?.click()}
           className={`border-2 border-dashed rounded-xl p-10 text-center cursor-pointer transition-colors ${dragActive
-              ? 'border-primary bg-cardSoft border border-border'
-              : 'border-border hover:border-primary hover:bg-surface'
+              ? 'border-primary bg-cardSoft'
+              : 'border-border hover:border-primary hover:bg-[var(--bg-card-soft)]'
             }`}
         >
           <input
@@ -391,7 +391,7 @@ function ParticipantsTab() {
 
         {/* Upload result */}
         {uploadResult && (
-          <div className="mt-4 p-4 bg-surface rounded-lg border border-border">
+          <div className="mt-4 p-4 bg-[var(--bg-card-soft)] rounded-lg">
             <div className="flex justify-between mb-2">
               <p className="text-sm font-medium text-foreground">{uploadResult.message}</p>
               <button onClick={() => setUploadResult(null)} className="text-muted hover:text-muted">
@@ -422,18 +422,18 @@ function ParticipantsTab() {
             value={search}
             onChange={(e) => { setSearch(e.target.value); setPage(1) }}
             placeholder="Search by name or email…"
-            className="flex-1 sm:w-64 text-sm border border-border rounded-lg px-3 py-2 focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary bg-background"
+            className="flex-1 sm:w-64 text-sm rounded-lg px-3 py-2 focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary bg-background"
           />
           <input
             value={collegeFilter}
             onChange={(e) => { setCollegeFilter(e.target.value); setPage(1) }}
             placeholder="Search by college…"
-            className="flex-1 sm:w-64 text-sm border border-border rounded-lg px-3 py-2 focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary bg-background"
+            className="flex-1 sm:w-64 text-sm rounded-lg px-3 py-2 focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary bg-background"
           />
           <select
             value={teamFilter}
             onChange={(e) => { setTeamFilter(e.target.value); setPage(1) }}
-            className="text-sm border border-border rounded-lg px-3 py-2 focus:outline-none bg-background"
+            className="text-sm rounded-lg px-3 py-2 focus:outline-none bg-background"
           >
             <option value="">All</option>
             <option value="false">Unassigned</option>
@@ -457,11 +457,11 @@ function ParticipantsTab() {
       </div>
 
       {/* Participants table */}
-      <div className="glass-card rounded-xl border border-border overflow-hidden border-l-2 border-l-primary relative overflow-hidden group transition-all hover:-translate-y-1 hover:scale-[1.01]">
+      <div className="app-card overflow-hidden border-l-2 border-l-primary relative overflow-hidden group transition-all hover:-translate-y-1 hover:scale-[1.01]">
       <div className="absolute -right-8 -top-8 w-40 h-40 bg-gradient-to-br from-primary/10 to-transparent rounded-full blur-3xl group-hover:scale-125 transition-transform duration-700 pointer-events-none z-0" />
         <table className="w-full text-sm">
           <thead>
-            <tr className="bg-surface border-b border-border text-left">
+            <tr className="bg-[var(--bg-card-soft)] border-b text-left">
               {['Name', 'Institution', 'Skills (avg)', 'Team', 'Team Link Status', ''].map((h) => (
                 <th key={h} className="px-4 py-3 text-xs font-medium text-muted uppercase tracking-wide">{h}</th>
               ))}
@@ -470,7 +470,7 @@ function ParticipantsTab() {
           <tbody>
             {isLoading
               ? Array.from({ length: 6 }).map((_, i) => (
-                <tr key={i} className="border-b border-border">
+                <tr key={i} className="border-b">
                   {[1, 2, 3, 4, 5].map((j) => (
                     <td key={j} className="px-4 py-3">
                       <div className="h-3 bg-cardSoft rounded animate-pulse w-24" />
@@ -485,7 +485,7 @@ function ParticipantsTab() {
                   : null
 
                 return (
-                  <tr key={p.id} className="border-b border-border hover:bg-surface">
+                  <tr key={p.id} className="border-b hover:bg-[var(--bg-card-soft)]">
                     <td className="px-4 py-3">
                       <p className="font-medium text-foreground">{p.first_name} {p.last_name}</p>
                       <p className="text-xs text-muted">{p.email}</p>
@@ -543,9 +543,9 @@ function ParticipantsTab() {
             <span>Page {data.page} of {data.total_pages} ({data.total} total)</span>
             <div className="flex gap-2">
               <button disabled={page === 1} onClick={() => setPage(p => p - 1)}
-                className="px-3 py-1.5 rounded border border-border disabled:opacity-40 hover:bg-surface">Prev</button>
+                className="px-3 py-1.5 rounded disabled:opacity-40 hover:bg-[var(--bg-card-soft)]">Prev</button>
               <button disabled={page >= data.total_pages} onClick={() => setPage(p => p + 1)}
-                className="px-3 py-1.5 rounded border border-border disabled:opacity-40 hover:bg-surface">Next</button>
+                className="px-3 py-1.5 rounded disabled:opacity-40 hover:bg-[var(--bg-card-soft)]">Next</button>
             </div>
           </div>
         )}
@@ -656,7 +656,7 @@ function TeamsTab() {
   return (
     <div>
       {/* Solver config form */}
-      <div className="glass-card rounded-xl border border-border p-5 mb-6 border-l-2 border-l-primary relative overflow-hidden group transition-all hover:-translate-y-1 hover:scale-[1.01]">
+      <div className="app-card p-5 mb-6 border-l-2 border-l-primary relative overflow-hidden group transition-all hover:-translate-y-1 hover:scale-[1.01]">
       <div className="absolute -right-8 -top-8 w-40 h-40 bg-gradient-to-br from-primary/10 to-transparent rounded-full blur-3xl group-hover:scale-125 transition-transform duration-700 pointer-events-none z-0" />
         <SectionTitle>Solver Configuration</SectionTitle>
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 mb-5">
@@ -673,7 +673,7 @@ function TeamsTab() {
                 type="number" min={min} max={max}
                 value={config[key]}
                 onChange={(e) => setConfig((c) => ({ ...c, [key]: +e.target.value }))}
-                className="w-full border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary"
+                className="w-full rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary"
               />
             </div>
           ))}
@@ -710,7 +710,7 @@ function TeamsTab() {
 
       {/* Task progress panel */}
       {taskId && taskStatus && (
-        <div className="glass-card rounded-xl border border-border p-5 mb-6 border-l-2 border-l-primary relative overflow-hidden group transition-all hover:-translate-y-1 hover:scale-[1.01]">
+        <div className="app-card p-5 mb-6 border-l-2 border-l-primary relative overflow-hidden group transition-all hover:-translate-y-1 hover:scale-[1.01]">
       <div className="absolute -right-8 -top-8 w-40 h-40 bg-gradient-to-br from-primary/10 to-transparent rounded-full blur-3xl group-hover:scale-125 transition-transform duration-700 pointer-events-none z-0" />
           <div className="flex items-center justify-between mb-2">
             <p className="text-sm font-medium text-foreground">Solver progress</p>
@@ -720,8 +720,8 @@ function TeamsTab() {
           </div>
           <div className="w-full bg-cardSoft rounded-full h-2 mb-3">
             <div
-              className={`h-2 rounded-full transition-all duration-500 ${taskStatus.status === 'success' ? 'bg-cardSoft0' :
-                  taskStatus.status === 'failed' ? 'bg-cardSoft0' : 'bg-cardSoft0'
+              className={`h-2 rounded-full transition-all duration-500 ${taskStatus.status === 'success' ? 'bg-primary' :
+                  taskStatus.status === 'failed' ? 'bg-primary' : 'bg-primary'
                 }`}
               style={{ width: `${progress}%` }}
             />
@@ -758,7 +758,7 @@ function TeamsTab() {
                 <button
                   onClick={generateAllRationale}
                   disabled={generatingAll}
-                  className="flex items-center gap-1.5 text-sm px-4 py-2 rounded-lg border border-primary text-primary hover:bg-cardSoft dark:hover:bg-primary/10 border border-border disabled:opacity-50"
+                  className="flex items-center gap-1.5 text-sm px-4 py-2 rounded-lg border border-primary text-primary hover:bg-cardSoft dark:hover:bg-primary/10 disabled:opacity-50"
                 >
                   {generatingAll
                     ? <Loader2 size={14} className="animate-spin" />
@@ -793,7 +793,7 @@ function TeamsTab() {
 
           <div className="grid md:grid-cols-2 xl:grid-cols-3 gap-4">
             {drafts.teams.map((team) => (
-              <div key={team.team_id} className="glass-card rounded-xl border border-border p-4 border-l-2 border-l-primary relative overflow-hidden group transition-all hover:-translate-y-1 hover:scale-[1.01]">
+              <div key={team.team_id} className="app-card p-4 border-l-2 border-l-primary relative overflow-hidden group transition-all hover:-translate-y-1 hover:scale-[1.01]">
       <div className="absolute -right-8 -top-8 w-40 h-40 bg-gradient-to-br from-primary/10 to-transparent rounded-full blur-3xl group-hover:scale-125 transition-transform duration-700 pointer-events-none z-0" />
                 <div className="flex items-center justify-between mb-3">
                   <p className="font-semibold text-sm text-foreground">{team.team_name}</p>
@@ -802,7 +802,7 @@ function TeamsTab() {
                 <div className="space-y-2">
                   {team.members.map((m) => (
                     <div key={m.id} className="flex items-center gap-2">
-                      <div className="w-7 h-7 rounded-full bg-cardSoft border border-border border border-border text-primary text-xs font-semibold flex items-center justify-center shrink-0">
+                      <div className="w-7 h-7 rounded-full bg-cardSoft text-primary text-xs font-semibold flex items-center justify-center shrink-0">
                         {m.name[0]}
                       </div>
                       <div className="min-w-0">
@@ -817,7 +817,7 @@ function TeamsTab() {
                     <p className="text-xs text-muted mb-1">Skill avg</p>
                     <div className="flex gap-1 flex-wrap">
                       {team.average_skill_vector.map((v, i) => (
-                        <span key={i} className="text-xs bg-surface border border-border text-muted px-1.5 py-0.5 rounded">
+                        <span key={i} className="text-xs bg-[var(--bg-card-soft)] text-muted px-1.5 py-0.5 rounded">
                           {Number(v).toFixed(1)}
                         </span>
                       ))}
@@ -839,7 +839,7 @@ function TeamsTab() {
                       <Loader2 size={11} className="animate-spin" /> Generating…
                     </div>
                   ) : rationales[team.team_id].status === 'done' ? (
-                    <div className="bg-cardSoft border border-border border border-border rounded-lg p-2.5">
+                    <div className="bg-cardSoft rounded-lg p-2.5">
                       <p className="text-xs font-medium text-primary mb-1 flex items-center gap-1">
                         <Wand2 size={11} /> AI Rationale
                       </p>
@@ -940,7 +940,7 @@ function ApprovalsTab() {
             <button
               onClick={() => bulkMutation.mutate('reject')}
               disabled={bulkMutation.isPending}
-              className="flex items-center gap-1.5 text-sm px-3 py-1.5 rounded-lg border border-border text-primary hover:bg-cardSoft dark:hover:bg-primary/10"
+              className="flex items-center gap-1.5 text-sm px-3 py-1.5 rounded-lg text-primary hover:bg-cardSoft dark:hover:bg-primary/10"
             >
               <X size={14} /> Reject all
             </button>
@@ -961,7 +961,7 @@ function ApprovalsTab() {
 
       {/* Global Status Banner */}
       {activeTeams.length > 0 && !hasPublished && (
-        <div className={`mb-6 p-4 rounded-xl border ${hasRejected ? 'bg-cardSoft border-border' : allApproved ? 'bg-cardSoft border-border' : 'bg-surface border-border'}`}>
+        <div className={`mb-6 p-4 rounded-xl border ${hasRejected ? 'bg-cardSoft border-border' : allApproved ? 'bg-cardSoft border-border' : 'bg-[var(--bg-card-soft)] border-border'}`}>
           {hasRejected && (
             <div className="flex items-start gap-3">
               <AlertTriangle className="text-primary shrink-0 mt-0.5" size={20} />
@@ -1007,7 +1007,7 @@ function ApprovalsTab() {
       )}
 
       {hasPublished && (
-        <div className="mb-6 p-4 rounded-xl bg-cardSoft border border-border flex items-start gap-3">
+        <div className="mb-6 p-4 rounded-xl bg-cardSoft flex items-start gap-3">
           <Check className="text-primary shrink-0 mt-0.5" size={20} />
           <div>
             <h3 className="text-sm font-bold text-foreground">Formation Published</h3>
@@ -1032,14 +1032,14 @@ function ApprovalsTab() {
 
       <div className="space-y-3">
         {pending?.teams.map((team) => (
-          <div key={team.team_id} className="glass-card rounded-xl border border-border overflow-hidden border-l-2 border-l-primary relative overflow-hidden group transition-all hover:-translate-y-1 hover:scale-[1.01]">
+          <div key={team.team_id} className="app-card overflow-hidden border-l-2 border-l-primary relative overflow-hidden group transition-all hover:-translate-y-1 hover:scale-[1.01]">
       <div className="absolute -right-8 -top-8 w-40 h-40 bg-gradient-to-br from-primary/10 to-transparent rounded-full blur-3xl group-hover:scale-125 transition-transform duration-700 pointer-events-none z-0" />
             {/* Row */}
             <div
-              className="flex items-center gap-3 px-4 py-3 cursor-pointer hover:bg-surface"
+              className="flex items-center gap-3 px-4 py-3 cursor-pointer hover:bg-[var(--bg-card-soft)]"
               onClick={() => setExpanded(expanded === team.team_id ? null : team.team_id)}
             >
-              <div className="w-9 h-9 rounded-lg bg-cardSoft text-primary border border-border flex items-center justify-center font-semibold text-sm shrink-0">
+              <div className="w-9 h-9 rounded-lg bg-cardSoft text-primary flex items-center justify-center font-semibold text-sm shrink-0">
                 {team.team_name[0]}
               </div>
               <div className="flex-1 min-w-0">
@@ -1073,7 +1073,7 @@ function ApprovalsTab() {
 
                 {/* AI rationale */}
                 {detail.rationale && (
-                  <div className="bg-cardSoft border border-border border border-border rounded-lg p-3 mb-4">
+                  <div className="bg-cardSoft rounded-lg p-3 mb-4">
                     <p className="text-xs font-medium text-primary mb-1 flex items-center gap-1">
                       <Wand2 size={12} /> AI Rationale
                     </p>
@@ -1087,13 +1087,13 @@ function ApprovalsTab() {
                   onChange={(e) => setNotes(e.target.value)}
                   placeholder="Notes (required when rejecting)…"
                   rows={2}
-                  className="w-full text-sm border border-border rounded-lg px-3 py-2 focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary mb-3 resize-none"
+                  className="w-full text-sm rounded-lg px-3 py-2 focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary mb-3 resize-none"
                 />
                 <div className="flex justify-end gap-2">
                   <button
                     onClick={() => decideMutation.mutate({ id: team.team_id, decision: 'reject' })}
                     disabled={decideMutation.isPending}
-                    className="flex items-center gap-1.5 text-sm px-3 py-1.5 rounded-lg border border-border text-primary hover:bg-cardSoft dark:hover:bg-primary/10"
+                    className="flex items-center gap-1.5 text-sm px-3 py-1.5 rounded-lg text-primary hover:bg-cardSoft dark:hover:bg-primary/10"
                   >
                     <X size={14} /> Reject
                   </button>
@@ -1204,7 +1204,7 @@ function EvaluatorsTab() {
         value={form[key]}
         onChange={(e) => setForm((f) => ({ ...f, [key]: e.target.value }))}
         placeholder={placeholder}
-        className="w-full border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary"
+        className="w-full rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary"
       />
     </div>
   )
@@ -1223,11 +1223,11 @@ function EvaluatorsTab() {
         <div className="flex items-center justify-between mb-5">
           <h2 className="text-base font-semibold text-foreground">Evaluators / Judges</h2>
           <div className="flex items-center gap-2">
-            <button onClick={() => evaluatorsApi.downloadTemplate()} className="text-sm px-3 py-1.5 rounded-lg border border-border text-muted hover:bg-surface">CSV Template</button>
-            <button onClick={() => evaluatorsApi.downloadExport()} className="text-sm px-3 py-1.5 rounded-lg border border-border text-muted hover:bg-surface">Export</button>
+            <button onClick={() => evaluatorsApi.downloadTemplate()} className="text-sm px-3 py-1.5 rounded-lg text-muted hover:bg-[var(--bg-card-soft)]">CSV Template</button>
+            <button onClick={() => evaluatorsApi.downloadExport()} className="text-sm px-3 py-1.5 rounded-lg text-muted hover:bg-[var(--bg-card-soft)]">Export</button>
             <button
               onClick={() => setShowAutoAssign(true)}
-              className="flex items-center gap-1.5 text-sm px-3 py-1.5 rounded-lg border border-border text-primary hover:bg-cardSoft dark:hover:bg-primary/10"
+              className="flex items-center gap-1.5 text-sm px-3 py-1.5 rounded-lg text-primary hover:bg-cardSoft dark:hover:bg-primary/10"
             >
               <Wand2 size={14} /> Auto-assign
             </button>
@@ -1243,7 +1243,7 @@ function EvaluatorsTab() {
           Evaluators receive secure magic links and score approved teams in the Judge Portal. Submitted scorecards update the leaderboard and anomaly scanner.
         </p>
 
-        <div className="glass-card rounded-xl border border-border p-4 mb-5 border-l-2 border-l-primary relative overflow-hidden group transition-all hover:-translate-y-1 hover:scale-[1.01]">
+        <div className="app-card p-4 mb-5 border-l-2 border-l-primary relative overflow-hidden group transition-all hover:-translate-y-1 hover:scale-[1.01]">
       <div className="absolute -right-8 -top-8 w-40 h-40 bg-gradient-to-br from-primary/10 to-transparent rounded-full blur-3xl group-hover:scale-125 transition-transform duration-700 pointer-events-none z-0" />
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
             <div>
@@ -1255,7 +1255,7 @@ function EvaluatorsTab() {
             <button
               onClick={() => auditMutation.mutate()}
               disabled={auditMutation.isPending}
-              className="inline-flex items-center justify-center gap-2 text-sm px-4 py-2 rounded-lg border border-border text-primary hover:bg-cardSoft dark:hover:bg-primary/10 disabled:opacity-50"
+              className="inline-flex items-center justify-center gap-2 text-sm px-4 py-2 rounded-lg text-primary hover:bg-cardSoft dark:hover:bg-primary/10 disabled:opacity-50"
             >
               {auditMutation.isPending ? <Loader2 size={14} className="animate-spin" /> : <ShieldCheck size={14} />}
               Run audit
@@ -1267,14 +1267,14 @@ function EvaluatorsTab() {
             </div>
           )}
           {auditMutation.isError && (
-            <div className="mt-3 rounded-lg border border-border bg-cardSoft p-3 text-sm text-primary">
+            <div className="mt-3 rounded-lg bg-cardSoft p-3 text-sm text-primary">
               {auditMutation.error?.message || 'Audit failed.'}
             </div>
           )}
         </div>
 
         {/* Bulk Import */}
-        <div className="glass-card rounded-xl border border-border p-4 mb-5 flex flex-col gap-3 border-l-2 border-l-primary relative overflow-hidden group transition-all hover:-translate-y-1 hover:scale-[1.01]">
+        <div className="app-card p-4 mb-5 flex flex-col gap-3 border-l-2 border-l-primary relative overflow-hidden group transition-all hover:-translate-y-1 hover:scale-[1.01]">
       <div className="absolute -right-8 -top-8 w-40 h-40 bg-gradient-to-br from-primary/10 to-transparent rounded-full blur-3xl group-hover:scale-125 transition-transform duration-700 pointer-events-none z-0" />
           <div className="flex items-center gap-4">
             <input type="file" accept=".csv" onChange={(e) => setImportFile(e.target.files[0])} className="text-sm" />
@@ -1291,7 +1291,7 @@ function EvaluatorsTab() {
             </button>
           </div>
           {importSummary && (
-            <div className="bg-surface p-3 rounded-lg text-sm border border-border">
+            <div className="bg-[var(--bg-card-soft)] p-3 rounded-lg text-sm">
               <p className="font-semibold text-foreground">Import Summary</p>
               <div className="flex gap-4 mt-1 mb-2 text-muted">
                 <span>Total: {importSummary.total_rows}</span>
@@ -1315,7 +1315,7 @@ function EvaluatorsTab() {
 
         {/* Add form */}
         {showForm && (
-          <div className="glass-card rounded-xl border border-border p-5 mb-5 border-l-2 border-l-primary relative overflow-hidden group transition-all hover:-translate-y-1 hover:scale-[1.01]">
+          <div className="app-card p-5 mb-5 border-l-2 border-l-primary relative overflow-hidden group transition-all hover:-translate-y-1 hover:scale-[1.01]">
       <div className="absolute -right-8 -top-8 w-40 h-40 bg-gradient-to-br from-primary/10 to-transparent rounded-full blur-3xl group-hover:scale-125 transition-transform duration-700 pointer-events-none z-0" />
             <p className="text-sm font-semibold text-foreground mb-4">New Evaluator</p>
             <div className="grid grid-cols-2 gap-3 mb-3">
@@ -1326,7 +1326,7 @@ function EvaluatorsTab() {
               {fieldFor('passed_out_institution', 'Passed-out college / institution (optional)', 'text', 'IIT Madras')}
             </div>
             <div className="flex gap-2 justify-end">
-              <button onClick={() => setShowForm(false)} className="text-sm px-3 py-1.5 rounded-lg border border-border text-muted hover:bg-surface">Cancel</button>
+              <button onClick={() => setShowForm(false)} className="text-sm px-3 py-1.5 rounded-lg text-muted hover:bg-[var(--bg-card-soft)]">Cancel</button>
               <button
                 onClick={() => createMutation.mutate()}
                 disabled={createMutation.isPending || !form.email}
@@ -1344,14 +1344,14 @@ function EvaluatorsTab() {
         {isLoading
           ? Array.from({ length: 3 }).map((_, i) => <div key={i} className="h-14 bg-cardSoft rounded-xl animate-pulse mb-3" />)
           : (
-            <div className="glass-card rounded-xl border border-border overflow-hidden mb-6 border-l-2 border-l-primary relative overflow-hidden group transition-all hover:-translate-y-1 hover:scale-[1.01]">
+            <div className="app-card overflow-hidden mb-6 border-l-2 border-l-primary relative overflow-hidden group transition-all hover:-translate-y-1 hover:scale-[1.01]">
       <div className="absolute -right-8 -top-8 w-40 h-40 bg-gradient-to-br from-primary/10 to-transparent rounded-full blur-3xl group-hover:scale-125 transition-transform duration-700 pointer-events-none z-0" />
               {(!data?.evaluators?.length)
                 ? <div className="text-center py-12 text-muted text-sm">No evaluators registered yet.</div>
                 : data.evaluators.map((ev) => (
-                  <div key={ev.id} className="border-b border-border last:border-0">
-                    <div className="flex flex-wrap items-center gap-4 px-4 py-3 hover:bg-surface">
-                      <div className="w-9 h-9 rounded-full bg-cardSoft border border-border text-primary font-semibold text-sm flex items-center justify-center shrink-0">
+                  <div key={ev.id} className="border-b last:border-0">
+                    <div className="flex flex-wrap items-center gap-4 px-4 py-3 hover:bg-[var(--bg-card-soft)]">
+                      <div className="w-9 h-9 rounded-full bg-cardSoft text-primary font-semibold text-sm flex items-center justify-center shrink-0">
                         {ev.first_name[0]}
                       </div>
                       <div className="flex-1 min-w-[200px]">
@@ -1373,7 +1373,7 @@ function EvaluatorsTab() {
                       <div className="flex gap-2 shrink-0">
                         <button
                           onClick={() => setExpandedEval(expandedEval === ev.id ? null : ev.id)}
-                          className="flex items-center gap-1 text-xs px-2.5 py-1.5 rounded-lg border border-border text-muted hover:bg-surface"
+                          className="flex items-center gap-1 text-xs px-2.5 py-1.5 rounded-lg text-muted hover:bg-[var(--bg-card-soft)]"
                         >
                           <UserCheck size={12} />
                           Assignments
@@ -1382,7 +1382,7 @@ function EvaluatorsTab() {
                           onClick={() => sendLinkMutation.mutate(ev.id)}
                           disabled={sendLinkMutation.isPending}
                           title={ev.access_link_sent ? "Send access link again" : "Send access link"}
-                          className="flex items-center gap-1 text-xs px-2.5 py-1.5 rounded-lg border border-border text-primary hover:bg-cardSoft dark:hover:bg-primary/10 disabled:opacity-50"
+                          className="flex items-center gap-1 text-xs px-2.5 py-1.5 rounded-lg text-primary hover:bg-cardSoft dark:hover:bg-primary/10 disabled:opacity-50"
                         >
                           {sendLinkMutation.isPending
                             ? <Loader2 size={12} className="animate-spin" />
@@ -1401,7 +1401,7 @@ function EvaluatorsTab() {
 
                     {/* Expanded: team assignments */}
                     {expandedEval === ev.id && (
-                      <div className="px-4 py-4 bg-surface border-t border-border">
+                      <div className="px-4 py-4 bg-[var(--bg-card-soft)] border-t border-border">
                         <p className="text-xs font-bold text-muted mb-2">Current Assignments</p>
                         {assignData?.teams?.length > 0 ? (
                           <div className="flex gap-1.5 flex-wrap mb-3">
@@ -1425,7 +1425,7 @@ function EvaluatorsTab() {
                                 onClick={() => toggleTeamId(t.team_id)}
                                 className={`text-xs px-2.5 py-1.5 rounded-lg border transition-colors ${selected
                                     ? 'bg-cardSoft border-primary text-primary font-semibold'
-                                    : 'border-border text-muted hover:bg-surface'
+                                    : 'border-border text-muted hover:bg-[var(--bg-card-soft)]'
                                   }`}
                               >
                                 {t.team_name}
@@ -1556,7 +1556,7 @@ function LeaderboardTab() {
     <div>
       {/* Anomaly flags */}
       {(anomalies?.total_flagged ?? 0) > 0 && (
-        <div className="bg-cardSoft border border-border rounded-xl p-4 mb-6">
+        <div className="bg-cardSoft rounded-xl p-4 mb-6">
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-2">
               <AlertTriangle size={16} className="text-primary" />
@@ -1567,14 +1567,14 @@ function LeaderboardTab() {
             <button
               onClick={() => overrideAllMutation.mutate()}
               disabled={overrideAllMutation.isPending}
-              className="text-xs px-3 py-1.5 rounded-lg border border-border text-primary hover:bg-cardSoft"
+              className="text-xs px-3 py-1.5 rounded-lg text-primary hover:bg-cardSoft"
             >
               Clear all flags
             </button>
           </div>
           <div className="space-y-2">
             {anomalies.scorecards.map((sc) => (
-              <div key={sc.id} className="flex items-start gap-3 glass-card rounded-lg p-3 border border-border ">
+              <div key={sc.id} className="flex items-start gap-3 glass-card rounded-lg p-3 ">
                 <div className="flex-1 min-w-0">
                   <p className="text-xs font-medium text-foreground">
                     Evaluator <span className="font-semibold text-foreground">{sc.evaluator_name}</span>
@@ -1603,7 +1603,7 @@ function LeaderboardTab() {
         <h2 className="text-base font-semibold text-foreground">Event Rankings</h2>
         <div className="flex gap-2 items-center">
           {toastMsg && <span className="text-primary text-xs mr-2 animate-pulse">{toastMsg}</span>}
-          <button onClick={exportCSV} disabled={!lb?.leaderboard?.length} className="flex items-center gap-1.5 text-sm px-3 py-1.5 rounded-lg border border-border text-muted hover:bg-surface disabled:opacity-50">
+          <button onClick={exportCSV} disabled={!lb?.leaderboard?.length} className="flex items-center gap-1.5 text-sm px-3 py-1.5 rounded-lg text-muted hover:bg-[var(--bg-card-soft)] disabled:opacity-50">
             <FileText size={14} /> Export CSV
           </button>
           <button onClick={exportPDF} disabled={!lb?.leaderboard?.length} className="flex items-center gap-1.5 text-sm px-3 py-1.5 rounded-lg app-btn-primary disabled:opacity-50 disabled:cursor-not-allowed">
@@ -1613,9 +1613,9 @@ function LeaderboardTab() {
       </div>
 
       {/* Rankings table */}
-      <div className="glass-card rounded-xl border border-border overflow-hidden border-l-2 border-l-primary relative overflow-hidden group transition-all hover:-translate-y-1 hover:scale-[1.01]">
+      <div className="app-card overflow-hidden border-l-2 border-l-primary relative overflow-hidden group transition-all hover:-translate-y-1 hover:scale-[1.01]">
       <div className="absolute -right-8 -top-8 w-40 h-40 bg-gradient-to-br from-primary/10 to-transparent rounded-full blur-3xl group-hover:scale-125 transition-transform duration-700 pointer-events-none z-0" />
-        <div className="grid grid-cols-12 bg-surface border-b border-border px-4 py-3 text-xs font-medium text-muted uppercase tracking-wide">
+        <div className="grid grid-cols-12 bg-[var(--bg-card-soft)] border-b px-4 py-3 text-xs font-medium text-muted uppercase tracking-wide">
           <div className="col-span-1">#</div>
           <div className="col-span-3">Team</div>
           <div className="col-span-2">Technical</div>
@@ -1630,7 +1630,7 @@ function LeaderboardTab() {
           : lb.leaderboard.map((team, i) => (
             <div
               key={team.team_id}
-              className={`grid grid-cols-12 items-center px-4 py-3 border-b border-border text-sm ${i === 0 && !team.has_flags ? 'bg-cardSoft border-l-2 border-l-amber-400' : ''}`}
+              className={`grid grid-cols-12 items-center px-4 py-3 border-b text-sm ${i === 0 && !team.has_flags ? 'bg-cardSoft border-l-2 border-l-amber-400' : ''}`}
             >
               <div className={`col-span-1 font-mono font-semibold ${i === 0 && !team.has_flags ? 'text-foreground' : 'text-muted'}`}>
                 {team.rank ?? <span>—</span>}
@@ -1749,7 +1749,7 @@ function CommunicationsTab() {
 
   return (
     <div>
-      <div className="glass-card rounded-xl border border-border p-5 mb-6 border-l-2 border-l-primary relative overflow-hidden group transition-all hover:-translate-y-1 hover:scale-[1.01]">
+      <div className="app-card p-5 mb-6 border-l-2 border-l-primary relative overflow-hidden group transition-all hover:-translate-y-1 hover:scale-[1.01]">
       <div className="absolute -right-8 -top-8 w-40 h-40 bg-gradient-to-br from-primary/10 to-transparent rounded-full blur-3xl group-hover:scale-125 transition-transform duration-700 pointer-events-none z-0" />
         <div className="flex items-start justify-between gap-4 mb-4">
           <div>
@@ -1764,24 +1764,24 @@ function CommunicationsTab() {
         </div>
 
         {diagnosticsLoading ? (
-          <div className="h-20 bg-surface rounded-lg animate-pulse" />
+          <div className="h-20 bg-[var(--bg-card-soft)] rounded-lg animate-pulse" />
         ) : (
           <div className="grid md:grid-cols-4 gap-3 mb-4 text-sm">
-            <div className="rounded-lg border border-border bg-surface p-3">
+            <div className="rounded-lg bg-[var(--bg-card-soft)] p-3">
               <p className="text-xs text-muted mb-1">From email</p>
               <p className="font-semibold text-foreground truncate">{diagnostics?.from_email || 'missing'}</p>
             </div>
-            <div className="rounded-lg border border-border bg-surface p-3">
+            <div className="rounded-lg bg-[var(--bg-card-soft)] p-3">
               <p className="text-xs text-muted mb-1">SendGrid key</p>
               <p className="font-semibold text-foreground">
                 {diagnostics?.sendgrid_api_key_present ? diagnostics?.sendgrid_key_prefix : 'missing'}
               </p>
             </div>
-            <div className="rounded-lg border border-border bg-surface p-3">
+            <div className="rounded-lg bg-[var(--bg-card-soft)] p-3">
               <p className="text-xs text-muted mb-1">Frontend base</p>
               <p className="font-semibold text-foreground truncate">{diagnostics?.frontend_base_url}</p>
             </div>
-            <div className="rounded-lg border border-border bg-surface p-3">
+            <div className="rounded-lg bg-[var(--bg-card-soft)] p-3">
               <p className="text-xs text-muted mb-1">Redis</p>
               <p className="font-semibold text-foreground">{diagnostics?.redis_url_present ? 'configured' : 'missing'}</p>
             </div>
@@ -1799,7 +1799,7 @@ function CommunicationsTab() {
               value={preflightEmail}
               onChange={(e) => setPreflightEmail(e.target.value)}
               placeholder="optional@example.com"
-              className="w-full border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary"
+              className="w-full rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary"
             />
           </div>
           <div>
@@ -1807,7 +1807,7 @@ function CommunicationsTab() {
             <input
               value={preflightName}
               onChange={(e) => setPreflightName(e.target.value)}
-              className="w-full border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary"
+              className="w-full rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary"
             />
           </div>
           <button
@@ -1826,27 +1826,27 @@ function CommunicationsTab() {
           </div>
         )}
         {preflightMutation.isError && (
-          <div className="mt-3 rounded-lg border border-border bg-cardSoft p-3 text-sm text-primary">
+          <div className="mt-3 rounded-lg bg-cardSoft p-3 text-sm text-primary">
             {preflightMutation.error?.message || 'Preflight failed.'}
           </div>
         )}
       </div>
       {/* Communication log */}
-      <div className="glass-card rounded-xl border border-border overflow-hidden mb-8 border-l-2 border-l-primary relative overflow-hidden group transition-all hover:-translate-y-1 hover:scale-[1.01]">
+      <div className="app-card overflow-hidden mb-8 border-l-2 border-l-primary relative overflow-hidden group transition-all hover:-translate-y-1 hover:scale-[1.01]">
       <div className="absolute -right-8 -top-8 w-40 h-40 bg-gradient-to-br from-primary/10 to-transparent rounded-full blur-3xl group-hover:scale-125 transition-transform duration-700 pointer-events-none z-0" />
-        <div className="flex items-center justify-between px-4 py-3 border-b border-border">
+        <div className="flex items-center justify-between px-4 py-3 border-b">
           <p className="text-sm font-semibold text-foreground">Communication Log</p>
           <div className="flex gap-2">
             <input
               value={templateFilter}
               onChange={(e) => setTemplateFilter(e.target.value)}
               placeholder="Filter by template…"
-              className="text-xs border border-border rounded-lg px-2.5 py-1.5 focus:outline-none w-36"
+              className="text-xs rounded-lg px-2.5 py-1.5 focus:outline-none w-36"
             />
             <select
               value={successFilter}
               onChange={(e) => setSuccessFilter(e.target.value)}
-              className="text-xs border border-border rounded-lg px-2.5 py-1.5 focus:outline-none"
+              className="text-xs rounded-lg px-2.5 py-1.5 focus:outline-none"
             >
               <option value="">All statuses</option>
               <option value="true">Sent</option>
@@ -1854,7 +1854,7 @@ function CommunicationsTab() {
             </select>
           </div>
         </div>
-        <div className="px-4 py-2 bg-card/30/30 border-b border-border text-[11px] text-muted">
+        <div className="px-4 py-2 bg-card/30/30 border-b text-[11px] text-muted">
           <span className="font-medium">Note:</span> Queued means the background worker accepted the job. Sent/Failed is recorded after provider response.
         </div>
 
@@ -1864,7 +1864,7 @@ function CommunicationsTab() {
             ? <div className="text-center py-10 text-sm text-muted">No emails dispatched yet.</div>
             : <table className="w-full text-sm">
               <thead>
-                <tr className="bg-surface text-left border-b border-border">
+                <tr className="bg-[var(--bg-card-soft)] text-left border-b">
                   {['Recipient', 'Template', 'Stage', 'Status', 'Sent at'].map(h => (
                     <th key={h} className="px-4 py-2.5 text-xs font-medium text-muted uppercase tracking-wide">{h}</th>
                   ))}
@@ -1872,7 +1872,7 @@ function CommunicationsTab() {
               </thead>
               <tbody>
                 {commsData.logs.map((log) => (
-                  <tr key={log.id} className="border-b border-border hover:bg-surface">
+                  <tr key={log.id} className="border-b hover:bg-[var(--bg-card-soft)]">
                     <td className="px-4 py-2.5">
                       <p className="text-foreground font-medium truncate max-w-[160px]">{log.recipient_email}</p>
                     </td>
@@ -1919,7 +1919,7 @@ function CommunicationsTab() {
                     }}
                     className={`text-xs px-3 py-1.5 rounded-lg border transition-colors ${draftType === t.value
                         ? 'btn-primary text-white border-primary'
-                        : 'border-border text-muted hover:bg-surface'
+                        : 'border-border text-muted hover:bg-[var(--bg-card-soft)]'
                       }`}
                   >
                     {t.label}
@@ -1933,7 +1933,7 @@ function CommunicationsTab() {
               <select
                 value={draftTone}
                 onChange={(e) => setDraftTone(e.target.value)}
-                className="text-sm border border-border rounded-lg px-3 py-2 focus:outline-none w-full"
+                className="text-sm rounded-lg px-3 py-2 focus:outline-none w-full"
               >
                 {['professional', 'encouraging', 'formal'].map(t => <option key={t} value={t}>{t}</option>)}
               </select>
@@ -1945,7 +1945,7 @@ function CommunicationsTab() {
                 value={draftContext}
                 onChange={(e) => setDraftContext(e.target.value)}
                 rows={8}
-                className="w-full font-mono text-xs border border-border rounded-lg px-3 py-2 focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary resize-none"
+                className="w-full font-mono text-xs rounded-lg px-3 py-2 focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary resize-none"
               />
             </div>
 
@@ -1961,7 +1961,7 @@ function CommunicationsTab() {
           </div>
 
           {/* Preview */}
-          <div className="glass-card rounded-xl border border-border p-5 flex flex-col min-h-64 border-l-2 border-l-primary relative overflow-hidden group transition-all hover:-translate-y-1 hover:scale-[1.01]">
+          <div className="app-card p-5 flex flex-col min-h-64 border-l-2 border-l-primary relative overflow-hidden group transition-all hover:-translate-y-1 hover:scale-[1.01]">
       <div className="absolute -right-8 -top-8 w-40 h-40 bg-gradient-to-br from-primary/10 to-transparent rounded-full blur-3xl group-hover:scale-125 transition-transform duration-700 pointer-events-none z-0" />
             {draft ? (
               <>
@@ -1973,12 +1973,12 @@ function CommunicationsTab() {
                       setCopied(true)
                       setTimeout(() => setCopied(false), 2000)
                     }}
-                    className="flex items-center gap-1 text-xs px-2 py-1 rounded border border-border hover:bg-surface"
+                    className="flex items-center gap-1 text-xs px-2 py-1 rounded hover:bg-[var(--bg-card-soft)]"
                   >
                     <Copy size={12} /> {copied ? 'Copied!' : 'Copy'}
                   </button>
                 </div>
-                <div className="pb-3 mb-3 border-b border-border">
+                <div className="pb-3 mb-3 border-b">
                   <p className="text-xs text-muted mb-0.5">Subject</p>
                   <p className="text-sm font-semibold text-foreground">{draft.subject}</p>
                 </div>
@@ -2091,12 +2091,12 @@ function MentorOpsTab() {
     <div>
       <label className="block text-xs font-medium text-muted mb-1">{label}</label>
       <input type={type} value={form[key]} onChange={e => setForm(f => ({ ...f, [key]: e.target.value }))}
-        placeholder={placeholder} className="w-full border border-border bg-background shadow-sm text-foreground rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary" />
+        placeholder={placeholder} className="w-full bg-background shadow-sm text-foreground rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary" />
     </div>
   )
 
   const riskBadge = (level) => {
-    const cls = { low: 'bg-green-50 border border-green-200 text-green-700', medium: 'bg-cardSoft text-primary-dark border border-border', high: 'bg-cardSoft text-primary-dark border border-border', critical: 'bg-cardSoft text-foreground border border-primary font-bold' }[level] ?? 'bg-surface text-muted'
+    const cls = { low: 'bg-green-50 border border-green-200 text-green-700', medium: 'bg-cardSoft text-primary-dark', high: 'bg-cardSoft text-primary-dark', critical: 'bg-cardSoft text-foreground border border-primary font-bold' }[level] ?? 'bg-[var(--bg-card-soft)] text-muted'
     return <span className={`inline-flex items-center text-xs font-medium px-2 py-0.5 rounded-full ${cls}`}>{level}</span>
   }
 
@@ -2110,7 +2110,7 @@ function MentorOpsTab() {
           { label: 'Missing daily update', value: ops.teams_missing_daily_update, icon: MessageSquare, colour: ops.teams_missing_daily_update > 0 ? 'red' : 'teal' },
           { label: 'Low progress teams', value: ops.low_progress_teams, icon: BarChart2, colour: ops.low_progress_teams > 0 ? 'red' : 'teal' },
           ].map(({ label, value, icon: Icon, colour }) => (
-            <div key={label} className="glass-card rounded-xl border border-border p-4 border-l-2 border-l-primary relative overflow-hidden group transition-all hover:-translate-y-1 hover:scale-[1.01]">
+            <div key={label} className="app-card p-4 border-l-2 border-l-primary relative overflow-hidden group transition-all hover:-translate-y-1 hover:scale-[1.01]">
       <div className="absolute -right-8 -top-8 w-40 h-40 bg-gradient-to-br from-primary/10 to-transparent rounded-full blur-3xl group-hover:scale-125 transition-transform duration-700 pointer-events-none z-0" />
               <div className="flex items-center gap-2 mb-1"><Icon size={14} className="text-muted" /><p className="text-xs font-medium text-muted uppercase tracking-wide">{label}</p></div>
               <p className={`text-2xl font-bold px-2 py-0.5 rounded inline-block bg-${colour}-50 text-${colour}-700 border border-${colour}-200`}>{value ?? '—'}</p>
@@ -2122,11 +2122,11 @@ function MentorOpsTab() {
         <div className="flex items-center justify-between mb-5">
           <h2 className="text-base font-semibold text-foreground">Mentors</h2>
           <div className="flex items-center gap-2">
-            <button onClick={() => mentorApi.downloadTemplate()} className="text-sm px-3 py-1.5 rounded-lg border border-border text-muted hover:bg-surface">CSV Template</button>
-            <button onClick={() => mentorApi.downloadExport()} className="text-sm px-3 py-1.5 rounded-lg border border-border text-muted hover:bg-surface">Export</button>
+            <button onClick={() => mentorApi.downloadTemplate()} className="text-sm px-3 py-1.5 rounded-lg text-muted hover:bg-[var(--bg-card-soft)]">CSV Template</button>
+            <button onClick={() => mentorApi.downloadExport()} className="text-sm px-3 py-1.5 rounded-lg text-muted hover:bg-[var(--bg-card-soft)]">Export</button>
             <button
               onClick={() => setShowAutoAssign(true)}
-              className="flex items-center gap-1.5 text-sm px-3 py-1.5 rounded-lg border border-border text-primary hover:bg-cardSoft dark:hover:bg-primary/10"
+              className="flex items-center gap-1.5 text-sm px-3 py-1.5 rounded-lg text-primary hover:bg-cardSoft dark:hover:bg-primary/10"
             >
               <Wand2 size={14} /> Auto-assign
             </button>
@@ -2137,7 +2137,7 @@ function MentorOpsTab() {
         </div>
 
         {/* Bulk Import */}
-        <div className="glass-card rounded-xl border border-border p-4 mb-5 flex flex-col gap-3 border-l-2 border-l-primary relative overflow-hidden group transition-all hover:-translate-y-1 hover:scale-[1.01]">
+        <div className="app-card p-4 mb-5 flex flex-col gap-3 border-l-2 border-l-primary relative overflow-hidden group transition-all hover:-translate-y-1 hover:scale-[1.01]">
       <div className="absolute -right-8 -top-8 w-40 h-40 bg-gradient-to-br from-primary/10 to-transparent rounded-full blur-3xl group-hover:scale-125 transition-transform duration-700 pointer-events-none z-0" />
           <div className="flex items-center gap-4">
             <input type="file" accept=".csv" onChange={(e) => setImportFile(e.target.files[0])} className="text-sm" />
@@ -2154,7 +2154,7 @@ function MentorOpsTab() {
             </button>
           </div>
           {importSummary && (
-            <div className="bg-surface p-3 rounded-lg text-sm border border-border">
+            <div className="bg-[var(--bg-card-soft)] p-3 rounded-lg text-sm">
               <p className="font-semibold text-foreground">Import Summary</p>
               <div className="flex gap-4 mt-1 mb-2 text-muted">
                 <span>Total: {importSummary.total_rows}</span>
@@ -2174,7 +2174,7 @@ function MentorOpsTab() {
         </div>
 
         {showForm && (
-          <div className="glass-card rounded-xl border border-border p-5 mb-5 border-l-2 border-l-primary relative overflow-hidden group transition-all hover:-translate-y-1 hover:scale-[1.01]">
+          <div className="app-card p-5 mb-5 border-l-2 border-l-primary relative overflow-hidden group transition-all hover:-translate-y-1 hover:scale-[1.01]">
       <div className="absolute -right-8 -top-8 w-40 h-40 bg-gradient-to-br from-primary/10 to-transparent rounded-full blur-3xl group-hover:scale-125 transition-transform duration-700 pointer-events-none z-0" />
             <p className="text-sm font-semibold text-foreground mb-4">New Mentor</p>
             <div className="grid grid-cols-2 gap-3 mb-3">
@@ -2185,7 +2185,7 @@ function MentorOpsTab() {
             </div>
             <div className="mb-3">{fieldFor('expertise_areas', 'Expertise (comma-separated)', 'text', 'embedded systems, signal processing')}</div>
             <div className="flex gap-2 justify-end">
-              <button onClick={() => setShowForm(false)} className="text-sm px-3 py-1.5 rounded-lg border border-border text-muted hover:bg-surface">Cancel</button>
+              <button onClick={() => setShowForm(false)} className="text-sm px-3 py-1.5 rounded-lg text-muted hover:bg-[var(--bg-card-soft)]">Cancel</button>
               <button onClick={() => createMutation.mutate()} disabled={createMutation.isPending || !form.email}
                 className="flex items-center gap-1.5 text-sm px-4 py-1.5 rounded-lg btn-primary disabled:opacity-50 disabled:cursor-not-allowed">
                 {createMutation.isPending ? <Loader2 size={14} className="animate-spin" /> : <Check size={14} />} Save
@@ -2198,7 +2198,7 @@ function MentorOpsTab() {
         {isLoading
           ? Array.from({ length: 3 }).map((_, i) => <div key={i} className="h-14 bg-cardSoft rounded-xl animate-pulse mb-3" />)
           : (
-            <div className="glass-card rounded-xl border border-border overflow-hidden mb-8 border-l-2 border-l-primary relative overflow-hidden group transition-all hover:-translate-y-1 hover:scale-[1.01]">
+            <div className="app-card overflow-hidden mb-8 border-l-2 border-l-primary relative overflow-hidden group transition-all hover:-translate-y-1 hover:scale-[1.01]">
       <div className="absolute -right-8 -top-8 w-40 h-40 bg-gradient-to-br from-primary/10 to-transparent rounded-full blur-3xl group-hover:scale-125 transition-transform duration-700 pointer-events-none z-0" />
               {(!mentors.length)
                 ? <div className="text-center py-12 text-muted text-sm">No mentors registered yet.</div>
@@ -2208,8 +2208,8 @@ function MentorOpsTab() {
                   ).length
                   const effectiveAssignedTeamCount = activeAssignmentsForMentor || m.assigned_team_count || 0
                   return (
-                    <div key={m.id} className="flex flex-wrap items-center gap-4 px-4 py-3 border-b border-border last:border-0 hover:bg-surface">
-                      <div className="w-9 h-9 rounded-full bg-cardSoft text-primary border border-border font-semibold text-sm flex items-center justify-center shrink-0">{m.first_name[0]}</div>
+                    <div key={m.id} className="flex flex-wrap items-center gap-4 px-4 py-3 border-b last:border-0 hover:bg-[var(--bg-card-soft)]">
+                      <div className="w-9 h-9 rounded-full bg-cardSoft text-primary font-semibold text-sm flex items-center justify-center shrink-0">{m.first_name[0]}</div>
                       <div className="flex-1 min-w-[200px]">
                         <p className="text-sm font-medium text-foreground break-words">{m.first_name} {m.last_name}</p>
                         <p className="text-xs text-muted break-words">{m.email}{m.organization ? ` · ${m.organization}` : ''}</p>
@@ -2227,7 +2227,7 @@ function MentorOpsTab() {
                       <div className="flex flex-wrap gap-2 shrink-0 items-center">
                         {effectiveAssignedTeamCount > 0 ? (
                           <button onClick={() => sendLinkMutation.mutate(m.id)} disabled={sendLinkMutation.isPending}
-                            title={m.access_link_sent ? "Send access link again" : "Send access link"} className="flex items-center gap-1 text-xs px-2.5 py-1.5 rounded-lg border border-border text-primary hover:bg-cardSoft dark:hover:bg-primary/10 border border-border disabled:opacity-50">
+                            title={m.access_link_sent ? "Send access link again" : "Send access link"} className="flex items-center gap-1 text-xs px-2.5 py-1.5 rounded-lg text-primary hover:bg-cardSoft dark:hover:bg-primary/10 disabled:opacity-50">
                             {sendLinkMutation.isPending ? <Loader2 size={12} className="animate-spin" /> : <Send size={12} />} {m.access_link_sent ? "Resend Link" : "Send Link"}
                           </button>
                         ) : (
@@ -2253,14 +2253,14 @@ function MentorOpsTab() {
         </div>
 
         {showAssignForm && (
-          <div className="glass-card rounded-xl border border-border p-5 mb-5 border-l-2 border-l-primary relative overflow-hidden group transition-all hover:-translate-y-1 hover:scale-[1.01]">
+          <div className="app-card p-5 mb-5 border-l-2 border-l-primary relative overflow-hidden group transition-all hover:-translate-y-1 hover:scale-[1.01]">
       <div className="absolute -right-8 -top-8 w-40 h-40 bg-gradient-to-br from-primary/10 to-transparent rounded-full blur-3xl group-hover:scale-125 transition-transform duration-700 pointer-events-none z-0" />
             <p className="text-sm font-semibold text-foreground mb-4">Assign Mentor to Team</p>
             <div className="grid grid-cols-2 gap-3 mb-3">
               <div>
                 <label className="block text-xs font-medium text-muted mb-1">Mentor</label>
                 <select value={assignForm.mentor_id} onChange={e => setAssignForm(f => ({ ...f, mentor_id: e.target.value }))}
-                  className="w-full border border-border bg-background shadow-sm text-foreground rounded-lg px-3 py-2 text-sm focus:outline-none">
+                  className="w-full bg-background shadow-sm text-foreground rounded-lg px-3 py-2 text-sm focus:outline-none">
                   <option value="">-- select mentor --</option>
                   {mentors.filter(m => m.is_active).map(m => <option key={m.id} value={m.id}>{m.first_name} {m.last_name}</option>)}
                 </select>
@@ -2268,14 +2268,14 @@ function MentorOpsTab() {
               <div>
                 <label className="block text-xs font-medium text-muted mb-1">Team</label>
                 <select value={assignForm.team_id} onChange={e => setAssignForm(f => ({ ...f, team_id: e.target.value }))}
-                  className="w-full border border-border bg-background shadow-sm text-foreground rounded-lg px-3 py-2 text-sm focus:outline-none">
+                  className="w-full bg-background shadow-sm text-foreground rounded-lg px-3 py-2 text-sm focus:outline-none">
                   <option value="">-- select team --</option>
                   {allTeams.filter(t => t.is_approved && getTeamId(t)).map(t => <option key={getTeamId(t)} value={getTeamId(t)}>{getTeamName(t)}</option>)}
                 </select>
               </div>
             </div>
             <div className="flex gap-2 justify-end">
-              <button onClick={() => setShowAssignForm(false)} className="text-sm px-3 py-1.5 rounded-lg border border-border text-muted hover:bg-surface">Cancel</button>
+              <button onClick={() => setShowAssignForm(false)} className="text-sm px-3 py-1.5 rounded-lg text-muted hover:bg-[var(--bg-card-soft)]">Cancel</button>
               <button onClick={() => assignMutation.mutate()} disabled={assignMutation.isPending || !assignForm.mentor_id || !assignForm.team_id}
                 className="flex items-center gap-1.5 text-sm px-4 py-1.5 rounded-lg btn-secondary disabled:opacity-50">
                 {assignMutation.isPending ? <Loader2 size={14} className="animate-spin" /> : <Check size={14} />} Assign
@@ -2286,10 +2286,10 @@ function MentorOpsTab() {
         )}
 
         {assignments.length > 0 && (
-          <div className="glass-card rounded-xl border border-border overflow-hidden mb-8 border-l-2 border-l-primary relative overflow-hidden group transition-all hover:-translate-y-1 hover:scale-[1.01]">
+          <div className="app-card overflow-hidden mb-8 border-l-2 border-l-primary relative overflow-hidden group transition-all hover:-translate-y-1 hover:scale-[1.01]">
       <div className="absolute -right-8 -top-8 w-40 h-40 bg-gradient-to-br from-primary/10 to-transparent rounded-full blur-3xl group-hover:scale-125 transition-transform duration-700 pointer-events-none z-0" />
             {assignments.map(a => (
-              <div key={a.id} className="flex items-center gap-4 px-4 py-3 border-b border-border last:border-0 hover:bg-surface">
+              <div key={a.id} className="flex items-center gap-4 px-4 py-3 border-b last:border-0 hover:bg-[var(--bg-card-soft)]">
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-medium text-foreground">{a.mentor_name} → {a.team_name}</p>
                   <p className="text-xs text-muted">Stage: {a.stage}</p>
@@ -2297,7 +2297,7 @@ function MentorOpsTab() {
                 <Badge colour={a.is_active ? 'green' : 'gray'}>{a.is_active ? 'Active' : 'Inactive'}</Badge>
                 {a.is_active && (
                   <button onClick={() => { if (window.confirm('Unassign?')) unassignMutation.mutate(a.id) }}
-                    className="text-xs px-2 py-1 rounded border border-border text-primary hover:bg-cardSoft dark:hover:bg-primary/10">Unassign</button>
+                    className="text-xs px-2 py-1 rounded text-primary hover:bg-cardSoft dark:hover:bg-primary/10">Unassign</button>
                 )}
               </div>
             ))}
@@ -2310,7 +2310,7 @@ function MentorOpsTab() {
             <h2 className="text-base font-semibold text-foreground mb-4 flex items-center gap-2"><Wand2 size={16} className="text-primary" /> Skill-Gap Mentor Suggestions</h2>
             <div className="space-y-3">
               {suggestions.map(s => (
-                <div key={String(s.team_id)} className="glass-card rounded-xl border border-border p-4 border-l-2 border-l-primary relative overflow-hidden group transition-all hover:-translate-y-1 hover:scale-[1.01]">
+                <div key={String(s.team_id)} className="app-card p-4 border-l-2 border-l-primary relative overflow-hidden group transition-all hover:-translate-y-1 hover:scale-[1.01]">
       <div className="absolute -right-8 -top-8 w-40 h-40 bg-gradient-to-br from-primary/10 to-transparent rounded-full blur-3xl group-hover:scale-125 transition-transform duration-700 pointer-events-none z-0" />
                   <p className="text-sm font-semibold text-foreground mb-1">{s.team_name}</p>
                   <p className="text-xs text-muted mb-2">{s.reason}</p>
@@ -2322,7 +2322,7 @@ function MentorOpsTab() {
                       <button
                         onClick={() => assignMutation.mutate({ mentor_id: c.mentor_id, team_id: getTeamId(s) })}
                         disabled={assignMutation.isPending}
-                        className="ml-2 text-xs px-2 py-1 rounded bg-cardSoft text-primary hover:bg-cardSoft border border-border disabled:opacity-50"
+                        className="ml-2 text-xs px-2 py-1 rounded bg-cardSoft text-primary hover:bg-cardSoft disabled:opacity-50"
                       >
                         {assignMutation.isPending ? 'Assigning...' : 'Assign'}
                       </button>
@@ -2338,9 +2338,9 @@ function MentorOpsTab() {
         {riskTeams.length > 0 && (
           <div className="mb-8">
             <h2 className="text-base font-semibold text-foreground mb-4 flex items-center gap-2"><Shield size={16} className="text-primary" /> Risk Scores</h2>
-            <div className="glass-card rounded-xl border border-border overflow-hidden border-l-2 border-l-primary relative overflow-hidden group transition-all hover:-translate-y-1 hover:scale-[1.01]">
+            <div className="app-card overflow-hidden border-l-2 border-l-primary relative overflow-hidden group transition-all hover:-translate-y-1 hover:scale-[1.01]">
       <div className="absolute -right-8 -top-8 w-40 h-40 bg-gradient-to-br from-primary/10 to-transparent rounded-full blur-3xl group-hover:scale-125 transition-transform duration-700 pointer-events-none z-0" />
-              <div className="grid grid-cols-12 bg-surface border-b border-border px-4 py-3 text-xs font-medium text-muted uppercase tracking-wide">
+              <div className="grid grid-cols-12 bg-[var(--bg-card-soft)] border-b px-4 py-3 text-xs font-medium text-muted uppercase tracking-wide">
                 <div className="col-span-3">Team</div>
                 <div className="col-span-2">Mentor</div>
                 <div className="col-span-1">Score</div>
@@ -2349,7 +2349,7 @@ function MentorOpsTab() {
                 <div className="col-span-4">Reasons</div>
               </div>
               {riskTeams.map(t => (
-                <div key={String(t.team_id)} className="grid grid-cols-12 items-center px-4 py-3 border-b border-border text-sm last:border-0">
+                <div key={String(t.team_id)} className="grid grid-cols-12 items-center px-4 py-3 border-b text-sm last:border-0">
                   <div className="col-span-3 font-medium text-foreground truncate">{t.team_name}</div>
                   <div className="col-span-2 text-muted truncate">{t.mentor_name ?? '—'}</div>
                   <div className="col-span-1 font-bold text-foreground">{t.risk_score}</div>
@@ -2393,7 +2393,7 @@ function MentorOpsTab() {
           <div className="flex gap-2 items-end mb-4">
             <div className="flex-1">
               <select value={aiTeamId} onChange={e => setAiTeamId(e.target.value)}
-                className="w-full border border-border bg-background shadow-sm text-foreground rounded-lg px-3 py-2 text-sm focus:outline-none">
+                className="w-full bg-background shadow-sm text-foreground rounded-lg px-3 py-2 text-sm focus:outline-none">
                 <option value="">-- select team --</option>
                 {allTeams.filter(t => t.is_approved && getTeamId(t)).map(t => <option key={getTeamId(t)} value={getTeamId(t)}>{getTeamName(t)}</option>)}
               </select>
@@ -2404,7 +2404,7 @@ function MentorOpsTab() {
             </button>
           </div>
           {aiResult && (
-            <div className="glass-card rounded-xl border border-border p-5 border-l-2 border-l-primary relative overflow-hidden group transition-all hover:-translate-y-1 hover:scale-[1.01]">
+            <div className="app-card p-5 border-l-2 border-l-primary relative overflow-hidden group transition-all hover:-translate-y-1 hover:scale-[1.01]">
       <div className="absolute -right-8 -top-8 w-40 h-40 bg-gradient-to-br from-primary/10 to-transparent rounded-full blur-3xl group-hover:scale-125 transition-transform duration-700 pointer-events-none z-0" />
               <div className="flex items-center gap-2 mb-3">
                 <p className="text-sm font-semibold text-foreground">{aiResult.team_name}</p>
@@ -2445,8 +2445,8 @@ function HealthTab() {
   })
 
   const riskColour = {
-    critical: { bg: 'bg-cardSoft', border: 'border-primary', badge: 'bg-cardSoft text-primary-dark', dot: 'bg-cardSoft0' },
-    high: { bg: 'bg-cardSoft', border: 'border-primary', badge: 'bg-cardSoft text-primary-dark', dot: 'bg-cardSoft0' },
+    critical: { bg: 'bg-cardSoft', border: 'border-primary', badge: 'bg-cardSoft text-primary-dark', dot: 'bg-primary' },
+    high: { bg: 'bg-cardSoft', border: 'border-primary', badge: 'bg-cardSoft text-primary-dark', dot: 'bg-primary' },
     medium: { bg: 'bg-yellow-50', border: 'border-yellow-200', badge: 'bg-yellow-100 text-yellow-700', dot: 'bg-yellow-400' },
     low: { bg: 'bg-green-50', border: 'border-green-200', badge: 'bg-green-100 text-green-700', dot: 'bg-green-500' },
   }
@@ -2474,7 +2474,7 @@ function HealthTab() {
         <button
           onClick={handleRefresh}
           disabled={isRefetching}
-          className="flex items-center gap-2 bg-surface hover:bg-cardSoft dark:hover:bg-cardSoft text-foreground px-3 py-1.5 rounded-lg text-sm font-medium transition-colors"
+          className="flex items-center gap-2 bg-[var(--bg-card-soft)] hover:bg-[var(--bg-card-soft)] text-foreground px-3 py-1.5 rounded-lg text-sm font-medium transition-colors"
         >
           {isRefetching ? <Loader2 size={14} className="animate-spin" /> : <Activity size={14} />}
           Refresh
@@ -2525,7 +2525,7 @@ function HealthTab() {
                   <div className="space-y-1">
                     {team.signals.map((s, i) => (
                       <div key={i} className="flex items-start gap-2 text-sm">
-                        <span className={`mt-1 w-1.5 h-1.5 rounded-full flex-shrink-0 ${s.severity === 'high' ? 'bg-cardSoft0' : 'bg-yellow-500'}`} />
+                        <span className={`mt-1 w-1.5 h-1.5 rounded-full flex-shrink-0 ${s.severity === 'high' ? 'bg-primary' : 'bg-yellow-500'}`} />
                         <span>
                           <span className="font-medium text-foreground">{s.label}</span>
                           {s.detail && <span className="text-muted"> — {s.detail}</span>}
@@ -2651,7 +2651,7 @@ function AnomalyTab() {
 
       {/* Stats Cards & Analytics */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
-        <div className="glass-card p-5 rounded-xl border border-border border-l-2 border-l-primary relative overflow-hidden group transition-all hover:-translate-y-1 hover:scale-[1.01]">
+        <div className="glass-card p-5 app-card border-l-2 border-l-primary relative overflow-hidden group transition-all hover:-translate-y-1 hover:scale-[1.01]">
       <div className="absolute -right-8 -top-8 w-40 h-40 bg-gradient-to-br from-primary/10 to-transparent rounded-full blur-3xl group-hover:scale-125 transition-transform duration-700 pointer-events-none z-0" />
           <p className="text-xs font-medium text-muted uppercase mb-1">Total Flagged Teams</p>
           <p className="text-3xl font-bold text-primary">{totalFlagged}</p>
@@ -2660,15 +2660,15 @@ function AnomalyTab() {
             <p className="text-xs text-muted mb-2">Historical Frequency</p>
             <div className="flex items-end h-8 gap-1">
               {[2, 5, 3, 7, 4, 1, totalFlagged].map((val, idx) => (
-                <div key={idx} className="flex-1 bg-cardSoft0/20 rounded-t" style={{ height: `${Math.max(10, val * 10)}%` }}>
-                  {idx === 6 && <div className="w-full h-full bg-cardSoft0/50 rounded-t border-t-2 border-primary" />}
+                <div key={idx} className="flex-1 bg-primary/20 rounded-t" style={{ height: `${Math.max(10, val * 10)}%` }}>
+                  {idx === 6 && <div className="w-full h-full bg-primary/50 rounded-t border-t-2 border-primary" />}
                 </div>
               ))}
             </div>
           </div>
         </div>
 
-        <div className="glass-card p-5 rounded-xl border border-border flex flex-col justify-between border-l-2 border-l-primary relative overflow-hidden group transition-all hover:-translate-y-1 hover:scale-[1.01]">
+        <div className="glass-card p-5 app-card flex flex-col justify-between border-l-2 border-l-primary relative overflow-hidden group transition-all hover:-translate-y-1 hover:scale-[1.01]">
       <div className="absolute -right-8 -top-8 w-40 h-40 bg-gradient-to-br from-primary/10 to-transparent rounded-full blur-3xl group-hover:scale-125 transition-transform duration-700 pointer-events-none z-0" />
           <div>
             <p className="text-xs font-medium text-muted uppercase mb-1">Sweep Status</p>
@@ -2684,7 +2684,7 @@ function AnomalyTab() {
           </div>
         </div>
 
-        <div className="glass-card p-5 rounded-xl border border-border flex flex-col justify-between border-l-2 border-l-primary relative overflow-hidden group transition-all hover:-translate-y-1 hover:scale-[1.01]">
+        <div className="glass-card p-5 app-card flex flex-col justify-between border-l-2 border-l-primary relative overflow-hidden group transition-all hover:-translate-y-1 hover:scale-[1.01]">
       <div className="absolute -right-8 -top-8 w-40 h-40 bg-gradient-to-br from-primary/10 to-transparent rounded-full blur-3xl group-hover:scale-125 transition-transform duration-700 pointer-events-none z-0" />
           <div>
             <p className="text-xs font-medium text-muted uppercase mb-1">AI Confidence Score</p>
@@ -2700,7 +2700,7 @@ function AnomalyTab() {
       <div className="space-y-4">
         <h3 className="text-lg font-semibold text-foreground mb-2">Flagged Evaluations Pipeline</h3>
         {flaggedTeams.length === 0 ? (
-          <div className="glass-card py-16 text-center rounded-xl border border-border border-l-2 border-l-primary relative overflow-hidden group transition-all hover:-translate-y-1 hover:scale-[1.01]">
+          <div className="glass-card py-16 text-center app-card border-l-2 border-l-primary relative overflow-hidden group transition-all hover:-translate-y-1 hover:scale-[1.01]">
       <div className="absolute -right-8 -top-8 w-40 h-40 bg-gradient-to-br from-primary/10 to-transparent rounded-full blur-3xl group-hover:scale-125 transition-transform duration-700 pointer-events-none z-0" />
             <CheckSquare size={48} className="mx-auto text-primary/50 mb-3" />
             <p className="text-foreground font-medium">No Anomalies Detected</p>
@@ -2708,7 +2708,7 @@ function AnomalyTab() {
           </div>
         ) : (
           flaggedTeams.map(team => (
-            <div key={team.id} className="glass-card p-5 rounded-xl border border-border flex flex-col md:flex-row md:items-center justify-between gap-4 border-l-2 border-l-primary relative overflow-hidden group transition-all hover:-translate-y-1 hover:scale-[1.01]">
+            <div key={team.id} className="glass-card p-5 app-card flex flex-col md:flex-row md:items-center justify-between gap-4 border-l-2 border-l-primary relative overflow-hidden group transition-all hover:-translate-y-1 hover:scale-[1.01]">
       <div className="absolute -right-8 -top-8 w-40 h-40 bg-gradient-to-br from-primary/10 to-transparent rounded-full blur-3xl group-hover:scale-125 transition-transform duration-700 pointer-events-none z-0" />
               <div className="flex-1">
                 <div className="flex items-center gap-2 mb-2">
@@ -2738,7 +2738,7 @@ function AnomalyTab() {
                         <Loader2 size={11} className="animate-spin" /> Generating explanation…
                       </div>
                     ) : explanations[team.team_id].status === 'done' ? (
-                      <div className="bg-cardSoft border border-border border border-border rounded-lg p-2.5 mt-1">
+                      <div className="bg-cardSoft rounded-lg p-2.5 mt-1">
                         <p className="text-xs font-medium text-primary mb-1 flex items-center gap-1">
                           <Wand2 size={11} /> AI Explanation
                         </p>
@@ -2812,7 +2812,7 @@ function RiskTab() {
 
   if (capabilityDisabled) {
     return (
-      <div className="glass-card py-16 text-center rounded-xl border border-border border-l-2 border-l-primary relative overflow-hidden group transition-all hover:-translate-y-1 hover:scale-[1.01]">
+      <div className="glass-card py-16 text-center app-card border-l-2 border-l-primary relative overflow-hidden group transition-all hover:-translate-y-1 hover:scale-[1.01]">
       <div className="absolute -right-8 -top-8 w-40 h-40 bg-gradient-to-br from-primary/10 to-transparent rounded-full blur-3xl group-hover:scale-125 transition-transform duration-700 pointer-events-none z-0" />
         <ShieldAlert size={48} className="mx-auto text-primary/50 mb-3" />
         <p className="text-foreground font-medium">Risk monitoring is not enabled for this event.</p>
@@ -2822,7 +2822,7 @@ function RiskTab() {
 
   if (summaryError || teamsError) {
     return (
-      <div className="glass-card py-16 text-center rounded-xl border border-border border-l-2 border-l-primary relative overflow-hidden group transition-all hover:-translate-y-1 hover:scale-[1.01]">
+      <div className="glass-card py-16 text-center app-card border-l-2 border-l-primary relative overflow-hidden group transition-all hover:-translate-y-1 hover:scale-[1.01]">
       <div className="absolute -right-8 -top-8 w-40 h-40 bg-gradient-to-br from-primary/10 to-transparent rounded-full blur-3xl group-hover:scale-125 transition-transform duration-700 pointer-events-none z-0" />
         <AlertTriangle size={48} className="mx-auto text-primary/50 mb-3" />
         <p className="text-foreground font-medium">Unable to load risk intelligence.</p>
@@ -2860,13 +2860,13 @@ function RiskTab() {
       <h3 className="text-lg font-semibold text-foreground mb-4">Team Risk Dashboard</h3>
 
       {loading ? (
-        <div className="glass-card py-16 text-center rounded-xl border border-border border-l-2 border-l-primary relative overflow-hidden group transition-all hover:-translate-y-1 hover:scale-[1.01]">
+        <div className="glass-card py-16 text-center app-card border-l-2 border-l-primary relative overflow-hidden group transition-all hover:-translate-y-1 hover:scale-[1.01]">
       <div className="absolute -right-8 -top-8 w-40 h-40 bg-gradient-to-br from-primary/10 to-transparent rounded-full blur-3xl group-hover:scale-125 transition-transform duration-700 pointer-events-none z-0" />
           <Loader2 size={48} className="mx-auto text-primary-light mb-3 animate-spin" />
           <p className="text-foreground font-medium">Loading risk intelligence...</p>
         </div>
       ) : teams.length === 0 ? (
-        <div className="glass-card py-16 text-center rounded-xl border border-border border-l-2 border-l-primary relative overflow-hidden group transition-all hover:-translate-y-1 hover:scale-[1.01]">
+        <div className="glass-card py-16 text-center app-card border-l-2 border-l-primary relative overflow-hidden group transition-all hover:-translate-y-1 hover:scale-[1.01]">
       <div className="absolute -right-8 -top-8 w-40 h-40 bg-gradient-to-br from-primary/10 to-transparent rounded-full blur-3xl group-hover:scale-125 transition-transform duration-700 pointer-events-none z-0" />
           <Activity size={48} className="mx-auto text-primary-light mb-3" />
           <p className="text-foreground font-medium">No risk snapshots yet.</p>
@@ -3023,7 +3023,7 @@ function DemoControlsTab() {
           <StatCard label="Comms Logs" value={status?.communication_logs} colour="amber" />
         </div>
 
-        <div className="glass-card rounded-xl border border-primary p-6 bg-cardSoft mb-8 border-l-2 border-l-primary relative overflow-hidden group transition-all hover:-translate-y-1 hover:scale-[1.01]">
+        <div className="app-card border border-primary p-6 bg-cardSoft mb-8 border-l-2 border-l-primary relative overflow-hidden group transition-all hover:-translate-y-1 hover:scale-[1.01]">
       <div className="absolute -right-8 -top-8 w-40 h-40 bg-gradient-to-br from-primary/10 to-transparent rounded-full blur-3xl group-hover:scale-125 transition-transform duration-700 pointer-events-none z-0" />
           <h3 className="text-base font-bold text-primary flex items-center gap-2 mb-2">
             <AlertTriangle size={18} /> Reset Demo Data
@@ -3037,7 +3037,7 @@ function DemoControlsTab() {
               value={confirmText}
               onChange={e => setConfirmText(e.target.value)}
               placeholder="Type RESET_DEMO_DATA"
-              className="bg-background shadow-sm border border-border text-foreground rounded-lg px-4 py-2 text-sm focus:outline-none focus:border-primary w-64"
+              className="bg-background shadow-sm text-foreground rounded-lg px-4 py-2 text-sm focus:outline-none focus:border-primary w-64"
             />
             <button
               onClick={() => resetMutation.mutate()}
@@ -3050,7 +3050,7 @@ function DemoControlsTab() {
           </div>
         </div>
 
-        <div className="glass-card rounded-xl border border-primary p-6 bg-cardSoft mb-8 border-l-2 border-l-primary relative overflow-hidden group transition-all hover:-translate-y-1 hover:scale-[1.01]">
+        <div className="app-card border border-primary p-6 bg-cardSoft mb-8 border-l-2 border-l-primary relative overflow-hidden group transition-all hover:-translate-y-1 hover:scale-[1.01]">
       <div className="absolute -right-8 -top-8 w-40 h-40 bg-gradient-to-br from-primary/10 to-transparent rounded-full blur-3xl group-hover:scale-125 transition-transform duration-700 pointer-events-none z-0" />
           <h3 className="text-base font-bold text-primary flex items-center gap-2 mb-2">
             <AlertTriangle size={18} /> Delete Current Event
@@ -3068,7 +3068,7 @@ function DemoControlsTab() {
               value={deleteEventConfirm}
               onChange={(e) => setDeleteEventConfirm(e.target.value)}
               placeholder="Type DELETE_EVENT"
-              className="bg-background shadow-sm border border-border text-foreground rounded-lg px-4 py-2 text-sm focus:outline-none focus:border-primary w-full md:w-64"
+              className="bg-background shadow-sm text-foreground rounded-lg px-4 py-2 text-sm focus:outline-none focus:border-primary w-full md:w-64"
             />
 
             <button
@@ -3088,7 +3088,7 @@ function DemoControlsTab() {
 
         <div className="mb-8">
           <h2 className="text-lg font-semibold text-foreground mb-4">Security & Integrity</h2>
-          <div className="glass-card rounded-xl border border-border p-6 border-l-2 border-l-primary relative overflow-hidden group transition-all hover:-translate-y-1 hover:scale-[1.01]">
+          <div className="app-card p-6 border-l-2 border-l-primary relative overflow-hidden group transition-all hover:-translate-y-1 hover:scale-[1.01]">
       <div className="absolute -right-8 -top-8 w-40 h-40 bg-gradient-to-br from-primary/10 to-transparent rounded-full blur-3xl group-hover:scale-125 transition-transform duration-700 pointer-events-none z-0" />
             <div className="flex items-center justify-between mb-4">
               <div>
@@ -3100,7 +3100,7 @@ function DemoControlsTab() {
               <button
                 onClick={runSecurityAudit}
                 disabled={isAuditing}
-                className="bg-primary hover:bg-cardSoft0 text-white px-4 py-2 rounded-lg text-sm font-medium transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                className="bg-primary hover:bg-primary text-white px-4 py-2 rounded-lg text-sm font-medium transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
               >
                 {isAuditing ? <Loader2 size={16} className="animate-spin" /> : <ShieldCheck size={16} />}
                 {isAuditing ? "Scanning..." : "Run System Audit"}
@@ -3132,7 +3132,7 @@ function DemoControlsTab() {
               </div>
             )}
             {auditError && (
-              <div className="p-4 rounded-xl border border-border bg-cardSoft text-primary text-sm">
+              <div className="p-4 app-card bg-cardSoft text-primary text-sm">
                 {auditError}
               </div>
             )}
@@ -3142,7 +3142,7 @@ function DemoControlsTab() {
 
       <div>
         <h2 className="text-lg font-semibold text-foreground mb-4">Stage Controls</h2>
-        <div className="glass-card rounded-xl border border-border p-6 border-l-2 border-l-primary relative overflow-hidden group transition-all hover:-translate-y-1 hover:scale-[1.01]">
+        <div className="app-card p-6 border-l-2 border-l-primary relative overflow-hidden group transition-all hover:-translate-y-1 hover:scale-[1.01]">
       <div className="absolute -right-8 -top-8 w-40 h-40 bg-gradient-to-br from-primary/10 to-transparent rounded-full blur-3xl group-hover:scale-125 transition-transform duration-700 pointer-events-none z-0" />
           <div className="flex items-center justify-between mb-6">
             <div>
@@ -3154,7 +3154,7 @@ function DemoControlsTab() {
             <div className="flex gap-2">
               <button onClick={() => stepMutation.mutate('prev')} className="px-4 py-2 bg-cardSoft hover:bg-slate-300 text-foreground text-sm font-semibold rounded-lg transition-colors">Previous</button>
               <button onClick={() => stepMutation.mutate('next')} className="px-4 py-2 bg-primary hover:bg-primary-dark text-white text-sm font-semibold rounded-lg transition-colors">Next</button>
-              <button onClick={() => resetStageMutation.mutate()} disabled={resetStageMutation.isPending} className="px-4 py-2 border border-border text-muted hover:bg-surface text-sm font-semibold rounded-lg transition-colors ml-2 disabled:opacity-50">
+              <button onClick={() => resetStageMutation.mutate()} disabled={resetStageMutation.isPending} className="px-4 py-2 text-muted hover:bg-[var(--bg-card-soft)] text-sm font-semibold rounded-lg transition-colors ml-2 disabled:opacity-50">
                 {resetStageMutation.isPending ? 'Resetting...' : 'Reset to Registration'}
               </button>
             </div>
@@ -3165,7 +3165,7 @@ function DemoControlsTab() {
             <select
               value={eventState?.current_stage || ''}
               onChange={e => stageMutation.mutate(e.target.value)}
-              className="w-full md:w-64 bg-background shadow-sm text-foreground border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary"
+              className="w-full md:w-64 bg-background shadow-sm text-foreground rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary"
             >
               <option value="registration">Registration</option>
               <option value="team_formation">Team Formation</option>
@@ -3229,7 +3229,7 @@ function CreateEventTab() {
 
   return (
     <div className="grid lg:grid-cols-[1fr_320px] gap-6">
-      <div className="glass-card rounded-xl border border-border p-6 border-l-2 border-l-primary relative overflow-hidden group transition-all hover:-translate-y-1 hover:scale-[1.01]">
+      <div className="app-card p-6 border-l-2 border-l-primary relative overflow-hidden group transition-all hover:-translate-y-1 hover:scale-[1.01]">
       <div className="absolute -right-8 -top-8 w-40 h-40 bg-gradient-to-br from-primary/10 to-transparent rounded-full blur-3xl group-hover:scale-125 transition-transform duration-700 pointer-events-none z-0" />
         <div className="flex items-start justify-between gap-4 mb-5">
           <div>
@@ -3252,7 +3252,7 @@ function CreateEventTab() {
                 slug: f.slug || slugifyEventName(e.target.value),
               }))}
               placeholder="Smart India Hackathon Demo"
-              className="w-full border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary"
+              className="w-full rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary"
             />
           </div>
           <div>
@@ -3261,7 +3261,7 @@ function CreateEventTab() {
               value={form.slug}
               onChange={(e) => setForm((f) => ({ ...f, slug: slugifyEventName(e.target.value) }))}
               placeholder="smart-india-hackathon-demo"
-              className="w-full border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary"
+              className="w-full rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary"
             />
           </div>
         </div>
@@ -3271,7 +3271,7 @@ function CreateEventTab() {
           <select
             value={form.template_id}
             onChange={(e) => setForm((f) => ({ ...f, template_id: e.target.value }))}
-            className="w-full border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary bg-background"
+            className="w-full rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary bg-background"
           >
             <option value="">{isLoading ? 'Loading templates...' : 'Choose a template'}</option>
             {templates.map((template) => (
@@ -3283,7 +3283,7 @@ function CreateEventTab() {
         </div>
 
         {selectedTemplate && (
-          <div className="rounded-lg border border-border bg-surface p-4 mb-4">
+          <div className="rounded-lg bg-[var(--bg-card-soft)] p-4 mb-4">
             <p className="text-sm font-semibold text-foreground">{selectedTemplate.name}</p>
             <p className="text-xs text-muted mt-1">{selectedTemplate.description}</p>
             <div className="flex gap-2 flex-wrap mt-3">
@@ -3301,7 +3301,7 @@ function CreateEventTab() {
             onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))}
             rows={3}
             placeholder="Optional internal description for this event..."
-            className="w-full border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary resize-none"
+            className="w-full rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary resize-none"
           />
         </div>
         <button
@@ -3315,7 +3315,7 @@ function CreateEventTab() {
           <p className="text-xs text-primary mt-3">{createMutation.error?.message}</p>
         )}
       </div>
-      <div className="glass-card rounded-xl border border-border bg-cardSoft p-5 h-fit border-l-2 border-l-primary relative overflow-hidden group transition-all hover:-translate-y-1 hover:scale-[1.01]">
+      <div className="app-card bg-cardSoft p-5 h-fit border-l-2 border-l-primary relative overflow-hidden group transition-all hover:-translate-y-1 hover:scale-[1.01]">
       <div className="absolute -right-8 -top-8 w-40 h-40 bg-gradient-to-br from-primary/10 to-transparent rounded-full blur-3xl group-hover:scale-125 transition-transform duration-700 pointer-events-none z-0" />
         <div className="flex items-center gap-2 mb-3">
           <Sparkles size={16} className="text-primary" />
@@ -3351,7 +3351,6 @@ const TABS = [
   { key: 'risk', label: 'Risk', Icon: ShieldAlert, requiresEvent: true, capabilities: ['risk_monitoring'] },
   { key: 'democontrols', label: 'Demo Controls', Icon: AlertTriangle, requiresEvent: true },
   { key: 'settings', label: 'Settings', Icon: Settings },
-  { key: 'aiconfig', label: 'AI Config', Icon: Sparkles, isNav: true, navTo: '/configure' },
 ]
 
 const VALID_TABS = TABS.map(t => t.key)

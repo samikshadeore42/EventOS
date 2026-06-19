@@ -18,7 +18,7 @@ export default function Navbar({
       className="px-4 sm:px-6 py-3 flex items-center justify-between relative z-50 sticky top-0 w-full transition-colors"
       style={{
         backgroundColor: 'var(--bg-card)',
-        borderBottom: '1px solid var(--color-border)',
+        borderBottom: '1px solid var(--border-soft)',
       }}
     >
       <div className="flex items-center gap-3 sm:gap-4">
@@ -28,14 +28,14 @@ export default function Navbar({
               if (onMenuClick) onMenuClick()
               else if (setMobileMenuOpen) setMobileMenuOpen(!mobileMenuOpen)
             }}
-            className="p-2 -ml-2 transition-opacity"
+            className="p-2 -ml-2 rounded-lg transition-all hover:bg-[var(--bg-card-soft)]"
             style={{ color: 'var(--text-main)' }}
           >
             {mobileMenuOpen && mobileBreakpoint !== 'never' && window.innerWidth < (mobileBreakpoint === 'lg' ? 1024 : 768) ? <X size={24} /> : <Menu size={24} />}
           </button>
         )}
         <EventOSLogo className="shrink-0" style={{ color: 'var(--color-primary)' }} size={32} />
-        <div className="pl-4 hidden sm:block" style={{ borderLeft: '1px solid var(--color-border)' }}>
+        <div className="pl-4 hidden sm:block" style={{ borderLeft: '1px solid var(--border-soft)' }}>
           <h1 className="text-sm font-bold uppercase tracking-wide" style={{ color: 'var(--text-main)' }}>{title}</h1>
           <p className="text-xs font-medium" style={{ color: 'var(--text-muted)' }}>{subtitle}</p>
         </div>

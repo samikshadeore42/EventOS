@@ -9,8 +9,7 @@ import {
 import { stagesApi, eventLifecycleApi, eventsApi, eventStorage } from '../services/api'
 
 const DEFAULT_TZ = 'Asia/Kolkata'
-const INPUT_CLASS = 'w-full border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary bg-background text-foreground'
-const ICON_BUTTON_CLASS = 'p-1.5 rounded border border-border text-muted hover:bg-surface disabled:opacity-40 disabled:cursor-not-allowed'
+const INPUT_CLASS = 'app-input'
 const CAPABILITY_OPTIONS = [
   { key: 'teams', label: 'Teams' },
   { key: 'mentors', label: 'Mentors' },
@@ -293,17 +292,22 @@ export default function StageTimelinePanel({ eventStatus }) {
   return (
     <div className="space-y-6">
       {/* Validation banner */}
-      <div className={`rounded-xl border p-4 flex items-start gap-3 ${
-        isValid ? 'border-emerald-200 bg-emerald-50' : 'border-border bg-cardSoft'
-      }`}>
+      <div className={`app-card p-4 flex items-start gap-3 ${
+        isValid ? '!border-l-3' : ''
+      }`}
+        style={{
+          borderLeftWidth: '3px',
+          borderLeftColor: isValid ? 'var(--color-success)' : 'var(--color-primary)',
+        }}
+      >
         {isValid
-          ? <ShieldCheck className="w-5 h-5 text-emerald-600 dark:text-emerald-400 mt-0.5" />
-          : <AlertTriangle className="w-5 h-5 text-primary mt-0.5" />}
+          ? <ShieldCheck className="w-5 h-5 mt-0.5" style={{ color: 'var(--color-success)' }} />
+          : <AlertTriangle className="w-5 h-5 mt-0.5" style={{ color: 'var(--color-primary)' }} />}
         <div className="flex-1">
-          <p className="font-medium text-sm text-slate-800 dark:text-foreground">{isValid ? 'Schedule is valid and ready to publish.' : 'Schedule has issues to fix before publishing.'}{isValid ? 'Schedule is valid — ready to publish.' : 'Schedule has issues to fix before publishing.'}
+          <p className="font-medium text-sm" style={{ color: 'var(--text-main)' }}>{isValid ? 'Schedule is valid — ready to publish.' : 'Schedule has issues to fix before publishing.'}
           </p>
           {!isValid && violations.length > 0 && (
-            <ul className="mt-2 space-y-1 text-xs text-primary-dark dark:text-amber-200 list-disc list-inside">
+            <ul className="mt-2 space-y-1 text-xs list-disc list-inside" style={{ color: 'var(--color-primary)' }}>
               {violations.map((v, i) => <li key={i}>{v.message}</li>)}
             </ul>
           )}
@@ -312,7 +316,7 @@ export default function StageTimelinePanel({ eventStatus }) {
           <button
             onClick={() => generateRuns.mutate()}
             disabled={generateRuns.isPending || sortedStages.length === 0}
-            className="inline-flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium border border-border bg-background text-foreground hover:bg-surface disabled:opacity-40"
+            className="app-btn-secondary !text-sm !px-3 !py-2"
           >
             {generateRuns.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Play className="w-4 h-4" />}
             Generate runs
@@ -321,7 +325,7 @@ export default function StageTimelinePanel({ eventStatus }) {
             <button
               onClick={() => publish.mutate()}
               disabled={!isValid || publish.isPending}
-              className="inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-white bg-primary hover:bg-primary-dark disabled:opacity-40"
+              className="app-btn-primary !text-sm !px-4 !py-2"
             >
               {publish.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Rocket className="w-4 h-4" />}
               Publish event
@@ -331,24 +335,25 @@ export default function StageTimelinePanel({ eventStatus }) {
       </div>
 
       {publish.isError && (
-        <div className="rounded-lg border border-border bg-cardSoft p-3 text-sm text-primary">
+        <div className="app-card-soft p-3 text-sm" style={{ color: 'var(--color-danger)' }}>
           {publishErr || 'Publish failed.'}
         </div>
       )}
 
       {awaiting.length > 0 && (
-        <div className="rounded-xl border border-border p-4">
-          <h3 className="flex items-center gap-2 font-semibold text-sm text-slate-800 dark:text-foreground mb-3">
-            <Clock className="w-4 h-4 text-primary" /> Stages awaiting approval
+        <div className="app-card p-4">
+          <h3 className="flex items-center gap-2 font-semibold text-sm mb-3" style={{ color: 'var(--text-main)' }}>
+            <Clock className="w-4 h-4" style={{ color: 'var(--color-primary)' }} /> Stages awaiting approval
           </h3>
           <ul className="space-y-2">
             {awaiting.map((s) => (
-              <li key={s.id} className="flex items-center justify-between bg-cardSoft rounded-lg px-3 py-2">
-                <span className="text-sm text-slate-700 dark:text-slate-200">{s.name}</span>
+              <li key={s.id} className="flex items-center justify-between rounded-xl px-3 py-2" style={{ backgroundColor: 'var(--bg-card-soft)' }}>
+                <span className="text-sm" style={{ color: 'var(--text-main)' }}>{s.name}</span>
                 <button
                   onClick={() => approve.mutate(s.id)}
                   disabled={approve.isPending}
-                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium text-white bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium text-white disabled:opacity-50 disabled:cursor-not-allowed"
+                  style={{ backgroundColor: 'var(--color-success)' }}
                 >
                   <CheckCircle2 className="w-3.5 h-3.5" /> Approve & start
                 </button>
@@ -359,22 +364,22 @@ export default function StageTimelinePanel({ eventStatus }) {
       )}
 
       {/* Timeline */}
-      <div className="rounded-xl border border-border bg-background overflow-hidden">
-        <div className="px-4 py-3 border-b border-slate-100 flex items-center justify-between">
+      <div className="app-card overflow-hidden">
+        <div className="px-4 py-3 flex items-center justify-between" style={{ borderBottom: '1px solid var(--border-soft)' }}>
           <div>
-            <h3 className="text-sm font-semibold text-slate-800 dark:text-foreground">Stage Definitions</h3>
-            <p className="text-xs text-slate-400 dark:text-muted">Create, edit, delete, and reorder creator-defined stages.</p>
+            <h3 className="text-sm font-semibold" style={{ color: 'var(--text-main)' }}>Stage Definitions</h3>
+            <p className="text-xs" style={{ color: 'var(--text-muted)' }}>Create, edit, delete, and reorder creator-defined stages.</p>
           </div>
           <button
             onClick={startCreate}
-            className="inline-flex items-center gap-1.5 text-sm px-3 py-2 rounded-lg app-btn-primary"
+            className="app-btn-primary !text-sm !px-3 !py-2"
           >
             <Plus className="w-4 h-4" /> Add stage
           </button>
         </div>
 
         {formOpen && (
-          <div className="border-b border-slate-100 p-4 bg-surface">
+          <div className="p-4" style={{ borderBottom: '1px solid var(--border-soft)', backgroundColor: 'var(--bg-card-soft)' }}>
             <div className="grid md:grid-cols-2 gap-3">
               <Field label="Key">
                 <input
@@ -443,12 +448,12 @@ export default function StageTimelinePanel({ eventStatus }) {
               </Field>
 
               <Field label="Required capabilities">
-                <div className="rounded-lg border border-border bg-background p-3">
+                <div className="app-card-soft p-3">
                   <div className="grid sm:grid-cols-2 gap-2">
                     {CAPABILITY_OPTIONS.map((capability) => {
                       const checked = selectedCapabilities(form.required_capabilities).has(capability.key)
                       return (
-                        <label key={capability.key} className="flex items-center gap-2 text-xs text-foreground">
+                        <label key={capability.key} className="flex items-center gap-2 text-xs" style={{ color: 'var(--text-main)' }}>
                           <input
                             type="checkbox"
                             checked={checked}
@@ -458,12 +463,12 @@ export default function StageTimelinePanel({ eventStatus }) {
                             }))}
                           />
                           <span>{capability.label}</span>
-                          <span className="text-muted">({capability.key})</span>
+                          <span style={{ color: 'var(--text-muted)' }}>({capability.key})</span>
                         </label>
                       )
                     })}
                   </div>
-                  <p className="mt-2 text-[11px] text-muted">
+                  <p className="mt-2 text-[11px]" style={{ color: 'var(--text-muted)' }}>
                     Select only the capabilities this stage actually needs. The saved payload still uses system keys.
                   </p>
                 </div>
@@ -491,7 +496,7 @@ export default function StageTimelinePanel({ eventStatus }) {
                     type="button"
                     onClick={generateReminderJson}
                     disabled={!reminderPrompt.trim()}
-                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-border text-xs font-medium text-primary bg-cardSoft hover:bg-cardSoft disabled:opacity-40"
+                    className="app-btn-secondary !text-xs !px-3 !py-1.5"
                   >
                     Generate editable JSON
                   </button>
@@ -501,14 +506,14 @@ export default function StageTimelinePanel({ eventStatus }) {
                     rows={4}
                     className={`${INPUT_CLASS} font-mono text-xs resize-none`}
                   />
-                  <p className="text-[11px] text-muted">
+                  <p className="text-[11px]" style={{ color: 'var(--text-muted)' }}>
                     You can edit this JSON before saving. Use {} if no reminders are needed.
                   </p>
                 </div>
               </Field>
             </div>
 
-            <label className="mt-3 inline-flex items-center gap-2 text-sm text-foreground">
+            <label className="mt-3 inline-flex items-center gap-2 text-sm" style={{ color: 'var(--text-main)' }}>
               <input
                 type="checkbox"
                 checked={form.is_active}
@@ -518,13 +523,13 @@ export default function StageTimelinePanel({ eventStatus }) {
             </label>
 
             {formError && (
-              <p className="text-xs text-primary mt-3">{formError}</p>
+              <p className="text-xs mt-3" style={{ color: 'var(--color-danger)' }}>{formError}</p>
             )}
 
             <div className="flex justify-end gap-2 mt-4">
               <button
                 onClick={() => setFormOpen(false)}
-                className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg border border-border text-sm text-muted bg-background"
+                className="app-btn-secondary !text-sm !px-3 !py-2"
               >
                 <X className="w-4 h-4" />
                 Cancel
@@ -533,7 +538,7 @@ export default function StageTimelinePanel({ eventStatus }) {
               <button
                 onClick={() => saveStage.mutate()}
                 disabled={saveStage.isPending}
-                className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg app-btn-primary text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                className="app-btn-primary !text-sm !px-3 !py-2"
               >
                 {saveStage.isPending ? (
                   <Loader2 className="w-4 h-4 animate-spin" />
@@ -545,22 +550,34 @@ export default function StageTimelinePanel({ eventStatus }) {
             </div>
           </div>
         )}
-        <div className="divide-y divide-gray-100">
+        <div>
           {isLoading ? (
-            <p className="px-4 py-8 text-center text-sm text-slate-400 dark:text-muted">Loading stages...</p>
+            <p className="px-4 py-8 text-center text-sm" style={{ color: 'var(--text-muted)' }}>Loading stages...</p>
           ) : sortedStages.length === 0 ? (
-            <p className="px-4 py-8 text-center text-sm text-slate-400 dark:text-muted">No stages defined yet.</p>
+            <p className="px-4 py-8 text-center text-sm" style={{ color: 'var(--text-muted)' }}>No stages defined yet.</p>
           ) : sortedStages.map((s, index) => {
             const runStatus = runByStage[s.id]?.status ?? (status === 'draft' ? 'not started' : 'pending')
+            const isActiveStage = runStatus === 'active'
             return (
-              <div key={s.id} className="flex items-center justify-between px-4 py-3">
+              <div key={s.id} className="flex items-center justify-between px-4 py-3 transition-colors"
+                style={{
+                  borderBottom: index < sortedStages.length - 1 ? '1px solid color-mix(in srgb, var(--color-border) 30%, transparent)' : 'none',
+                  borderLeft: isActiveStage ? '3px solid var(--color-primary)' : '3px solid transparent',
+                  backgroundColor: isActiveStage ? 'color-mix(in srgb, var(--color-primary) 5%, var(--bg-card))' : 'transparent',
+                }}
+              >
                 <div className="flex items-center gap-3 min-w-0">
-                  <span className="w-6 h-6 flex items-center justify-center rounded-full bg-cardSoft text-xs font-semibold text-muted">
+                  <span className="w-6 h-6 flex items-center justify-center rounded-full text-xs font-semibold"
+                    style={{
+                      backgroundColor: isActiveStage ? 'rgba(232,121,50,0.12)' : 'var(--bg-card-soft)',
+                      color: isActiveStage ? 'var(--color-primary)' : 'var(--text-muted)',
+                    }}
+                  >
                     {s.position}
                   </span>
                   <div className="min-w-0">
-                    <p className="text-sm font-medium text-slate-800 dark:text-foreground truncate">{s.name}</p>
-                    <p className="text-xs text-slate-400 dark:text-muted truncate">
+                    <p className="text-sm font-medium truncate" style={{ color: 'var(--text-main)' }}>{s.name}</p>
+                    <p className="text-xs truncate" style={{ color: 'var(--text-muted)' }}>
                       {new Date(s.start_at).toLocaleString()}{' -> '}{new Date(s.end_at).toLocaleString()}
                       {' · '}{s.timezone}{' · '}{s.transition_policy}
                     </p>
@@ -568,13 +585,13 @@ export default function StageTimelinePanel({ eventStatus }) {
                 </div>
                 <div className="flex items-center gap-2">
                   <StatusPill status={runStatus} />
-                  <button onClick={() => moveStage(index, -1)} disabled={index === 0 || reorder.isPending} className={ICON_BUTTON_CLASS} title="Move up">
+                  <button onClick={() => moveStage(index, -1)} disabled={index === 0 || reorder.isPending} className="app-icon-button" title="Move up">
                     <ArrowUp className="w-4 h-4" />
                   </button>
-                  <button onClick={() => moveStage(index, 1)} disabled={index === sortedStages.length - 1 || reorder.isPending} className={ICON_BUTTON_CLASS} title="Move down">
+                  <button onClick={() => moveStage(index, 1)} disabled={index === sortedStages.length - 1 || reorder.isPending} className="app-icon-button" title="Move down">
                     <ArrowDown className="w-4 h-4" />
                   </button>
-                  <button onClick={() => startEdit(s)} className="text-xs px-2 py-1 rounded border border-border text-muted hover:bg-surface">
+                  <button onClick={() => startEdit(s)} className="app-btn-secondary !text-xs !px-2 !py-1">
                     Edit
                   </button>
                   <button
@@ -582,7 +599,8 @@ export default function StageTimelinePanel({ eventStatus }) {
                       if (window.confirm(`Delete stage "${s.name}"?`)) deleteStage.mutate(s.id)
                     }}
                     disabled={deleteStage.isPending}
-                    className={`${ICON_BUTTON_CLASS} text-primary`}
+                    className="app-icon-button"
+                    style={{ color: 'var(--color-danger)' }}
                     title="Delete"
                   >
                     <Trash2 className="w-4 h-4" />
@@ -600,7 +618,7 @@ export default function StageTimelinePanel({ eventStatus }) {
 function Field({ label, children }) {
   return (
     <label className="block">
-      <span className="block text-xs font-medium text-muted mb-1">{label}</span>
+      <span className="block text-xs font-medium mb-1" style={{ color: 'var(--text-muted)' }}>{label}</span>
       {children}
     </label>
   )
@@ -608,14 +626,15 @@ function Field({ label, children }) {
 
 function StatusPill({ status }) {
   const map = {
-    active: 'bg-cardSoft text-primary-dark',
-    completed: 'bg-emerald-100 text-emerald-700',
-    awaiting_approval: 'bg-cardSoft text-primary-dark',
-    pending: 'bg-cardSoft text-muted dark:text-slate-400',
-    skipped: 'bg-cardSoft text-slate-400 dark:text-muted',
+    active: 'status-active',
+    completed: 'status-completed',
+    awaiting_approval: 'status-active',
+    pending: 'status-pending',
+    skipped: 'app-pill',
+    'not started': 'app-pill',
   }
   return (
-    <span className={`px-2.5 py-1 rounded-full text-xs font-medium ${map[status] || 'bg-cardSoft text-muted dark:text-slate-400'}`}>
+    <span className={map[status] || 'app-pill'}>
       {String(status).replace('_', ' ')}
     </span>
   )

@@ -116,7 +116,7 @@ export default function AppLayout({
             className={`${blockClass} flex-col ${desktopSidebarCollapsed ? 'w-0 opacity-0 overflow-hidden' : 'w-64'} shrink-0 transition-all duration-300`}
             style={{
               backgroundColor: 'var(--bg-sidebar)',
-              borderRight: desktopSidebarCollapsed ? 'none' : '1px solid var(--color-border)',
+              borderRight: desktopSidebarCollapsed ? 'none' : '1px solid var(--border-soft)',
             }}
           >
             <div className={`flex flex-col h-full w-64 ${desktopSidebarCollapsed ? 'invisible' : 'visible'}`}>
@@ -145,10 +145,10 @@ export default function AppLayout({
                 className={`fixed inset-y-0 left-0 w-3/4 max-w-sm shadow-2xl z-[70] overflow-y-auto ${hiddenClass}`}
                 style={{
                   backgroundColor: 'var(--bg-sidebar)',
-                  borderRight: '1px solid var(--color-border)',
+                  borderRight: '1px solid var(--border-soft)',
                 }}
               >
-                <div className="p-4 flex justify-between items-center" style={{ borderBottom: '1px solid var(--color-border)' }}>
+                <div className="p-4 flex justify-between items-center" style={{ borderBottom: '1px solid var(--border-soft)' }}>
                   <h2 className="font-bold" style={{ color: 'var(--text-main)' }}>Navigation</h2>
                   <button
                     onClick={() => setMobileMenuOpen(false)}

@@ -47,7 +47,7 @@ function CommandCenterVisual() {
           <div className="flex gap-1.5">
             <div className="w-1.5 h-1.5 rounded-full bg-slate-300"></div>
             <div className="w-1.5 h-1.5 rounded-full bg-slate-300"></div>
-            <div className="w-1.5 h-1.5 rounded-full bg-cardSoft0 animate-pulse"></div>
+            <div className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse"></div>
           </div>
         </div>
 
@@ -57,7 +57,7 @@ function CommandCenterVisual() {
                <span className="text-[9px] text-muted uppercase tracking-widest font-bold">Active Competitions</span>
                <div className="text-2xl font-mono text-foreground mt-1 font-bold">24</div>
                <div className="w-full h-1.5 bg-cardSoft mt-2 rounded-full overflow-hidden">
-                 <div className="h-full bg-cardSoft0 w-[60%]"></div>
+                 <div className="h-full bg-primary w-[60%]"></div>
                </div>
              </div>
              <div className="bg-cardSoft/80 rounded border border-border p-3 flex flex-col justify-center relative overflow-hidden shadow-sm">
@@ -140,7 +140,7 @@ function HolographicEcosystemVisual() {
 
         <div className="absolute top-1/2 left-1/2 w-[2px] h-48 bg-gradient-to-b from-transparent via-primary-light to-transparent -mt-24 -ml-[1px] animate-[pulse_2s_infinite]" style={{ transform: 'rotateX(-90deg) rotateY(-45deg)' }} />
 
-        <div className="absolute top-1/2 left-1/2 -mt-4 -ml-4 w-8 h-8 rounded-full bg-cardSoft0 shadow-[0_0_20px_rgba(99,102,241,0.5)] blur-[2px]" style={{ transform: 'translateZ(64px)' }} />
+        <div className="absolute top-1/2 left-1/2 -mt-4 -ml-4 w-8 h-8 rounded-full bg-primary shadow-[0_0_20px_rgba(99,102,241,0.5)] blur-[2px]" style={{ transform: 'translateZ(64px)' }} />
       </div>
     </div>
   )
@@ -173,7 +173,7 @@ function InnovationHubVisual() {
         </div>
       </div>
 
-      <div className="absolute top-1/2 left-1/2 -mt-32 -ml-32 w-64 h-64 bg-cardSoft0/5 rounded-full blur-3xl pointer-events-none" />
+      <div className="absolute top-1/2 left-1/2 -mt-32 -ml-32 w-64 h-64 bg-primary/5 rounded-full blur-3xl pointer-events-none" />
     </div>
   )
 }
@@ -434,7 +434,7 @@ function Portals() {
         <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
           {portals.map((p, i) => (
             <Link key={i} to={p.path} className="block p-6 rounded-lg border border-border shadow-sm hover:shadow-md hover:border-primary transition-all text-left bg-surface group relative overflow-hidden">
-              <div className="absolute top-0 left-0 w-1 h-full bg-cardSoft group-hover:bg-cardSoft0 transition-colors" />
+              <div className="absolute top-0 left-0 w-1 h-full bg-cardSoft group-hover:bg-primary transition-colors" />
               <h3 className={`text-lg font-bold mb-1 ml-2 transition-colors ${p.colorClass}`}>{p.title}</h3>
               <p className="text-sm text-muted font-medium ml-2">{p.desc}</p>
             </Link>

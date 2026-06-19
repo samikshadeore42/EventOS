@@ -46,7 +46,7 @@ export default function AutoAssignModal({
           animate={{ opacity: 1, scale: 1 }}
           exit={{ opacity: 0, scale: 0.95 }}
           transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-          className="bg-card rounded-[20px] border border-white/10 shadow-2xl w-full max-w-2xl max-h-full flex flex-col"
+          className="bg-card rounded-[20px] border shadow-2xl w-full max-w-2xl max-h-full flex flex-col"
         >
           {/* Header */}
           <div className="flex items-center justify-between px-6 py-4 border-b border-border">
@@ -58,7 +58,7 @@ export default function AutoAssignModal({
             </div>
             <button
               onClick={onClose}
-              className="w-10 h-10 rounded-full flex items-center justify-center bg-cardSoft hover:bg-cardSoft dark:hover:bg-cardSoft text-slate-700 dark:text-muted transition-colors focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary"
+              className="w-10 h-10 rounded-full flex items-center justify-center bg-cardSoft hover:bg-[var(--bg-card-soft)] text-foreground dark:text-muted transition-colors focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary"
             >
               <X size={20} />
             </button>
