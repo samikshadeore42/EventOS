@@ -44,35 +44,37 @@ import {
 
 // ── Shared micro-components ────────────────────────────────────────────────
 
+function MiniSparkline({ color = 'blue' }) {
+  const stroke =
+    color === 'purple' ? '#a855f7'
+      : color === 'green' ? '#22c55e'
+        : color === 'orange' ? '#f59e0b'
+          : '#3b82f6';
+  return (
+    <svg viewBox="0 0 120 48" className="h-12 w-32 opacity-90" aria-hidden="true">
+      <path
+        d="M4 36 C18 36 18 14 34 14 C50 14 48 34 64 34 C82 34 80 12 100 12 C108 12 112 8 116 6"
+        fill="none" stroke={stroke} strokeWidth="3" strokeLinecap="round"
+      />
+      <circle cx="116" cy="6" r="4" fill={stroke} />
+    </svg>
+  );
+}
+
 function StatCard({
-  label,
-  value,
-  sub,
-  colour = 'red',
-  icon: Icon,
-  trend,
-  onClick,
-  sectionClass,
-  iconBgClass,
-  progressPercent,
-  progressColor = 'orange',
+  label, value, sub, colour = 'red', icon: Icon, trend, onClick, sectionClass,
+  iconBgClass, progressPercent, progressColor = 'red',
+  showSparkline = false, sparklineColor = 'blue',
 }) {
   const colorMap = {
     emerald: { icon: 'bg-emerald-500/10 text-emerald-500 border border-emerald-500/20', glow: 'from-emerald-500/10' },
-    blue: { icon: 'bg-blue-500/10 text-blue-500 border border-blue-500/20', glow: 'from-blue-500/10' },
-    green: { icon: 'bg-emerald-500/10 text-emerald-500 border border-emerald-500/20', glow: 'from-emerald-500/10' },
-    yellow: { icon: 'bg-yellow-500/10 text-yellow-500 border border-yellow-500/20', glow: 'from-yellow-500/10' },
     red: { icon: 'bg-rose-500/10 text-rose-500 border border-rose-500/20', glow: 'from-rose-500/10' },
-    amber: { icon: 'bg-yellow-500/10 text-yellow-500 border border-yellow-500/20', glow: 'from-yellow-500/10' },
+    amber: { icon: 'bg-primary/10 text-primary border border-primary/20', glow: 'from-primary/10' },
     teal: { icon: 'bg-info/10 text-info border border-info/20', glow: 'from-info/10' },
     primary: { icon: 'bg-primary/10 text-primary border border-primary/20', glow: 'from-primary/10' },
   }
   const theme = colorMap[colour] || colorMap.primary;
-
-  const safeProgress =
-    typeof progressPercent === 'number'
-      ? Math.max(0, Math.min(100, progressPercent))
-      : null;
+  const safeProgress = Math.max(0, Math.min(100, progressPercent ?? 0));
 
   return (
     <motion.div onClick={onClick} whileHover={{ y: -2, scale: 1.01 }} className={`${sectionClass || 'app-card'} rounded-2xl p-6 relative overflow-hidden group flex flex-col justify-between h-full ${onClick ? 'cursor-pointer' : ''}`}>
@@ -93,27 +95,29 @@ function StatCard({
       </div>
 
       <div className="relative z-10 mt-2">
-        <p className="text-3xl font-black text-foreground">{value ?? '—'}</p>
-        {sub && <p className="text-xs font-medium text-muted mt-1">{sub}</p>}
-        {safeProgress !== null && (
-          <div className={`mt-4 h-2 overflow-hidden rounded-full ${
-            progressColor === 'green' ? 'bg-green-100 dark:bg-green-500/10' :
-            progressColor === 'yellow' ? 'bg-yellow-100 dark:bg-yellow-500/10' :
-            'bg-slate-100 dark:bg-white/10'
-          }`}>
-            <div
-              className={`h-full rounded-full transition-all duration-500 ${
-                progressColor === 'green'
-                  ? 'bg-green-500'
-                  : progressColor === 'yellow'
-                    ? 'bg-yellow-500'
-                    : 'bg-orange-500'
-              }`}
-              style={{ width: `${safeProgress}%` }}
-            />
+        <div className="flex items-end justify-between">
+          <div>
+            <p className="text-3xl font-black text-foreground">{value ?? '—'}</p>
+            {sub && <p className="text-xs font-medium text-muted mt-1">{sub}</p>}
           </div>
-        )}
+          {showSparkline && <MiniSparkline color={sparklineColor} />}
+        </div>
       </div>
+
+      {typeof progressPercent === 'number' && (
+        <div className="mt-4 h-2 overflow-hidden rounded-full bg-slate-100 dark:bg-white/10 relative z-10">
+          <div
+            className={[
+              'h-full rounded-full transition-all duration-500',
+              progressColor === 'green' ? 'bg-green-500'
+                : progressColor === 'orange' ? 'bg-orange-400'
+                  : progressColor === 'purple' ? 'bg-purple-400'
+                    : 'bg-red-500',
+            ].join(' ')}
+            style={{ width: `${safeProgress}%` }}
+          />
+        </div>
+      )}
     </motion.div>
   )
 }
@@ -142,11 +146,77 @@ function SectionTitle({ children }) {
 
 
 
+// eslint-disable-next-line no-unused-vars
+function ApprovalStatusChart({ pending, approved, rejected }) {
+  const total = (approved || 0) + (pending || 0) + (rejected || 0);
+  const percentage = total > 0 ? Math.round(((approved || 0) / total) * 100) : 0;
 
+  return (
+    <div className="flex flex-col justify-center h-full pt-2">
+      <div className="flex justify-between items-end mb-3">
+        <div>
+          <span className="text-2xl font-black text-foreground">{percentage}%</span>
+          <span className="text-[10px] text-muted font-bold ml-1.5 uppercase tracking-wider">Approved</span>
+        </div>
+        <div className="text-right">
+          <p className="text-sm font-bold text-foreground">{approved || 0} / {total}</p>
+          <p className="text-[10px] text-muted uppercase font-semibold">Total Teams</p>
+        </div>
+      </div>
+      <div className="w-full h-2.5 bg-[var(--bg-card-soft)] rounded-full overflow-hidden mb-3">
+        <motion.div
+          initial={{ width: 0 }}
+          animate={{ width: `${percentage}%` }}
+          transition={{ duration: 1, delay: 0.2, ease: 'easeOut' }}
+          className="h-full bg-gradient-to-r from-primary to-primary-dark rounded-full"
+        />
+      </div>
+      <div className="flex justify-between text-[11px] font-bold text-muted">
+        <span className="flex items-center gap-1.5"><div className="w-1.5 h-1.5 rounded-full bg-primary" /> Approved ({approved || 0})</span>
+        <div className="flex items-center gap-3">
+          <span className="flex items-center gap-1.5"><div className="w-1.5 h-1.5 rounded-full bg-slate-300" /> Pending ({pending || 0})</span>
+          {(rejected || 0) > 0 && <span className="flex items-center gap-1.5"><div className="w-1.5 h-1.5 rounded-full bg-[var(--bg-card-soft)]" /> Rejected ({rejected || 0})</span>}
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// eslint-disable-next-line no-unused-vars
+function EvaluationProgressChart({ evaluated, total }) {
+  const percentage = total > 0 ? Math.round((evaluated / total) * 100) : 0;
+  return (
+    <div className="flex flex-col justify-center h-full pt-2">
+      <div className="flex justify-between items-end mb-3">
+        <div>
+          <span className="text-2xl font-black text-foreground">{percentage}%</span>
+          <span className="text-[10px] text-muted font-bold ml-1.5 uppercase tracking-wider">Completed</span>
+        </div>
+        <div className="text-right">
+          <p className="text-sm font-bold text-foreground">{evaluated} / {total}</p>
+          <p className="text-[10px] text-muted uppercase font-semibold">Teams Evaluated</p>
+        </div>
+      </div>
+      <div className="w-full h-2.5 bg-[var(--bg-card-soft)] rounded-full overflow-hidden mb-3">
+        <motion.div
+          initial={{ width: 0 }}
+          animate={{ width: `${percentage}%` }}
+          transition={{ duration: 1, delay: 0.2, ease: 'easeOut' }}
+          className="h-full bg-gradient-to-r from-primary to-primary-dark rounded-full"
+        />
+      </div>
+      <div className="flex justify-between text-[11px] font-bold text-muted">
+        <span className="flex items-center gap-1.5"><div className="w-1.5 h-1.5 rounded-full bg-primary" /> Reviewed ({evaluated})</span>
+        <span className="flex items-center gap-1.5"><div className="w-1.5 h-1.5 rounded-full bg-slate-300" /> Pending ({Math.max(0, total - evaluated)})</span>
+      </div>
+    </div>
+  )
+}
 
 // ── TAB 1: OVERVIEW ────────────────────────────────────────────────────────
 function OverviewTab({ onTileClick }) {
   const { data: summary } = useQuery({ queryKey: ['roster-summary'], queryFn: participantsApi.summary, refetchInterval: 30_000 })
+  const { data: pending } = useQuery({ queryKey: ['pending-approvals'], queryFn: approvalsApi.pending, refetchInterval: 15_000 })
   const { data: allTeams } = useQuery({ queryKey: ['all-teams'], queryFn: approvalsApi.all, refetchInterval: 15_000 })
   const { data: lb } = useQuery({ queryKey: ['leaderboard'], queryFn: leaderboardApi.get, refetchInterval: 60_000 })
   const { data: anomalies } = useQuery({ queryKey: ['anomalies'], queryFn: leaderboardApi.anomalies, refetchInterval: 30_000 })
@@ -154,62 +224,90 @@ function OverviewTab({ onTileClick }) {
   const allTeamsList = Array.isArray(allTeams) ? allTeams : Array.isArray(allTeams?.teams) ? allTeams.teams : Array.isArray(allTeams?.data) ? allTeams.data : []
   const approvedCount = allTeamsList.filter(t => t.approval_status === 'approved' || t.approval_status === 'published').length
   const totalTeamsCount = allTeamsList.length
+  const pendingCount = pending?.total_pending || 0
 
-  const approvalPercent = totalTeamsCount > 0 ? Math.round((approvedCount / totalTeamsCount) * 100) : 0;
-  const evaluationPercent = totalTeamsCount > 0 ? Math.round(((lb?.leaderboard?.length || 0) / totalTeamsCount) * 100) : 0;
+  const approvalPercent = totalTeamsCount > 0 ? Math.round((approvedCount / totalTeamsCount) * 100) : 0
+  const evaluatedCount = lb?.leaderboard?.length || 0
+  const evaluationPercent = totalTeamsCount > 0 ? Math.round((evaluatedCount / totalTeamsCount) * 100) : 0
 
   return (
     <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, staggerChildren: 0.1 }}>
       {/* Stats row */}
-      <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 mb-8">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        {/* Participants */}
         <StatCard
           onClick={() => onTileClick?.('participants')}
           label="Participants"
           value={summary?.total_participants || 0}
-          colour="blue"
+          colour="teal"
           sub="Total registered"
           icon={Users}
-          iconBgClass="bg-blue-100 text-blue-600 dark:bg-blue-500/15 dark:text-blue-300"
+          iconBgClass="bg-blue-100 text-blue-600 dark:bg-blue-500/15 dark:text-blue-300 border border-blue-200 dark:border-blue-500/20"
+          showSparkline
+          sparklineColor="blue"
         />
 
-        <StatCard
-          onClick={() => onTileClick?.('approvals')}
-          label="Approval Status"
-          value={`${approvalPercent}%`}
-          sub={`${approvedCount} / ${totalTeamsCount} Teams`}
-          colour="green"
-          icon={CheckSquare}
-          iconBgClass="bg-green-100 text-green-600 dark:bg-green-500/15 dark:text-green-300"
-          progressPercent={approvalPercent}
-          progressColor="green"
-        />
+        {/* Approval Status */}
+        <motion.div onClick={() => onTileClick?.('approvals')} whileHover={{ y: -2, scale: 1.01 }} className="cursor-pointer app-card rounded-2xl p-6 relative overflow-hidden group flex flex-col justify-between h-full">
+          <div className="absolute -right-8 -top-8 w-32 h-32 bg-gradient-to-br from-green-500/10 to-transparent rounded-full blur-2xl group-hover:scale-110 transition-transform duration-700" />
+          <div className="flex items-center gap-3 mb-4 relative z-10">
+            <div className="w-10 h-10 rounded-xl flex items-center justify-center shadow-sm bg-green-100 text-green-600 dark:bg-green-500/15 dark:text-green-300 border border-green-200 dark:border-green-500/20">
+              <CheckSquare size={20} />
+            </div>
+            <p className="text-sm font-bold text-foreground">Approval Status</p>
+          </div>
+          <div className="relative z-10">
+            <p className="text-3xl font-black text-foreground">{approvalPercent}%</p>
+            <p className="text-xs font-medium text-muted mt-1">{approvedCount} / {totalTeamsCount} teams</p>
+          </div>
+          <div className="mt-4 h-2 overflow-hidden rounded-full bg-slate-100 dark:bg-white/10 relative z-10">
+            <motion.div initial={{ width: 0 }} animate={{ width: `${approvalPercent}%` }} transition={{ duration: 1, delay: 0.2, ease: 'easeOut' }} className="h-full rounded-full bg-green-500" />
+          </div>
+          <div className="flex gap-4 mt-3 text-[11px] font-bold text-muted relative z-10">
+            <span className="flex items-center gap-1.5"><div className="w-1.5 h-1.5 rounded-full bg-green-500" /> Approved ({approvedCount})</span>
+            <span className="flex items-center gap-1.5"><div className="w-1.5 h-1.5 rounded-full bg-red-400" /> Pending ({pendingCount})</span>
+          </div>
+        </motion.div>
 
-        <StatCard
-          onClick={() => onTileClick?.('evaluators')}
-          label="Evaluation Progress"
-          value={`${evaluationPercent}%`}
-          sub={`${lb?.leaderboard?.length || 0} / ${totalTeamsCount} Evaluated`}
-          colour="yellow"
-          icon={BarChart2}
-          iconBgClass="bg-yellow-100 text-yellow-700 dark:bg-yellow-500/15 dark:text-yellow-300"
-          progressPercent={evaluationPercent}
-          progressColor="yellow"
-        />
+        {/* Evaluation Progress */}
+        <motion.div onClick={() => onTileClick?.('evaluators')} whileHover={{ y: -2, scale: 1.01 }} className="cursor-pointer app-card rounded-2xl p-6 relative overflow-hidden group flex flex-col justify-between h-full">
+          <div className="absolute -right-8 -top-8 w-32 h-32 bg-gradient-to-br from-orange-500/10 to-transparent rounded-full blur-2xl group-hover:scale-110 transition-transform duration-700" />
+          <div className="flex items-center gap-3 mb-4 relative z-10">
+            <div className="w-10 h-10 rounded-xl flex items-center justify-center shadow-sm bg-orange-100 text-orange-600 dark:bg-orange-500/15 dark:text-orange-300 border border-orange-200 dark:border-orange-500/20">
+              <BarChart2 size={20} />
+            </div>
+            <p className="text-sm font-bold text-foreground">Evaluation Progress</p>
+          </div>
+          <div className="relative z-10">
+            <p className="text-3xl font-black text-foreground">{evaluationPercent}%</p>
+            <p className="text-xs font-medium text-muted mt-1">{evaluatedCount} / {totalTeamsCount} evaluated</p>
+          </div>
+          <div className="mt-4 h-2 overflow-hidden rounded-full bg-slate-100 dark:bg-white/10 relative z-10">
+            <motion.div initial={{ width: 0 }} animate={{ width: `${evaluationPercent}%` }} transition={{ duration: 1, delay: 0.2, ease: 'easeOut' }} className="h-full rounded-full bg-orange-400" />
+          </div>
+          <div className="flex gap-4 mt-3 text-[11px] font-bold text-muted relative z-10">
+            <span className="flex items-center gap-1.5"><div className="w-1.5 h-1.5 rounded-full bg-orange-400" /> Reviewed ({evaluatedCount})</span>
+            <span className="flex items-center gap-1.5"><div className="w-1.5 h-1.5 rounded-full bg-red-400" /> Pending ({Math.max(0, totalTeamsCount - evaluatedCount)})</span>
+          </div>
+        </motion.div>
 
+        {/* Anomaly Flags */}
         <StatCard
           onClick={() => onTileClick?.('anomaly')}
           label="Anomaly Flags"
-          value={anomalies?.total_flagged}
-          colour="red"
+          value={anomalies?.total_flagged ?? 0}
+          colour="teal"
           sub="Scorecards on hold"
           icon={Activity}
-          iconBgClass="bg-red-100 text-red-600 dark:bg-red-500/15 dark:text-red-300"
+          iconBgClass="bg-purple-100 text-purple-600 dark:bg-purple-500/15 dark:text-purple-300 border border-purple-200 dark:border-purple-500/20"
+          showSparkline
+          sparklineColor="purple"
         />
       </div>
-
     </motion.div>
   )
 }
+
 
 // ── TAB 2: PARTICIPANTS ────────────────────────────────────────────────────
 function ParticipantsTab() {
@@ -1400,7 +1498,7 @@ function EvaluatorsTab() {
                                 onClick={() => toggleTeamId(t.team_id)}
                                 className={`text-xs px-2.5 py-1.5 rounded-lg border transition-colors ${selected
                                     ? 'bg-[var(--bg-card-soft)] border-primary text-primary font-semibold'
-                                    : 'soft-button text-muted'
+                                    : 'border-border text-muted hover:bg-[var(--bg-card-soft)]'
                                   }`}
                               >
                                 {t.team_name}
@@ -1549,7 +1647,7 @@ function LeaderboardTab() {
           </div>
           <div className="space-y-2">
             {anomalies.scorecards.map((sc) => (
-              <div key={sc.id} className="flex items-start gap-3 app-card rounded-lg p-3 ">
+              <div key={sc.id} className="flex items-start gap-3 glass-card rounded-lg p-3 ">
                 <div className="flex-1 min-w-0">
                   <p className="text-xs font-medium text-foreground">
                     Evaluator <span className="font-semibold text-foreground">{sc.evaluator_name}</span>
@@ -1575,22 +1673,21 @@ function LeaderboardTab() {
 
       {/* Header Actions */}
       <div className="flex items-center justify-between mb-4 mt-2">
-        <h2 className="text-base font-semibold text-foreground">Event Rankings</h2>
+        <h2 className="text-lg font-bold text-foreground">Event Rankings</h2>
         <div className="flex gap-2 items-center">
-          {toastMsg && <span className="text-primary text-xs mr-2 animate-pulse">{toastMsg}</span>}
-          <button onClick={exportCSV} disabled={!lb?.leaderboard?.length} className="flex items-center gap-1.5 text-sm px-3 py-1.5 rounded-lg text-muted hover:bg-[var(--bg-card-soft)] disabled:opacity-50">
+          {toastMsg && <span className="text-green-500 text-xs mr-2 animate-pulse">{toastMsg}</span>}
+          <button onClick={exportCSV} disabled={!lb?.leaderboard?.length} className="flex items-center gap-1.5 text-sm px-3 py-1.5 rounded-lg border border-green-200 dark:border-green-500/20 text-green-600 dark:text-green-400 hover:bg-green-50 dark:hover:bg-green-500/10 disabled:opacity-50 transition-colors font-medium">
             <FileText size={14} /> Export CSV
           </button>
-          <button onClick={exportPDF} disabled={!lb?.leaderboard?.length} className="flex items-center gap-1.5 text-sm px-3 py-1.5 rounded-lg app-btn-primary disabled:opacity-50 disabled:cursor-not-allowed">
+          <button onClick={exportPDF} disabled={!lb?.leaderboard?.length} className="flex items-center gap-1.5 text-sm px-3 py-1.5 rounded-lg text-white disabled:opacity-50 disabled:cursor-not-allowed font-medium transition-colors shadow-sm hover:opacity-90" style={{ backgroundColor: '#ef4444' }}>
             <Download size={14} /> Export PDF
           </button>
         </div>
       </div>
 
       {/* Rankings table */}
-      <div className="app-card overflow-hidden border-l-2 border-l-primary relative overflow-hidden group transition-all hover:-translate-y-1 hover:scale-[1.01]">
-      <div className="absolute -right-8 -top-8 w-40 h-40 bg-gradient-to-br from-primary/10 to-transparent rounded-full blur-3xl group-hover:scale-125 transition-transform duration-700 pointer-events-none z-0" />
-        <div className="grid grid-cols-12 bg-[var(--bg-card-soft)] border-b px-4 py-3 text-xs font-medium text-muted uppercase tracking-wide">
+      <div className="app-card rounded-2xl overflow-hidden">
+        <div className="grid grid-cols-12 bg-[var(--bg-card-soft)] px-4 py-3 text-xs font-medium text-muted uppercase tracking-wide" style={{ borderBottom: '1px solid var(--border-soft)' }}>
           <div className="col-span-1">#</div>
           <div className="col-span-3">Team</div>
           <div className="col-span-2">Technical</div>
@@ -1601,11 +1698,20 @@ function LeaderboardTab() {
         </div>
 
         {!lb?.leaderboard?.length
-          ? <div className="text-center py-12 text-sm text-muted">No evaluations submitted yet.</div>
+          ? <div className="flex flex-col items-center justify-center py-16 text-muted">
+              <div className="relative mb-4">
+                <FileText size={40} className="opacity-30" />
+                <div className="absolute -bottom-1 -right-1 w-5 h-5 rounded-full flex items-center justify-center" style={{ backgroundColor: '#ef4444' }}>
+                  <X size={12} className="text-white" />
+                </div>
+              </div>
+              <p className="text-sm font-medium">No evaluations submitted yet.</p>
+            </div>
           : lb.leaderboard.map((team, i) => (
             <div
               key={team.team_id}
-              className={`grid grid-cols-12 items-center px-4 py-3 border-b text-sm ${i === 0 && !team.has_flags ? 'bg-[var(--bg-card-soft)] border-l-2 border-l-amber-400' : ''}`}
+              className={`grid grid-cols-12 items-center px-4 py-3 text-sm ${i === 0 && !team.has_flags ? 'bg-[var(--bg-card-soft)]' : ''}`}
+              style={{ borderBottom: '1px solid var(--border-soft)' }}
             >
               <div className={`col-span-1 font-mono font-semibold ${i === 0 && !team.has_flags ? 'text-foreground' : 'text-muted'}`}>
                 {team.rank ?? <span>—</span>}
@@ -1831,11 +1937,17 @@ function CommunicationsTab() {
           <span className="font-medium">Note:</span> Queued means the background worker accepted the job. Sent/Failed is recorded after provider response.
         </div>
 
-        {isLoading
-          ? <div className="p-4 space-y-2">{Array.from({ length: 5 }).map((_, i) => <div key={i} className="h-8 bg-[var(--bg-card-soft)] rounded animate-pulse" />)}</div>
-          : !commsData?.logs?.length
-            ? <div className="text-center py-10 text-sm text-muted">No emails dispatched yet.</div>
-            : <table className="soft-table">
+        {isLoading ? (
+          <div className="p-4 space-y-2">
+            {Array.from({ length: 5 }).map((_, i) => (
+              <div key={i} className="h-8 bg-[var(--bg-card-soft)] rounded animate-pulse" />
+            ))}
+          </div>
+        ) : !commsData?.logs?.length ? (
+          <div className="text-center py-10 text-sm text-muted">No emails dispatched yet.</div>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="soft-table w-full">
               <thead>
                 <tr className="bg-[var(--bg-card-soft)] text-left border-b">
                   {['Recipient', 'Template', 'Stage', 'Status', 'Sent at'].map(h => (
@@ -1870,15 +1982,16 @@ function CommunicationsTab() {
                 ))}
               </tbody>
             </table>
-        }
+          </div>
+        )}
       </div>
 
       {/* AI Draft Generator */}
-      <div>
+      <div className="app-card p-6 mt-8 mb-8">
         <SectionTitle>AI Email Draft Generator</SectionTitle>
-        <div className="grid lg:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 xl:grid-cols-2 gap-6 items-stretch">
           {/* Config */}
-          <div className="space-y-4">
+          <div className="space-y-4 w-full min-w-0">
             <div>
               <label className="block text-xs font-medium text-muted mb-2">Draft type</label>
               <div className="flex flex-wrap gap-2">
@@ -1917,8 +2030,9 @@ function CommunicationsTab() {
               <textarea
                 value={draftContext}
                 onChange={(e) => setDraftContext(e.target.value)}
-                rows={8}
-                className="soft-input font-mono text-xs resize-none"
+                rows={14}
+                className="soft-input block w-full max-w-none font-mono text-xs resize-y"
+                  style={{ width: "100%", maxWidth: "100%", minHeight: "280px" }}
               />
             </div>
 
@@ -2607,7 +2721,7 @@ function AnomalyTab() {
           <button
             onClick={() => { if (window.confirm('Override all flagged scorecards?')) overrideAllMutation.mutate() }}
             disabled={overrideAllMutation.isPending}
-            className="btn-secondary px-4 py-2 rounded-lg flex items-center gap-2 text-sm text-primary hover:text-primary-dark "
+            className="btn-secondary px-4 py-2 rounded-lg flex items-center gap-2 text-sm text-primary hover:text-primary-dark border-border"
           >
             {overrideAllMutation.isPending ? <Loader2 size={16} className="animate-spin" /> : <Shield size={16} />}
             Override All Flags

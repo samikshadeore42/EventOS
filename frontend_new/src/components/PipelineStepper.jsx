@@ -39,12 +39,12 @@ function StageNode({ stage, status, isLast, index }) {
 
   const ringStyle = {
     completed: {
-      borderColor: 'var(--color-primary)',
-      backgroundColor: 'rgba(232,121,50,0.1)',
+      borderColor: '#22c55e',
+      backgroundColor: 'rgba(34,197,94,0.1)',
     },
     active: {
-      borderColor: 'var(--color-primary)',
-      backgroundColor: 'var(--color-primary)',
+      borderColor: '#22c55e',
+      backgroundColor: '#22c55e',
     },
     pending: {
       borderColor: 'var(--color-border)',
@@ -53,14 +53,14 @@ function StageNode({ stage, status, isLast, index }) {
   }[status]
 
   const iconStyle = {
-    completed: { color: 'var(--color-primary)' },
+    completed: { color: '#22c55e' },
     active: { color: '#ffffff' },
     pending: { color: 'var(--text-muted)' },
   }[status]
 
   const labelStyle = {
-    completed: { color: 'var(--color-primary)', fontWeight: 600 },
-    active: { color: 'var(--color-primary)', fontWeight: 600 },
+    completed: { color: '#22c55e', fontWeight: 600 },
+    active: { color: '#22c55e', fontWeight: 600 },
     pending: { color: 'var(--text-muted)', fontWeight: 400 },
   }[status]
 
@@ -94,7 +94,7 @@ function StageNode({ stage, status, isLast, index }) {
         <div
           className="flex-1 h-0.5 mx-1 transition-colors"
           style={{
-            backgroundColor: status === 'completed' ? 'var(--color-primary)' : 'var(--color-border)',
+            backgroundColor: status === 'completed' ? '#22c55e' : 'var(--color-border)',
           }}
         />
       )}
@@ -196,7 +196,7 @@ export default function PipelineStepper({ showAdvanceButton = false, className =
           </div>
           <p className="text-xs mt-0.5" style={{ color: 'var(--text-muted)' }}>
             Stage {activeIndex + 1} of {sortedStages.length} —{' '}
-            <span style={{ color: 'var(--color-primary)', fontWeight: 500 }}>
+            <span style={{ color: '#ef4444', fontWeight: 500 }}>
               {activeStage?.name || 'Not started'}
             </span>
           </p>
@@ -206,7 +206,8 @@ export default function PipelineStepper({ showAdvanceButton = false, className =
           <button
             onClick={() => advanceMutation.mutate()}
             disabled={advanceMutation.isPending}
-            className="app-btn-primary text-xs !py-1.5 !px-3"
+            className="inline-flex items-center gap-1.5 text-xs font-semibold py-1.5 px-3 rounded-lg text-white border-none cursor-pointer transition-all shadow-sm hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed"
+            style={{ backgroundColor: '#ef4444' }}
           >
             {advanceMutation.isPending ? <Loader2 size={12} className="animate-spin" /> : <ChevronRight size={12} />}
             {advanceMutation.isPending ? 'Advancing...' : 'Advance Stage'}
