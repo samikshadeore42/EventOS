@@ -733,83 +733,83 @@ function TeamsTab() {
   return (
     <div>
       {/* Solver config form */}
-      <div className="rounded-[24px] bg-white p-8 shadow-[0_18px_45px_rgba(15,23,42,0.08)] ring-1 ring-slate-200/80 dark:bg-slate-900 dark:ring-white/10 mb-6">
+      <div className="rounded-[24px] bg-white p-8 shadow-[0_18px_45px_rgba(15,23,42,0.08)] ring-1 ring-slate-200/80 mb-6">
         <h2 className="text-2xl font-extrabold text-red-600">Solver Configuration</h2>
 
         <div className="mt-8 grid grid-cols-1 gap-8 lg:grid-cols-3">
           {/* Column 1 */}
-          <div className="space-y-10 lg:border-r lg:border-slate-200/80 lg:pr-10 dark:lg:border-white/10">
+          <div className="space-y-10 lg:border-r lg:border-slate-200/80 lg:pr-10">
             {/* Number of teams */}
             <div className="flex items-start gap-5">
-              <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-blue-100 text-blue-600 dark:bg-blue-500/15 dark:text-blue-300">
+              <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-blue-100 text-blue-600">
                 <Users className="h-6 w-6" />
               </div>
               <div>
-                <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300">
+                <label className="block text-sm font-semibold text-slate-700">
                   Number of teams
                 </label>
                 <input
                   type="number" min={1} max={50}
                   value={config.num_teams}
                   onChange={(e) => setConfig((c) => ({ ...c, num_teams: +e.target.value }))}
-                  className="mt-2 w-24 bg-transparent text-2xl font-extrabold text-slate-950 outline-none placeholder:text-slate-400 dark:text-white"
+                  className="mt-2 w-24 bg-transparent text-2xl font-extrabold text-slate-950 outline-none placeholder:text-slate-400"
                 />
               </div>
             </div>
 
             {/* Max size */}
             <div className="flex items-start gap-5">
-              <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-green-100 text-green-600 dark:bg-green-500/15 dark:text-green-300">
+              <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-green-100 text-green-600">
                 <UserPlus className="h-6 w-6" />
               </div>
               <div>
-                <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300">
+                <label className="block text-sm font-semibold text-slate-700">
                   Max size
                 </label>
                 <input
                   type="number" min={2} max={10}
                   value={config.k_max}
                   onChange={(e) => setConfig((c) => ({ ...c, k_max: +e.target.value }))}
-                  className="mt-2 w-24 bg-transparent text-2xl font-extrabold text-slate-950 outline-none placeholder:text-slate-400 dark:text-white"
+                  className="mt-2 w-24 bg-transparent text-2xl font-extrabold text-slate-950 outline-none placeholder:text-slate-400"
                 />
               </div>
             </div>
           </div>
 
           {/* Column 2 */}
-          <div className="space-y-10 lg:border-r lg:border-slate-200/80 lg:pr-10 dark:lg:border-white/10">
+          <div className="space-y-10 lg:border-r lg:border-slate-200/80 lg:pr-10">
             {/* Target team size */}
             <div className="flex items-start gap-5">
-              <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-green-100 text-green-600 dark:bg-green-500/15 dark:text-green-300">
+              <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-green-100 text-green-600">
                 <Target className="h-6 w-6" />
               </div>
               <div>
-                <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300">
+                <label className="block text-sm font-semibold text-slate-700">
                   Target team size
                 </label>
                 <input
                   type="number" min={2} max={10}
                   value={config.target_size}
                   onChange={(e) => setConfig((c) => ({ ...c, target_size: +e.target.value }))}
-                  className="mt-2 w-24 bg-transparent text-2xl font-extrabold text-slate-950 outline-none placeholder:text-slate-400 dark:text-white"
+                  className="mt-2 w-24 bg-transparent text-2xl font-extrabold text-slate-950 outline-none placeholder:text-slate-400"
                 />
               </div>
             </div>
 
             {/* Max / institution */}
             <div className="flex items-start gap-5">
-              <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-purple-100 text-purple-600 dark:bg-purple-500/15 dark:text-purple-300">
+              <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-purple-100 text-purple-600">
                 <Building2 className="h-6 w-6" />
               </div>
               <div>
-                <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300">
+                <label className="block text-sm font-semibold text-slate-700">
                   Max / institution
                 </label>
                 <input
                   type="number" min={1} max={5}
                   value={config.max_per_institution}
                   onChange={(e) => setConfig((c) => ({ ...c, max_per_institution: +e.target.value }))}
-                  className="mt-2 w-24 bg-transparent text-2xl font-extrabold text-slate-950 outline-none placeholder:text-slate-400 dark:text-white"
+                  className="mt-2 w-24 bg-transparent text-2xl font-extrabold text-slate-950 outline-none placeholder:text-slate-400"
                 />
               </div>
             </div>
@@ -819,30 +819,30 @@ function TeamsTab() {
           <div className="space-y-10">
             {/* Min size */}
             <div className="flex items-start gap-5">
-              <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-orange-100 text-orange-600 dark:bg-orange-500/15 dark:text-orange-300">
+              <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-orange-100 text-orange-600">
                 <User className="h-6 w-6" />
               </div>
               <div>
-                <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300">
+                <label className="block text-sm font-semibold text-slate-700">
                   Min size
                 </label>
                 <input
                   type="number" min={1} max={10}
                   value={config.k_min}
                   onChange={(e) => setConfig((c) => ({ ...c, k_min: +e.target.value }))}
-                  className="mt-2 w-24 bg-transparent text-2xl font-extrabold text-slate-950 outline-none placeholder:text-slate-400 dark:text-white"
+                  className="mt-2 w-24 bg-transparent text-2xl font-extrabold text-slate-950 outline-none placeholder:text-slate-400"
                 />
               </div>
             </div>
 
             {/* Use mock data */}
             <div className="flex items-start gap-5 pt-2">
-              <label className="flex items-center gap-3 text-sm font-semibold text-slate-700 dark:text-slate-300 cursor-pointer">
+              <label className="flex items-center gap-3 text-sm font-semibold text-slate-700 cursor-pointer">
                 <input
                   type="checkbox"
                   checked={config.use_mock_data}
                   onChange={(e) => setConfig((c) => ({ ...c, use_mock_data: e.target.checked }))}
-                  className="h-5 w-5 rounded-md border-slate-300 text-red-600 focus:ring-red-500 dark:border-white/20 dark:bg-white/5"
+                  className="h-5 w-5 rounded-md border-slate-300 text-red-600 focus:ring-red-500"
                 />
                 <span>Use mock data</span>
                 <Info className="h-4 w-4 text-slate-400" />
