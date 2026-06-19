@@ -3,22 +3,82 @@ import { AnimatePresence, motion } from 'framer-motion'
 import { X } from 'lucide-react'
 import Navbar from './Navbar'
 
+function SidebarNav({ navigationItems, onItemClick }) {
+  return (
+    <nav className="p-3 space-y-0.5 w-full">
+      <div className="px-3 pt-2 pb-3">
+        <span className="text-[10px] font-bold uppercase tracking-wider" style={{ color: 'var(--text-muted)' }}>
+          Main
+        </span>
+      </div>
+      {navigationItems.map((item) => (
+        <button
+          key={item.key}
+          onClick={() => {
+            item.onClick()
+            if (onItemClick) onItemClick()
+          }}
+          className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all"
+          style={
+            item.isActive
+              ? {
+                  backgroundColor: 'rgba(232, 121, 50, 0.12)',
+                  color: 'var(--color-primary)',
+                }
+              : {
+                  color: 'var(--text-muted)',
+                  backgroundColor: 'transparent',
+                }
+          }
+          onMouseEnter={(e) => {
+            if (!item.isActive) {
+              e.currentTarget.style.backgroundColor = 'var(--bg-card-soft)'
+              e.currentTarget.style.color = 'var(--text-main)'
+            }
+          }}
+          onMouseLeave={(e) => {
+            if (!item.isActive) {
+              e.currentTarget.style.backgroundColor = 'transparent'
+              e.currentTarget.style.color = 'var(--text-muted)'
+            }
+          }}
+        >
+          {item.Icon && (
+            <item.Icon
+              size={18}
+              style={{
+                color: item.isActive ? 'var(--color-primary)' : 'var(--text-muted)',
+              }}
+            />
+          )}
+          <span className="truncate">{item.label}</span>
+          {item.suffix && (
+            <span className="ml-auto text-xs font-bold" style={{ color: 'var(--text-muted)' }}>
+              {item.suffix}
+            </span>
+          )}
+        </button>
+      ))}
+    </nav>
+  )
+}
+
 export default function AppLayout({
   title,
   subtitle,
   userName,
   customActions,
-  navigationItems = [], // Array of { key, label, Icon, onClick, isActive }
+  navigationItems = [],
   children,
-  mobileBreakpoint = 'md', // 'md' | 'lg'
+  mobileBreakpoint = 'md',
   showDesktopSidebar = true,
 }) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [desktopSidebarCollapsed, setDesktopSidebarCollapsed] = useState(() => localStorage.getItem('eventosSidebarCollapsed') === 'true')
 
   const hiddenClass = mobileBreakpoint === 'lg' ? 'lg:hidden' : 'md:hidden'
-  const blockClass = mobileBreakpoint === 'lg' ? 'hidden lg:block' : 'hidden md:block'
-  
+  const blockClass = mobileBreakpoint === 'lg' ? 'hidden lg:flex' : 'hidden md:flex'
+
   const hasItems = navigationItems.length > 0
   const renderSidebar = hasItems && showDesktopSidebar
 
@@ -36,7 +96,7 @@ export default function AppLayout({
   }
 
   return (
-    <div className={`bg-surface dark:bg-slate-900 text-foreground selection:bg-teal-500/30 font-['Plus_Jakarta_Sans'] transition-colors duration-300 flex flex-col ${renderSidebar ? 'h-screen overflow-hidden' : 'min-h-screen'}`}>
+    <div className="app-shell flex flex-col" style={{ height: renderSidebar ? '100vh' : 'auto', minHeight: '100vh' }}>
       <Navbar
         title={title}
         subtitle={subtitle}
@@ -49,37 +109,23 @@ export default function AppLayout({
         mobileBreakpoint={mobileBreakpoint}
       />
 
-      {/* Main Content Area Container */}
-      <div className={`flex flex-1 ${renderSidebar ? 'overflow-hidden' : ''}`}>
-        {/* Desktop Sidebar Navigation */}
+      <div className="flex flex-1 overflow-hidden">
+        {/* Desktop Sidebar */}
         {renderSidebar && (
-          <aside className={`${blockClass} ${desktopSidebarCollapsed ? 'w-0 border-r-0 opacity-0 px-0 overflow-hidden' : 'w-64 border-r'} shrink-0 border-border bg-white overflow-y-auto transition-all duration-300`}>
-            <nav className={`p-4 space-y-1 w-64 ${desktopSidebarCollapsed ? 'invisible' : 'visible'}`}>
-              {navigationItems.map((item) => (
-                <button
-                  key={item.key}
-                  onClick={item.onClick}
-                  className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold transition-all ${
-                    item.isActive
-                      ? 'bg-amber-50 text-amber-700 ring-1 ring-amber-500/50 shadow-sm'
-                      : 'text-slate-900 hover:text-teal-600 bg-transparent hover:bg-slate-100 border border-transparent group'
-                  }`}
-                >
-                  {item.Icon && (
-                    <item.Icon
-                      size={18}
-                      className={`transition-colors ${item.isActive ? 'text-amber-600' : 'text-slate-500 group-hover:text-teal-600'}`}
-                    />
-                  )}
-                  <span className="truncate">{item.label}</span>
-                  {item.suffix && <span className="ml-auto text-xs text-slate-500 font-bold group-hover:text-teal-600">{item.suffix}</span>}
-                </button>
-              ))}
-            </nav>
+          <aside
+            className={`${blockClass} flex-col ${desktopSidebarCollapsed ? 'w-0 opacity-0 overflow-hidden' : 'w-64'} shrink-0 transition-all duration-300`}
+            style={{
+              backgroundColor: 'var(--bg-sidebar)',
+              borderRight: desktopSidebarCollapsed ? 'none' : '1px solid var(--color-border)',
+            }}
+          >
+            <div className={`flex flex-col h-full w-64 ${desktopSidebarCollapsed ? 'invisible' : 'visible'}`}>
+              <SidebarNav navigationItems={navigationItems} />
+            </div>
           </aside>
         )}
 
-        {/* Mobile Navigation Drawer */}
+        {/* Mobile Drawer */}
         <AnimatePresence>
           {mobileMenuOpen && hasItems && (
             <>
@@ -88,59 +134,45 @@ export default function AppLayout({
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
                 onClick={() => setMobileMenuOpen(false)}
-                className={`fixed inset-0 bg-slate-900/50 z-[60] ${hiddenClass}`}
+                className={`fixed inset-0 z-[60] ${hiddenClass}`}
+                style={{ backgroundColor: 'rgba(15,17,21,0.6)' }}
               />
               <motion.div
                 initial={{ x: '-100%' }}
                 animate={{ x: 0 }}
                 exit={{ x: '-100%' }}
                 transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-                className={`fixed inset-y-0 left-0 w-3/4 max-w-sm bg-white border-r border-border shadow-2xl z-[70] overflow-y-auto ${hiddenClass}`}
+                className={`fixed inset-y-0 left-0 w-3/4 max-w-sm shadow-2xl z-[70] overflow-y-auto ${hiddenClass}`}
+                style={{
+                  backgroundColor: 'var(--bg-sidebar)',
+                  borderRight: '1px solid var(--color-border)',
+                }}
               >
-                <div className="p-4 border-b border-black bg-white flex justify-between items-center">
-                  <h2 className="font-bold text-slate-900">Navigation</h2>
-                  <button onClick={() => setMobileMenuOpen(false)} className="p-2 -mr-2 text-slate-600 hover:text-slate-900 hover:bg-slate-100 rounded-full transition-colors">
+                <div className="p-4 flex justify-between items-center" style={{ borderBottom: '1px solid var(--color-border)' }}>
+                  <h2 className="font-bold" style={{ color: 'var(--text-main)' }}>Navigation</h2>
+                  <button
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="p-2 -mr-2 rounded-full transition-colors"
+                    style={{ color: 'var(--text-muted)' }}
+                  >
                     <X size={20} />
                   </button>
                 </div>
-                <nav className="p-4 space-y-1">
-                  {navigationItems.map((item) => (
-                    <button
-                      key={item.key}
-                      onClick={() => {
-                        item.onClick()
-                        setMobileMenuOpen(false)
-                      }}
-                      className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold transition-all ${
-                        item.isActive
-                          ? 'bg-amber-50 text-amber-700 ring-1 ring-amber-500/50 shadow-sm'
-                          : 'text-slate-900 hover:text-teal-600 bg-transparent hover:bg-slate-100 border border-transparent group'
-                      }`}
-                    >
-                      {item.Icon && (
-                        <item.Icon
-                          size={18}
-                          className={`transition-colors ${item.isActive ? 'text-amber-600' : 'text-slate-500 group-hover:text-teal-600'}`}
-                        />
-                      )}
-                      <span className="truncate">{item.label}</span>
-                      {item.suffix && <span className="ml-auto text-xs text-slate-500 font-bold group-hover:text-teal-600">{item.suffix}</span>}
-                    </button>
-                  ))}
-                </nav>
+                <SidebarNav navigationItems={navigationItems} onItemClick={() => setMobileMenuOpen(false)} />
               </motion.div>
             </>
           )}
         </AnimatePresence>
 
-        <main className={`flex-1 relative z-10 w-full ${renderSidebar ? 'overflow-y-auto px-4 sm:px-6 py-6 sm:py-8' : 'max-w-7xl mx-auto px-4 sm:px-6 py-6 sm:py-8'}`}>
-          {renderSidebar ? (
-            <div className="max-w-7xl mx-auto">
-              {children}
-            </div>
-          ) : (
-            children
-          )}
+        {/* Main Content */}
+        <main
+          className="flex-1 relative z-10 w-full overflow-y-auto"
+          style={{
+            backgroundColor: 'var(--bg-main)',
+            padding: '24px 32px',
+          }}
+        >
+          {children}
         </main>
       </div>
     </div>
