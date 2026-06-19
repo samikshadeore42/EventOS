@@ -1159,9 +1159,8 @@ function ApprovalsTab() {
   const hasPublished = activeTeams.length > 0 && activeTeams.every(t => t.approval_status === 'published')
 
   return (
-    <div className="max-w-7xl mx-auto pl-8 pt-8">
-
-      <div className="mt-8 rounded-[24px] bg-white px-8 py-8 shadow-[0_18px_48px_rgba(15,23,42,0.07)] ring-1 ring-slate-200/80 min-h-[610px] w-full">
+    <div className="w-full pt-8">
+      <section className="w-full min-h-[640px] rounded-[24px] bg-white px-8 py-8 shadow-[0_18px_48px_rgba(15,23,42,0.07)] ring-1 ring-slate-200/80">
         {/* Pending Approvals heading area */}
         <div className="flex flex-col">
           <div className="flex items-center gap-2">
@@ -1270,7 +1269,7 @@ function ApprovalsTab() {
           </div>
         )}
 
-        <div className="mt-8 mb-8 h-px w-full bg-slate-200/80" />
+        <div className="mt-8 h-px w-full bg-slate-200/80" />
 
         {/* Empty state center */}
         {!isLoading && pending?.total_pending === 0 && !hasPublished && !hasRejected && (
@@ -1397,7 +1396,7 @@ function ApprovalsTab() {
             ))}
           </div>
         )}
-      </div>
+      </section>
     </div>
   )
 }
