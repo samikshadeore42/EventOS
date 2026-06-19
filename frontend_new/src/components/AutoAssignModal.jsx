@@ -7,6 +7,8 @@ import { useState } from 'react'
 import { useMutation } from '@tanstack/react-query'
 import { Wand2, AlertTriangle, Check, X, Loader2 } from 'lucide-react'
 
+import { motion, AnimatePresence } from 'framer-motion'
+
 export default function AutoAssignModal({
   kind,                 // 'evaluator' | 'mentor'
   proposeFn,            // () => Promise<proposal>
@@ -32,22 +34,37 @@ export default function AutoAssignModal({
   const entityLabel = kind === 'evaluator' ? 'Evaluator' : 'Mentor'
 
   return (
-    <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-[100] p-4">
-      <div className="bg-background rounded-2xl shadow-xl w-full max-w-2xl max-h-[85vh] flex flex-col">
-        {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-border">
-          <div className="flex items-center gap-2">
-            <Wand2 size={18} className="text-teal-600" />
-            <h3 className="text-base font-bold text-foreground">
-              Auto-assign {entityLabel}s
-            </h3>
+    <AnimatePresence>
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        className="fixed inset-0 bg-black/55 backdrop-blur-[8px] flex items-center justify-center z-[100] p-4 pt-24 sm:p-6 sm:pt-24 md:p-12 md:pt-28"
+      >
+        <motion.div
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          exit={{ opacity: 0, scale: 0.95 }}
+          transition={{ type: 'spring', damping: 25, stiffness: 300 }}
+          className="bg-white dark:bg-slate-900 rounded-[20px] border border-white/10 shadow-2xl w-full max-w-2xl max-h-full flex flex-col"
+        >
+          {/* Header */}
+          <div className="flex items-center justify-between px-6 py-4 border-b border-border">
+            <div className="flex items-center gap-2">
+              <Wand2 size={20} className="text-teal-600 dark:text-teal-400" />
+              <h3 className="text-lg font-bold text-foreground">
+                Auto-assign {entityLabel}s
+              </h3>
+            </div>
+            <button
+              onClick={onClose}
+              className="w-10 h-10 rounded-full flex items-center justify-center bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 transition-colors focus:outline-none focus:ring-2 focus:ring-teal-500"
+            >
+              <X size={20} />
+            </button>
           </div>
-          <button onClick={onClose} className="text-muted hover:text-muted">
-            <X size={20} />
-          </button>
-        </div>
 
-        <div className="flex-1 overflow-y-auto px-6 py-4">
+        <div className="shrink min-h-0 overflow-y-auto px-6 py-4">
           {!proposal && (
             <div className="text-center py-10">
               <p className="text-sm text-muted mb-5">
@@ -65,7 +82,7 @@ export default function AutoAssignModal({
                 Generate proposal
               </button>
               {proposeMutation.isError && (
-                <p className="mt-3 text-sm text-teal-600">{proposeMutation.error?.message}</p>
+                <p className="mt-3 text-sm text-teal-600 dark:text-teal-400">{proposeMutation.error?.message}</p>
               )}
             </div>
           )}
@@ -92,11 +109,11 @@ export default function AutoAssignModal({
 
               {/* Relaxed constraints — always shown explicitly, never hidden */}
               {proposal.relaxed_constraints?.length > 0 && (
-                <div className="rounded-lg border border-amber-200 bg-amber-50 p-3">
-                  <p className="text-sm font-semibold text-amber-800 flex items-center gap-1.5 mb-2">
+                <div className="rounded-lg border border-amber-200 dark:border-amber-800 bg-amber-50 dark:bg-amber-900/30 p-3">
+                  <p className="text-sm font-semibold text-amber-800 dark:text-amber-200 flex items-center gap-1.5 mb-2">
                     <AlertTriangle size={14} /> {proposal.relaxed_constraints.length} constraint(s) relaxed
                   </p>
-                  <ul className="text-xs text-amber-700 space-y-1.5">
+                  <ul className="text-xs text-amber-700 dark:text-amber-300 space-y-1.5">
                     {proposal.relaxed_constraints.map((rc, i) => (
                       <li key={i}>
                         <span className="font-semibold">{rc.team_name}</span> ← {rc.entity_name}: {rc.detail}
@@ -108,11 +125,11 @@ export default function AutoAssignModal({
 
               {/* Unassigned teams */}
               {proposal.unassigned_teams?.length > 0 && (
-                <div className="rounded-lg border border-teal-200 bg-teal-50 p-3">
-                  <p className="text-sm font-semibold text-teal-700 mb-1.5">
+                <div className="rounded-lg border border-teal-200 dark:border-teal-800 bg-teal-50 dark:bg-teal-900/30 p-3">
+                  <p className="text-sm font-semibold text-teal-700 dark:text-teal-300 mb-1.5">
                     These teams need manual assignment:
                   </p>
-                  <ul className="text-xs text-teal-600 space-y-1">
+                  <ul className="text-xs text-teal-600 dark:text-teal-400 space-y-1">
                     {proposal.unassigned_teams.map((t) => (
                       <li key={t.team_id}>{t.team_name} — {t.reason}</li>
                     ))}
@@ -132,7 +149,7 @@ export default function AutoAssignModal({
                       </span>
                     </div>
                     {kind === 'mentor' && a.matched_skills?.length > 0 && (
-                      <span className="text-xs text-teal-600 font-medium">
+                      <span className="text-xs text-teal-600 dark:text-teal-400 font-medium">
                         {a.matched_skills.join(', ')}
                       </span>
                     )}
@@ -144,7 +161,7 @@ export default function AutoAssignModal({
               </div>
 
               {commitMutation.isError && (
-                <p className="text-sm text-teal-600">{commitMutation.error?.message}</p>
+                <p className="text-sm text-teal-600 dark:text-teal-400">{commitMutation.error?.message}</p>
               )}
             </div>
           )}
@@ -171,7 +188,8 @@ export default function AutoAssignModal({
             </button>
           </div>
         )}
-      </div>
-    </div>
+      </motion.div>
+    </motion.div>
+    </AnimatePresence>
   )
 }

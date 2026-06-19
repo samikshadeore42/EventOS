@@ -8,14 +8,14 @@ function Navbar() {
     <nav className="border-b border-border bg-white/90 dark:bg-slate-900/90 backdrop-blur-md sticky top-0 z-50">
       <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <EventOSLogo className="text-teal-700" size={48} />
+          <EventOSLogo className="text-teal-700 dark:text-teal-300" size={48} />
         </div>
         
         <div className="hidden md:flex items-center gap-6 text-sm font-semibold tracking-wide">
           <a href="#about" className="text-muted hover:text-teal-600 transition-colors">About</a>
           <a href="#features" className="text-muted hover:text-teal-600 transition-colors">Features</a>
           
-          <div className="h-4 w-px bg-slate-300 mx-2"></div>
+          <div className="h-4 w-px bg-slate-300 dark:bg-slate-600 mx-2"></div>
           
           <Link to="/participant" className="text-muted hover:text-cyan-600 transition-colors">Participant</Link>
           <Link to="/mentor" className="text-muted hover:text-blue-600 transition-colors">Mentor</Link>
@@ -41,12 +41,12 @@ function CommandCenterVisual() {
       <div className="relative w-full max-w-lg aspect-video bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl border border-border rounded-xl p-4 shadow-xl shadow-slate-200/50 flex flex-col gap-4">
         <div className="flex justify-between items-center border-b border-border pb-3">
           <div className="flex items-center gap-2">
-            <Activity className="text-teal-600" size={16} />
+            <Activity className="text-teal-600 dark:text-teal-400" size={16} />
             <span className="text-[10px] font-bold text-muted uppercase tracking-wider">Live Telemetry</span>
           </div>
           <div className="flex gap-1.5">
-            <div className="w-1.5 h-1.5 rounded-full bg-slate-300"></div>
-            <div className="w-1.5 h-1.5 rounded-full bg-slate-300"></div>
+            <div className="w-1.5 h-1.5 rounded-full bg-slate-300 dark:bg-slate-600"></div>
+            <div className="w-1.5 h-1.5 rounded-full bg-slate-300 dark:bg-slate-600"></div>
             <div className="w-1.5 h-1.5 rounded-full bg-teal-500 animate-pulse"></div>
           </div>
         </div>
@@ -56,7 +56,7 @@ function CommandCenterVisual() {
              <div className="bg-slate-50/80 dark:bg-slate-800/80 rounded border border-border p-3 flex flex-col justify-center shadow-sm">
                <span className="text-[9px] text-muted uppercase tracking-widest font-bold">Active Competitions</span>
                <div className="text-2xl font-mono text-teal-900 mt-1 font-bold">24</div>
-               <div className="w-full h-1.5 bg-slate-200 mt-2 rounded-full overflow-hidden">
+               <div className="w-full h-1.5 bg-slate-200 dark:bg-slate-700 mt-2 rounded-full overflow-hidden">
                  <div className="h-full bg-teal-500 w-[60%]"></div>
                </div>
              </div>
@@ -71,7 +71,7 @@ function CommandCenterVisual() {
             {[78, 92, 85].map((pct, i) => (
               <div key={i} className="flex items-center gap-2">
                 <ShieldCheck size={12} className="text-emerald-500 shrink-0" />
-                <div className="h-1.5 flex-1 bg-slate-200 rounded-full">
+                <div className="h-1.5 flex-1 bg-slate-200 dark:bg-slate-700 rounded-full">
                    <div className="h-full bg-emerald-500 rounded-full" style={{ width: `${pct}%`}}></div>
                 </div>
               </div>
@@ -108,10 +108,10 @@ function SmartCityVisual() {
           <Building2 size={14} className="text-blue-600" />
         </div>
         <div className="absolute top-[30%] left-[80%] -mt-4 -ml-4 w-8 h-8 bg-background border border-border shadow-md rounded-lg flex items-center justify-center z-10 animate-float" style={{ animationDuration: '4s', animationDirection: 'reverse' }}>
-          <Network size={14} className="text-teal-600" />
+          <Network size={14} className="text-teal-600 dark:text-teal-400" />
         </div>
         <div className="absolute top-[70%] left-[20%] -mt-4 -ml-4 w-8 h-8 bg-background border border-border shadow-md rounded-lg flex items-center justify-center z-10 animate-float" style={{ animationDuration: '3.5s' }}>
-          <Cpu size={14} className="text-teal-600" />
+          <Cpu size={14} className="text-teal-600 dark:text-teal-400" />
         </div>
         <div className="absolute top-[70%] left-[80%] -mt-4 -ml-4 w-8 h-8 bg-background border border-border shadow-md rounded-lg flex items-center justify-center z-10 animate-float" style={{ animationDuration: '4.5s', animationDirection: 'reverse' }}>
           <Globe2 size={14} className="text-cyan-600" />
@@ -152,24 +152,24 @@ function InnovationHubVisual() {
       <div className="w-full max-w-sm grid grid-cols-2 gap-4">
         <div className="bg-background backdrop-blur-sm border border-border p-5 rounded shadow-lg transform translate-y-4">
           <Users className="text-blue-600 mb-3" size={24} />
-          <div className="h-1.5 w-1/2 bg-slate-200 rounded mb-2"></div>
-          <div className="h-1.5 w-3/4 bg-slate-200 rounded"></div>
+          <div className="h-1.5 w-1/2 bg-slate-200 dark:bg-slate-700 rounded mb-2"></div>
+          <div className="h-1.5 w-3/4 bg-slate-200 dark:bg-slate-700 rounded"></div>
         </div>
         <div className="bg-background backdrop-blur-sm border border-border p-5 rounded shadow-lg transform -translate-y-4">
           <Target className="text-cyan-600 mb-3" size={24} />
-          <div className="h-1.5 w-2/3 bg-slate-200 rounded mb-2"></div>
-          <div className="h-1.5 w-1/2 bg-slate-200 rounded"></div>
+          <div className="h-1.5 w-2/3 bg-slate-200 dark:bg-slate-700 rounded mb-2"></div>
+          <div className="h-1.5 w-1/2 bg-slate-200 dark:bg-slate-700 rounded"></div>
         </div>
         <div className="bg-background backdrop-blur-sm border border-border p-5 rounded shadow-lg transform translate-x-2">
-          <Globe2 className="text-teal-600 mb-3" size={24} />
-          <div className="h-1.5 w-full bg-slate-200 rounded mb-2"></div>
-          <div className="h-1.5 w-1/3 bg-slate-200 rounded"></div>
+          <Globe2 className="text-teal-600 dark:text-teal-400 mb-3" size={24} />
+          <div className="h-1.5 w-full bg-slate-200 dark:bg-slate-700 rounded mb-2"></div>
+          <div className="h-1.5 w-1/3 bg-slate-200 dark:bg-slate-700 rounded"></div>
         </div>
         <div className="bg-background backdrop-blur-sm border border-border p-5 rounded shadow-lg transform -translate-x-2 relative overflow-hidden">
-          <div className="absolute -right-4 -top-4 w-16 h-16 bg-teal-100 rounded-full blur-xl" />
-          <Activity className="text-teal-600 mb-3 relative z-10" size={24} />
-          <div className="h-1.5 w-1/2 bg-slate-200 rounded mb-2 relative z-10"></div>
-          <div className="h-1.5 w-2/3 bg-slate-200 rounded relative z-10"></div>
+          <div className="absolute -right-4 -top-4 w-16 h-16 bg-teal-100 dark:bg-teal-900/50 rounded-full blur-xl" />
+          <Activity className="text-teal-600 dark:text-teal-400 mb-3 relative z-10" size={24} />
+          <div className="h-1.5 w-1/2 bg-slate-200 dark:bg-slate-700 rounded mb-2 relative z-10"></div>
+          <div className="h-1.5 w-2/3 bg-slate-200 dark:bg-slate-700 rounded relative z-10"></div>
         </div>
       </div>
       
@@ -317,7 +317,7 @@ function About() {
         
         <div className="grid md:grid-cols-2 gap-8 text-muted font-medium leading-relaxed">
           <div className="bg-surface border border-border rounded-lg p-8 shadow-sm hover:shadow-md transition-shadow">
-            <h3 className="text-xl font-bold text-teal-700 mb-3">What is EventOS?</h3>
+            <h3 className="text-xl font-bold text-teal-700 dark:text-teal-300 mb-3">What is EventOS?</h3>
             <p className="mb-6">
               EventOS is a comprehensive event orchestration engine originally built for the WiSE@TI Hackathon. It is designed to handle the complex logistics of large-scale competitions in a single unified environment.
             </p>
@@ -327,7 +327,7 @@ function About() {
           </div>
           
           <div className="bg-surface border border-border rounded-lg p-8 shadow-sm hover:shadow-md transition-shadow">
-            <h3 className="text-xl font-bold text-teal-700 mb-3">Core Philosophy</h3>
+            <h3 className="text-xl font-bold text-teal-700 dark:text-teal-300 mb-3">Core Philosophy</h3>
             <p className="mb-6">
               <strong className="text-foreground">For Participants:</strong> Remove friction. A unified hub to manage team formation, track milestones, and submit deliverables securely.
             </p>
@@ -352,7 +352,7 @@ function Features() {
       description: "AI-powered heuristics that automatically form balanced teams based on multidimensional skill vectors."
     },
     {
-      icon: <ShieldCheck className="text-teal-600" size={24} />,
+      icon: <ShieldCheck className="text-teal-600 dark:text-teal-400" size={24} />,
       title: "Anomaly Detection",
       description: "Real-time monitoring of evaluation streams to automatically flag suspicious statistical variances."
     },
@@ -367,7 +367,7 @@ function Features() {
       description: "Enterprise tools for mentors to track team velocity, schedule syncs, and submit structured feedback."
     },
     {
-      icon: <Users className="text-teal-600" size={24} />,
+      icon: <Users className="text-teal-600 dark:text-teal-400" size={24} />,
       title: "Participant Hub",
       description: "A centralized dashboard for participants to manage repositories, submit deliverables, and track milestones."
     },
@@ -382,7 +382,7 @@ function Features() {
       description: "Dynamic ranking systems that update instantly as evaluation streams are processed."
     },
     {
-      icon: <FileText className="text-teal-600" size={24} />,
+      icon: <FileText className="text-teal-600 dark:text-teal-400" size={24} />,
       title: "Resource Management",
       description: "Centralized repository for distributing guidelines, templates, and datasets to participants securely."
     },
@@ -404,7 +404,7 @@ function Features() {
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
           {features.map((f, i) => (
             <div key={i} className="bg-background border border-border p-6 rounded-lg shadow-sm hover:shadow-md hover:border-teal-300 transition-all duration-300 group">
-              <div className="w-12 h-12 rounded bg-teal-50 border border-teal-100 flex items-center justify-center mb-6 group-hover:bg-teal-100 transition-all duration-300">
+              <div className="w-12 h-12 rounded bg-teal-50 dark:bg-teal-900/30 border border-teal-100 dark:border-teal-800/50 flex items-center justify-center mb-6 group-hover:bg-teal-100 transition-all duration-300">
                 {f.icon}
               </div>
               <h3 className="text-lg font-bold text-foreground mb-2">{f.title}</h3>
@@ -434,7 +434,7 @@ function Portals() {
         <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
           {portals.map((p, i) => (
             <Link key={i} to={p.path} className="block p-6 rounded-lg border border-border shadow-sm hover:shadow-md hover:border-teal-300 transition-all text-left bg-surface group relative overflow-hidden">
-              <div className="absolute top-0 left-0 w-1 h-full bg-slate-200 group-hover:bg-teal-500 transition-colors" />
+              <div className="absolute top-0 left-0 w-1 h-full bg-slate-200 dark:bg-slate-700 group-hover:bg-teal-500 transition-colors" />
               <h3 className={`text-lg font-bold mb-1 ml-2 transition-colors ${p.colorClass}`}>{p.title}</h3>
               <p className="text-sm text-muted font-medium ml-2">{p.desc}</p>
             </Link>
@@ -452,7 +452,7 @@ function Footer() {
     <footer className="border-t border-border bg-background py-12 px-6 relative z-10">
       <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-6">
         <div className="flex items-center gap-2">
-          <EventOSLogo className="text-teal-700" size={32} />
+          <EventOSLogo className="text-teal-700 dark:text-teal-300" size={32} />
         </div>
         
         <p className="text-sm text-muted font-medium">

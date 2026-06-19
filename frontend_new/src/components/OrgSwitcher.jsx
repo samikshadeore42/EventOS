@@ -77,7 +77,7 @@ export default function OrgSwitcher() {
             }}
             className={`w-full text-left px-3 py-2 text-sm flex items-center gap-2 hover:bg-surface transition-colors ${
               activeEvent?.id === event.id
-                ? 'bg-surface text-teal-600 font-medium'
+                ? 'bg-surface text-teal-600 dark:text-teal-400 font-medium'
                 : 'text-foreground'
             }`}
           >
@@ -126,7 +126,7 @@ export default function OrgSwitcher() {
                     setOpen(false)
                   }}
                   className={`w-full text-left px-3 py-2 text-sm flex items-center gap-2 hover:bg-surface transition-colors ${
-                    activeOrganization?.id === org.id ? 'bg-surface text-teal-600 font-medium' : 'text-foreground'
+                    activeOrganization?.id === org.id ? 'bg-surface text-teal-600 dark:text-teal-400 font-medium' : 'text-foreground'
                   }`}
                 >
                   <Building size={14} className={activeOrganization?.id === org.id ? 'text-teal-500' : 'text-muted'} />
@@ -140,7 +140,7 @@ export default function OrgSwitcher() {
               <div className="border-t border-border mt-1 pt-1">
                 <button
                   onClick={handleLogout}
-                  className="w-full text-left px-3 py-2 text-sm flex items-center gap-2 text-teal-600 hover:bg-surface transition-colors"
+                  className="w-full text-left px-3 py-2 text-sm flex items-center gap-2 text-teal-600 dark:text-teal-400 hover:bg-surface transition-colors"
                 >
                   <LogOut size={14} />
                   Sign out

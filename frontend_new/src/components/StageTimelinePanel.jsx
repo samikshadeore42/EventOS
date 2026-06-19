@@ -297,13 +297,13 @@ export default function StageTimelinePanel({ eventStatus }) {
         isValid ? 'border-emerald-200 bg-emerald-50' : 'border-amber-200 bg-amber-50'
       }`}>
         {isValid
-          ? <ShieldCheck className="w-5 h-5 text-emerald-600 mt-0.5" />
-          : <AlertTriangle className="w-5 h-5 text-amber-600 mt-0.5" />}
+          ? <ShieldCheck className="w-5 h-5 text-emerald-600 dark:text-emerald-400 mt-0.5" />
+          : <AlertTriangle className="w-5 h-5 text-amber-600 dark:text-amber-400 mt-0.5" />}
         <div className="flex-1">
-          <p className="font-medium text-sm text-gray-800">{isValid ? 'Schedule is valid and ready to publish.' : 'Schedule has issues to fix before publishing.'}{isValid ? 'Schedule is valid — ready to publish.' : 'Schedule has issues to fix before publishing.'}
+          <p className="font-medium text-sm text-slate-800 dark:text-slate-100">{isValid ? 'Schedule is valid and ready to publish.' : 'Schedule has issues to fix before publishing.'}{isValid ? 'Schedule is valid — ready to publish.' : 'Schedule has issues to fix before publishing.'}
           </p>
           {!isValid && violations.length > 0 && (
-            <ul className="mt-2 space-y-1 text-xs text-amber-800 list-disc list-inside">
+            <ul className="mt-2 space-y-1 text-xs text-amber-800 dark:text-amber-200 list-disc list-inside">
               {violations.map((v, i) => <li key={i}>{v.message}</li>)}
             </ul>
           )}
@@ -331,20 +331,20 @@ export default function StageTimelinePanel({ eventStatus }) {
       </div>
 
       {publish.isError && (
-        <div className="rounded-lg border border-teal-200 bg-teal-50 p-3 text-sm text-teal-700">
+        <div className="rounded-lg border border-teal-200 dark:border-teal-800 bg-teal-50 dark:bg-teal-900/30 p-3 text-sm text-teal-700 dark:text-teal-300">
           {publishErr || 'Publish failed.'}
         </div>
       )}
 
       {awaiting.length > 0 && (
-        <div className="rounded-xl border border-gray-200 p-4">
-          <h3 className="flex items-center gap-2 font-semibold text-sm text-gray-800 mb-3">
-            <Clock className="w-4 h-4 text-teal-600" /> Stages awaiting approval
+        <div className="rounded-xl border border-border p-4">
+          <h3 className="flex items-center gap-2 font-semibold text-sm text-slate-800 dark:text-slate-100 mb-3">
+            <Clock className="w-4 h-4 text-teal-600 dark:text-teal-400" /> Stages awaiting approval
           </h3>
           <ul className="space-y-2">
             {awaiting.map((s) => (
-              <li key={s.id} className="flex items-center justify-between bg-gray-50 rounded-lg px-3 py-2">
-                <span className="text-sm text-gray-700">{s.name}</span>
+              <li key={s.id} className="flex items-center justify-between bg-slate-50 dark:bg-slate-800/50 rounded-lg px-3 py-2">
+                <span className="text-sm text-slate-700 dark:text-slate-200">{s.name}</span>
                 <button
                   onClick={() => approve.mutate(s.id)}
                   disabled={approve.isPending}
@@ -359,11 +359,11 @@ export default function StageTimelinePanel({ eventStatus }) {
       )}
 
       {/* Timeline */}
-      <div className="rounded-xl border border-gray-200 bg-background overflow-hidden">
-        <div className="px-4 py-3 border-b border-gray-100 flex items-center justify-between">
+      <div className="rounded-xl border border-border bg-background overflow-hidden">
+        <div className="px-4 py-3 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
           <div>
-            <h3 className="text-sm font-semibold text-gray-800">Stage Definitions</h3>
-            <p className="text-xs text-gray-400">Create, edit, delete, and reorder creator-defined stages.</p>
+            <h3 className="text-sm font-semibold text-slate-800 dark:text-slate-100">Stage Definitions</h3>
+            <p className="text-xs text-slate-400 dark:text-slate-500">Create, edit, delete, and reorder creator-defined stages.</p>
           </div>
           <button
             onClick={startCreate}
@@ -374,7 +374,7 @@ export default function StageTimelinePanel({ eventStatus }) {
         </div>
 
         {formOpen && (
-          <div className="border-b border-gray-100 p-4 bg-surface">
+          <div className="border-b border-slate-100 dark:border-slate-800 p-4 bg-surface">
             <div className="grid md:grid-cols-2 gap-3">
               <Field label="Key">
                 <input
@@ -491,7 +491,7 @@ export default function StageTimelinePanel({ eventStatus }) {
                     type="button"
                     onClick={generateReminderJson}
                     disabled={!reminderPrompt.trim()}
-                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-teal-200 text-xs font-medium text-teal-700 bg-teal-50 hover:bg-teal-100 disabled:opacity-40"
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-teal-200 dark:border-teal-800 text-xs font-medium text-teal-700 dark:text-teal-300 bg-teal-50 dark:bg-teal-900/30 hover:bg-teal-100 disabled:opacity-40"
                   >
                     Generate editable JSON
                   </button>
@@ -518,7 +518,7 @@ export default function StageTimelinePanel({ eventStatus }) {
             </label>
 
             {formError && (
-              <p className="text-xs text-teal-600 mt-3">{formError}</p>
+              <p className="text-xs text-teal-600 dark:text-teal-400 mt-3">{formError}</p>
             )}
 
             <div className="flex justify-end gap-2 mt-4">
@@ -547,20 +547,20 @@ export default function StageTimelinePanel({ eventStatus }) {
         )}
         <div className="divide-y divide-gray-100">
           {isLoading ? (
-            <p className="px-4 py-8 text-center text-sm text-gray-400">Loading stages...</p>
+            <p className="px-4 py-8 text-center text-sm text-slate-400 dark:text-slate-500">Loading stages...</p>
           ) : sortedStages.length === 0 ? (
-            <p className="px-4 py-8 text-center text-sm text-gray-400">No stages defined yet.</p>
+            <p className="px-4 py-8 text-center text-sm text-slate-400 dark:text-slate-500">No stages defined yet.</p>
           ) : sortedStages.map((s, index) => {
             const runStatus = runByStage[s.id]?.status ?? (status === 'draft' ? 'not started' : 'pending')
             return (
               <div key={s.id} className="flex items-center justify-between px-4 py-3">
                 <div className="flex items-center gap-3 min-w-0">
-                  <span className="w-6 h-6 flex items-center justify-center rounded-full bg-gray-100 text-xs font-semibold text-gray-600">
+                  <span className="w-6 h-6 flex items-center justify-center rounded-full bg-slate-100 dark:bg-slate-800 text-xs font-semibold text-muted">
                     {s.position}
                   </span>
                   <div className="min-w-0">
-                    <p className="text-sm font-medium text-gray-800 truncate">{s.name}</p>
-                    <p className="text-xs text-gray-400 truncate">
+                    <p className="text-sm font-medium text-slate-800 dark:text-slate-100 truncate">{s.name}</p>
+                    <p className="text-xs text-slate-400 dark:text-slate-500 truncate">
                       {new Date(s.start_at).toLocaleString()}{' -> '}{new Date(s.end_at).toLocaleString()}
                       {' · '}{s.timezone}{' · '}{s.transition_policy}
                     </p>
@@ -582,7 +582,7 @@ export default function StageTimelinePanel({ eventStatus }) {
                       if (window.confirm(`Delete stage "${s.name}"?`)) deleteStage.mutate(s.id)
                     }}
                     disabled={deleteStage.isPending}
-                    className={`${ICON_BUTTON_CLASS} text-teal-600`}
+                    className={`${ICON_BUTTON_CLASS} text-teal-600 dark:text-teal-400`}
                     title="Delete"
                   >
                     <Trash2 className="w-4 h-4" />
@@ -611,11 +611,11 @@ function StatusPill({ status }) {
     active: 'bg-teal-100 text-teal-700',
     completed: 'bg-emerald-100 text-emerald-700',
     awaiting_approval: 'bg-amber-100 text-amber-700',
-    pending: 'bg-gray-100 text-gray-500',
-    skipped: 'bg-gray-100 text-gray-400',
+    pending: 'bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400',
+    skipped: 'bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-500',
   }
   return (
-    <span className={`px-2.5 py-1 rounded-full text-xs font-medium ${map[status] || 'bg-gray-100 text-gray-500'}`}>
+    <span className={`px-2.5 py-1 rounded-full text-xs font-medium ${map[status] || 'bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400'}`}>
       {String(status).replace('_', ' ')}
     </span>
   )

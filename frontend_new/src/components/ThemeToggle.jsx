@@ -25,11 +25,7 @@ export default function ThemeToggle() {
   }, [theme]);
 
   const cycleTheme = () => {
-    setTheme(current => {
-      if (current === 'light') return 'dark';
-      if (current === 'dark') return 'eventos';
-      return 'light';
-    });
+    setTheme(current => current === 'light' ? 'dark' : 'light');
   };
 
   return (
@@ -41,10 +37,8 @@ export default function ThemeToggle() {
     >
       {theme === 'light' ? (
         <Moon size={20} />
-      ) : theme === 'dark' ? (
-        <Palette size={20} className="text-teal-400" />
       ) : (
-        <Sun size={20} className="text-[#D98A3A]" />
+        <Sun size={20} className="text-teal-400" />
       )}
     </button>
   );
