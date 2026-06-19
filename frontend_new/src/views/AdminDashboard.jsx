@@ -17,7 +17,8 @@ import {
   BarChart2, MessageSquare, Activity, Target, Calendar,
   Send, Copy, Trash2, Plus, Shield, ShieldAlert, ShieldCheck, FileText, Settings,
   Sparkles, Link, LayoutTemplate, ClipboardList, Lightbulb,
-  User, UserPlus, Building2, Info, UploadCloud, Search, CheckCircle2
+  User, UserPlus, Building2, Info, UploadCloud, Search, CheckCircle2,
+  Key, Globe, Database, Flag
 } from 'lucide-react'
 import PipelineStepper from '../components/PipelineStepper'
 import OrgSwitcher from '../components/OrgSwitcher'
@@ -141,9 +142,7 @@ function Badge({ children, colour = 'gray' }) {
   )
 }
 
-function SectionTitle({ children }) {
-  return <h2 className="text-xl font-bold mb-6" style={{ color: 'var(--color-primary)' }}>{children}</h2>
-}
+
 
 
 
@@ -2070,103 +2069,161 @@ function CommunicationsTab() {
   }
 
   return (
-    <div>
-      <div className="section-blue p-5 mb-6">
-        <div className="flex items-start justify-between gap-4 mb-4">
-          <div>
-            <SectionTitle>Email Diagnostics</SectionTitle>
-            <p className="text-sm text-muted">
-              Verify event-scoped email delivery configuration before sending participant, mentor, or evaluator links.
-            </p>
+    <div className="w-full pt-8">
+      <div className="bg-white rounded-[20px] shadow-[0_18px_45px_rgba(15,23,42,0.06)] ring-1 ring-slate-200/80 overflow-hidden mb-8 p-6 lg:p-8">
+        <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4 mb-8">
+          <div className="flex gap-4">
+            <div className="flex items-center justify-center h-12 w-12 rounded-xl bg-blue-50 text-blue-600 shrink-0">
+              <Mail className="w-6 h-6" />
+            </div>
+            <div>
+              <h2 className="text-[20px] font-extrabold text-slate-950">Email Diagnostics</h2>
+              <p className="text-sm font-semibold text-slate-500 mt-1 max-w-2xl">
+                Verify event-scoped email delivery configuration before sending participant, mentor, or evaluator links.
+              </p>
+            </div>
           </div>
-          <Badge colour={diagnostics?.email_delivery_mode === 'sendgrid' ? 'green' : 'amber'}>
-            {diagnostics?.email_delivery_mode || 'loading'}
-          </Badge>
+          <div className="shrink-0">
+            {diagnostics?.email_delivery_mode === 'sendgrid' ? (
+              <span className="inline-flex items-center gap-2 rounded-lg bg-emerald-50 px-3 py-1.5 text-sm font-extrabold text-emerald-600 border border-emerald-200">
+                <CheckCircle2 className="w-4 h-4" /> SendGrid
+              </span>
+            ) : (
+              <span className="inline-flex items-center gap-2 rounded-lg bg-amber-50 px-3 py-1.5 text-sm font-extrabold text-amber-600 border border-amber-200">
+                <AlertTriangle className="w-4 h-4" /> {diagnostics?.email_delivery_mode || 'Loading'}
+              </span>
+            )}
+          </div>
         </div>
 
         {diagnosticsLoading ? (
-          <div className="h-20 bg-[var(--bg-card-soft)] rounded-lg animate-pulse" />
+          <div className="h-20 bg-slate-50 rounded-xl animate-pulse mb-6" />
         ) : (
-          <div className="grid md:grid-cols-4 gap-3 mb-4 text-sm">
-            <div className="section-blue p-3">
-              <p className="text-xs text-muted mb-1">From email</p>
-              <p className="font-semibold text-foreground truncate">{diagnostics?.from_email || 'missing'}</p>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
+            <div className="flex gap-3 relative lg:after:absolute lg:after:right-0 lg:after:top-1/2 lg:after:-translate-y-1/2 lg:after:h-10 lg:after:w-px lg:after:bg-slate-100 pr-6">
+              <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-blue-50 text-blue-600 shrink-0 mt-0.5">
+                <Mail className="w-4 h-4" />
+              </div>
+              <div className="min-w-0">
+                <p className="text-xs font-semibold text-slate-500 mb-0.5">From email</p>
+                <p className="text-sm font-extrabold text-slate-950 truncate">{diagnostics?.from_email || 'missing'}</p>
+              </div>
             </div>
-            <div className="section-purple p-3">
-              <p className="text-xs text-muted mb-1">SendGrid key</p>
-              <p className="font-semibold text-foreground">
-                {diagnostics?.sendgrid_api_key_present ? diagnostics?.sendgrid_key_prefix : 'missing'}
-              </p>
+            <div className="flex gap-3 relative lg:after:absolute lg:after:right-0 lg:after:top-1/2 lg:after:-translate-y-1/2 lg:after:h-10 lg:after:w-px lg:after:bg-slate-100 pr-6">
+              <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-blue-50 text-blue-600 shrink-0 mt-0.5">
+                <Key className="w-4 h-4" />
+              </div>
+              <div className="min-w-0">
+                <p className="text-xs font-semibold text-slate-500 mb-0.5">SendGrid key</p>
+                <p className="text-sm font-extrabold text-slate-950 truncate">
+                  {diagnostics?.sendgrid_api_key_present ? diagnostics?.sendgrid_key_prefix : 'missing'}
+                </p>
+              </div>
             </div>
-            <div className="section-orange p-3">
-              <p className="text-xs text-muted mb-1">Frontend base</p>
-              <p className="font-semibold text-foreground truncate">{diagnostics?.frontend_base_url}</p>
+            <div className="flex gap-3 relative lg:after:absolute lg:after:right-0 lg:after:top-1/2 lg:after:-translate-y-1/2 lg:after:h-10 lg:after:w-px lg:after:bg-slate-100 pr-6">
+              <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-blue-50 text-blue-600 shrink-0 mt-0.5">
+                <Globe className="w-4 h-4" />
+              </div>
+              <div className="min-w-0">
+                <p className="text-xs font-semibold text-slate-500 mb-0.5">Frontend base</p>
+                <p className="text-sm font-extrabold text-slate-950 truncate">{diagnostics?.frontend_base_url}</p>
+              </div>
             </div>
-            <div className="section-green p-3">
-              <p className="text-xs text-muted mb-1">Redis</p>
-              <p className="font-semibold text-foreground">{diagnostics?.redis_url_present ? 'configured' : 'missing'}</p>
+            <div className="flex gap-3">
+              <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-blue-50 text-blue-600 shrink-0 mt-0.5">
+                <Database className="w-4 h-4" />
+              </div>
+              <div className="min-w-0">
+                <p className="text-xs font-semibold text-slate-500 mb-0.5">Redis</p>
+                <p className="text-sm font-extrabold text-emerald-600">{diagnostics?.redis_url_present ? 'Configured' : 'Missing'}</p>
+              </div>
             </div>
           </div>
         )}
+
+        <div className="flex items-start gap-3 rounded-xl bg-blue-50/60 px-5 py-4 border border-blue-100 mb-6">
+          <Info className="w-5 h-5 text-blue-600 shrink-0 mt-0.5" />
+          <p className="text-sm font-semibold text-blue-800">
+            If SendGrid returns 403, verify API key has Mail Send permission and SENDGRID_FROM_EMAIL is a verified sender identity.
+          </p>
+        </div>
+
         {diagnostics?.notes?.length > 0 && (
-          <ul className="mb-4 space-y-1 text-xs text-primary list-disc pl-5">
+          <ul className="mb-6 space-y-1 text-xs font-semibold text-amber-600 list-disc pl-5">
             {diagnostics.notes.map((note, idx) => <li key={idx}>{note}</li>)}
           </ul>
         )}
-        <div className="grid md:grid-cols-[1fr_1fr_auto] gap-3 items-end">
-          <div>
-            <label className="block text-xs font-medium text-muted mb-1">Preflight recipient email</label>
-            <input
-              value={preflightEmail}
-              onChange={(e) => setPreflightEmail(e.target.value)}
-              placeholder="optional@example.com"
-              className="soft-input"
-            />
+
+        <div className="pt-6 border-t border-slate-100 grid md:grid-cols-[1fr_1fr_auto] gap-4 items-end">
+          <div className="relative">
+            <label className="block text-xs font-bold text-slate-500 mb-1.5">Preflight recipient email</label>
+            <div className="relative">
+              <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-blue-500" />
+              <input
+                value={preflightEmail}
+                onChange={(e) => setPreflightEmail(e.target.value)}
+                placeholder="test.user@example.com"
+                className="w-full pl-9 pr-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm font-bold text-slate-900 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none transition-shadow"
+              />
+            </div>
           </div>
-          <div>
-            <label className="block text-xs font-medium text-muted mb-1">Recipient name</label>
-            <input
-              value={preflightName}
-              onChange={(e) => setPreflightName(e.target.value)}
-              className="soft-input"
-            />
+          <div className="relative">
+            <label className="block text-xs font-bold text-slate-500 mb-1.5">Recipient name</label>
+            <div className="relative">
+              <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-blue-500" />
+              <input
+                value={preflightName}
+                onChange={(e) => setPreflightName(e.target.value)}
+                className="w-full pl-9 pr-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm font-bold text-slate-900 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none transition-shadow"
+              />
+            </div>
           </div>
           <button
             onClick={() => preflightMutation.mutate()}
             disabled={preflightMutation.isPending}
-            className="px-4 py-2 rounded-lg app-btn-primary text-sm font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
+            className="inline-flex h-[42px] items-center justify-center gap-2 px-6 rounded-xl bg-blue-600 hover:bg-blue-700 text-sm font-extrabold text-white shadow-[0_10px_22px_rgba(37,99,235,0.18)] transition-all disabled:opacity-50 disabled:cursor-not-allowed"
           >
+            <Send className="w-4 h-4" />
             {preflightMutation.isPending ? 'Checking...' : 'Run preflight'}
           </button>
         </div>
 
         {preflightMutation.isSuccess && (
-          <div className="mt-3 section-green p-3 text-sm" style={{ color: "var(--color-success)" }}>
+          <div className="mt-4 rounded-xl bg-emerald-50 px-4 py-3 text-sm font-bold text-emerald-700 border border-emerald-100">
             Preflight passed via {preflightMutation.data?.provider || preflightMutation.data?.mode || 'provider'}.
             {preflightMutation.data?.message_id && ` Message id: ${preflightMutation.data.message_id}`}
           </div>
         )}
         {preflightMutation.isError && (
-          <div className="mt-3 rounded-lg bg-[var(--bg-card-soft)] p-3 text-sm text-primary">
+          <div className="mt-4 rounded-xl bg-red-50 px-4 py-3 text-sm font-bold text-red-600 border border-red-100">
             {preflightMutation.error?.message || 'Preflight failed.'}
           </div>
         )}
       </div>
       {/* Communication log */}
-      <div className="app-card overflow-hidden mb-8">
-        <div className="flex items-center justify-between px-4 py-3 border-b">
-          <p className="text-sm font-semibold text-foreground">Communication Log</p>
-          <div className="flex gap-2">
-            <input
-              value={templateFilter}
-              onChange={(e) => setTemplateFilter(e.target.value)}
-              placeholder="Filter by template…"
-              className="soft-input text-xs w-36"
-            />
+      <div className="bg-white rounded-[20px] shadow-[0_18px_45px_rgba(15,23,42,0.06)] ring-1 ring-slate-200/80 overflow-hidden mb-8">
+        <div className="flex flex-col md:flex-row md:items-center justify-between px-6 py-5 border-b border-slate-100 gap-4">
+          <div>
+            <h3 className="text-lg font-extrabold text-slate-950">Communication Log</h3>
+            <p className="text-xs font-semibold text-slate-500 mt-1">
+              Note: Queued means the background worker accepted the job. Sent/Failed is recorded after provider response.
+            </p>
+          </div>
+          <div className="flex gap-3">
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+              <input
+                value={templateFilter}
+                onChange={(e) => setTemplateFilter(e.target.value)}
+                placeholder="Filter by recipient..."
+                className="w-48 pl-9 pr-4 py-2 bg-white border border-slate-200 rounded-xl text-sm font-semibold text-slate-900 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none transition-shadow"
+              />
+            </div>
             <select
               value={successFilter}
               onChange={(e) => setSuccessFilter(e.target.value)}
-              className="soft-select text-xs"
+              className="px-4 py-2 bg-white border border-slate-200 rounded-xl text-sm font-semibold text-slate-900 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none transition-shadow appearance-none pr-10 relative"
+              style={{ backgroundImage: 'url("data:image/svg+xml,%3csvg xmlns=\'http://www.w3.org/2000/svg\' fill=\'none\' viewBox=\'0 0 20 20\'%3e%3cpath stroke=\'%236b7280\' stroke-linecap=\'round\' stroke-linejoin=\'round\' stroke-width=\'1.5\' d=\'M6 8l4 4 4-4\'/%3e%3c/svg%3e")', backgroundPosition: 'right 0.5rem center', backgroundRepeat: 'no-repeat', backgroundSize: '1.5em 1.5em' }}
             >
               <option value="">All statuses</option>
               <option value="true">Sent</option>
@@ -2174,53 +2231,77 @@ function CommunicationsTab() {
             </select>
           </div>
         </div>
-        <div className="px-4 py-2 text-[11px] text-muted" style={{ backgroundColor: "var(--bg-card-soft)" }}>
-          <span className="font-medium">Note:</span> Queued means the background worker accepted the job. Sent/Failed is recorded after provider response.
-        </div>
 
         {isLoading ? (
-          <div className="p-4 space-y-2">
+          <div className="p-6 space-y-3">
             {Array.from({ length: 5 }).map((_, i) => (
-              <div key={i} className="h-8 bg-[var(--bg-card-soft)] rounded animate-pulse" />
+              <div key={i} className="h-10 bg-slate-50 rounded-xl animate-pulse" />
             ))}
           </div>
         ) : !commsData?.logs?.length ? (
-          <div className="text-center py-10 text-sm text-muted">No emails dispatched yet.</div>
+          <div className="text-center py-12 text-sm font-semibold text-slate-500">No emails dispatched yet.</div>
         ) : (
           <div className="overflow-x-auto">
-            <table className="soft-table w-full">
+            <table className="w-full text-left border-collapse">
               <thead>
-                <tr className="bg-[var(--bg-card-soft)] text-left border-b">
+                <tr className="bg-slate-50 border-b border-slate-100">
                   {['Recipient', 'Template', 'Stage', 'Status', 'Sent at'].map(h => (
-                    <th key={h} className="px-4 py-2.5 text-xs font-medium text-muted uppercase tracking-wide">{h}</th>
+                    <th key={h} className="px-6 py-4 text-xs font-bold uppercase tracking-wider text-slate-500">{h}</th>
                   ))}
                 </tr>
               </thead>
-              <tbody>
-                {commsData.logs.map((log) => (
-                  <tr key={log.id} className="soft-row">
-                    <td className="px-4 py-2.5">
-                      <p className="text-foreground font-medium truncate max-w-[160px]">{log.recipient_email}</p>
-                    </td>
-                    <td className="px-4 py-2.5"><Badge colour="gray">{log.template}</Badge></td>
-                    <td className="px-4 py-2.5 text-muted text-xs capitalize">{log.stage}</td>
-                    <td className="px-4 py-2.5">
-                      <div className="flex flex-col gap-1">
-                        <div>
-                          <Badge colour={log.success ? 'green' : 'red'}>{log.success ? 'Sent' : 'Failed'}</Badge>
+              <tbody className="divide-y divide-slate-100">
+                {commsData.logs.map((log) => {
+                  let templateBg = 'bg-slate-100'
+                  let templateText = 'text-slate-600'
+                  if (log.template === 'notification') {
+                    templateBg = 'bg-blue-50'
+                    templateText = 'text-blue-600'
+                  } else if (log.template === 'participant_link') {
+                    templateBg = 'bg-purple-50'
+                    templateText = 'text-purple-600'
+                  } else if (log.template === 'mentor_link') {
+                    templateBg = 'bg-orange-50'
+                    templateText = 'text-orange-600'
+                  }
+
+                  return (
+                    <tr key={log.id} className="bg-white hover:bg-slate-50/50 transition-colors">
+                      <td className="px-6 py-4">
+                        <p className="text-sm font-extrabold text-slate-950 truncate max-w-[200px]">{log.recipient_email}</p>
+                      </td>
+                      <td className="px-6 py-4">
+                        <span className={`inline-flex items-center px-2.5 py-1 rounded-md text-xs font-bold ${templateBg} ${templateText}`}>
+                          {log.template}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4 text-sm font-semibold text-slate-500 capitalize">{log.stage}</td>
+                      <td className="px-6 py-4">
+                        <div className="flex flex-col gap-1">
+                          <div>
+                            {log.success ? (
+                              <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-50 text-xs font-extrabold text-emerald-600 border border-emerald-100">
+                                <CheckCircle2 className="w-3.5 h-3.5" /> Sent
+                              </span>
+                            ) : (
+                              <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-red-50 text-xs font-extrabold text-red-600 border border-red-100">
+                                Failed
+                              </span>
+                            )}
+                          </div>
+                          {!log.success && (
+                            <span className="text-[10px] font-semibold text-red-500 leading-tight max-w-[200px] block truncate" title={log.error_message || "No provider error captured. Check Celery worker logs."}>
+                              {log.error_message || "No provider error captured. Check Celery worker logs."}
+                            </span>
+                          )}
                         </div>
-                        {!log.success && (
-                          <span className="text-[10px] text-primary leading-tight max-w-[200px] block truncate" title={log.error_message || "No provider error captured. Check Celery worker logs."}>
-                            {log.error_message || "No provider error captured. Check Celery worker logs."}
-                          </span>
-                        )}
-                      </div>
-                    </td>
-                    <td className="px-4 py-2.5 text-xs text-muted">
-                      {new Date(log.sent_at).toLocaleString()}
-                    </td>
-                  </tr>
-                ))}
+                      </td>
+                      <td className="px-6 py-4 text-sm font-semibold text-slate-500">
+                        {new Date(log.sent_at).toLocaleString([], { dateStyle: 'short', timeStyle: 'medium' })}
+                      </td>
+                    </tr>
+                  )
+                })}
               </tbody>
             </table>
           </div>
@@ -2228,101 +2309,113 @@ function CommunicationsTab() {
       </div>
 
       {/* AI Draft Generator */}
-      <div className="app-card p-6 mt-8 mb-8">
-        <SectionTitle>AI Email Draft Generator</SectionTitle>
-        <div className="grid grid-cols-1 xl:grid-cols-2 gap-6 items-stretch">
+      <div className="bg-white rounded-[20px] shadow-[0_18px_45px_rgba(15,23,42,0.06)] ring-1 ring-slate-200/80 p-8 mb-8">
+        <div className="flex items-center gap-2 mb-6">
+          <Sparkles className="w-6 h-6 text-orange-500" />
+          <h2 className="text-[20px] font-extrabold text-orange-500">AI Email Draft Generator</h2>
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-stretch">
           {/* Config */}
-          <div className="space-y-4 w-full min-w-0">
+          <div className="space-y-6 w-full min-w-0">
             <div>
-              <label className="block text-xs font-medium text-muted mb-2">Draft type</label>
+              <label className="block text-sm font-bold text-slate-700 mb-2">Draft type</label>
               <div className="flex flex-wrap gap-2">
-                {DRAFT_TYPES.map((t) => (
-                  <button
-                    key={t.value}
-                    onClick={() => {
-                      setDraftType(t.value)
-                      setDraftContext(JSON.stringify(EXAMPLE_CONTEXTS[t.value], null, 2))
-                      setDraft(null)
-                    }}
-                    className={`text-xs px-3 py-1.5 rounded-lg border transition-colors ${draftType === t.value
-                      ? 'app-btn-primary'
-                      : 'soft-button'
+                {DRAFT_TYPES.map((t) => {
+                  const isSelected = draftType === t.value;
+                  const Icon = t.value === 'progression_invite' ? Send : t.value === 'milestone_blast' ? Flag : FileText;
+                  return (
+                    <button
+                      key={t.value}
+                      onClick={() => {
+                        setDraftType(t.value)
+                        setDraftContext(JSON.stringify(EXAMPLE_CONTEXTS[t.value], null, 2))
+                        setDraft(null)
+                      }}
+                      className={`inline-flex items-center gap-2 text-sm font-extrabold px-4 py-2.5 rounded-xl transition-all ${
+                        isSelected
+                          ? 'bg-gradient-to-r from-orange-500 to-orange-600 text-white shadow-[0_10px_22px_rgba(249,115,22,0.22)]'
+                          : 'bg-white text-slate-700 border border-slate-200 hover:bg-slate-50'
                       }`}
-                  >
-                    {t.label}
-                  </button>
-                ))}
+                    >
+                      <Icon className="w-4 h-4" />
+                      {t.label}
+                    </button>
+                  )
+                })}
               </div>
             </div>
 
             <div>
-              <label className="block text-xs font-medium text-muted mb-2">Tone</label>
+              <label className="block text-sm font-bold text-slate-700 mb-2">Tone</label>
               <select
                 value={draftTone}
                 onChange={(e) => setDraftTone(e.target.value)}
-                className="soft-select"
+                className="w-48 px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm font-bold text-slate-900 focus:border-orange-500 focus:ring-1 focus:ring-orange-500 focus:outline-none transition-shadow appearance-none pr-10 relative"
+                style={{ backgroundImage: 'url("data:image/svg+xml,%3csvg xmlns=\'http://www.w3.org/2000/svg\' fill=\'none\' viewBox=\'0 0 20 20\'%3e%3cpath stroke=\'%236b7280\' stroke-linecap=\'round\' stroke-linejoin=\'round\' stroke-width=\'1.5\' d=\'M6 8l4 4 4-4\'/%3e%3c/svg%3e")', backgroundPosition: 'right 0.5rem center', backgroundRepeat: 'no-repeat', backgroundSize: '1.5em 1.5em' }}
               >
-                {['professional', 'encouraging', 'formal'].map(t => <option key={t} value={t}>{t}</option>)}
+                {['professional', 'encouraging', 'formal'].map(t => <option key={t} value={t} className="capitalize">{t}</option>)}
               </select>
             </div>
 
             <div>
-              <label className="block text-xs font-medium text-muted mb-2">Context (JSON)</label>
-              <textarea
-                value={draftContext}
-                onChange={(e) => setDraftContext(e.target.value)}
-                rows={14}
-                className="soft-input block w-full max-w-none font-mono text-xs resize-y"
-                style={{ width: "100%", maxWidth: "100%", minHeight: "280px" }}
-              />
+              <label className="flex items-center gap-1.5 text-sm font-bold text-slate-700 mb-2">
+                Context (JSON) <Info className="w-4 h-4 text-slate-400" />
+              </label>
+              <div className="relative">
+                <div className="absolute left-0 top-0 bottom-0 w-1 bg-emerald-500 rounded-l-xl z-10" />
+                <textarea
+                  value={draftContext}
+                  onChange={(e) => setDraftContext(e.target.value)}
+                  className="block w-full min-h-[220px] bg-slate-50/50 border border-slate-200 rounded-xl pl-6 pr-4 py-4 text-[13px] font-mono text-slate-800 focus:border-orange-500 focus:ring-1 focus:ring-orange-500 focus:outline-none transition-shadow resize-y"
+                />
+              </div>
             </div>
 
             <button
               onClick={() => draftMutation.mutate()}
               disabled={draftMutation.isPending}
-              className="w-full app-btn-primary text-sm px-4 py-2.5"
+              className="w-full inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-xl bg-gradient-to-r from-orange-500 to-orange-600 hover:from-orange-600 hover:to-orange-700 text-sm font-extrabold text-white shadow-[0_10px_22px_rgba(249,115,22,0.22)] transition-all disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {draftMutation.isPending ? <Loader2 size={14} className="animate-spin" /> : <Wand2 size={14} />}
-              {draftMutation.isPending ? 'Generating…' : 'Generate Draft'}
+              {draftMutation.isPending ? <Loader2 className="w-5 h-5 animate-spin" /> : <Sparkles className="w-5 h-5" />}
+              {draftMutation.isPending ? 'Generating...' : 'Generate Draft'}
             </button>
-            {draftMutation.isError && <p className="text-xs text-primary">{draftMutation.error?.message}</p>}
+            {draftMutation.isError && <p className="text-xs font-bold text-red-500">{draftMutation.error?.message}</p>}
           </div>
 
           {/* Preview */}
-          <div className="section-purple p-5 flex flex-col min-h-64">
+          <div className="flex flex-col bg-orange-50/30 border-2 border-dashed border-orange-300 rounded-2xl p-6 min-h-[300px]">
             {draft ? (
-              <>
-                <div className="flex items-center justify-between mb-3">
-                  <p className="text-xs font-medium text-muted uppercase tracking-wide">Draft Preview</p>
+              <div className="flex flex-col h-full bg-white rounded-xl shadow-sm border border-orange-100 p-6 relative">
+                <div className="flex items-center justify-between mb-6 pb-4 border-b border-slate-100">
+                  <p className="text-xs font-extrabold text-orange-500 uppercase tracking-wider">Draft Preview</p>
                   <button
                     onClick={() => {
                       navigator.clipboard.writeText(draft.body_text)
                       setCopied(true)
                       setTimeout(() => setCopied(false), 2000)
                     }}
-                    className="flex items-center gap-1 text-xs px-2 py-1 rounded hover:bg-[var(--bg-card-soft)]"
+                    className="flex items-center gap-1.5 text-xs font-bold text-slate-500 hover:text-slate-800 px-3 py-1.5 rounded-lg border border-slate-200 bg-white shadow-sm transition-colors"
                   >
-                    <Copy size={12} /> {copied ? 'Copied!' : 'Copy'}
+                    <Copy className="w-3.5 h-3.5" /> {copied ? 'Copied!' : 'Copy'}
                   </button>
                 </div>
-                <div className="pb-3 mb-3 border-b">
-                  <p className="text-xs text-muted mb-0.5">Subject</p>
-                  <p className="text-sm font-semibold text-foreground">{draft.subject}</p>
+                <div className="mb-4">
+                  <p className="text-xs font-bold text-slate-500 mb-1">Subject</p>
+                  <p className="text-base font-extrabold text-slate-950">{draft.subject}</p>
                 </div>
                 <div className="flex-1 overflow-auto">
-                  <p className="text-xs text-muted mb-1.5">Body</p>
-                  <p className="text-sm text-foreground whitespace-pre-wrap leading-relaxed">{draft.body_text}</p>
+                  <p className="text-xs font-bold text-slate-500 mb-2">Body</p>
+                  <p className="text-sm font-medium text-slate-800 whitespace-pre-wrap leading-relaxed">{draft.body_text}</p>
                 </div>
-                <p className="mt-4 pt-3 border-t text-xs text-primary">
-                  ⚠ Review carefully before dispatching. This draft has not been sent.
+                <p className="mt-6 pt-4 border-t border-slate-100 text-[11px] font-bold text-amber-600 flex items-center gap-1.5">
+                  <AlertTriangle className="w-3.5 h-3.5" /> Review carefully before dispatching. This draft has not been sent.
                 </p>
-              </>
+              </div>
             ) : (
-              <div className="flex-1 flex items-center justify-center text-muted">
-                <div className="text-center">
-                  <Wand2 size={28} className="mx-auto mb-2 opacity-40" />
-                  <p className="text-sm">Generate a draft to preview it here</p>
-                </div>
+              <div className="flex-1 flex flex-col items-center justify-center text-orange-400/80">
+                <Sparkles className="w-10 h-10 mb-4 opacity-50" />
+                <p className="text-sm font-extrabold">Generate a draft to preview it here.</p>
               </div>
             )}
           </div>
