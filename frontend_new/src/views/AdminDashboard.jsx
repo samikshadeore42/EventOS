@@ -16,7 +16,8 @@ import {
   ChevronDown, ChevronRight, Wand2,
   BarChart2, MessageSquare, Activity, Target, Calendar,
   Send, Copy, Trash2, Plus, Shield, ShieldAlert, ShieldCheck, FileText, Settings,
-  Sparkles, Link, LayoutTemplate, ClipboardList, Lightbulb
+  Sparkles, Link, LayoutTemplate, ClipboardList, Lightbulb,
+  User, UserPlus, Building2, Info
 } from 'lucide-react'
 import PipelineStepper from '../components/PipelineStepper'
 import OrgSwitcher from '../components/OrgSwitcher'
@@ -437,8 +438,8 @@ function ParticipantsTab() {
           onDragLeave={onDragLeave}
           onClick={() => fileInputRef.current?.click()}
           className={`border-2 border-dashed rounded-xl p-10 text-center cursor-pointer transition-colors ${dragActive
-              ? 'border-primary/60 bg-[var(--bg-card-soft)]'
-              : 'border-primary/30 hover:border-primary hover:bg-[var(--bg-card-soft)]'
+            ? 'border-primary/60 bg-[var(--bg-card-soft)]'
+            : 'border-primary/30 hover:border-primary hover:bg-[var(--bg-card-soft)]'
             }`}
         >
           <input
@@ -534,7 +535,7 @@ function ParticipantsTab() {
 
       {/* Participants table */}
       <div className="app-card overflow-hidden border-l-2 border-l-primary relative overflow-hidden group transition-all hover:-translate-y-1 hover:scale-[1.01]">
-      <div className="absolute -right-8 -top-8 w-40 h-40 bg-gradient-to-br from-primary/10 to-transparent rounded-full blur-3xl group-hover:scale-125 transition-transform duration-700 pointer-events-none z-0" />
+        <div className="absolute -right-8 -top-8 w-40 h-40 bg-gradient-to-br from-primary/10 to-transparent rounded-full blur-3xl group-hover:scale-125 transition-transform duration-700 pointer-events-none z-0" />
         <table className="soft-table">
           <thead>
             <tr className="">
@@ -732,62 +733,145 @@ function TeamsTab() {
   return (
     <div>
       {/* Solver config form */}
-      <div className="app-card p-5 mb-6 border-l-2 border-l-primary relative overflow-hidden group transition-all hover:-translate-y-1 hover:scale-[1.01]">
-      <div className="absolute -right-8 -top-8 w-40 h-40 bg-gradient-to-br from-primary/10 to-transparent rounded-full blur-3xl group-hover:scale-125 transition-transform duration-700 pointer-events-none z-0" />
-        <SectionTitle>Solver Configuration</SectionTitle>
-        <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 mb-5">
-          {[
-            { key: 'num_teams', label: 'Number of teams', min: 1, max: 50, cls: 'section-blue' },
-            { key: 'target_size', label: 'Target team size', min: 2, max: 10, cls: 'section-green' },
-            { key: 'k_min', label: 'Min size', min: 1, max: 10, cls: 'section-yellow' },
-            { key: 'k_max', label: 'Max size', min: 2, max: 10, cls: 'section-purple' },
-            { key: 'max_per_institution', label: 'Max / institution', min: 1, max: 5, cls: 'section-orange' },
-          ].map(({ key, label, min, max, cls }) => (
-            <div key={key} className={`${cls} p-3`}>
-              <label className="block text-xs font-bold mb-1.5" style={{ color: 'var(--text-main)' }}>{label}</label>
-              <input
-                type="number" min={min} max={max}
-                value={config[key]}
-                onChange={(e) => setConfig((c) => ({ ...c, [key]: +e.target.value }))}
-                className="soft-input"
-              />
-            </div>
-          ))}
+      <div className="rounded-[24px] bg-white p-8 shadow-[0_18px_45px_rgba(15,23,42,0.08)] ring-1 ring-slate-200/80 dark:bg-slate-900 dark:ring-white/10 mb-6">
+        <h2 className="text-2xl font-extrabold text-red-600">Solver Configuration</h2>
 
-          <div className="flex items-end">
-            <label className="flex items-center gap-2 text-sm cursor-pointer pb-2 section-pink p-3" style={{ color: 'var(--text-main)' }}>
-              <input
-                type="checkbox"
-                checked={config.use_mock_data}
-                onChange={(e) => setConfig((c) => ({ ...c, use_mock_data: e.target.checked }))}
-                className="rounded"
-              />
-              Use mock data
-            </label>
+        <div className="mt-8 grid grid-cols-1 gap-8 lg:grid-cols-3">
+          {/* Column 1 */}
+          <div className="space-y-10 lg:border-r lg:border-slate-200/80 lg:pr-10 dark:lg:border-white/10">
+            {/* Number of teams */}
+            <div className="flex items-start gap-5">
+              <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-blue-100 text-blue-600 dark:bg-blue-500/15 dark:text-blue-300">
+                <Users className="h-6 w-6" />
+              </div>
+              <div>
+                <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300">
+                  Number of teams
+                </label>
+                <input
+                  type="number" min={1} max={50}
+                  value={config.num_teams}
+                  onChange={(e) => setConfig((c) => ({ ...c, num_teams: +e.target.value }))}
+                  className="mt-2 w-24 bg-transparent text-2xl font-extrabold text-slate-950 outline-none placeholder:text-slate-400 dark:text-white"
+                />
+              </div>
+            </div>
+
+            {/* Max size */}
+            <div className="flex items-start gap-5">
+              <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-green-100 text-green-600 dark:bg-green-500/15 dark:text-green-300">
+                <UserPlus className="h-6 w-6" />
+              </div>
+              <div>
+                <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300">
+                  Max size
+                </label>
+                <input
+                  type="number" min={2} max={10}
+                  value={config.k_max}
+                  onChange={(e) => setConfig((c) => ({ ...c, k_max: +e.target.value }))}
+                  className="mt-2 w-24 bg-transparent text-2xl font-extrabold text-slate-950 outline-none placeholder:text-slate-400 dark:text-white"
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* Column 2 */}
+          <div className="space-y-10 lg:border-r lg:border-slate-200/80 lg:pr-10 dark:lg:border-white/10">
+            {/* Target team size */}
+            <div className="flex items-start gap-5">
+              <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-green-100 text-green-600 dark:bg-green-500/15 dark:text-green-300">
+                <Target className="h-6 w-6" />
+              </div>
+              <div>
+                <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300">
+                  Target team size
+                </label>
+                <input
+                  type="number" min={2} max={10}
+                  value={config.target_size}
+                  onChange={(e) => setConfig((c) => ({ ...c, target_size: +e.target.value }))}
+                  className="mt-2 w-24 bg-transparent text-2xl font-extrabold text-slate-950 outline-none placeholder:text-slate-400 dark:text-white"
+                />
+              </div>
+            </div>
+
+            {/* Max / institution */}
+            <div className="flex items-start gap-5">
+              <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-purple-100 text-purple-600 dark:bg-purple-500/15 dark:text-purple-300">
+                <Building2 className="h-6 w-6" />
+              </div>
+              <div>
+                <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300">
+                  Max / institution
+                </label>
+                <input
+                  type="number" min={1} max={5}
+                  value={config.max_per_institution}
+                  onChange={(e) => setConfig((c) => ({ ...c, max_per_institution: +e.target.value }))}
+                  className="mt-2 w-24 bg-transparent text-2xl font-extrabold text-slate-950 outline-none placeholder:text-slate-400 dark:text-white"
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* Column 3 */}
+          <div className="space-y-10">
+            {/* Min size */}
+            <div className="flex items-start gap-5">
+              <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-orange-100 text-orange-600 dark:bg-orange-500/15 dark:text-orange-300">
+                <User className="h-6 w-6" />
+              </div>
+              <div>
+                <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300">
+                  Min size
+                </label>
+                <input
+                  type="number" min={1} max={10}
+                  value={config.k_min}
+                  onChange={(e) => setConfig((c) => ({ ...c, k_min: +e.target.value }))}
+                  className="mt-2 w-24 bg-transparent text-2xl font-extrabold text-slate-950 outline-none placeholder:text-slate-400 dark:text-white"
+                />
+              </div>
+            </div>
+
+            {/* Use mock data */}
+            <div className="flex items-start gap-5 pt-2">
+              <label className="flex items-center gap-3 text-sm font-semibold text-slate-700 dark:text-slate-300 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={config.use_mock_data}
+                  onChange={(e) => setConfig((c) => ({ ...c, use_mock_data: e.target.checked }))}
+                  className="h-5 w-5 rounded-md border-slate-300 text-red-600 focus:ring-red-500 dark:border-white/20 dark:bg-white/5"
+                />
+                <span>Use mock data</span>
+                <Info className="h-4 w-4 text-slate-400" />
+              </label>
+            </div>
           </div>
         </div>
 
         <button
           onClick={() => runMutation.mutate()}
           disabled={runMutation.isPending || taskStatus?.status === 'running'}
-          className="flex items-center gap-2 text-sm px-5 py-2.5 rounded-lg btn-primary text-white hover:bg-primary-dark disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+          className="mt-10 inline-flex h-12 items-center justify-center gap-2 rounded-xl bg-red-600 px-6 text-sm font-bold text-white shadow-[0_12px_24px_rgba(239,68,68,0.28)] transition hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-60"
         >
           {runMutation.isPending || taskStatus?.status === 'running'
-            ? <Loader2 size={16} className="animate-spin" />
-            : <Play size={16} />
+            ? <Loader2 className="h-4 w-4 animate-spin" />
+            : <Play className="h-4 w-4" />
           }
           {taskStatus?.status === 'running' ? 'Solving…' : 'Run Solver'}
         </button>
 
         {runMutation.isError && (
-          <p className="mt-2 text-xs text-primary">{runMutation.error?.message}</p>
+          <p className="mt-4 text-sm font-medium text-red-500">{runMutation.error?.message}</p>
         )}
       </div>
 
       {/* Task progress panel */}
       {taskId && taskStatus && (
         <div className="app-card p-5 mb-6 border-l-2 border-l-primary relative overflow-hidden group transition-all hover:-translate-y-1 hover:scale-[1.01]">
-      <div className="absolute -right-8 -top-8 w-40 h-40 bg-gradient-to-br from-primary/10 to-transparent rounded-full blur-3xl group-hover:scale-125 transition-transform duration-700 pointer-events-none z-0" />
+          <div className="absolute -right-8 -top-8 w-40 h-40 bg-gradient-to-br from-primary/10 to-transparent rounded-full blur-3xl group-hover:scale-125 transition-transform duration-700 pointer-events-none z-0" />
           <div className="flex items-center justify-between mb-2">
             <p className="text-sm font-medium text-foreground">Solver progress</p>
             <span className={`text-sm font-semibold capitalize ${statusColor}`}>
@@ -797,7 +881,7 @@ function TeamsTab() {
           <div className="w-full bg-[var(--bg-card-soft)] rounded-full h-2 mb-3">
             <div
               className={`h-2 rounded-full transition-all duration-500 ${taskStatus.status === 'success' ? 'bg-primary' :
-                  taskStatus.status === 'failed' ? 'bg-primary' : 'bg-primary'
+                taskStatus.status === 'failed' ? 'bg-primary' : 'bg-primary'
                 }`}
               style={{ width: `${progress}%` }}
             />
@@ -870,7 +954,7 @@ function TeamsTab() {
           <div className="grid md:grid-cols-2 xl:grid-cols-3 gap-4">
             {drafts.teams.map((team) => (
               <div key={team.team_id} className="app-card p-4 border-l-2 border-l-primary relative overflow-hidden group transition-all hover:-translate-y-1 hover:scale-[1.01]">
-      <div className="absolute -right-8 -top-8 w-40 h-40 bg-gradient-to-br from-primary/10 to-transparent rounded-full blur-3xl group-hover:scale-125 transition-transform duration-700 pointer-events-none z-0" />
+                <div className="absolute -right-8 -top-8 w-40 h-40 bg-gradient-to-br from-primary/10 to-transparent rounded-full blur-3xl group-hover:scale-125 transition-transform duration-700 pointer-events-none z-0" />
                 <div className="flex items-center justify-between mb-3">
                   <p className="font-semibold text-sm text-foreground">{team.team_name}</p>
                   <Badge colour="teal">{team.size} members</Badge>
@@ -1109,7 +1193,7 @@ function ApprovalsTab() {
       <div className="space-y-3">
         {pending?.teams.map((team) => (
           <div key={team.team_id} className="app-card overflow-hidden border-l-2 border-l-primary relative overflow-hidden group transition-all hover:-translate-y-1 hover:scale-[1.01]">
-      <div className="absolute -right-8 -top-8 w-40 h-40 bg-gradient-to-br from-primary/10 to-transparent rounded-full blur-3xl group-hover:scale-125 transition-transform duration-700 pointer-events-none z-0" />
+            <div className="absolute -right-8 -top-8 w-40 h-40 bg-gradient-to-br from-primary/10 to-transparent rounded-full blur-3xl group-hover:scale-125 transition-transform duration-700 pointer-events-none z-0" />
             {/* Row */}
             <div
               className="flex items-center gap-3 px-4 py-3 cursor-pointer hover:bg-[var(--bg-card-soft)]"
@@ -1318,7 +1402,7 @@ function EvaluatorsTab() {
         </p>
 
         <div className="app-card p-4 mb-5 border-l-2 border-l-primary relative overflow-hidden group transition-all hover:-translate-y-1 hover:scale-[1.01]">
-      <div className="absolute -right-8 -top-8 w-40 h-40 bg-gradient-to-br from-primary/10 to-transparent rounded-full blur-3xl group-hover:scale-125 transition-transform duration-700 pointer-events-none z-0" />
+          <div className="absolute -right-8 -top-8 w-40 h-40 bg-gradient-to-br from-primary/10 to-transparent rounded-full blur-3xl group-hover:scale-125 transition-transform duration-700 pointer-events-none z-0" />
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
             <div>
               <p className="text-sm font-semibold text-foreground">Evaluation audit integrity</p>
@@ -1389,7 +1473,7 @@ function EvaluatorsTab() {
         {/* Add form */}
         {showForm && (
           <div className="app-card p-5 mb-5 border-l-2 border-l-primary relative overflow-hidden group transition-all hover:-translate-y-1 hover:scale-[1.01]">
-      <div className="absolute -right-8 -top-8 w-40 h-40 bg-gradient-to-br from-primary/10 to-transparent rounded-full blur-3xl group-hover:scale-125 transition-transform duration-700 pointer-events-none z-0" />
+            <div className="absolute -right-8 -top-8 w-40 h-40 bg-gradient-to-br from-primary/10 to-transparent rounded-full blur-3xl group-hover:scale-125 transition-transform duration-700 pointer-events-none z-0" />
             <p className="text-sm font-semibold text-foreground mb-4">New Evaluator</p>
             <div className="grid grid-cols-2 gap-3 mb-3">
               {fieldFor('first_name', 'First name', 'text', 'Dr. Meena')}
@@ -1418,7 +1502,7 @@ function EvaluatorsTab() {
           ? Array.from({ length: 3 }).map((_, i) => <div key={i} className="h-14 bg-[var(--bg-card-soft)] rounded-xl animate-pulse mb-3" />)
           : (
             <div className="app-card overflow-hidden mb-6 border-l-2 border-l-primary relative overflow-hidden group transition-all hover:-translate-y-1 hover:scale-[1.01]">
-      <div className="absolute -right-8 -top-8 w-40 h-40 bg-gradient-to-br from-primary/10 to-transparent rounded-full blur-3xl group-hover:scale-125 transition-transform duration-700 pointer-events-none z-0" />
+              <div className="absolute -right-8 -top-8 w-40 h-40 bg-gradient-to-br from-primary/10 to-transparent rounded-full blur-3xl group-hover:scale-125 transition-transform duration-700 pointer-events-none z-0" />
               {(!data?.evaluators?.length)
                 ? <div className="text-center py-12 text-muted text-sm">No evaluators registered yet.</div>
                 : data.evaluators.map((ev) => (
@@ -1497,8 +1581,8 @@ function EvaluatorsTab() {
                                 key={t.team_id}
                                 onClick={() => toggleTeamId(t.team_id)}
                                 className={`text-xs px-2.5 py-1.5 rounded-lg border transition-colors ${selected
-                                    ? 'bg-[var(--bg-card-soft)] border-primary text-primary font-semibold'
-                                    : 'border-border text-muted hover:bg-[var(--bg-card-soft)]'
+                                  ? 'bg-[var(--bg-card-soft)] border-primary text-primary font-semibold'
+                                  : 'border-border text-muted hover:bg-[var(--bg-card-soft)]'
                                   }`}
                               >
                                 {t.team_name}
@@ -1699,14 +1783,14 @@ function LeaderboardTab() {
 
         {!lb?.leaderboard?.length
           ? <div className="flex flex-col items-center justify-center py-16 text-muted">
-              <div className="relative mb-4">
-                <FileText size={40} className="opacity-30" />
-                <div className="absolute -bottom-1 -right-1 w-5 h-5 rounded-full flex items-center justify-center" style={{ backgroundColor: '#ef4444' }}>
-                  <X size={12} className="text-white" />
-                </div>
+            <div className="relative mb-4">
+              <FileText size={40} className="opacity-30" />
+              <div className="absolute -bottom-1 -right-1 w-5 h-5 rounded-full flex items-center justify-center" style={{ backgroundColor: '#ef4444' }}>
+                <X size={12} className="text-white" />
               </div>
-              <p className="text-sm font-medium">No evaluations submitted yet.</p>
             </div>
+            <p className="text-sm font-medium">No evaluations submitted yet.</p>
+          </div>
           : lb.leaderboard.map((team, i) => (
             <div
               key={team.team_id}
@@ -2004,8 +2088,8 @@ function CommunicationsTab() {
                       setDraft(null)
                     }}
                     className={`text-xs px-3 py-1.5 rounded-lg border transition-colors ${draftType === t.value
-                        ? 'app-btn-primary'
-                        : 'soft-button'
+                      ? 'app-btn-primary'
+                      : 'soft-button'
                       }`}
                   >
                     {t.label}
@@ -2032,7 +2116,7 @@ function CommunicationsTab() {
                 onChange={(e) => setDraftContext(e.target.value)}
                 rows={14}
                 className="soft-input block w-full max-w-none font-mono text-xs resize-y"
-                  style={{ width: "100%", maxWidth: "100%", minHeight: "280px" }}
+                style={{ width: "100%", maxWidth: "100%", minHeight: "280px" }}
               />
             </div>
 
@@ -2335,7 +2419,7 @@ function MentorOpsTab() {
 
         {showAssignForm && (
           <div className="app-card p-5 mb-5 border-l-2 border-l-primary relative overflow-hidden group transition-all hover:-translate-y-1 hover:scale-[1.01]">
-      <div className="absolute -right-8 -top-8 w-40 h-40 bg-gradient-to-br from-primary/10 to-transparent rounded-full blur-3xl group-hover:scale-125 transition-transform duration-700 pointer-events-none z-0" />
+            <div className="absolute -right-8 -top-8 w-40 h-40 bg-gradient-to-br from-primary/10 to-transparent rounded-full blur-3xl group-hover:scale-125 transition-transform duration-700 pointer-events-none z-0" />
             <p className="text-sm font-semibold text-foreground mb-4">Assign Mentor to Team</p>
             <div className="grid grid-cols-2 gap-3 mb-3">
               <div>
@@ -2391,7 +2475,7 @@ function MentorOpsTab() {
             <div className="space-y-3">
               {suggestions.map(s => (
                 <div key={String(s.team_id)} className="app-card p-4 border-l-2 border-l-primary relative overflow-hidden group transition-all hover:-translate-y-1 hover:scale-[1.01]">
-      <div className="absolute -right-8 -top-8 w-40 h-40 bg-gradient-to-br from-primary/10 to-transparent rounded-full blur-3xl group-hover:scale-125 transition-transform duration-700 pointer-events-none z-0" />
+                  <div className="absolute -right-8 -top-8 w-40 h-40 bg-gradient-to-br from-primary/10 to-transparent rounded-full blur-3xl group-hover:scale-125 transition-transform duration-700 pointer-events-none z-0" />
                   <p className="text-sm font-semibold text-foreground mb-1">{s.team_name}</p>
                   <p className="text-xs text-muted mb-2">{s.reason}</p>
                   {s.suggested_mentors?.map(c => (
@@ -2419,7 +2503,7 @@ function MentorOpsTab() {
           <div className="mb-8">
             <h2 className="text-base font-semibold text-foreground mb-4 flex items-center gap-2"><Shield size={16} className="text-primary" /> Risk Scores</h2>
             <div className="app-card overflow-hidden border-l-2 border-l-primary relative overflow-hidden group transition-all hover:-translate-y-1 hover:scale-[1.01]">
-      <div className="absolute -right-8 -top-8 w-40 h-40 bg-gradient-to-br from-primary/10 to-transparent rounded-full blur-3xl group-hover:scale-125 transition-transform duration-700 pointer-events-none z-0" />
+              <div className="absolute -right-8 -top-8 w-40 h-40 bg-gradient-to-br from-primary/10 to-transparent rounded-full blur-3xl group-hover:scale-125 transition-transform duration-700 pointer-events-none z-0" />
               <div className="grid grid-cols-12 bg-[var(--bg-card-soft)] border-b px-4 py-3 text-xs font-medium text-muted uppercase tracking-wide">
                 <div className="col-span-3">Team</div>
                 <div className="col-span-2">Mentor</div>
@@ -2485,7 +2569,7 @@ function MentorOpsTab() {
           </div>
           {aiResult && (
             <div className="app-card p-5 border-l-2 border-l-primary relative overflow-hidden group transition-all hover:-translate-y-1 hover:scale-[1.01]">
-      <div className="absolute -right-8 -top-8 w-40 h-40 bg-gradient-to-br from-primary/10 to-transparent rounded-full blur-3xl group-hover:scale-125 transition-transform duration-700 pointer-events-none z-0" />
+              <div className="absolute -right-8 -top-8 w-40 h-40 bg-gradient-to-br from-primary/10 to-transparent rounded-full blur-3xl group-hover:scale-125 transition-transform duration-700 pointer-events-none z-0" />
               <div className="flex items-center gap-2 mb-3">
                 <p className="text-sm font-semibold text-foreground">{aiResult.team_name}</p>
                 <Badge colour={aiResult.tone === 'urgent' ? 'red' : aiResult.tone === 'watchlist' ? 'amber' : 'green'}>{aiResult.tone}</Badge>
@@ -2778,7 +2862,7 @@ function AnomalyTab() {
         <h3 className="text-lg font-semibold text-foreground mb-2">Flagged Evaluations Pipeline</h3>
         {flaggedTeams.length === 0 ? (
           <div className="app-card py-16 text-center border-l-2 border-l-primary relative overflow-hidden group transition-all hover:-translate-y-1 hover:scale-[1.01]">
-      <div className="absolute -right-8 -top-8 w-40 h-40 bg-gradient-to-br from-primary/10 to-transparent rounded-full blur-3xl group-hover:scale-125 transition-transform duration-700 pointer-events-none z-0" />
+            <div className="absolute -right-8 -top-8 w-40 h-40 bg-gradient-to-br from-primary/10 to-transparent rounded-full blur-3xl group-hover:scale-125 transition-transform duration-700 pointer-events-none z-0" />
             <CheckSquare size={48} className="mx-auto text-primary/50 mb-3" />
             <p className="text-foreground font-medium">No Anomalies Detected</p>
             <p className="text-sm text-muted">All scorecards are currently within expected variance thresholds.</p>
@@ -2786,7 +2870,7 @@ function AnomalyTab() {
         ) : (
           flaggedTeams.map(team => (
             <div key={team.id} className="app-card p-5 flex flex-col md:flex-row md:items-center justify-between gap-4 border-l-2 border-l-primary relative overflow-hidden group transition-all hover:-translate-y-1 hover:scale-[1.01]">
-      <div className="absolute -right-8 -top-8 w-40 h-40 bg-gradient-to-br from-primary/10 to-transparent rounded-full blur-3xl group-hover:scale-125 transition-transform duration-700 pointer-events-none z-0" />
+              <div className="absolute -right-8 -top-8 w-40 h-40 bg-gradient-to-br from-primary/10 to-transparent rounded-full blur-3xl group-hover:scale-125 transition-transform duration-700 pointer-events-none z-0" />
               <div className="flex-1">
                 <div className="flex items-center gap-2 mb-2">
                   <h4 className="font-bold text-foreground text-lg">{team.team_name}</h4>
@@ -2890,7 +2974,7 @@ function RiskTab() {
   if (capabilityDisabled) {
     return (
       <div className="app-card py-16 text-center border-l-2 border-l-primary relative overflow-hidden group transition-all hover:-translate-y-1 hover:scale-[1.01]">
-      <div className="absolute -right-8 -top-8 w-40 h-40 bg-gradient-to-br from-primary/10 to-transparent rounded-full blur-3xl group-hover:scale-125 transition-transform duration-700 pointer-events-none z-0" />
+        <div className="absolute -right-8 -top-8 w-40 h-40 bg-gradient-to-br from-primary/10 to-transparent rounded-full blur-3xl group-hover:scale-125 transition-transform duration-700 pointer-events-none z-0" />
         <ShieldAlert size={48} className="mx-auto text-primary/50 mb-3" />
         <p className="text-foreground font-medium">Risk monitoring is not enabled for this event.</p>
       </div>
@@ -2900,7 +2984,7 @@ function RiskTab() {
   if (summaryError || teamsError) {
     return (
       <div className="app-card py-16 text-center border-l-2 border-l-primary relative overflow-hidden group transition-all hover:-translate-y-1 hover:scale-[1.01]">
-      <div className="absolute -right-8 -top-8 w-40 h-40 bg-gradient-to-br from-primary/10 to-transparent rounded-full blur-3xl group-hover:scale-125 transition-transform duration-700 pointer-events-none z-0" />
+        <div className="absolute -right-8 -top-8 w-40 h-40 bg-gradient-to-br from-primary/10 to-transparent rounded-full blur-3xl group-hover:scale-125 transition-transform duration-700 pointer-events-none z-0" />
         <AlertTriangle size={48} className="mx-auto text-primary/50 mb-3" />
         <p className="text-foreground font-medium">Unable to load risk intelligence.</p>
         <p className="text-sm text-muted mt-1">{summaryError?.message || teamsError?.message}</p>
@@ -2938,13 +3022,13 @@ function RiskTab() {
 
       {loading ? (
         <div className="app-card py-16 text-center border-l-2 border-l-primary relative overflow-hidden group transition-all hover:-translate-y-1 hover:scale-[1.01]">
-      <div className="absolute -right-8 -top-8 w-40 h-40 bg-gradient-to-br from-primary/10 to-transparent rounded-full blur-3xl group-hover:scale-125 transition-transform duration-700 pointer-events-none z-0" />
+          <div className="absolute -right-8 -top-8 w-40 h-40 bg-gradient-to-br from-primary/10 to-transparent rounded-full blur-3xl group-hover:scale-125 transition-transform duration-700 pointer-events-none z-0" />
           <Loader2 size={48} className="mx-auto text-primary-light mb-3 animate-spin" />
           <p className="text-foreground font-medium">Loading risk intelligence...</p>
         </div>
       ) : teams.length === 0 ? (
         <div className="app-card py-16 text-center border-l-2 border-l-primary relative overflow-hidden group transition-all hover:-translate-y-1 hover:scale-[1.01]">
-      <div className="absolute -right-8 -top-8 w-40 h-40 bg-gradient-to-br from-primary/10 to-transparent rounded-full blur-3xl group-hover:scale-125 transition-transform duration-700 pointer-events-none z-0" />
+          <div className="absolute -right-8 -top-8 w-40 h-40 bg-gradient-to-br from-primary/10 to-transparent rounded-full blur-3xl group-hover:scale-125 transition-transform duration-700 pointer-events-none z-0" />
           <Activity size={48} className="mx-auto text-primary-light mb-3" />
           <p className="text-foreground font-medium">No risk snapshots yet.</p>
           <p className="text-sm text-muted">Run a risk sweep to generate the first report.</p>
@@ -2958,8 +3042,8 @@ function RiskTab() {
               style={{
                 borderLeft: team.risk_level === 'critical' ? '3px solid var(--color-danger)' :
                   team.risk_level === 'high' ? '3px solid var(--color-primary)' :
-                  team.risk_level === 'medium' ? '3px solid var(--color-info)' :
-                  '3px solid var(--color-success)',
+                    team.risk_level === 'medium' ? '3px solid var(--color-info)' :
+                      '3px solid var(--color-success)',
               }}
             >
               <div className="flex flex-col md:flex-row justify-between gap-4">
@@ -3303,25 +3387,24 @@ function CreateEventTab() {
 
   return (
     <div className="grid grid-cols-1 xl:grid-cols-[minmax(0,1fr)_320px] gap-6 items-start">
-      <div className="rounded-[24px] bg-white p-8 shadow-[0_18px_45px_rgba(15,23,42,0.08)] ring-1 ring-slate-200/80 dark:bg-slate-900 dark:ring-white/10">
+      <div className="app-card bg-white/95 dark:bg-white/[0.06] rounded-[24px] p-7 shadow-[0_18px_45px_rgba(15,23,42,0.08)] border border-slate-200/70 dark:border-white/10">
         <div className="flex items-start justify-between gap-4 mb-8">
           <div>
-            <h2 className="text-2xl font-extrabold text-red-600">Create Event</h2>
-            <p className="mt-5 text-sm font-medium text-slate-700 dark:text-slate-300">
+            <h2 className="text-2xl font-bold text-red-600 dark:text-red-500">Create Event</h2>
+            <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">
               Create from a system template. The event receives a copied template config and its own active capabilities.
             </p>
           </div>
-          <button type="button" className="inline-flex items-center gap-2 rounded-xl bg-white px-4 py-2 text-sm font-semibold text-slate-700 shadow-sm ring-1 ring-slate-300 hover:bg-slate-50 dark:bg-white/5 dark:text-slate-200 dark:ring-white/15 dark:hover:bg-white/10 shrink-0">
-            <LayoutTemplate className="h-4 w-4" />
+          <button type="button" className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 shadow-sm hover:bg-slate-50 dark:border-white/10 dark:bg-white/5 dark:text-slate-200 dark:hover:bg-white/10 shrink-0 transition-colors">
             Template marketplace
           </button>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 mb-8">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 mb-5">
           <div>
-            <label className="mb-2 block text-sm font-semibold text-slate-800 dark:text-slate-200">Event name</label>
+            <label className="block text-sm font-semibold text-slate-900 dark:text-slate-200 mb-2">Event name</label>
             <div className="relative">
-              <div className="pointer-events-none absolute left-3 top-1/2 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-lg bg-green-100 text-green-600 dark:bg-green-500/15 dark:text-green-300">
+              <div className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 flex h-9 w-9 items-center justify-center rounded-lg bg-green-100 text-green-600 dark:bg-green-500/15 dark:text-green-300">
                 <Calendar className="h-4 w-4" />
               </div>
               <input
@@ -3332,38 +3415,38 @@ function CreateEventTab() {
                   slug: f.slug || slugifyEventName(e.target.value),
                 }))}
                 placeholder="Smart India Hackathon Demo"
-                className="h-12 w-full rounded-xl bg-white pl-14 pr-4 text-sm font-medium text-slate-900 shadow-sm ring-1 ring-slate-300 placeholder:text-slate-400 outline-none transition focus:ring-2 focus:ring-red-500/50 dark:bg-white/5 dark:text-white dark:ring-white/15 dark:placeholder:text-slate-500"
+                className="soft-input h-12 w-full rounded-xl pl-14 pr-4 text-sm text-slate-900 placeholder:text-slate-400 dark:text-white dark:placeholder:text-slate-500 bg-slate-50 dark:bg-white/5 border-slate-200 dark:border-white/10 focus:border-red-500 focus:ring-1 focus:ring-red-500 transition-colors"
               />
             </div>
           </div>
           <div>
-            <label className="mb-2 block text-sm font-semibold text-slate-800 dark:text-slate-200">Slug</label>
+            <label className="block text-sm font-semibold text-slate-900 dark:text-slate-200 mb-2">Slug</label>
             <div className="relative">
-              <div className="pointer-events-none absolute left-3 top-1/2 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-lg bg-blue-100 text-blue-600 dark:bg-blue-500/15 dark:text-blue-300">
+              <div className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 flex h-9 w-9 items-center justify-center rounded-lg bg-blue-100 text-blue-600 dark:bg-blue-500/15 dark:text-blue-300">
                 <Link className="h-4 w-4" />
               </div>
               <input
                 value={form.slug}
                 onChange={(e) => setForm((f) => ({ ...f, slug: slugifyEventName(e.target.value) }))}
                 placeholder="smart-india-hackathon-demo"
-                className="h-12 w-full rounded-xl bg-white pl-14 pr-4 text-sm font-medium text-slate-900 shadow-sm ring-1 ring-slate-300 placeholder:text-slate-400 outline-none transition focus:ring-2 focus:ring-red-500/50 dark:bg-white/5 dark:text-white dark:ring-white/15 dark:placeholder:text-slate-500"
+                className="soft-input h-12 w-full rounded-xl pl-14 pr-4 text-sm text-slate-900 placeholder:text-slate-400 dark:text-white dark:placeholder:text-slate-500 bg-slate-50 dark:bg-white/5 border-slate-200 dark:border-white/10 focus:border-red-500 focus:ring-1 focus:ring-red-500 transition-colors"
               />
             </div>
           </div>
         </div>
 
-        <div className="mb-8 max-w-[520px]">
-          <label className="mb-2 block text-sm font-semibold text-slate-800 dark:text-slate-200">Template</label>
+        <div className="mb-5">
+          <label className="block text-sm font-semibold text-slate-900 dark:text-slate-200 mb-2">Template</label>
           <div className="relative">
-            <div className="pointer-events-none absolute left-3 top-1/2 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-lg bg-orange-100 text-orange-600 dark:bg-orange-500/15 dark:text-orange-300">
+            <div className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 flex h-9 w-9 items-center justify-center rounded-lg bg-orange-100 text-orange-600 dark:bg-orange-500/15 dark:text-orange-300">
               <LayoutTemplate className="h-4 w-4" />
             </div>
             <select
               value={form.template_id}
               onChange={(e) => setForm((f) => ({ ...f, template_id: e.target.value }))}
-              className="h-12 w-full rounded-xl bg-white pl-14 pr-10 text-sm font-medium text-slate-900 shadow-sm ring-1 ring-slate-300 outline-none transition focus:ring-2 focus:ring-red-500/50 appearance-none dark:bg-white/5 dark:text-white dark:ring-white/15"
+              className="soft-select h-12 w-full rounded-xl pl-14 pr-10 text-sm text-slate-900 dark:text-white bg-slate-50 dark:bg-white/5 border-slate-200 dark:border-white/10 focus:border-red-500 focus:ring-1 focus:ring-red-500 transition-colors appearance-none"
             >
-              <option value="" disabled>{isLoading ? 'Loading templates...' : 'Choose a template'}</option>
+              <option value="">{isLoading ? 'Loading templates...' : 'Choose a template'}</option>
               {templates.map((template) => (
                 <option key={template.id} value={template.id}>
                   {template.name}
@@ -3377,7 +3460,7 @@ function CreateEventTab() {
         </div>
 
         {selectedTemplate && (
-          <div className="rounded-xl bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 p-4 mb-8">
+          <div className="rounded-xl bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 p-4 mb-5">
             <p className="text-sm font-bold text-slate-900 dark:text-white">{selectedTemplate.name}</p>
             <p className="text-xs text-slate-600 dark:text-slate-400 mt-1">{selectedTemplate.description}</p>
             <div className="flex gap-2 flex-wrap mt-3">
@@ -3389,11 +3472,9 @@ function CreateEventTab() {
         )}
 
         <div className="mb-8">
-          <label className="mb-2 block text-sm font-semibold text-slate-800 dark:text-slate-200">
-            Description <span className="text-slate-500 font-normal">(Optional)</span>
-          </label>
+          <label className="block text-sm font-semibold text-slate-900 dark:text-slate-200 mb-2">Description</label>
           <div className="relative">
-            <div className="pointer-events-none absolute left-3 top-4 flex h-9 w-9 items-center justify-center rounded-lg bg-purple-100 text-purple-600 dark:bg-purple-500/15 dark:text-purple-300">
+            <div className="pointer-events-none absolute left-3 top-3 flex h-9 w-9 items-center justify-center rounded-lg bg-purple-100 text-purple-600 dark:bg-purple-500/15 dark:text-purple-300">
               <ClipboardList className="h-4 w-4" />
             </div>
             <textarea
@@ -3401,7 +3482,7 @@ function CreateEventTab() {
               onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))}
               rows={4}
               placeholder="Optional internal description for this event..."
-              className="min-h-[150px] w-full rounded-xl bg-white py-4 pl-14 pr-4 text-sm font-medium text-slate-900 shadow-sm ring-1 ring-slate-300 placeholder:text-slate-400 outline-none transition focus:ring-2 focus:ring-red-500/50 dark:bg-white/5 dark:text-white dark:ring-white/15 dark:placeholder:text-slate-500 resize-none"
+              className="soft-input min-h-[150px] w-full rounded-xl py-3.5 pl-14 pr-4 text-sm text-slate-900 placeholder:text-slate-400 dark:text-white dark:placeholder:text-slate-500 bg-slate-50 dark:bg-white/5 border-slate-200 dark:border-white/10 focus:border-red-500 focus:ring-1 focus:ring-red-500 transition-colors resize-none"
             />
           </div>
         </div>
@@ -3409,7 +3490,7 @@ function CreateEventTab() {
         <button
           onClick={() => createMutation.mutate()}
           disabled={createMutation.isPending || !form.name.trim() || !form.template_id}
-          className="inline-flex h-12 items-center justify-center gap-2 rounded-xl bg-red-600 px-6 text-sm font-bold text-white shadow-[0_12px_24px_rgba(239,68,68,0.28)] transition hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-60"
+          className="inline-flex h-12 items-center justify-center gap-2 rounded-xl bg-red-600 px-6 text-sm font-bold text-white shadow-[0_12px_24px_rgba(239,68,68,0.25)] transition hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-60 w-full sm:w-auto"
         >
           <FileText className="h-4 w-4" />
           {createMutation.isPending ? 'Creating...' : 'Create from template'}
@@ -3419,18 +3500,18 @@ function CreateEventTab() {
         )}
       </div>
 
-      <aside className="rounded-[24px] bg-white p-7 shadow-[0_18px_45px_rgba(15,23,42,0.08)] ring-1 ring-slate-200/80 dark:bg-slate-900 dark:ring-white/10">
+      <aside className="app-card rounded-[24px] bg-white/95 p-7 shadow-[0_18px_45px_rgba(15,23,42,0.08)] border border-slate-200/70 dark:border-white/10 dark:bg-white/[0.06]">
         <div className="mb-5 flex h-12 w-12 items-center justify-center rounded-2xl bg-orange-100 text-orange-500 dark:bg-orange-500/15 dark:text-orange-300">
           <Lightbulb className="h-7 w-7" />
         </div>
-        <h3 className="text-xl font-extrabold text-slate-900 dark:text-white">Need AI help?</h3>
-        <p className="mt-6 text-sm font-medium leading-7 text-slate-700 dark:text-slate-300">
+        <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-2">Need AI help?</h3>
+        <p className="text-sm text-slate-600 dark:text-slate-400 mb-6 leading-relaxed">
           Use the AI event builder when you do not know the template, stages, team size, or scoring structure yet.
         </p>
         <button
           type="button"
           onClick={() => navigate('/configure')}
-          className="mt-7 inline-flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-orange-500 to-red-600 text-sm font-bold text-white shadow-[0_14px_28px_rgba(239,68,68,0.28)] transition hover:from-orange-600 hover:to-red-700"
+          className="inline-flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-orange-500 to-red-600 text-sm font-bold text-white shadow-[0_14px_28px_rgba(239,68,68,0.28)] transition hover:from-orange-600 hover:to-red-700"
         >
           <Sparkles className="h-4 w-4" />
           Create with AI
