@@ -318,18 +318,18 @@ function ParticipantMetricCard({ title, value, sub, icon: Icon, tone }) {
     orange: 'bg-orange-100 text-orange-500'
   }
   return (
-    <div className="relative overflow-hidden rounded-[20px] bg-white p-6 min-h-[148px] shadow-[0_14px_35px_rgba(15,23,42,0.06)] ring-1 ring-slate-200/80 dark:bg-slate-900 dark:ring-white/10">
+    <div className="relative min-h-[150px] overflow-hidden rounded-[18px] bg-white p-6 shadow-[0_12px_32px_rgba(15,23,42,0.06)] ring-1 ring-slate-200/80">
       <div className="flex items-center gap-4">
         <div className={`h-12 w-12 rounded-xl flex items-center justify-center shrink-0 ${tones[tone] || tones.blue}`}>
           <Icon className="h-6 w-6" />
         </div>
         <div>
-          <p className="text-sm font-bold text-slate-950 dark:text-white">{title}</p>
+          <p className="text-sm font-extrabold text-slate-900">{title}</p>
         </div>
       </div>
       <div className="mt-4">
-        <p className="text-3xl font-extrabold text-slate-950 dark:text-white">{value}</p>
-        {sub && <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">{sub}</p>}
+        <p className="text-[34px] leading-none font-extrabold text-slate-950">{value}</p>
+        {sub && <p className="mt-1 text-sm font-medium text-slate-500">{sub}</p>}
       </div>
       <ParticipantMiniSparkline tone={tone} />
     </div>
@@ -340,7 +340,7 @@ function ParticipantMiniSparkline({ tone }) {
   const colors = {
     blue: '#3b82f6',
     green: '#10b981',
-    orange: '#f97316'
+    orange: '#f59e0b'
   }
   const color = colors[tone] || colors.blue
   return (
@@ -363,7 +363,7 @@ function getRowColors(index) {
     { avatar: 'bg-blue-100 text-blue-600', pill: 'border-blue-400 bg-blue-50 text-blue-600' },
     { avatar: 'bg-emerald-100 text-emerald-600', pill: 'border-emerald-400 bg-emerald-50 text-emerald-600' },
     { avatar: 'bg-purple-100 text-purple-600', pill: 'border-purple-400 bg-purple-50 text-purple-600' },
-    { avatar: 'bg-orange-100 text-orange-500', pill: 'border-orange-400 bg-orange-50 text-orange-600' },
+    { avatar: 'bg-orange-100 text-orange-600', pill: 'border-orange-400 bg-orange-50 text-orange-600' },
   ]
   return colors[index % colors.length]
 }
@@ -479,12 +479,12 @@ function ParticipantsTab() {
 
       {/* CSV dropzone */}
       <div className="mb-8">
-        <div className="flex items-center justify-between mt-8 mb-4">
-          <h2 className="text-xl font-extrabold text-red-600 dark:text-red-500">Upload Roster CSV</h2>
+        <div className="flex items-center justify-between mt-8">
+          <h2 className="text-[22px] font-extrabold text-red-600">Upload Roster CSV</h2>
           <a
             href={participantsApi.csvTemplateUrl()}
             download
-            className="inline-flex items-center gap-2 text-sm font-semibold text-blue-600 hover:text-blue-700 dark:text-blue-400"
+            className="inline-flex items-center gap-2 text-sm font-bold text-blue-600 hover:text-blue-700"
           >
             <Download className="h-4 w-4" /> Download Template
           </a>
@@ -495,8 +495,8 @@ function ParticipantsTab() {
           onDragOver={onDragOver}
           onDragLeave={onDragLeave}
           onClick={() => fileInputRef.current?.click()}
-          className={`rounded-[18px] border-2 border-dashed border-red-400 bg-white px-8 py-12 text-center shadow-[0_10px_28px_rgba(15,23,42,0.04)] transition hover:border-red-500 hover:bg-red-50/20 dark:bg-slate-900 dark:border-red-500/70 dark:hover:bg-red-950/20 cursor-pointer ${
-            dragActive ? 'border-red-500 bg-red-50/20 dark:bg-red-950/20' : ''
+          className={`mt-5 flex min-h-[150px] cursor-pointer flex-col items-center justify-center rounded-[18px] border-2 border-dashed border-red-400 bg-white px-8 py-10 text-center shadow-[0_10px_28px_rgba(15,23,42,0.04)] transition hover:border-red-500 hover:bg-red-50/20 ${
+            dragActive ? 'border-red-500 bg-red-50/20' : ''
           }`}
         >
           <input
@@ -509,15 +509,15 @@ function ParticipantsTab() {
           {uploadMutation.isPending ? (
             <div className="flex flex-col items-center gap-2">
               <Loader2 className="h-8 w-8 text-red-600 animate-spin" />
-              <p className="text-sm font-semibold text-slate-700 dark:text-slate-300">Uploading roster…</p>
+              <p className="text-sm font-semibold text-slate-700">Uploading roster…</p>
             </div>
           ) : (
-            <div className="flex flex-col items-center gap-2">
-              <UploadCloud className={`h-10 w-10 mb-2 transition-colors ${dragActive ? 'text-red-600' : 'text-red-500'}`} />
-              <p className="text-base font-bold text-slate-900 dark:text-white">
+            <div className="flex flex-col items-center">
+              <UploadCloud size={38} className="text-red-600" />
+              <p className="mt-4 text-sm font-extrabold text-slate-950">
                 Drop a CSV here or click to browse
               </p>
-              <p className="text-sm font-medium text-slate-500 dark:text-slate-400 mt-1">
+              <p className="mt-2 text-sm font-semibold text-slate-500">
                 Required columns: name, email, institution, skills, team_preference (optional)
               </p>
             </div>
@@ -526,14 +526,14 @@ function ParticipantsTab() {
 
         {/* Upload result */}
         {uploadResult && (
-          <div className="mt-4 p-4 rounded-xl bg-white ring-1 ring-slate-200 shadow-sm dark:bg-slate-900 dark:ring-white/10">
+          <div className="mt-4 p-4 rounded-xl bg-white ring-1 ring-slate-200 shadow-sm">
             <div className="flex justify-between mb-2">
-              <p className="text-sm font-semibold text-slate-900 dark:text-white">{uploadResult.message}</p>
-              <button onClick={() => setUploadResult(null)} className="text-slate-400 hover:text-slate-600 dark:hover:text-white">
+              <p className="text-sm font-semibold text-slate-900">{uploadResult.message}</p>
+              <button onClick={() => setUploadResult(null)} className="text-slate-400 hover:text-slate-600">
                 <X className="h-4 w-4" />
               </button>
             </div>
-            <div className="flex gap-4 text-xs font-bold text-red-600 dark:text-red-400">
+            <div className="flex gap-4 text-xs font-bold text-red-600">
               <span>{uploadResult.created} created</span>
               <span>{uploadResult.updated} updated</span>
               <span>{uploadResult.skipped} skipped</span>
@@ -549,34 +549,30 @@ function ParticipantsTab() {
       </div>
 
       {/* Filter bar & Action Buttons */}
-      <div className="flex flex-col xl:flex-row gap-4 mb-6 justify-between items-start xl:items-center">
-        <div className="flex flex-col sm:flex-row gap-4 w-full xl:w-auto">
-          <div className="relative">
-            <div className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-slate-400">
-              <Search className="h-4 w-4" />
-            </div>
+      <div className="flex items-center justify-between gap-4 mt-6">
+        <div className="flex gap-4">
+          <div className="relative h-11 w-[330px]">
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 h-4 w-4" />
             <input
               value={search}
               onChange={(e) => { setSearch(e.target.value); setPage(1) }}
               placeholder="Search by name or email..."
-              className="h-12 w-full sm:w-64 rounded-xl bg-white pl-11 pr-4 text-sm font-medium text-slate-900 shadow-sm ring-1 ring-slate-200 placeholder:text-slate-400 outline-none transition focus:ring-2 focus:ring-red-500/35 dark:bg-slate-900 dark:text-white dark:ring-white/10"
+              className="h-11 w-full rounded-xl bg-white pl-11 pr-4 text-sm font-semibold text-slate-900 shadow-sm ring-1 ring-slate-200 placeholder:text-slate-400 outline-none transition focus:ring-2 focus:ring-red-500/35"
             />
           </div>
-          <div className="relative">
-            <div className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-slate-400">
-              <Building2 className="h-4 w-4" />
-            </div>
+          <div className="relative h-11 w-[330px]">
+            <Building2 className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 h-4 w-4" />
             <input
               value={collegeFilter}
               onChange={(e) => { setCollegeFilter(e.target.value); setPage(1) }}
               placeholder="Search by college..."
-              className="h-12 w-full sm:w-64 rounded-xl bg-white pl-11 pr-4 text-sm font-medium text-slate-900 shadow-sm ring-1 ring-slate-200 placeholder:text-slate-400 outline-none transition focus:ring-2 focus:ring-red-500/35 dark:bg-slate-900 dark:text-white dark:ring-white/10"
+              className="h-11 w-full rounded-xl bg-white pl-11 pr-4 text-sm font-semibold text-slate-900 shadow-sm ring-1 ring-slate-200 placeholder:text-slate-400 outline-none transition focus:ring-2 focus:ring-red-500/35"
             />
           </div>
           <select
             value={teamFilter}
             onChange={(e) => { setTeamFilter(e.target.value); setPage(1) }}
-            className="h-12 w-full sm:w-[110px] rounded-xl bg-white px-4 text-sm font-bold text-slate-900 shadow-sm ring-1 ring-slate-200 outline-none transition focus:ring-2 focus:ring-red-500/35 dark:bg-slate-900 dark:text-white dark:ring-white/10 appearance-none"
+            className="h-11 w-[110px] rounded-xl bg-white px-4 text-sm font-extrabold text-slate-900 shadow-sm ring-1 ring-slate-200 outline-none transition focus:ring-2 focus:ring-red-500/35 appearance-none"
           >
             <option value="">All</option>
             <option value="false">Unassigned</option>
@@ -592,7 +588,7 @@ function ParticipantsTab() {
             }
           }}
           disabled={sendLinksMutation.isPending || !summary?.total_participants}
-          className="inline-flex h-12 w-full xl:w-auto items-center justify-center gap-2 rounded-xl bg-red-600 px-6 text-sm font-bold text-white shadow-[0_14px_26px_rgba(239,68,68,0.24)] transition hover:bg-red-700 disabled:opacity-50"
+          className="inline-flex h-11 items-center justify-center gap-2 rounded-xl bg-red-600 px-6 text-sm font-extrabold text-white shadow-[0_14px_26px_rgba(239,68,68,0.28)] transition hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-50"
         >
           {sendLinksMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
           {sendLinksMutation.isPending ? 'Dispatching...' : 'Dispatch Magic Links'}
@@ -600,23 +596,23 @@ function ParticipantsTab() {
       </div>
 
       {/* Participants table */}
-      <div className="overflow-hidden rounded-[20px] bg-white shadow-[0_14px_35px_rgba(15,23,42,0.06)] ring-1 ring-slate-200/80 dark:bg-slate-900 dark:ring-white/10 mb-8">
+      <div className="mt-6 overflow-hidden rounded-[18px] bg-white shadow-[0_12px_32px_rgba(15,23,42,0.06)] ring-1 ring-slate-200/80 mb-8">
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
-              <tr className="bg-white text-left border-b border-slate-200/80 dark:bg-slate-900 dark:border-white/10">
+              <tr className="bg-white text-left border-b border-slate-200/80">
                 {['Name', 'Institution', 'Skills (avg)', 'Team', 'Team Link Status', ''].map((h) => (
-                  <th key={h} className="px-6 py-4 text-xs font-extrabold uppercase tracking-wide text-slate-800 dark:text-slate-300">{h}</th>
+                  <th key={h} className="px-6 py-4 text-xs font-extrabold uppercase tracking-wide text-slate-800">{h}</th>
                 ))}
               </tr>
             </thead>
             <tbody>
               {isLoading
                 ? Array.from({ length: 6 }).map((_, i) => (
-                  <tr key={i} className="border-b border-slate-100 last:border-b-0 dark:border-white/5">
+                  <tr key={i} className="border-b border-slate-100 last:border-b-0">
                     {[1, 2, 3, 4, 5, 6].map((j) => (
                       <td key={j} className="px-6 py-4">
-                        <div className="h-4 bg-slate-100 dark:bg-slate-800 rounded animate-pulse w-24" />
+                        <div className="h-4 bg-slate-100 rounded animate-pulse w-24" />
                       </td>
                     ))}
                   </tr>
@@ -630,26 +626,26 @@ function ParticipantsTab() {
                   const colors = getRowColors(index)
 
                   return (
-                    <tr key={p.id} className="border-b border-slate-100 last:border-b-0 hover:bg-slate-50/80 dark:border-white/5 dark:hover:bg-slate-800/50 transition-colors">
-                      <td className="px-6 py-4 text-slate-800 dark:text-slate-200">
+                    <tr key={p.id} className="border-b border-slate-100 last:border-b-0 hover:bg-slate-50/80 transition-colors">
+                      <td className="px-6 py-4 text-slate-800">
                         <div className="flex items-center gap-4">
                           <div className={`h-12 w-12 rounded-full flex items-center justify-center font-bold text-lg shrink-0 ${colors.avatar}`}>
                             {p.first_name?.[0] || '?'}
                           </div>
                           <div>
-                            <p className="font-bold text-slate-950 dark:text-white">{p.first_name} {p.last_name}</p>
-                            <p className="text-xs font-medium text-slate-500 dark:text-slate-400">{p.email}</p>
+                            <p className="text-sm font-extrabold text-slate-950">{p.first_name} {p.last_name}</p>
+                            <p className="text-xs font-medium text-slate-500">{p.email}</p>
                           </div>
                         </div>
                       </td>
-                      <td className="px-6 py-4 text-slate-800 dark:text-slate-200 font-medium">{p.institution}</td>
-                      <td className="px-6 py-4 text-slate-800 dark:text-slate-200">
+                      <td className="px-6 py-4 text-sm font-semibold text-slate-800">{p.institution}</td>
+                      <td className="px-6 py-4 text-slate-800">
                         {avg
                           ? <span className={`rounded-lg border px-3 py-1 text-sm font-extrabold ${colors.pill}`}>{avg}/10</span>
                           : <span className="text-slate-400 text-sm font-bold">—</span>
                         }
                       </td>
-                      <td className="px-6 py-4 text-slate-800 dark:text-slate-200">
+                      <td className="px-6 py-4 text-slate-800">
                         {p.team_name
                           ? <span className={`rounded-lg border px-3 py-1 text-sm font-extrabold ${colors.pill}`}>{p.team_name}</span>
                           : p.team_status === "pending_approval"
@@ -691,13 +687,13 @@ function ParticipantsTab() {
 
         {/* Pagination */}
         {data && data.total_pages > 1 && (
-          <div className="flex justify-between items-center px-6 py-4 border-t border-slate-200/80 dark:border-white/10 text-sm font-semibold text-slate-500 dark:text-slate-400 bg-slate-50/50 dark:bg-slate-900">
+          <div className="flex justify-between items-center px-6 py-4 border-t border-slate-200/80 text-sm font-semibold text-slate-500 bg-slate-50/50">
             <span>Page {data.page} of {data.total_pages} ({data.total} total)</span>
             <div className="flex gap-2">
               <button disabled={page === 1} onClick={() => setPage(p => p - 1)}
-                className="px-4 py-2 rounded-lg bg-white ring-1 ring-slate-200 text-slate-700 hover:bg-slate-50 disabled:opacity-40 transition dark:bg-slate-800 dark:ring-white/10 dark:text-slate-300 dark:hover:bg-slate-800/80">Prev</button>
+                className="px-4 py-2 rounded-lg bg-white ring-1 ring-slate-200 text-slate-700 hover:bg-slate-50 disabled:opacity-40 transition">Prev</button>
               <button disabled={page >= data.total_pages} onClick={() => setPage(p => p + 1)}
-                className="px-4 py-2 rounded-lg bg-white ring-1 ring-slate-200 text-slate-700 hover:bg-slate-50 disabled:opacity-40 transition dark:bg-slate-800 dark:ring-white/10 dark:text-slate-300 dark:hover:bg-slate-800/80">Next</button>
+                className="px-4 py-2 rounded-lg bg-white ring-1 ring-slate-200 text-slate-700 hover:bg-slate-50 disabled:opacity-40 transition">Next</button>
             </div>
           </div>
         )}
