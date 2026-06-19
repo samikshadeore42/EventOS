@@ -28,15 +28,15 @@ function weightedTotal(scores) {
 }
 
 function qualityLabel(total) {
-  if (total >= 8.5) return { label: 'Excellent', colour: 'text-teal-600' }
-  if (total >= 7.0) return { label: 'Good',      colour: 'text-teal-600' }
-  if (total >= 5.5) return { label: 'Average',   colour: 'text-amber-600' }
-  return                    { label: 'Needs work', colour: 'text-teal-500' }
+  if (total >= 8.5) return { label: 'Excellent', colour: 'text-primary' }
+  if (total >= 7.0) return { label: 'Good',      colour: 'text-primary' }
+  if (total >= 5.5) return { label: 'Average',   colour: 'text-primary' }
+  return                    { label: 'Needs work', colour: 'text-primary' }
 }
 
 // ── Error / empty screens ─────────────────────────────────────────────────
 
-function FullPageMessage({ icon: Icon, title, message, iconClass = 'text-slate-400 dark:text-slate-500' }) {
+function FullPageMessage({ icon: Icon, title, message, iconClass = 'text-slate-400 dark:text-muted' }) {
   return (
     <div className="min-h-screen flex items-center justify-center bg-surface">
       <div className="text-center max-w-sm px-4">
@@ -54,9 +54,9 @@ function CriterionSlider({ criterion, value, onChange }) {
   const pct = (value / 10) * 100
 
   const trackColor =
-    value >= 8 ? 'accent-teal-500'   :
-    value >= 6 ? 'accent-teal-500' :
-    value >= 4 ? 'accent-amber-500'  : 'accent-teal-400'
+    value >= 8 ? 'accent-primary'   :
+    value >= 6 ? 'accent-primary' :
+    value >= 4 ? 'accent-primary'  : 'accent-primary-light'
 
   return (
     <div className="mb-6">
@@ -64,7 +64,7 @@ function CriterionSlider({ criterion, value, onChange }) {
         <div className="flex-1 min-w-0 mr-4">
           <div className="flex items-center gap-2">
             <p className="text-sm font-bold text-foreground">{criterion.label}</p>
-            <span className="text-xs font-semibold text-muted bg-slate-200 dark:bg-slate-700 px-1.5 py-0.5 rounded-full">
+            <span className="text-xs font-semibold text-muted bg-cardSoft px-1.5 py-0.5 rounded-full">
               {(criterion.weight * 100).toFixed(0)}%
             </span>
           </div>
@@ -72,9 +72,9 @@ function CriterionSlider({ criterion, value, onChange }) {
         </div>
         <div className="shrink-0 text-right">
           <span className={`text-2xl font-black tabular-nums ${
-            value >= 8 ? 'text-teal-600'   :
-            value >= 6 ? 'text-teal-600' :
-            value >= 4 ? 'text-amber-600'  : 'text-teal-500'
+            value >= 8 ? 'text-primary'   :
+            value >= 6 ? 'text-primary' :
+            value >= 4 ? 'text-primary'  : 'text-primary'
           }`}>{value.toFixed(1)}</span>
           <span className="text-xs font-medium text-muted">/10</span>
         </div>
@@ -86,7 +86,7 @@ function CriterionSlider({ criterion, value, onChange }) {
           min={0} max={10} step={0.5}
           value={value}
           onChange={(e) => onChange(+e.target.value)}
-          className={`w-full h-2 rounded-full appearance-none cursor-pointer bg-slate-200 dark:bg-slate-700 ${trackColor}`}
+          className={`w-full h-2 rounded-full appearance-none cursor-pointer bg-cardSoft ${trackColor}`}
           style={{
             background: `linear-gradient(to right, ${
               value >= 8 ? '#0d9488' : value >= 6 ? '#4f46e5' : value >= 4 ? '#d97706' : '#14B8A6'
@@ -132,7 +132,7 @@ function ScoringForm({ team, onSubmitted, alreadySubmitted, token }) {
   if (alreadySubmitted) {
     return (
       <div className="flex flex-col items-center justify-center h-full py-20 text-center">
-        <CheckCircle size={48} className="text-teal-500 mb-4" />
+        <CheckCircle size={48} className="text-primary mb-4" />
         <h3 className="text-lg font-bold text-foreground mb-1">Scorecard submitted</h3>
         <p className="text-sm font-medium text-muted">Your evaluation for <strong className="text-foreground">{team.team_name}</strong> has been recorded.</p>
       </div>
@@ -143,7 +143,7 @@ function ScoringForm({ team, onSubmitted, alreadySubmitted, token }) {
     <div>
       {/* Team header */}
       <div className="mb-6 pb-5 border-b border-border">
-        <p className="text-xs font-bold text-teal-600 dark:text-teal-400 uppercase tracking-wide mb-1">Evaluating</p>
+        <p className="text-xs font-bold text-primary uppercase tracking-wide mb-1">Evaluating</p>
         <h2 className="text-2xl font-black text-foreground">{team.team_name}</h2>
         <p className="text-sm font-medium text-muted mt-1">
           Score each criterion honestly. Your evaluation is anonymised in the final aggregate.
@@ -163,8 +163,8 @@ function ScoringForm({ team, onSubmitted, alreadySubmitted, token }) {
       </div>
 
       {/* Weighted total display */}
-      <div className="glass-card rounded-2xl border-t-4 border-t-teal-500 p-6 mb-5 flex items-center justify-between relative overflow-hidden group transition-all hover:-translate-y-1 hover:scale-[1.02]">
-        <div className="absolute -right-8 -top-8 w-40 h-40 bg-gradient-to-br from-teal-500/20 to-transparent rounded-full blur-3xl group-hover:scale-125 transition-transform duration-700" />
+      <div className="glass-card rounded-2xl border-l-2 border-l-primary p-6 mb-5 flex items-center justify-between relative overflow-hidden group transition-all hover:-translate-y-1 hover:scale-[1.02]">
+        <div className="absolute -right-8 -top-8 w-40 h-40 bg-gradient-to-br from-primary/10 to-transparent rounded-full blur-3xl group-hover:scale-125 transition-transform duration-700" />
         <div className="relative z-10 w-full flex items-center justify-between">
           <div>
             <p className="text-xs font-semibold text-muted mb-0.5 uppercase tracking-wider">Weighted total score</p>
@@ -177,7 +177,7 @@ function ScoringForm({ team, onSubmitted, alreadySubmitted, token }) {
           <div className="text-right">
             <button
               onClick={() => setScores(DEFAULT_SCORES)}
-              className="flex items-center gap-1 text-xs font-bold text-muted hover:text-teal-600 transition-colors"
+              className="flex items-center gap-1 text-xs font-bold text-muted hover:text-primary transition-colors"
             >
               <RotateCcw size={14} /> Reset
             </button>
@@ -189,13 +189,13 @@ function ScoringForm({ team, onSubmitted, alreadySubmitted, token }) {
       {!confirming ? (
         <button
           onClick={() => setConfirming(true)}
-          className="w-full flex items-center justify-center gap-2 text-sm py-3 rounded-xl btn-primary text-white font-bold hover:bg-teal-700 transition-colors shadow-sm"
+          className="w-full flex items-center justify-center gap-2 text-sm py-3 rounded-xl btn-primary text-white font-bold hover:bg-primary-dark transition-colors shadow-sm"
         >
           <Send size={16} /> Review & Submit Scorecard
         </button>
       ) : (
-        <div className="bg-teal-50 dark:bg-teal-900/30 border border-teal-200 dark:border-teal-800 rounded-xl p-4 shadow-sm">
-          <p className="text-sm font-bold text-teal-900 mb-3">Confirm submission</p>
+        <div className="bg-cardSoft border border-border rounded-xl p-4 shadow-sm">
+          <p className="text-sm font-bold text-foreground mb-3">Confirm submission</p>
           <div className="space-y-1.5 mb-4">
             {CRITERIA.map((c) => (
               <div key={c.key} className="flex justify-between text-xs">
@@ -203,12 +203,12 @@ function ScoringForm({ team, onSubmitted, alreadySubmitted, token }) {
                 <span className="font-bold text-foreground">{scores[c.key].toFixed(1)}</span>
               </div>
             ))}
-            <div className="flex justify-between text-sm font-black border-t border-teal-200 dark:border-teal-800 pt-2 mt-2">
-              <span className="text-teal-800 dark:text-teal-200">Weighted total</span>
+            <div className="flex justify-between text-sm font-black border-t border-border pt-2 mt-2">
+              <span className="text-foreground">Weighted total</span>
               <span className={quality.colour}>{total.toFixed(2)}</span>
             </div>
           </div>
-          <p className="text-xs font-medium text-teal-700 dark:text-teal-300 mb-3">
+          <p className="text-xs font-medium text-primary mb-3">
             Please review carefully. After submission, this scorecard cannot be edited from the portal.
           </p>
           <div className="flex gap-2">
@@ -221,14 +221,14 @@ function ScoringForm({ team, onSubmitted, alreadySubmitted, token }) {
             <button
               onClick={() => submitMutation.mutate()}
               disabled={submitMutation.isPending}
-              className="flex-1 flex items-center justify-center gap-2 py-2 rounded-lg btn-primary text-white text-sm font-bold hover:bg-teal-700 disabled:opacity-100 disabled:bg-teal-100 dark:disabled:bg-teal-900/50 disabled:text-teal-400 dark:disabled:text-teal-600 disabled:border-transparent disabled:shadow-none disabled:cursor-not-allowed shadow-sm"
+              className="flex-1 flex items-center justify-center gap-2 py-2 rounded-lg btn-primary text-white text-sm font-bold hover:bg-primary-dark disabled:opacity-50 disabled:cursor-not-allowed shadow-sm"
             >
               {submitMutation.isPending ? <Loader2 size={14} className="animate-spin" /> : <CheckCircle size={14} />}
               {submitMutation.isPending ? 'Submitting…' : 'Confirm & Submit'}
             </button>
           </div>
           {submitMutation.isError && (
-            <p className="mt-2 text-xs font-semibold text-teal-500">{submitMutation.error?.message}</p>
+            <p className="mt-2 text-xs font-semibold text-primary">{submitMutation.error?.message}</p>
           )}
         </div>
       )}
@@ -278,7 +278,7 @@ function TeamSubmissionSection({ teamId, token }) {
       </p>
       {isLoading ? (
         <div className="flex items-center gap-2 text-xs font-medium text-muted">
-          <Loader2 size={11} className="animate-spin text-teal-500" /> Loading submission info…
+          <Loader2 size={11} className="animate-spin text-primary" /> Loading submission info…
         </div>
       ) : error || !sub ? (
         <p className="text-sm font-medium text-muted">No project ZIP submitted yet.</p>
@@ -294,7 +294,7 @@ function TeamSubmissionSection({ teamId, token }) {
           <button
             onClick={handleDownload}
             disabled={downloading}
-            className="flex items-center gap-1.5 text-sm font-semibold px-4 py-2 rounded-lg btn-primary text-white hover:bg-teal-700 disabled:opacity-100 disabled:bg-teal-100 dark:disabled:bg-teal-900/50 disabled:text-teal-400 dark:disabled:text-teal-600 disabled:border-transparent disabled:shadow-none disabled:cursor-not-allowed shadow-sm shrink-0"
+            className="flex items-center gap-1.5 text-sm font-semibold px-4 py-2 rounded-lg btn-primary text-white hover:bg-primary-dark disabled:opacity-50 disabled:cursor-not-allowed shadow-sm shrink-0"
           >
             {downloading ? <Loader2 size={14} className="animate-spin" /> : <Download size={14} />}
             Download ZIP
@@ -316,9 +316,9 @@ function TeamQueueSidebar({ teams, selectedId, submittedIds, onSelect }) {
             <span>Progress</span>
             <span className="font-bold text-foreground">{submittedIds.length}/{teams.length}</span>
           </div>
-          <div className="w-full bg-slate-200 dark:bg-slate-700 rounded-full h-1.5 overflow-hidden">
+          <div className="w-full bg-cardSoft rounded-full h-1.5 overflow-hidden">
             <div
-              className="bg-teal-500 h-1.5 rounded-full transition-all"
+              className="bg-cardSoft0 h-1.5 rounded-full transition-all"
               style={{ width: `${teams.length ? (submittedIds.length / teams.length) * 100 : 0}%` }}
             />
           </div>
@@ -340,18 +340,18 @@ function TeamQueueSidebar({ teams, selectedId, submittedIds, onSelect }) {
               onClick={() => onSelect(team)}
               className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-left mb-1 transition-colors ${
                 isActive
-                  ? 'bg-teal-50 border border-teal-200'
+                  ? 'bg-cardSoft border border-border'
                   : 'hover:bg-surface border border-transparent'
               }`}
             >
               <div className={`w-2.5 h-2.5 rounded-full shrink-0 mt-0.5 ${
-                done ? 'bg-teal-500' : 'bg-amber-400 animate-pulse'
+                done ? 'bg-cardSoft0' : 'bg-amber-400 animate-pulse'
               }`} />
               <div className="flex-1 min-w-0">
-                <p className={`text-sm font-bold truncate ${isActive ? 'text-teal-700' : 'text-foreground'}`}>
+                <p className={`text-sm font-bold truncate ${isActive ? 'text-primary-dark' : 'text-foreground'}`}>
                   {team.team_name}
                 </p>
-                <p className={`text-xs mt-0.5 font-medium ${done ? 'text-teal-600' : 'text-muted'}`}>
+                <p className={`text-xs mt-0.5 font-medium ${done ? 'text-primary' : 'text-muted'}`}>
                   {done ? 'Submitted' : 'Awaiting your score'}
                 </p>
               </div>
@@ -359,7 +359,7 @@ function TeamQueueSidebar({ teams, selectedId, submittedIds, onSelect }) {
                 <ChevronRight size={14} className="text-muted shrink-0" />
               )}
               {done && (
-                <CheckCircle size={14} className="text-teal-600 dark:text-teal-400 shrink-0" />
+                <CheckCircle size={14} className="text-primary shrink-0" />
               )}
             </button>
           )
@@ -368,7 +368,7 @@ function TeamQueueSidebar({ teams, selectedId, submittedIds, onSelect }) {
 
       {submittedIds.length === teams.length && teams.length > 0 && (
         <div className="px-4 py-4 border-t border-border text-center bg-surface">
-          <CheckCircle size={24} className="text-teal-500 mx-auto mb-2" />
+          <CheckCircle size={24} className="text-primary mx-auto mb-2" />
           <p className="text-sm font-bold text-foreground">All done!</p>
           <p className="text-xs font-medium text-muted mt-0.5">All scorecards submitted. Thank you.</p>
         </div>
@@ -465,7 +465,7 @@ export default function JudgePortal() {
     return (
       <FullPageMessage
         icon={AlertTriangle}
-        iconClass="text-amber-500"
+        iconClass="text-primary"
         title="No access token"
         message="Please use the secure judge link sent to your email. It looks like /judge?token=..."
       />
@@ -476,7 +476,7 @@ export default function JudgePortal() {
     return (
       <div className="min-h-screen flex items-center justify-center bg-surface">
         <div className="text-center">
-          <Loader2 size={32} className="text-teal-600 dark:text-teal-400 animate-spin mx-auto mb-3" />
+          <Loader2 size={32} className="text-primary animate-spin mx-auto mb-3" />
           <p className="text-sm font-medium text-muted">Loading your evaluation portal…</p>
         </div>
       </div>
@@ -487,7 +487,7 @@ export default function JudgePortal() {
     return (
       <FullPageMessage
         icon={AlertTriangle}
-        iconClass="text-teal-500"
+        iconClass="text-primary"
         title="Access denied"
         message={error.message?.includes('expired')
           ? 'Your access link has expired. Please contact the committee for a new link.'
@@ -502,7 +502,7 @@ export default function JudgePortal() {
     return (
       <FullPageMessage
         icon={AlertTriangle}
-        iconClass="text-amber-500"
+        iconClass="text-primary"
         title="Wrong portal"
         message="This link is for participants. Use your participant portal link instead."
       />
@@ -577,7 +577,7 @@ export default function JudgePortal() {
           {/* No team selected — prompt */}
           {!selectedTeam && (
             <div className="text-center py-20">
-              <ClipboardList size={48} className="text-slate-300 mx-auto mb-4" />
+              <ClipboardList size={48} className="text-muted mx-auto mb-4" />
               <h2 className="text-lg font-bold text-foreground mb-2">
                 {teams.length === 0
                   ? 'No teams assigned yet'
@@ -605,7 +605,7 @@ export default function JudgePortal() {
                     {criteria.map((c) => (
                       <div key={c.key} className="flex items-center justify-between text-sm">
                         <span className="font-semibold text-foreground">{c.label}</span>
-                        <span className="text-teal-600 dark:text-teal-400 font-bold">
+                        <span className="text-primary font-bold">
                           {(c.weight * 100).toFixed(0)}%
                         </span>
                       </div>
@@ -625,19 +625,19 @@ export default function JudgePortal() {
                 </p>
                 {rubricLoading ? (
                   <div className="flex items-center gap-2 text-xs font-medium text-muted">
-                    <Loader2 size={11} className="animate-spin text-teal-500" /> Generating rubric…
+                    <Loader2 size={11} className="animate-spin text-primary" /> Generating rubric…
                   </div>
                 ) : rubric?.criteria?.length > 0 ? (
                   <div className="space-y-3">
                     {rubric.criteria.map((c, i) => (
                       <div key={i} className="bg-surface border border-border rounded-lg p-3">
-                        <p className="text-xs font-bold text-teal-700 dark:text-teal-300 mb-1">{c.name}</p>
+                        <p className="text-xs font-bold text-primary mb-1">{c.name}</p>
                         <p className="text-xs font-medium text-muted mb-2">{c.description}</p>
                         {c.scoring_guide && (
                           <div className="space-y-1">
                             {Object.entries(c.scoring_guide).map(([band, desc]) => (
                               <div key={band} className="flex gap-2 text-xs">
-                                <span className="text-teal-600 dark:text-teal-400 font-mono font-bold shrink-0 w-10">{band}</span>
+                                <span className="text-primary font-mono font-bold shrink-0 w-10">{band}</span>
                                 <span className="font-medium text-muted">{String(desc)}</span>
                               </div>
                             ))}
