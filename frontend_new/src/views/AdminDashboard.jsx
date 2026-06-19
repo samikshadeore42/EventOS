@@ -44,15 +44,35 @@ import {
 
 // ── Shared micro-components ────────────────────────────────────────────────
 
-function StatCard({ label, value, sub, colour = 'red', icon: Icon, trend, onClick, sectionClass }) {
+function StatCard({
+  label,
+  value,
+  sub,
+  colour = 'red',
+  icon: Icon,
+  trend,
+  onClick,
+  sectionClass,
+  iconBgClass,
+  progressPercent,
+  progressColor = 'orange',
+}) {
   const colorMap = {
     emerald: { icon: 'bg-emerald-500/10 text-emerald-500 border border-emerald-500/20', glow: 'from-emerald-500/10' },
+    blue: { icon: 'bg-blue-500/10 text-blue-500 border border-blue-500/20', glow: 'from-blue-500/10' },
+    green: { icon: 'bg-emerald-500/10 text-emerald-500 border border-emerald-500/20', glow: 'from-emerald-500/10' },
+    yellow: { icon: 'bg-yellow-500/10 text-yellow-500 border border-yellow-500/20', glow: 'from-yellow-500/10' },
     red: { icon: 'bg-rose-500/10 text-rose-500 border border-rose-500/20', glow: 'from-rose-500/10' },
-    amber: { icon: 'bg-primary/10 text-primary border border-primary/20', glow: 'from-primary/10' },
+    amber: { icon: 'bg-yellow-500/10 text-yellow-500 border border-yellow-500/20', glow: 'from-yellow-500/10' },
     teal: { icon: 'bg-info/10 text-info border border-info/20', glow: 'from-info/10' },
     primary: { icon: 'bg-primary/10 text-primary border border-primary/20', glow: 'from-primary/10' },
   }
   const theme = colorMap[colour] || colorMap.primary;
+
+  const safeProgress =
+    typeof progressPercent === 'number'
+      ? Math.max(0, Math.min(100, progressPercent))
+      : null;
 
   return (
     <motion.div onClick={onClick} whileHover={{ y: -2, scale: 1.01 }} className={`${sectionClass || 'app-card'} rounded-2xl p-6 relative overflow-hidden group flex flex-col justify-between h-full ${onClick ? 'cursor-pointer' : ''}`}>
@@ -60,7 +80,7 @@ function StatCard({ label, value, sub, colour = 'red', icon: Icon, trend, onClic
 
       <div className="flex justify-between items-start mb-4 relative z-10">
         <div className="flex items-center gap-3">
-          <div className={`w-10 h-10 rounded-xl flex items-center justify-center shadow-sm transition-transform group-hover:scale-105 ${theme.icon}`}>
+          <div className={`w-10 h-10 rounded-xl flex items-center justify-center shadow-sm transition-transform group-hover:scale-105 ${iconBgClass || theme.icon}`}>
             {Icon && <Icon size={20} />}
           </div>
           <p className="text-sm font-bold text-foreground">{label}</p>
@@ -75,6 +95,24 @@ function StatCard({ label, value, sub, colour = 'red', icon: Icon, trend, onClic
       <div className="relative z-10 mt-2">
         <p className="text-3xl font-black text-foreground">{value ?? '—'}</p>
         {sub && <p className="text-xs font-medium text-muted mt-1">{sub}</p>}
+        {safeProgress !== null && (
+          <div className={`mt-4 h-2 overflow-hidden rounded-full ${
+            progressColor === 'green' ? 'bg-green-100 dark:bg-green-500/10' :
+            progressColor === 'yellow' ? 'bg-yellow-100 dark:bg-yellow-500/10' :
+            'bg-slate-100 dark:bg-white/10'
+          }`}>
+            <div
+              className={`h-full rounded-full transition-all duration-500 ${
+                progressColor === 'green'
+                  ? 'bg-green-500'
+                  : progressColor === 'yellow'
+                    ? 'bg-yellow-500'
+                    : 'bg-orange-500'
+              }`}
+              style={{ width: `${safeProgress}%` }}
+            />
+          </div>
+        )}
       </div>
     </motion.div>
   )
@@ -104,129 +142,70 @@ function SectionTitle({ children }) {
 
 
 
-function ApprovalStatusChart({ pending, approved, rejected }) {
-  const total = (approved || 0) + (pending || 0) + (rejected || 0);
-  const percentage = total > 0 ? Math.round(((approved || 0) / total) * 100) : 0;
 
-  return (
-    <div className="flex flex-col justify-center h-full pt-2">
-      <div className="flex justify-between items-end mb-3">
-        <div>
-          <span className="text-2xl font-black text-foreground">{percentage}%</span>
-          <span className="text-[10px] text-muted font-bold ml-1.5 uppercase tracking-wider">Approved</span>
-        </div>
-        <div className="text-right">
-          <p className="text-sm font-bold text-foreground">{approved || 0} / {total}</p>
-          <p className="text-[10px] text-muted uppercase font-semibold">Total Teams</p>
-        </div>
-      </div>
-      <div className="w-full h-2.5 bg-[var(--bg-card-soft)] rounded-full overflow-hidden mb-3">
-        <motion.div
-          initial={{ width: 0 }}
-          animate={{ width: `${percentage}%` }}
-          transition={{ duration: 1, delay: 0.2, ease: 'easeOut' }}
-          className="h-full bg-gradient-to-r from-primary to-primary-dark rounded-full"
-        />
-      </div>
-      <div className="flex justify-between text-[11px] font-bold text-muted">
-        <span className="flex items-center gap-1.5"><div className="w-1.5 h-1.5 rounded-full bg-primary" /> Approved ({approved || 0})</span>
-        <div className="flex items-center gap-3">
-          <span className="flex items-center gap-1.5"><div className="w-1.5 h-1.5 rounded-full bg-slate-300" /> Pending ({pending || 0})</span>
-          {(rejected || 0) > 0 && <span className="flex items-center gap-1.5"><div className="w-1.5 h-1.5 rounded-full bg-[var(--bg-card-soft)]" /> Rejected ({rejected || 0})</span>}
-        </div>
-      </div>
-    </div>
-  )
-}
-
-function EvaluationProgressChart({ evaluated, total }) {
-  const percentage = total > 0 ? Math.round((evaluated / total) * 100) : 0;
-  return (
-    <div className="flex flex-col justify-center h-full pt-2">
-      <div className="flex justify-between items-end mb-3">
-        <div>
-          <span className="text-2xl font-black text-foreground">{percentage}%</span>
-          <span className="text-[10px] text-muted font-bold ml-1.5 uppercase tracking-wider">Completed</span>
-        </div>
-        <div className="text-right">
-          <p className="text-sm font-bold text-foreground">{evaluated} / {total}</p>
-          <p className="text-[10px] text-muted uppercase font-semibold">Teams Evaluated</p>
-        </div>
-      </div>
-      <div className="w-full h-2.5 bg-[var(--bg-card-soft)] rounded-full overflow-hidden mb-3">
-        <motion.div
-          initial={{ width: 0 }}
-          animate={{ width: `${percentage}%` }}
-          transition={{ duration: 1, delay: 0.2, ease: 'easeOut' }}
-          className="h-full bg-gradient-to-r from-primary to-primary-dark rounded-full"
-        />
-      </div>
-      <div className="flex justify-between text-[11px] font-bold text-muted">
-        <span className="flex items-center gap-1.5"><div className="w-1.5 h-1.5 rounded-full bg-primary" /> Reviewed ({evaluated})</span>
-        <span className="flex items-center gap-1.5"><div className="w-1.5 h-1.5 rounded-full bg-slate-300" /> Pending ({Math.max(0, total - evaluated)})</span>
-      </div>
-    </div>
-  )
-}
 
 // ── TAB 1: OVERVIEW ────────────────────────────────────────────────────────
 function OverviewTab({ onTileClick }) {
   const { data: summary } = useQuery({ queryKey: ['roster-summary'], queryFn: participantsApi.summary, refetchInterval: 30_000 })
-  const { data: pending } = useQuery({ queryKey: ['pending-approvals'], queryFn: approvalsApi.pending, refetchInterval: 15_000 })
   const { data: allTeams } = useQuery({ queryKey: ['all-teams'], queryFn: approvalsApi.all, refetchInterval: 15_000 })
   const { data: lb } = useQuery({ queryKey: ['leaderboard'], queryFn: leaderboardApi.get, refetchInterval: 60_000 })
   const { data: anomalies } = useQuery({ queryKey: ['anomalies'], queryFn: leaderboardApi.anomalies, refetchInterval: 30_000 })
 
   const allTeamsList = Array.isArray(allTeams) ? allTeams : Array.isArray(allTeams?.teams) ? allTeams.teams : Array.isArray(allTeams?.data) ? allTeams.data : []
   const approvedCount = allTeamsList.filter(t => t.approval_status === 'approved' || t.approval_status === 'published').length
-  const rejectedCount = allTeamsList.filter(t => t.approval_status === 'rejected').length
   const totalTeamsCount = allTeamsList.length
 
-
+  const approvalPercent = totalTeamsCount > 0 ? Math.round((approvedCount / totalTeamsCount) * 100) : 0;
+  const evaluationPercent = totalTeamsCount > 0 ? Math.round(((lb?.leaderboard?.length || 0) / totalTeamsCount) * 100) : 0;
 
   return (
     <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, staggerChildren: 0.1 }}>
       {/* Stats row */}
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 mb-8">
-        <StatCard onClick={() => onTileClick?.('participants')} label="Participants" value={summary?.total_participants || 0} colour="teal" sub="Total registered" icon={Users} />
+        <StatCard
+          onClick={() => onTileClick?.('participants')}
+          label="Participants"
+          value={summary?.total_participants || 0}
+          colour="blue"
+          sub="Total registered"
+          icon={Users}
+          iconBgClass="bg-blue-100 text-blue-600 dark:bg-blue-500/15 dark:text-blue-300"
+        />
 
-        <motion.div onClick={() => onTileClick?.('approvals')} whileHover={{ y: -4, scale: 1.02 }} transition={{ type: 'spring', stiffness: 300 }} className="cursor-pointer app-card p-6 relative overflow-hidden group flex flex-col justify-between h-full border-l-2 border-l-primary">
-          <div className="absolute -right-8 -top-8 w-40 h-40 bg-gradient-to-br from-primary/10 to-transparent rounded-full blur-3xl group-hover:scale-125 transition-transform duration-700" />
-          <div className="flex items-center gap-4 relative z-10 mb-2">
-            <div className="w-10 h-10 rounded-xl flex items-center justify-center shadow-sm bg-[var(--bg-card-soft)] text-primary shrink-0">
-              <CheckSquare size={20} />
-            </div>
-            <h3 className="text-[11px] font-bold text-muted uppercase tracking-wider">Approval Status</h3>
-          </div>
-          <div className="relative z-10 flex-1">
-            <ApprovalStatusChart
-              pending={pending?.total_pending || 0}
-              approved={approvedCount}
-              rejected={rejectedCount}
-            />
-          </div>
-        </motion.div>
+        <StatCard
+          onClick={() => onTileClick?.('approvals')}
+          label="Approval Status"
+          value={`${approvalPercent}%`}
+          sub={`${approvedCount} / ${totalTeamsCount} Teams`}
+          colour="green"
+          icon={CheckSquare}
+          iconBgClass="bg-green-100 text-green-600 dark:bg-green-500/15 dark:text-green-300"
+          progressPercent={approvalPercent}
+          progressColor="green"
+        />
 
-        <motion.div onClick={() => onTileClick?.('evaluators')} whileHover={{ y: -4, scale: 1.02 }} transition={{ type: 'spring', stiffness: 300 }} className="cursor-pointer app-card p-6 relative overflow-hidden group flex flex-col justify-between h-full ">
-          <div className="absolute -right-8 -top-8 w-40 h-40 bg-gradient-to-br from-primary/10 to-transparent rounded-full blur-3xl group-hover:scale-125 transition-transform duration-700" />
-          <div className="flex items-center gap-4 relative z-10 mb-2">
-            <div className="w-10 h-10 rounded-xl flex items-center justify-center shadow-sm bg-[var(--bg-card-soft)] text-primary shrink-0">
-              <BarChart2 size={20} />
-            </div>
-            <h3 className="text-[11px] font-bold text-muted uppercase tracking-wider">Evaluation Progress</h3>
-          </div>
-          <div className="relative z-10 flex-1">
-            <EvaluationProgressChart
-              evaluated={lb?.leaderboard?.length || 0}
-              total={totalTeamsCount}
-            />
-          </div>
-        </motion.div>
+        <StatCard
+          onClick={() => onTileClick?.('evaluators')}
+          label="Evaluation Progress"
+          value={`${evaluationPercent}%`}
+          sub={`${lb?.leaderboard?.length || 0} / ${totalTeamsCount} Evaluated`}
+          colour="yellow"
+          icon={BarChart2}
+          iconBgClass="bg-yellow-100 text-yellow-700 dark:bg-yellow-500/15 dark:text-yellow-300"
+          progressPercent={evaluationPercent}
+          progressColor="yellow"
+        />
 
-        <StatCard onClick={() => onTileClick?.('anomaly')} label="Anomaly Flags" value={anomalies?.total_flagged} colour="teal" sub="Scorecards on hold" icon={Activity} />
+        <StatCard
+          onClick={() => onTileClick?.('anomaly')}
+          label="Anomaly Flags"
+          value={anomalies?.total_flagged}
+          colour="red"
+          sub="Scorecards on hold"
+          icon={Activity}
+          iconBgClass="bg-red-100 text-red-600 dark:bg-red-500/15 dark:text-red-300"
+        />
       </div>
-
-
 
     </motion.div>
   )
