@@ -1096,7 +1096,6 @@ function TeamsTab() {
 // ── TAB 4: APPROVALS ────────────────────────────────────────────────────────
 function ApprovalsTab() {
   const qc = useQueryClient()
-  const { activeEvent } = useAuth()
   const [expanded, setExpanded] = useState(null)
   const [notes, setNotes] = useState('')
 
@@ -1161,12 +1160,6 @@ function ApprovalsTab() {
 
   return (
     <div className="max-w-7xl mx-auto pl-8 pt-8">
-      <h1 className="text-[28px] font-extrabold tracking-tight text-slate-950">
-        Approvals
-      </h1>
-      <p className="mt-2 text-base font-semibold text-slate-500">
-        {activeEvent?.name || 'AI Hackathon'}
-      </p>
 
       <div className="mt-8 rounded-[24px] bg-white px-8 py-8 shadow-[0_18px_48px_rgba(15,23,42,0.07)] ring-1 ring-slate-200/80 min-h-[610px] w-full">
         {/* Pending Approvals heading area */}
