@@ -14,7 +14,7 @@ import {
   UserCheck, Mail, Download,
   Play, Loader2, Check, X, AlertTriangle,
   ChevronDown, ChevronRight, Wand2,
-  BarChart2, MessageSquare, Activity, Target, Calendar,
+  BarChart2, Activity, Target, Calendar, Clock,
   Send, Copy, Trash2, Plus, Shield, ShieldAlert, ShieldCheck, FileText, Settings,
   Sparkles, Link, LayoutTemplate, ClipboardList, Lightbulb,
   User, UserPlus, Building2, Info, UploadCloud, Search, CheckCircle2,
@@ -2507,149 +2507,215 @@ function MentorOpsTab() {
   const suggestions = suggestData?.suggestions ?? []
   const allTeams = teamsData?.teams ?? []
 
-  const fieldFor = (key, label, type, placeholder) => (
-    <div>
-      <label className="block text-xs font-medium text-muted mb-1">{label}</label>
-      <input type={type} value={form[key]} onChange={e => setForm(f => ({ ...f, [key]: e.target.value }))}
-        placeholder={placeholder} className="soft-input" />
-    </div>
-  )
-
-  const riskBadge = (level) => {
-    const cls = { low: 'soft-success', medium: 'soft-info', high: 'soft-warning', critical: 'soft-danger' }[level] ?? 'soft-info'
-    return <span className={`inline-flex items-center text-xs font-medium px-2 py-0.5 rounded-full ${cls}`}>{level}</span>
-  }
 
   return (
     <>
-      <div>
-        {/* Ops summary cards */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-          {[{ label: 'Teams without mentor', value: ops.teams_without_mentor, icon: AlertTriangle, section: 'section-blue' },
-          { label: 'Teams without meeting', value: ops.teams_without_meeting, icon: Calendar, section: 'section-yellow' },
-          { label: 'Missing daily update', value: ops.teams_missing_daily_update, icon: MessageSquare, section: 'section-red' },
-          { label: 'Low progress teams', value: ops.low_progress_teams, icon: BarChart2, section: 'section-green' },
-          ].map(({ label, value, icon: Icon, section }) => (
-            <div key={label} className={`${section} p-4`}>
-              <div className="flex items-center gap-2 mb-1"><Icon size={14} className="text-muted" /><p className="text-xs font-medium text-muted uppercase tracking-wide">{label}</p></div>
-              <p className="text-2xl font-bold text-foreground">{value ?? '—'}</p>
+      <div className="w-full pt-8">
+      {/* Ops summary cards */}
+      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6 mb-8">
+        {[
+          { label: 'Teams Without Mentor', value: ops.teams_without_mentor, subtitle: ops.teams_without_mentor === 0 ? 'No teams need assignment' : 'Needs assignment', icon: Users, iconColor: 'text-blue-500', iconBg: 'bg-blue-50' },
+          { label: 'Teams Without Meeting', value: ops.teams_without_meeting, subtitle: 'Schedule meetings to engage', icon: Calendar, iconColor: 'text-emerald-500', iconBg: 'bg-emerald-50' },
+          { label: 'Missing Daily Update', value: ops.teams_missing_daily_update, subtitle: 'Needs daily progress update', icon: Clock, iconColor: 'text-amber-500', iconBg: 'bg-amber-50' },
+          { label: 'Low Progress Teams', value: ops.low_progress_teams, subtitle: ops.low_progress_teams === 0 ? 'All teams are on track' : 'Some teams falling behind', icon: BarChart2, iconColor: 'text-purple-500', iconBg: 'bg-purple-50' },
+        ].map(({ label, value, subtitle, icon: Icon, iconColor, iconBg }) => (
+          <div key={label} className="bg-white border border-slate-200/80 rounded-[22px] shadow-[0_18px_45px_rgba(15,23,42,0.06)] p-6 flex items-start gap-5">
+            <div className={`flex items-center justify-center w-14 h-14 rounded-full ${iconBg} shrink-0`}>
+              <Icon className={`w-6 h-6 ${iconColor}`} />
             </div>
-          ))}
-        </div>
-
-        {/* Mentors list */}
-        <div className="flex items-center justify-between mb-5">
-          <h2 className="text-base font-semibold text-foreground">Mentors</h2>
-          <div className="flex items-center gap-2">
-            <button onClick={() => mentorApi.downloadTemplate()} className="soft-button text-sm">CSV Template</button>
-            <button onClick={() => mentorApi.downloadExport()} className="soft-button text-sm">Export</button>
-            <button
-              onClick={() => setShowAutoAssign(true)}
-              className="soft-button text-sm" style={{ color: "var(--color-ai)" }}>
-              <Wand2 size={14} /> Auto-assign
-            </button>
-            <button onClick={() => setShowForm(s => !s)} className="flex items-center gap-1.5 text-sm px-3 py-1.5 rounded-lg btn-primary text-white hover:bg-primary-dark">
-              <Plus size={14} /> Add Mentor
-            </button>
+            <div>
+              <p className="text-[11px] font-extrabold text-slate-500 uppercase tracking-wider mb-1.5">{label}</p>
+              <p className="text-3xl font-extrabold text-slate-950 leading-none">{value ?? '—'}</p>
+              <p className="text-[11px] font-semibold text-slate-400 mt-2">{subtitle}</p>
+            </div>
           </div>
+        ))}
+      </div>
+
+      {/* Action row above Mentors card */}
+      <div className="flex items-center justify-end gap-5 mb-6">
+        <button onClick={() => mentorApi.downloadTemplate()} className="flex items-center gap-2 text-sm font-bold text-emerald-600 hover:text-emerald-700 transition-colors">
+          <FileText size={16} /> CSV Template
+        </button>
+        <button onClick={() => mentorApi.downloadExport()} className="flex items-center gap-2 text-sm font-bold text-blue-600 hover:text-blue-700 transition-colors">
+          <Download size={16} /> Export
+        </button>
+        <button
+          onClick={() => setShowAutoAssign(true)}
+          className="flex items-center gap-2 text-sm font-bold text-purple-600 hover:text-purple-700 transition-colors">
+          <Wand2 size={16} /> Auto-assign
+        </button>
+        <button onClick={() => setShowForm(s => !s)} className="flex items-center gap-2 text-sm px-6 py-2.5 rounded-xl bg-[#155dfc] hover:bg-[#0f4de0] text-white font-extrabold shadow-[0_10px_22px_rgba(21,93,252,0.18)] transition-all ml-2">
+          <Plus size={16} /> Add Mentor
+        </button>
+      </div>
+
+      <div className="bg-white border border-slate-200/80 rounded-[22px] shadow-[0_18px_45px_rgba(15,23,42,0.06)] overflow-hidden mb-8">
+        <div className="px-6 py-5 border-b border-slate-100 flex items-center justify-between bg-white">
+          <h2 className="text-[20px] font-extrabold text-slate-950">Mentors</h2>
         </div>
 
         {/* Bulk Import */}
-        <div className="section-green p-4 mb-5 flex flex-col gap-3">
-          <div className="flex items-center gap-4">
-            <input type="file" accept=".csv" onChange={(e) => setImportFile(e.target.files[0])} className="text-sm" />
-            <label className="flex items-center gap-2 text-sm text-foreground">
-              <input type="checkbox" checked={importUpsert} onChange={e => setImportUpsert(e.target.checked)} />
+        <div className="px-6 py-4 bg-slate-50/50 border-b border-slate-100 flex flex-col xl:flex-row xl:items-center gap-4">
+          <div className="flex items-center gap-3 flex-wrap flex-1">
+            <button className="flex items-center gap-2 px-4 py-2 bg-white border border-slate-200 rounded-xl text-sm font-semibold text-slate-700 hover:bg-slate-50 transition-colors relative shadow-sm">
+               <UploadCloud size={16} /> Choose File
+               <input type="file" accept=".csv" onChange={(e) => setImportFile(e.target.files[0])} className="absolute inset-0 w-full h-full opacity-0 cursor-pointer" />
+            </button>
+            <span className="text-sm font-semibold text-slate-500 truncate max-w-[200px]">
+              {importFile ? importFile.name : 'No file chosen'}
+            </span>
+            <label className="flex items-center gap-2 text-sm font-semibold text-slate-600 md:ml-4">
+              <input type="checkbox" checked={importUpsert} onChange={e => setImportUpsert(e.target.checked)} className="w-4 h-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500" />
               Update existing (upsert)
             </label>
-            <button
-              onClick={() => importMutation.mutate()}
-              disabled={!importFile || importMutation.isPending}
-              className="app-btn-primary text-sm px-4 py-1.5"
-            >
-              {importMutation.isPending ? <Loader2 size={14} className="animate-spin inline" /> : 'Import CSV'}
-            </button>
+            <Info size={16} className="text-slate-400" />
           </div>
-          {importSummary && (
-            <div className="bg-[var(--bg-card-soft)] p-3 rounded-lg text-sm">
-              <p className="font-semibold text-foreground">Import Summary</p>
-              <div className="flex gap-4 mt-1 mb-2 text-muted">
-                <span>Total: {importSummary.total_rows}</span>
-                <span className="text-emerald-600 dark:text-emerald-400">Created: {importSummary.created}</span>
-                <span className="text-primary">Updated: {importSummary.updated}</span>
-                <span className="text-primary">Errors: {importSummary.errors}</span>
-              </div>
-              {importSummary.errors > 0 && (
-                <ul className="text-xs text-primary list-disc pl-4 space-y-1">
-                  {importSummary.results.filter(r => r.status === 'error').map((r, idx) => (
-                    <li key={idx}>Row {r.row_number} ({r.email || 'No email'}): {r.message}</li>
-                  ))}
-                </ul>
-              )}
-            </div>
-          )}
+          <button
+            onClick={() => importMutation.mutate()}
+            disabled={!importFile || importMutation.isPending}
+            className="flex items-center gap-2 text-sm px-6 py-2 rounded-xl bg-white border border-blue-200 text-blue-600 font-extrabold hover:bg-blue-50 transition-colors disabled:opacity-50 shadow-sm whitespace-nowrap"
+          >
+            {importMutation.isPending ? <Loader2 size={16} className="animate-spin inline" /> : <UploadCloud size={16} />} Import CSV
+          </button>
         </div>
+        {importSummary && (
+          <div className="bg-slate-50 border-b border-slate-100 px-6 py-4 text-sm">
+            <p className="font-bold text-slate-800">Import Summary</p>
+            <div className="flex gap-4 mt-1 mb-2 text-slate-500 font-medium">
+              <span>Total: {importSummary.total_rows}</span>
+              <span className="text-emerald-600">Created: {importSummary.created}</span>
+              <span className="text-blue-600">Updated: {importSummary.updated}</span>
+              <span className="text-red-600">Errors: {importSummary.errors}</span>
+            </div>
+            {importSummary.errors > 0 && (
+              <ul className="text-xs font-bold text-red-500 list-disc pl-4 space-y-1">
+                {importSummary.results.filter(r => r.status === 'error').map((r, idx) => (
+                  <li key={idx}>Row {r.row_number} ({r.email || 'No email'}): {r.message}</li>
+                ))}
+              </ul>
+            )}
+          </div>
+        )}
 
         {showForm && (
-          <div className="section-blue p-5 mb-5">
-            <p className="text-sm font-semibold text-foreground mb-4">New Mentor</p>
-            <div className="grid grid-cols-2 gap-3 mb-3">
-              {fieldFor('first_name', 'First name', 'text', 'Dr. Priya')}
-              {fieldFor('last_name', 'Last name', 'text', 'Kumar')}
-              {fieldFor('email', 'Email', 'email', 'priya@ti.com')}
-              {fieldFor('organization', 'Organization', 'text', 'Texas Instruments')}
+          <div className="bg-blue-50/50 border-b border-slate-100 p-6">
+            <p className="text-sm font-extrabold text-slate-900 mb-4">New Mentor</p>
+            <div className="grid grid-cols-2 gap-4 mb-4">
+              <div>
+                <label className="block text-xs font-bold text-slate-500 mb-1.5">First name</label>
+                <input type="text" value={form.first_name} onChange={e => setForm(f => ({ ...f, first_name: e.target.value }))}
+                  placeholder="Dr. Priya" className="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm font-bold text-slate-900 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none transition-shadow" />
+              </div>
+              <div>
+                <label className="block text-xs font-bold text-slate-500 mb-1.5">Last name</label>
+                <input type="text" value={form.last_name} onChange={e => setForm(f => ({ ...f, last_name: e.target.value }))}
+                  placeholder="Kumar" className="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm font-bold text-slate-900 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none transition-shadow" />
+              </div>
+              <div>
+                <label className="block text-xs font-bold text-slate-500 mb-1.5">Email</label>
+                <input type="email" value={form.email} onChange={e => setForm(f => ({ ...f, email: e.target.value }))}
+                  placeholder="priya@example.com" className="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm font-bold text-slate-900 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none transition-shadow" />
+              </div>
+              <div>
+                <label className="block text-xs font-bold text-slate-500 mb-1.5">Organization</label>
+                <input type="text" value={form.organization} onChange={e => setForm(f => ({ ...f, organization: e.target.value }))}
+                  placeholder="Texas Instruments" className="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm font-bold text-slate-900 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none transition-shadow" />
+              </div>
             </div>
-            <div className="mb-3">{fieldFor('expertise_areas', 'Expertise (comma-separated)', 'text', 'embedded systems, signal processing')}</div>
-            <div className="flex gap-2 justify-end">
-              <button onClick={() => setShowForm(false)} className="text-sm px-3 py-1.5 rounded-lg text-muted hover:bg-[var(--bg-card-soft)]">Cancel</button>
+            <div className="mb-4">
+              <label className="block text-xs font-bold text-slate-500 mb-1.5">Expertise (comma-separated)</label>
+              <input type="text" value={form.expertise_areas} onChange={e => setForm(f => ({ ...f, expertise_areas: e.target.value }))}
+                placeholder="embedded systems, signal processing" className="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm font-bold text-slate-900 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none transition-shadow" />
+            </div>
+            <div className="flex gap-3 justify-end mt-4">
+              <button onClick={() => setShowForm(false)} className="text-sm px-4 py-2 rounded-xl text-slate-600 font-bold hover:bg-slate-100 transition-colors">Cancel</button>
               <button onClick={() => createMutation.mutate()} disabled={createMutation.isPending || !form.email}
-                className="flex items-center gap-1.5 text-sm px-4 py-1.5 rounded-lg btn-primary disabled:opacity-50 disabled:cursor-not-allowed">
-                {createMutation.isPending ? <Loader2 size={14} className="animate-spin" /> : <Check size={14} />} Save
+                className="flex items-center gap-1.5 text-sm px-6 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-extrabold shadow-[0_10px_22px_rgba(37,99,235,0.18)] transition-all disabled:opacity-50">
+                {createMutation.isPending ? <Loader2 size={16} className="animate-spin" /> : <Check size={16} />} Save
               </button>
             </div>
-            {createMutation.isError && <p className="mt-2 text-xs text-primary">{createMutation.error?.message}</p>}
+            {createMutation.isError && <p className="mt-3 text-xs font-bold text-red-500">{createMutation.error?.message}</p>}
           </div>
         )}
 
         {isLoading
-          ? Array.from({ length: 3 }).map((_, i) => <div key={i} className="h-14 bg-[var(--bg-card-soft)] rounded-xl animate-pulse mb-3" />)
+          ? <div className="p-6 space-y-4">{Array.from({ length: 3 }).map((_, i) => <div key={i} className="h-16 bg-slate-50 rounded-xl animate-pulse" />)}</div>
           : (
-            <div className="app-card overflow-hidden mb-8">
+            <div>
               {(!mentors.length)
-                ? <div className="text-center py-12 text-muted text-sm">No mentors registered yet.</div>
-                : mentors.map(m => {
+                ? <div className="text-center py-16 text-slate-500 font-semibold text-sm">No mentors registered yet.</div>
+                : mentors.map((m, index) => {
                   const activeAssignmentsForMentor = assignments.filter(
                     a => a.mentor_id === m.id && a.is_active !== false
                   ).length
                   const effectiveAssignedTeamCount = activeAssignmentsForMentor || m.assigned_team_count || 0
+
+                  // Palette for avatars
+                  const palettes = [
+                    'bg-blue-50 text-blue-600',
+                    'bg-emerald-50 text-emerald-600',
+                    'bg-purple-50 text-purple-600',
+                    'bg-amber-50 text-amber-600',
+                    'bg-pink-50 text-pink-600'
+                  ];
+                  const avatarColor = palettes[index % palettes.length];
+
                   return (
-                    <div key={m.id} className="flex flex-wrap items-center gap-4 px-4 py-3 border-b last:border-0 hover:bg-[var(--bg-card-soft)]">
-                      <div className="w-9 h-9 rounded-full bg-[var(--bg-card-soft)] text-primary font-semibold text-sm flex items-center justify-center shrink-0">{m.first_name[0]}</div>
+                    <div key={m.id} className="flex flex-col lg:flex-row lg:items-center gap-4 px-6 py-5 border-b border-slate-100 last:border-0 hover:bg-slate-50/50 transition-colors bg-white">
+                      <div className={`w-10 h-10 rounded-full font-extrabold text-sm flex items-center justify-center shrink-0 ${avatarColor}`}>
+                        {m.first_name[0]}
+                      </div>
                       <div className="flex-1 min-w-[200px]">
-                        <p className="text-sm font-medium text-foreground break-words">{m.first_name} {m.last_name}</p>
-                        <p className="text-xs text-muted break-words">{m.email}{m.organization ? ` · ${m.organization}` : ''}</p>
+                        <p className="text-sm font-extrabold text-slate-950 break-words mb-0.5">{m.first_name} {m.last_name}</p>
+                        <p className="text-xs font-semibold text-slate-500 break-words mb-2">{m.email}{m.organization ? ` • ${m.organization}` : ''}</p>
                         {m.expertise_areas?.length > 0 && (
-                          <div className="flex gap-1 mt-1 flex-wrap">
-                            {m.expertise_areas.map(a => <Badge key={a} colour="gray">{a}</Badge>)}
+                          <div className="flex gap-1.5 flex-wrap">
+                            {m.expertise_areas.map((a, i) => {
+                              const chipColor = palettes[i % palettes.length];
+                              return (
+                                <span key={a} className={`inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-extrabold uppercase tracking-wide ${chipColor}`}>
+                                  {a}
+                                </span>
+                              );
+                            })}
                           </div>
                         )}
                       </div>
-                      <div className="flex flex-wrap items-center gap-2 shrink-0 ml-auto">
-                        <Badge colour="teal">{effectiveAssignedTeamCount} teams</Badge>
-                        <Badge colour={m.is_active ? 'green' : 'gray'}>{m.is_active ? 'Active' : 'Inactive'}</Badge>
-                        {m.access_link_sent && <Badge colour="green"><Check size={10} /> Link sent</Badge>}
+                      <div className="flex flex-wrap items-center gap-3 shrink-0 lg:ml-auto mb-2 lg:mb-0">
+                        <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-slate-50 border border-slate-200 text-xs font-extrabold text-slate-600">
+                          <Users size={12} /> {effectiveAssignedTeamCount} {effectiveAssignedTeamCount === 1 ? 'Team' : 'Teams'}
+                        </span>
+                        {m.is_active ? (
+                          <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-emerald-50 border border-emerald-200 text-xs font-extrabold text-emerald-600">
+                            <Check size={12} /> Active
+                          </span>
+                        ) : (
+                          <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-slate-50 border border-slate-200 text-xs font-extrabold text-slate-500">
+                            Inactive
+                          </span>
+                        )}
+                        {m.access_link_sent && (
+                          <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-emerald-50 border border-emerald-200 text-xs font-extrabold text-emerald-600">
+                            <Check size={12} /> Link sent
+                          </span>
+                        )}
                       </div>
-                      <div className="flex flex-wrap gap-2 shrink-0 items-center">
+                      <div className="flex items-center gap-3 shrink-0">
                         {effectiveAssignedTeamCount > 0 ? (
                           <button onClick={() => sendLinkMutation.mutate(m.id)} disabled={sendLinkMutation.isPending}
-                            title={m.access_link_sent ? "Send access link again" : "Send access link"} className="flex items-center gap-1 text-xs px-2.5 py-1.5 rounded-lg text-primary hover:bg-[var(--bg-card-soft)] dark:hover:bg-primary/10 disabled:opacity-50">
-                            {sendLinkMutation.isPending ? <Loader2 size={12} className="animate-spin" /> : <Send size={12} />} {m.access_link_sent ? "Resend Link" : "Send Link"}
+                            title={m.access_link_sent ? "Send access link again" : "Send access link"} className="flex items-center gap-2 text-xs font-bold px-3 py-2 rounded-xl text-blue-600 hover:bg-blue-50 transition-colors disabled:opacity-50">
+                            {sendLinkMutation.isPending ? <Loader2 size={14} className="animate-spin" /> : <Send size={14} />} {m.access_link_sent ? "Resend Link" : "Send Link"}
                           </button>
                         ) : (
-                          <span className="text-[10px] text-primary/70 mr-1 italic">Assign to a team first</span>
+                          <button className="flex items-center gap-2 text-xs font-bold px-3 py-2 rounded-xl text-blue-600 hover:bg-blue-50 transition-colors">
+                            <UserPlus size={14} /> Assign to teams
+                          </button>
                         )}
                         <button onClick={() => { if (window.confirm('Deactivate this mentor?')) deleteMutation.mutate(m.id) }}
-                          className="p-1.5 text-muted hover:text-primary rounded transition-colors"><Trash2 size={14} /></button>
+                          className="flex items-center justify-center w-8 h-8 rounded-xl bg-white border border-red-100 text-red-500 hover:bg-red-50 transition-colors shadow-sm">
+                          <Trash2 size={14} />
+                        </button>
                       </div>
                     </div>
                   )
@@ -2658,65 +2724,104 @@ function MentorOpsTab() {
             </div>
           )
         }
+      </div>
 
         {/* Assignments */}
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-base font-semibold text-foreground">Assignments</h2>
-          <button onClick={() => setShowAssignForm(s => !s)} className="flex items-center gap-1.5 text-sm px-3 py-1.5 rounded-lg btn-secondary">
-            <Plus size={14} /> Assign
-          </button>
-        </div>
-
-        {showAssignForm && (
-          <div className="app-card p-5 mb-5 border-l-2 border-l-primary relative overflow-hidden group transition-all hover:-translate-y-1 hover:scale-[1.01]">
-            <div className="absolute -right-8 -top-8 w-40 h-40 bg-gradient-to-br from-primary/10 to-transparent rounded-full blur-3xl group-hover:scale-125 transition-transform duration-700 pointer-events-none z-0" />
-            <p className="text-sm font-semibold text-foreground mb-4">Assign Mentor to Team</p>
-            <div className="grid grid-cols-2 gap-3 mb-3">
-              <div>
-                <label className="block text-xs font-medium text-muted mb-1">Mentor</label>
-                <select value={assignForm.mentor_id} onChange={e => setAssignForm(f => ({ ...f, mentor_id: e.target.value }))}
-                  className="w-full bg-background shadow-sm text-foreground rounded-lg px-3 py-2 text-sm focus:outline-none">
-                  <option value="">-- select mentor --</option>
-                  {mentors.filter(m => m.is_active).map(m => <option key={m.id} value={m.id}>{m.first_name} {m.last_name}</option>)}
-                </select>
-              </div>
-              <div>
-                <label className="block text-xs font-medium text-muted mb-1">Team</label>
-                <select value={assignForm.team_id} onChange={e => setAssignForm(f => ({ ...f, team_id: e.target.value }))}
-                  className="w-full bg-background shadow-sm text-foreground rounded-lg px-3 py-2 text-sm focus:outline-none">
-                  <option value="">-- select team --</option>
-                  {allTeams.filter(t => t.is_approved && getTeamId(t)).map(t => <option key={getTeamId(t)} value={getTeamId(t)}>{getTeamName(t)}</option>)}
-                </select>
-              </div>
-            </div>
-            <div className="flex gap-2 justify-end">
-              <button onClick={() => setShowAssignForm(false)} className="text-sm px-3 py-1.5 rounded-lg text-muted hover:bg-[var(--bg-card-soft)]">Cancel</button>
-              <button onClick={() => assignMutation.mutate()} disabled={assignMutation.isPending || !assignForm.mentor_id || !assignForm.team_id}
-                className="flex items-center gap-1.5 text-sm px-4 py-1.5 rounded-lg btn-secondary disabled:opacity-50">
-                {assignMutation.isPending ? <Loader2 size={14} className="animate-spin" /> : <Check size={14} />} Assign
-              </button>
-            </div>
-            {assignMutation.isError && <p className="mt-2 text-xs text-primary">{assignMutation.error?.message}</p>}
+        <div className="bg-white border border-slate-200/80 rounded-[22px] shadow-[0_18px_45px_rgba(15,23,42,0.06)] overflow-hidden mb-8">
+          <div className="px-6 py-5 border-b border-slate-100 flex items-center justify-between">
+            <h2 className="text-[20px] font-extrabold text-slate-950 flex items-center gap-2"><Users className="text-blue-500 w-6 h-6" /> Assignments</h2>
+            <button onClick={() => setShowAssignForm(s => !s)} className="flex items-center gap-1.5 text-sm px-4 py-2 rounded-xl border border-slate-200 text-slate-700 font-bold hover:bg-slate-50 transition-colors shadow-sm">
+              <Plus size={16} /> Assign
+            </button>
           </div>
-        )}
 
-        {assignments.length > 0 && (
-          <div className="app-card overflow-hidden mb-8">
-            {assignments.map(a => (
-              <div key={a.id} className="flex items-center gap-4 px-4 py-3 border-b last:border-0 hover:bg-[var(--bg-card-soft)]">
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-foreground">{a.mentor_name} → {a.team_name}</p>
-                  <p className="text-xs text-muted">Stage: {a.stage}</p>
+          {showAssignForm && (
+            <div className="bg-slate-50/50 p-6 border-b border-slate-100">
+              <p className="text-sm font-extrabold text-slate-900 mb-4">Assign Mentor to Team</p>
+              <div className="grid grid-cols-2 gap-4 mb-4">
+                <div>
+                  <label className="block text-xs font-bold text-slate-500 mb-1.5">Mentor</label>
+                  <select value={assignForm.mentor_id} onChange={e => setAssignForm(f => ({ ...f, mentor_id: e.target.value }))}
+                    className="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm font-bold text-slate-900 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none transition-shadow">
+                    <option value="">-- select mentor --</option>
+                    {mentors.filter(m => m.is_active).map(m => <option key={m.id} value={m.id}>{m.first_name} {m.last_name}</option>)}
+                  </select>
                 </div>
-                <Badge colour={a.is_active ? 'green' : 'gray'}>{a.is_active ? 'Active' : 'Inactive'}</Badge>
-                {a.is_active && (
-                  <button onClick={() => { if (window.confirm('Unassign?')) unassignMutation.mutate(a.id) }}
-                    className="text-xs px-2 py-1 rounded text-primary hover:bg-[var(--bg-card-soft)] dark:hover:bg-primary/10">Unassign</button>
-                )}
+                <div>
+                  <label className="block text-xs font-bold text-slate-500 mb-1.5">Team</label>
+                  <select value={assignForm.team_id} onChange={e => setAssignForm(f => ({ ...f, team_id: e.target.value }))}
+                    className="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm font-bold text-slate-900 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none transition-shadow">
+                    <option value="">-- select team --</option>
+                    {allTeams.filter(t => t.is_approved && getTeamId(t)).map(t => <option key={getTeamId(t)} value={getTeamId(t)}>{getTeamName(t)}</option>)}
+                  </select>
+                </div>
               </div>
-            ))}
-          </div>
-        )}
+              <div className="flex gap-3 justify-end mt-4">
+                <button onClick={() => setShowAssignForm(false)} className="text-sm px-4 py-2 rounded-xl text-slate-600 font-bold hover:bg-slate-100 transition-colors">Cancel</button>
+                <button onClick={() => assignMutation.mutate()} disabled={assignMutation.isPending || !assignForm.mentor_id || !assignForm.team_id}
+                  className="flex items-center gap-1.5 text-sm px-6 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-extrabold shadow-[0_10px_22px_rgba(37,99,235,0.18)] transition-all disabled:opacity-50">
+                  {assignMutation.isPending ? <Loader2 size={16} className="animate-spin" /> : <Check size={16} />} Assign
+                </button>
+              </div>
+              {assignMutation.isError && <p className="mt-3 text-xs font-bold text-red-500">{assignMutation.error?.message}</p>}
+            </div>
+          )}
+
+          {assignments.length > 0 ? (
+            <div className="overflow-x-auto">
+              <table className="w-full text-left border-collapse">
+                <thead>
+                  <tr className="bg-slate-50/50 border-b border-slate-100 text-[11px] font-extrabold text-slate-500 uppercase tracking-wider">
+                    <th className="px-6 py-4 font-extrabold">Team</th>
+                    <th className="px-6 py-4 font-extrabold">Team Leads</th>
+                    <th className="px-6 py-4 font-extrabold">Mentor</th>
+                    <th className="px-6 py-4 font-extrabold">Assigned On</th>
+                    <th className="px-6 py-4 font-extrabold">Status</th>
+                    <th className="px-6 py-4 w-10"></th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100">
+                  {assignments.map(a => (
+                    <tr key={a.id} className="hover:bg-slate-50/50 transition-colors bg-white">
+                      <td className="px-6 py-4">
+                        <div className="flex items-center gap-3">
+                           <div className="w-8 h-8 rounded-xl bg-blue-50 flex items-center justify-center text-blue-600 shrink-0"><Users size={14} /></div>
+                           <div>
+                             <p className="text-sm font-extrabold text-slate-950">{a.team_name}</p>
+                             <p className="text-[11px] font-semibold text-slate-500">Stage: {a.stage}</p>
+                           </div>
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 text-sm font-semibold text-slate-600">{a.team_leads ?? '—'}</td>
+                      <td className="px-6 py-4">
+                        <div className="flex items-center gap-2">
+                           <div className="w-6 h-6 rounded-full bg-blue-50 text-blue-600 font-extrabold text-[10px] flex items-center justify-center">{a.mentor_name?.[0]}</div>
+                           <span className="text-sm font-semibold text-slate-700">{a.mentor_name}</span>
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 text-sm font-semibold text-slate-500">{a.assigned_at ? new Date(a.assigned_at).toLocaleString() : '—'}</td>
+                      <td className="px-6 py-4">
+                         {a.is_active ? <span className="inline-flex items-center px-3 py-1 rounded-full bg-emerald-50 text-[11px] font-extrabold text-emerald-600">Active</span> : <span className="inline-flex items-center px-3 py-1 rounded-full bg-slate-100 text-[11px] font-extrabold text-slate-500">Inactive</span>}
+                      </td>
+                      <td className="px-6 py-4 text-right">
+                        {a.is_active && (
+                          <div className="flex items-center justify-end gap-3">
+                            <button onClick={() => { if (window.confirm('Unassign?')) unassignMutation.mutate(a.id) }} className="text-sm font-bold text-red-500 hover:text-red-700 transition-colors">Unassign</button>
+                            <button onClick={() => { if (window.confirm('Unassign?')) unassignMutation.mutate(a.id) }} className="flex items-center justify-center w-8 h-8 rounded-xl bg-white border border-red-100 text-red-500 hover:bg-red-50 transition-colors shadow-sm">
+                              <Trash2 size={14} />
+                            </button>
+                          </div>
+                        )}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          ) : (
+            <div className="text-center py-12 text-slate-500 font-semibold text-sm">No assignments yet.</div>
+          )}
+        </div>
 
         {/* Suggestions */}
         {suggestions.length > 0 && (
@@ -2750,50 +2855,62 @@ function MentorOpsTab() {
 
         {/* Risk table */}
         {riskTeams.length > 0 && (
-          <div className="mb-8">
-            <h2 className="text-base font-semibold text-foreground mb-4 flex items-center gap-2"><Shield size={16} className="text-primary" /> Risk Scores</h2>
-            <div className="app-card overflow-hidden border-l-2 border-l-primary relative overflow-hidden group transition-all hover:-translate-y-1 hover:scale-[1.01]">
-              <div className="absolute -right-8 -top-8 w-40 h-40 bg-gradient-to-br from-primary/10 to-transparent rounded-full blur-3xl group-hover:scale-125 transition-transform duration-700 pointer-events-none z-0" />
-              <div className="grid grid-cols-12 bg-[var(--bg-card-soft)] border-b px-4 py-3 text-xs font-medium text-muted uppercase tracking-wide">
-                <div className="col-span-3">Team</div>
-                <div className="col-span-2">Mentor</div>
-                <div className="col-span-1">Score</div>
-                <div className="col-span-1">Level</div>
-                <div className="col-span-1">Progress</div>
-                <div className="col-span-4">Reasons</div>
-              </div>
-              {riskTeams.map(t => (
-                <div key={String(t.team_id)} className="grid grid-cols-12 items-center px-4 py-3 border-b text-sm last:border-0">
-                  <div className="col-span-3 font-medium text-foreground truncate">{t.team_name}</div>
-                  <div className="col-span-2 text-muted truncate">{t.mentor_name ?? '—'}</div>
-                  <div className="col-span-1 font-bold text-foreground">{t.risk_score}</div>
-                  <div className="col-span-1">{riskBadge(t.risk_level)}</div>
-                  <div className="col-span-1 text-muted">{t.latest_progress_score?.toFixed(1) ?? '—'}</div>
-                  <div className="col-span-4 text-xs text-muted">{t.reasons?.join(', ') || '—'}</div>
-                </div>
-              ))}
+          <div className="bg-white border border-slate-200/80 rounded-[22px] shadow-[0_18px_45px_rgba(15,23,42,0.06)] overflow-hidden mb-8">
+            <div className="px-6 py-5 border-b border-slate-100">
+              <h2 className="text-[20px] font-extrabold text-slate-950 flex items-center gap-2"><Shield className="text-blue-500 w-6 h-6" /> Risk Scores</h2>
+            </div>
+            <div className="overflow-x-auto">
+              <table className="w-full text-left border-collapse">
+                <thead>
+                  <tr className="bg-slate-50/50 border-b border-slate-100 text-[11px] font-extrabold text-slate-500 uppercase tracking-wider">
+                    <th className="px-6 py-4 font-extrabold">Team</th>
+                    <th className="px-6 py-4 font-extrabold">Mentor</th>
+                    <th className="px-6 py-4 font-extrabold">Score</th>
+                    <th className="px-6 py-4 font-extrabold">Level</th>
+                    <th className="px-6 py-4 font-extrabold">Progress</th>
+                    <th className="px-6 py-4 font-extrabold">Reasons</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100">
+                  {riskTeams.map(t => (
+                    <tr key={String(t.team_id)} className="hover:bg-slate-50/50 transition-colors bg-white">
+                      <td className="px-6 py-4 text-sm font-extrabold text-slate-950">{t.team_name}</td>
+                      <td className="px-6 py-4 text-sm font-semibold text-slate-600">{t.mentor_name ?? '—'}</td>
+                      <td className="px-6 py-4 text-sm font-extrabold text-orange-500">{t.risk_score}</td>
+                      <td className="px-6 py-4">
+                        <span className={`inline-flex items-center px-3 py-1 rounded-full text-[11px] font-extrabold ${t.risk_level === 'critical' || t.risk_level === 'high' ? 'bg-red-50 text-red-600 border border-red-200' : t.risk_level === 'medium' ? 'bg-orange-50 text-orange-600 border border-orange-200' : 'bg-emerald-50 text-emerald-600 border border-emerald-200'}`}>
+                          {t.risk_level}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4">
+                         <div className="w-16 h-2 rounded-full bg-slate-100 overflow-hidden"><div className="h-full bg-orange-500" style={{ width: `${Math.min(100, Math.max(0, t.latest_progress_score || 0))}%` }} /></div>
+                      </td>
+                      <td className="px-6 py-4 text-[11px] font-semibold text-slate-500 max-w-[200px] xl:max-w-xs truncate" title={t.reasons?.join(', ')}>{t.reasons?.join(', ') || '—'}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
             </div>
           </div>
         )}
 
         {/* Actions row */}
-        <div className="flex items-center gap-3 mb-8">
+        <div className="flex items-center mb-8">
           <button onClick={() => reminderMutation.mutate()} disabled={reminderMutation.isPending}
-            className="flex items-center gap-1.5 text-sm px-4 py-2 rounded-lg btn-secondary text-primary disabled:opacity-50">
-            {reminderMutation.isPending ? <Loader2 size={14} className="animate-spin" /> : <Mail size={14} />} Send Daily Reminders
+            className="flex items-center gap-2 text-sm px-5 py-2.5 rounded-xl border border-blue-200 bg-white hover:bg-blue-50 text-blue-600 font-extrabold shadow-sm transition-colors disabled:opacity-50">
+            {reminderMutation.isPending ? <Loader2 size={16} className="animate-spin" /> : <Mail size={16} />} Send Daily Reminders
           </button>
           {reminderMutation.isSuccess && (
-            <div className="text-xs text-primary">
+            <div className="text-xs font-bold text-slate-500 ml-4">
               {reminderMutation.data?.queued === 0 ? (
                 <p>No reminders sent. There are no assigned mentors missing today’s update.</p>
               ) : (
                 <>
-                  <p className="font-semibold">{reminderMutation.data?.message}</p>
-                  <ul className="mt-1 space-y-0.5 text-[10px] text-muted">
-                    <li>• queued: {reminderMutation.data?.queued} (total processed)</li>
-                    <li>• sent: {reminderMutation.data?.sent} (real SendGrid email sent)</li>
-                    <li>• simulated: {reminderMutation.data?.simulated} (mock-mode email logged)</li>
-                    <li>• failed: {reminderMutation.data?.failed} (failed delivery)</li>
+                  <p className="text-emerald-600">{reminderMutation.data?.message}</p>
+                  <ul className="mt-0.5 flex items-center gap-3">
+                    <li>Queued: {reminderMutation.data?.queued}</li>
+                    <li>Sent: {reminderMutation.data?.sent}</li>
+                    <li className={reminderMutation.data?.failed > 0 ? "text-red-500" : ""}>Failed: {reminderMutation.data?.failed}</li>
                   </ul>
                 </>
               )}
@@ -2802,34 +2919,40 @@ function MentorOpsTab() {
         </div>
 
         {/* AI Summary */}
-        <div className="mb-6">
-          <h2 className="text-base font-semibold text-foreground mb-4 flex items-center gap-2"><Wand2 size={16} className="text-primary" /> AI Team Summary</h2>
-          <div className="flex gap-2 items-end mb-4">
-            <div className="flex-1">
+        <div className="bg-white border border-slate-200/80 rounded-[22px] shadow-[0_18px_45px_rgba(15,23,42,0.06)] overflow-hidden mb-8 p-6 lg:p-8">
+          <div className="flex items-center gap-3 mb-6">
+            <div className="flex items-center justify-center w-10 h-10 rounded-full bg-purple-50 text-purple-600 shrink-0">
+              <Sparkles size={18} />
+            </div>
+            <h2 className="text-[20px] font-extrabold text-slate-950">AI Team Summary</h2>
+          </div>
+          <div className="flex flex-col sm:flex-row items-center gap-4 mb-6">
+            <div className="flex-1 w-full">
               <select value={aiTeamId} onChange={e => setAiTeamId(e.target.value)}
-                className="w-full bg-background shadow-sm text-foreground rounded-lg px-3 py-2 text-sm focus:outline-none">
+                className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-bold text-slate-700 focus:border-purple-500 focus:ring-1 focus:ring-purple-500 focus:outline-none transition-shadow">
                 <option value="">-- select team --</option>
                 {allTeams.filter(t => t.is_approved && getTeamId(t)).map(t => <option key={getTeamId(t)} value={getTeamId(t)}>{getTeamName(t)}</option>)}
               </select>
             </div>
             <button onClick={() => aiMutation.mutate(aiTeamId)} disabled={aiMutation.isPending || !aiTeamId}
-              className="flex items-center gap-1.5 text-sm px-4 py-2 rounded-lg btn-primary disabled:opacity-50 disabled:cursor-not-allowed">
-              {aiMutation.isPending ? <Loader2 size={14} className="animate-spin" /> : <Wand2 size={14} />} Generate
+              className="flex items-center justify-center gap-2 text-sm px-8 py-3 rounded-xl bg-gradient-to-r from-orange-400 to-orange-500 hover:from-orange-500 hover:to-orange-600 text-white font-extrabold shadow-[0_10px_22px_rgba(249,115,22,0.25)] transition-all disabled:opacity-50 w-full sm:w-auto">
+              {aiMutation.isPending ? <Loader2 size={16} className="animate-spin" /> : <Sparkles size={16} />} Generate
             </button>
           </div>
           {aiResult && (
-            <div className="app-card p-5 border-l-2 border-l-primary relative overflow-hidden group transition-all hover:-translate-y-1 hover:scale-[1.01]">
-              <div className="absolute -right-8 -top-8 w-40 h-40 bg-gradient-to-br from-primary/10 to-transparent rounded-full blur-3xl group-hover:scale-125 transition-transform duration-700 pointer-events-none z-0" />
-              <div className="flex items-center gap-2 mb-3">
-                <p className="text-sm font-semibold text-foreground">{aiResult.team_name}</p>
-                <Badge colour={aiResult.tone === 'urgent' ? 'red' : aiResult.tone === 'watchlist' ? 'amber' : 'green'}>{aiResult.tone}</Badge>
+            <div className="bg-slate-50/50 border border-slate-100 rounded-xl p-6 relative overflow-hidden group">
+              <div className="flex items-center gap-3 mb-4">
+                <p className="text-base font-extrabold text-slate-950">{aiResult.team_name}</p>
+                <span className={`inline-flex items-center px-3 py-1 rounded-full text-[11px] font-extrabold ${aiResult.tone === 'urgent' ? 'bg-red-50 text-red-600 border border-red-200' : aiResult.tone === 'watchlist' ? 'bg-amber-50 text-amber-600 border border-amber-200' : 'bg-emerald-50 text-emerald-600 border border-emerald-200'}`}>
+                  {aiResult.tone}
+                </span>
               </div>
-              <p className="text-sm text-foreground leading-relaxed mb-2">{aiResult.summary}</p>
-              {aiResult.recommended_focus && <p className="text-xs text-primary mb-1"><strong>Focus:</strong> {aiResult.recommended_focus}</p>}
-              {aiResult.committee_note && <p className="text-xs text-muted"><strong>Committee note:</strong> {aiResult.committee_note}</p>}
+              <p className="text-sm font-semibold text-slate-700 leading-relaxed mb-4">{aiResult.summary}</p>
+              {aiResult.recommended_focus && <p className="text-xs font-bold text-slate-500 mb-2"><strong className="text-slate-700">Focus:</strong> {aiResult.recommended_focus}</p>}
+              {aiResult.committee_note && <p className="text-xs font-bold text-slate-500"><strong className="text-slate-700">Committee note:</strong> {aiResult.committee_note}</p>}
             </div>
           )}
-          {aiMutation.isError && <p className="text-xs text-primary mt-2">{aiMutation.error?.message}</p>}
+          {aiMutation.isError && <p className="text-xs font-bold text-red-500 mt-4">{aiMutation.error?.message}</p>}
         </div>
       </div>
 
