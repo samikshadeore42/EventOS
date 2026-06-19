@@ -44,7 +44,7 @@ import {
 
 // ── Shared micro-components ────────────────────────────────────────────────
 
-function StatCard({ label, value, sub, colour = 'red', icon: Icon, trend, onClick }) {
+function StatCard({ label, value, sub, colour = 'red', icon: Icon, trend, onClick, sectionClass }) {
   const colorMap = {
     emerald: { icon: 'bg-emerald-500/10 text-emerald-500 border border-emerald-500/20', glow: 'from-emerald-500/10' },
     red: { icon: 'bg-rose-500/10 text-rose-500 border border-rose-500/20', glow: 'from-rose-500/10' },
@@ -55,7 +55,7 @@ function StatCard({ label, value, sub, colour = 'red', icon: Icon, trend, onClic
   const theme = colorMap[colour] || colorMap.primary;
 
   return (
-    <motion.div onClick={onClick} whileHover={{ y: -2, scale: 1.01 }} className={`app-card rounded-2xl p-6 relative overflow-hidden group flex flex-col justify-between h-full ${onClick ? 'cursor-pointer' : ''}`}>
+    <motion.div onClick={onClick} whileHover={{ y: -2, scale: 1.01 }} className={`${sectionClass || 'app-card'} rounded-2xl p-6 relative overflow-hidden group flex flex-col justify-between h-full ${onClick ? 'cursor-pointer' : ''}`}>
       <div className={`absolute -right-8 -top-8 w-32 h-32 bg-gradient-to-br ${theme.glow} to-transparent rounded-full blur-2xl group-hover:scale-110 transition-transform duration-700`} />
 
       <div className="flex justify-between items-start mb-4 relative z-10">
@@ -132,7 +132,7 @@ function ApprovalStatusChart({ pending, approved, rejected }) {
         <span className="flex items-center gap-1.5"><div className="w-1.5 h-1.5 rounded-full bg-primary" /> Approved ({approved || 0})</span>
         <div className="flex items-center gap-3">
           <span className="flex items-center gap-1.5"><div className="w-1.5 h-1.5 rounded-full bg-slate-300" /> Pending ({pending || 0})</span>
-          {(rejected || 0) > 0 && <span className="flex items-center gap-1.5"><div className="w-1.5 h-1.5 rounded-full bg-cardSoft" /> Rejected ({rejected || 0})</span>}
+          {(rejected || 0) > 0 && <span className="flex items-center gap-1.5"><div className="w-1.5 h-1.5 rounded-full bg-[var(--bg-card-soft)]" /> Rejected ({rejected || 0})</span>}
         </div>
       </div>
     </div>
@@ -193,7 +193,7 @@ function OverviewTab({ onTileClick }) {
         <motion.div onClick={() => onTileClick?.('approvals')} whileHover={{ y: -4, scale: 1.02 }} transition={{ type: 'spring', stiffness: 300 }} className="cursor-pointer app-card p-6 relative overflow-hidden group flex flex-col justify-between h-full border-l-2 border-l-primary">
           <div className="absolute -right-8 -top-8 w-40 h-40 bg-gradient-to-br from-primary/10 to-transparent rounded-full blur-3xl group-hover:scale-125 transition-transform duration-700" />
           <div className="flex items-center gap-4 relative z-10 mb-2">
-            <div className="w-10 h-10 rounded-xl flex items-center justify-center shadow-sm bg-cardSoft text-primary shrink-0">
+            <div className="w-10 h-10 rounded-xl flex items-center justify-center shadow-sm bg-[var(--bg-card-soft)] text-primary shrink-0">
               <CheckSquare size={20} />
             </div>
             <h3 className="text-[11px] font-bold text-muted uppercase tracking-wider">Approval Status</h3>
@@ -210,7 +210,7 @@ function OverviewTab({ onTileClick }) {
         <motion.div onClick={() => onTileClick?.('evaluators')} whileHover={{ y: -4, scale: 1.02 }} transition={{ type: 'spring', stiffness: 300 }} className="cursor-pointer app-card p-6 relative overflow-hidden group flex flex-col justify-between h-full ">
           <div className="absolute -right-8 -top-8 w-40 h-40 bg-gradient-to-br from-primary/10 to-transparent rounded-full blur-3xl group-hover:scale-125 transition-transform duration-700" />
           <div className="flex items-center gap-4 relative z-10 mb-2">
-            <div className="w-10 h-10 rounded-xl flex items-center justify-center shadow-sm bg-cardSoft text-primary shrink-0">
+            <div className="w-10 h-10 rounded-xl flex items-center justify-center shadow-sm bg-[var(--bg-card-soft)] text-primary shrink-0">
               <BarChart2 size={20} />
             </div>
             <h3 className="text-[11px] font-bold text-muted uppercase tracking-wider">Evaluation Progress</h3>
@@ -342,14 +342,13 @@ function ParticipantsTab() {
       )}
 
       {/* CSV dropzone */}
-      <div className="app-card p-5 mb-6 border-l-2 border-l-primary relative overflow-hidden group transition-all hover:-translate-y-1 hover:scale-[1.01]">
-      <div className="absolute -right-8 -top-8 w-40 h-40 bg-gradient-to-br from-primary/10 to-transparent rounded-full blur-3xl group-hover:scale-125 transition-transform duration-700 pointer-events-none z-0" />
+      <div className="section-orange p-5 mb-6">
         <div className="flex items-center justify-between mb-3">
           <SectionTitle>Upload Roster CSV</SectionTitle>
           <a
             href={participantsApi.csvTemplateUrl()}
             download
-            className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg text-muted hover:bg-[var(--bg-card-soft)] transition-colors"
+            className="soft-button text-xs"
           >
             <Download size={13} /> Download Template
           </a>
@@ -361,8 +360,8 @@ function ParticipantsTab() {
           onDragLeave={onDragLeave}
           onClick={() => fileInputRef.current?.click()}
           className={`border-2 border-dashed rounded-xl p-10 text-center cursor-pointer transition-colors ${dragActive
-              ? 'border-primary bg-cardSoft'
-              : 'border-border hover:border-primary hover:bg-[var(--bg-card-soft)]'
+              ? 'border-primary/60 bg-[var(--bg-card-soft)]'
+              : 'border-primary/30 hover:border-primary hover:bg-[var(--bg-card-soft)]'
             }`}
         >
           <input
@@ -422,18 +421,18 @@ function ParticipantsTab() {
             value={search}
             onChange={(e) => { setSearch(e.target.value); setPage(1) }}
             placeholder="Search by name or email…"
-            className="flex-1 sm:w-64 text-sm rounded-lg px-3 py-2 focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary bg-background"
+            className="flex-1 sm:w-64 soft-input"
           />
           <input
             value={collegeFilter}
             onChange={(e) => { setCollegeFilter(e.target.value); setPage(1) }}
             placeholder="Search by college…"
-            className="flex-1 sm:w-64 text-sm rounded-lg px-3 py-2 focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary bg-background"
+            className="flex-1 sm:w-64 soft-input"
           />
           <select
             value={teamFilter}
             onChange={(e) => { setTeamFilter(e.target.value); setPage(1) }}
-            className="text-sm rounded-lg px-3 py-2 focus:outline-none bg-background"
+            className="soft-select"
           >
             <option value="">All</option>
             <option value="false">Unassigned</option>
@@ -459,9 +458,9 @@ function ParticipantsTab() {
       {/* Participants table */}
       <div className="app-card overflow-hidden border-l-2 border-l-primary relative overflow-hidden group transition-all hover:-translate-y-1 hover:scale-[1.01]">
       <div className="absolute -right-8 -top-8 w-40 h-40 bg-gradient-to-br from-primary/10 to-transparent rounded-full blur-3xl group-hover:scale-125 transition-transform duration-700 pointer-events-none z-0" />
-        <table className="w-full text-sm">
+        <table className="soft-table">
           <thead>
-            <tr className="bg-[var(--bg-card-soft)] border-b text-left">
+            <tr className="">
               {['Name', 'Institution', 'Skills (avg)', 'Team', 'Team Link Status', ''].map((h) => (
                 <th key={h} className="px-4 py-3 text-xs font-medium text-muted uppercase tracking-wide">{h}</th>
               ))}
@@ -470,10 +469,10 @@ function ParticipantsTab() {
           <tbody>
             {isLoading
               ? Array.from({ length: 6 }).map((_, i) => (
-                <tr key={i} className="border-b">
+                <tr key={i} className="">
                   {[1, 2, 3, 4, 5].map((j) => (
                     <td key={j} className="px-4 py-3">
-                      <div className="h-3 bg-cardSoft rounded animate-pulse w-24" />
+                      <div className="h-3 bg-[var(--bg-card-soft)] rounded animate-pulse w-24" />
                     </td>
                   ))}
                 </tr>
@@ -485,7 +484,7 @@ function ParticipantsTab() {
                   : null
 
                 return (
-                  <tr key={p.id} className="border-b hover:bg-[var(--bg-card-soft)]">
+                  <tr key={p.id} className="soft-row">
                     <td className="px-4 py-3">
                       <p className="font-medium text-foreground">{p.first_name} {p.last_name}</p>
                       <p className="text-xs text-muted">{p.email}</p>
@@ -539,7 +538,7 @@ function ParticipantsTab() {
 
         {/* Pagination */}
         {data && data.total_pages > 1 && (
-          <div className="flex justify-between items-center px-4 py-3 border-t border-border text-xs text-muted">
+          <div className="flex justify-between items-center px-4 py-3 border-t text-xs text-muted">
             <span>Page {data.page} of {data.total_pages} ({data.total} total)</span>
             <div className="flex gap-2">
               <button disabled={page === 1} onClick={() => setPage(p => p - 1)}
@@ -661,30 +660,30 @@ function TeamsTab() {
         <SectionTitle>Solver Configuration</SectionTitle>
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 mb-5">
           {[
-            { key: 'num_teams', label: 'Number of teams', min: 1, max: 50 },
-            { key: 'target_size', label: 'Target team size', min: 2, max: 10 },
-            { key: 'k_min', label: 'Min size', min: 1, max: 10 },
-            { key: 'k_max', label: 'Max size', min: 2, max: 10 },
-            { key: 'max_per_institution', label: 'Max / institution', min: 1, max: 5 },
-          ].map(({ key, label, min, max }) => (
-            <div key={key}>
-              <label className="block text-xs font-medium text-muted mb-1.5">{label}</label>
+            { key: 'num_teams', label: 'Number of teams', min: 1, max: 50, cls: 'section-blue' },
+            { key: 'target_size', label: 'Target team size', min: 2, max: 10, cls: 'section-green' },
+            { key: 'k_min', label: 'Min size', min: 1, max: 10, cls: 'section-yellow' },
+            { key: 'k_max', label: 'Max size', min: 2, max: 10, cls: 'section-purple' },
+            { key: 'max_per_institution', label: 'Max / institution', min: 1, max: 5, cls: 'section-orange' },
+          ].map(({ key, label, min, max, cls }) => (
+            <div key={key} className={`${cls} p-3`}>
+              <label className="block text-xs font-bold mb-1.5" style={{ color: 'var(--text-main)' }}>{label}</label>
               <input
                 type="number" min={min} max={max}
                 value={config[key]}
                 onChange={(e) => setConfig((c) => ({ ...c, [key]: +e.target.value }))}
-                className="w-full rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary"
+                className="soft-input"
               />
             </div>
           ))}
 
           <div className="flex items-end">
-            <label className="flex items-center gap-2 text-sm text-foreground cursor-pointer pb-2">
+            <label className="flex items-center gap-2 text-sm cursor-pointer pb-2 section-pink p-3" style={{ color: 'var(--text-main)' }}>
               <input
                 type="checkbox"
                 checked={config.use_mock_data}
                 onChange={(e) => setConfig((c) => ({ ...c, use_mock_data: e.target.checked }))}
-                className="rounded border-border text-primary focus:ring-primary"
+                className="rounded"
               />
               Use mock data
             </label>
@@ -718,7 +717,7 @@ function TeamsTab() {
               {taskStatus.status}
             </span>
           </div>
-          <div className="w-full bg-cardSoft rounded-full h-2 mb-3">
+          <div className="w-full bg-[var(--bg-card-soft)] rounded-full h-2 mb-3">
             <div
               className={`h-2 rounded-full transition-all duration-500 ${taskStatus.status === 'success' ? 'bg-primary' :
                   taskStatus.status === 'failed' ? 'bg-primary' : 'bg-primary'
@@ -758,7 +757,7 @@ function TeamsTab() {
                 <button
                   onClick={generateAllRationale}
                   disabled={generatingAll}
-                  className="flex items-center gap-1.5 text-sm px-4 py-2 rounded-lg border border-primary text-primary hover:bg-cardSoft dark:hover:bg-primary/10 disabled:opacity-50"
+                  className="flex items-center gap-1.5 text-sm px-4 py-2 rounded-lg border border-primary text-primary hover:bg-[var(--bg-card-soft)] dark:hover:bg-primary/10 disabled:opacity-50"
                 >
                   {generatingAll
                     ? <Loader2 size={14} className="animate-spin" />
@@ -802,7 +801,7 @@ function TeamsTab() {
                 <div className="space-y-2">
                   {team.members.map((m) => (
                     <div key={m.id} className="flex items-center gap-2">
-                      <div className="w-7 h-7 rounded-full bg-cardSoft text-primary text-xs font-semibold flex items-center justify-center shrink-0">
+                      <div className="w-7 h-7 rounded-full bg-[var(--bg-card-soft)] text-primary text-xs font-semibold flex items-center justify-center shrink-0">
                         {m.name[0]}
                       </div>
                       <div className="min-w-0">
@@ -813,7 +812,7 @@ function TeamsTab() {
                   ))}
                 </div>
                 {team.average_skill_vector?.length > 0 && (
-                  <div className="mt-3 pt-3 border-t border-border">
+                  <div className="mt-3 pt-3 border-t">
                     <p className="text-xs text-muted mb-1">Skill avg</p>
                     <div className="flex gap-1 flex-wrap">
                       {team.average_skill_vector.map((v, i) => (
@@ -826,7 +825,7 @@ function TeamsTab() {
                 )}
 
                 {/* ── AI Rationale ── */}
-                <div className="mt-3 pt-3 border-t border-border">
+                <div className="mt-3 pt-3 border-t">
                   {!rationales[team.team_id] ? (
                     <button
                       onClick={() => generateRationale(team)}
@@ -839,7 +838,7 @@ function TeamsTab() {
                       <Loader2 size={11} className="animate-spin" /> Generating…
                     </div>
                   ) : rationales[team.team_id].status === 'done' ? (
-                    <div className="bg-cardSoft rounded-lg p-2.5">
+                    <div className="bg-[var(--bg-card-soft)] rounded-lg p-2.5">
                       <p className="text-xs font-medium text-primary mb-1 flex items-center gap-1">
                         <Wand2 size={11} /> AI Rationale
                       </p>
@@ -940,7 +939,7 @@ function ApprovalsTab() {
             <button
               onClick={() => bulkMutation.mutate('reject')}
               disabled={bulkMutation.isPending}
-              className="flex items-center gap-1.5 text-sm px-3 py-1.5 rounded-lg text-primary hover:bg-cardSoft dark:hover:bg-primary/10"
+              className="flex items-center gap-1.5 text-sm px-3 py-1.5 rounded-lg text-primary hover:bg-[var(--bg-card-soft)] dark:hover:bg-primary/10"
             >
               <X size={14} /> Reject all
             </button>
@@ -961,7 +960,7 @@ function ApprovalsTab() {
 
       {/* Global Status Banner */}
       {activeTeams.length > 0 && !hasPublished && (
-        <div className={`mb-6 p-4 rounded-xl border ${hasRejected ? 'bg-cardSoft border-border' : allApproved ? 'bg-cardSoft border-border' : 'bg-[var(--bg-card-soft)] border-border'}`}>
+        <div className={`mb-6 p-4 ${hasRejected ? 'section-red' : allApproved ? 'section-green' : 'section-yellow'}`}>
           {hasRejected && (
             <div className="flex items-start gap-3">
               <AlertTriangle className="text-primary shrink-0 mt-0.5" size={20} />
@@ -1007,7 +1006,7 @@ function ApprovalsTab() {
       )}
 
       {hasPublished && (
-        <div className="mb-6 p-4 rounded-xl bg-cardSoft flex items-start gap-3">
+        <div className="mb-6 p-4 section-green flex items-start gap-3">
           <Check className="text-primary shrink-0 mt-0.5" size={20} />
           <div>
             <h3 className="text-sm font-bold text-foreground">Formation Published</h3>
@@ -1018,7 +1017,7 @@ function ApprovalsTab() {
 
       {isLoading && (
         <div className="space-y-3">
-          {[1, 2, 3].map(i => <div key={i} className="h-16 bg-cardSoft rounded-xl animate-pulse" />)}
+          {[1, 2, 3].map(i => <div key={i} className="h-16 bg-[var(--bg-card-soft)] rounded-xl animate-pulse" />)}
         </div>
       )}
 
@@ -1039,7 +1038,7 @@ function ApprovalsTab() {
               className="flex items-center gap-3 px-4 py-3 cursor-pointer hover:bg-[var(--bg-card-soft)]"
               onClick={() => setExpanded(expanded === team.team_id ? null : team.team_id)}
             >
-              <div className="w-9 h-9 rounded-lg bg-cardSoft text-primary flex items-center justify-center font-semibold text-sm shrink-0">
+              <div className="w-9 h-9 rounded-lg bg-[var(--bg-card-soft)] text-primary flex items-center justify-center font-semibold text-sm shrink-0">
                 {team.team_name[0]}
               </div>
               <div className="flex-1 min-w-0">
@@ -1055,12 +1054,12 @@ function ApprovalsTab() {
 
             {/* Expanded detail */}
             {expanded === team.team_id && detail && (
-              <div className="border-t border-border px-4 py-4">
+              <div className="border-t px-4 py-4">
                 {/* Members grid */}
                 <div className="grid grid-cols-2 gap-2 mb-4">
                   {detail.members?.map((m) => (
                     <div key={m.id} className="flex items-center gap-2">
-                      <div className="w-7 h-7 rounded-full bg-cardSoft text-muted text-xs font-semibold flex items-center justify-center shrink-0">
+                      <div className="w-7 h-7 rounded-full bg-[var(--bg-card-soft)] text-muted text-xs font-semibold flex items-center justify-center shrink-0">
                         {m.name[0]}
                       </div>
                       <div className="min-w-0">
@@ -1073,7 +1072,7 @@ function ApprovalsTab() {
 
                 {/* AI rationale */}
                 {detail.rationale && (
-                  <div className="bg-cardSoft rounded-lg p-3 mb-4">
+                  <div className="bg-[var(--bg-card-soft)] rounded-lg p-3 mb-4">
                     <p className="text-xs font-medium text-primary mb-1 flex items-center gap-1">
                       <Wand2 size={12} /> AI Rationale
                     </p>
@@ -1087,14 +1086,13 @@ function ApprovalsTab() {
                   onChange={(e) => setNotes(e.target.value)}
                   placeholder="Notes (required when rejecting)…"
                   rows={2}
-                  className="w-full text-sm rounded-lg px-3 py-2 focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary mb-3 resize-none"
+                  className="soft-input mb-3 resize-none"
                 />
                 <div className="flex justify-end gap-2">
                   <button
                     onClick={() => decideMutation.mutate({ id: team.team_id, decision: 'reject' })}
                     disabled={decideMutation.isPending}
-                    className="flex items-center gap-1.5 text-sm px-3 py-1.5 rounded-lg text-primary hover:bg-cardSoft dark:hover:bg-primary/10"
-                  >
+                    className="soft-button text-sm" style={{ color: "var(--color-danger)" }}>
                     <X size={14} /> Reject
                   </button>
                   <button
@@ -1204,7 +1202,7 @@ function EvaluatorsTab() {
         value={form[key]}
         onChange={(e) => setForm((f) => ({ ...f, [key]: e.target.value }))}
         placeholder={placeholder}
-        className="w-full rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary"
+        className="soft-input"
       />
     </div>
   )
@@ -1223,12 +1221,11 @@ function EvaluatorsTab() {
         <div className="flex items-center justify-between mb-5">
           <h2 className="text-base font-semibold text-foreground">Evaluators / Judges</h2>
           <div className="flex items-center gap-2">
-            <button onClick={() => evaluatorsApi.downloadTemplate()} className="text-sm px-3 py-1.5 rounded-lg text-muted hover:bg-[var(--bg-card-soft)]">CSV Template</button>
-            <button onClick={() => evaluatorsApi.downloadExport()} className="text-sm px-3 py-1.5 rounded-lg text-muted hover:bg-[var(--bg-card-soft)]">Export</button>
+            <button onClick={() => evaluatorsApi.downloadTemplate()} className="soft-button text-sm">CSV Template</button>
+            <button onClick={() => evaluatorsApi.downloadExport()} className="soft-button text-sm">Export</button>
             <button
               onClick={() => setShowAutoAssign(true)}
-              className="flex items-center gap-1.5 text-sm px-3 py-1.5 rounded-lg text-primary hover:bg-cardSoft dark:hover:bg-primary/10"
-            >
+              className="soft-button text-sm" style={{ color: "var(--color-ai)" }}>
               <Wand2 size={14} /> Auto-assign
             </button>
             <button
@@ -1255,27 +1252,26 @@ function EvaluatorsTab() {
             <button
               onClick={() => auditMutation.mutate()}
               disabled={auditMutation.isPending}
-              className="inline-flex items-center justify-center gap-2 text-sm px-4 py-2 rounded-lg text-primary hover:bg-cardSoft dark:hover:bg-primary/10 disabled:opacity-50"
+              className="inline-flex items-center justify-center gap-2 text-sm px-4 py-2 rounded-lg text-primary hover:bg-[var(--bg-card-soft)] dark:hover:bg-primary/10 disabled:opacity-50"
             >
               {auditMutation.isPending ? <Loader2 size={14} className="animate-spin" /> : <ShieldCheck size={14} />}
               Run audit
             </button>
           </div>
           {auditMutation.isSuccess && (
-            <div className="mt-3 rounded-lg border border-emerald-200 dark:border-emerald-800 bg-emerald-50 dark:bg-emerald-900/30 p-3 text-sm text-emerald-700 dark:text-emerald-300">
+            <div className="mt-3 section-green p-3 text-sm" style={{ color: "var(--color-success)" }}>
               Audit completed. Issues found: {auditMutation.data?.issues?.length ?? auditMutation.data?.issue_count ?? 0}
             </div>
           )}
           {auditMutation.isError && (
-            <div className="mt-3 rounded-lg bg-cardSoft p-3 text-sm text-primary">
+            <div className="mt-3 rounded-lg bg-[var(--bg-card-soft)] p-3 text-sm text-primary">
               {auditMutation.error?.message || 'Audit failed.'}
             </div>
           )}
         </div>
 
         {/* Bulk Import */}
-        <div className="app-card p-4 mb-5 flex flex-col gap-3 border-l-2 border-l-primary relative overflow-hidden group transition-all hover:-translate-y-1 hover:scale-[1.01]">
-      <div className="absolute -right-8 -top-8 w-40 h-40 bg-gradient-to-br from-primary/10 to-transparent rounded-full blur-3xl group-hover:scale-125 transition-transform duration-700 pointer-events-none z-0" />
+        <div className="section-green p-4 mb-5 flex flex-col gap-3">
           <div className="flex items-center gap-4">
             <input type="file" accept=".csv" onChange={(e) => setImportFile(e.target.files[0])} className="text-sm" />
             <label className="flex items-center gap-2 text-sm text-foreground">
@@ -1285,7 +1281,7 @@ function EvaluatorsTab() {
             <button
               onClick={() => importMutation.mutate()}
               disabled={!importFile || importMutation.isPending}
-              className="text-sm px-4 py-1.5 rounded-lg bg-emerald-600 text-white hover:bg-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="app-btn-primary text-sm px-4 py-1.5"
             >
               {importMutation.isPending ? <Loader2 size={14} className="animate-spin inline" /> : 'Import CSV'}
             </button>
@@ -1342,7 +1338,7 @@ function EvaluatorsTab() {
 
         {/* Evaluator list */}
         {isLoading
-          ? Array.from({ length: 3 }).map((_, i) => <div key={i} className="h-14 bg-cardSoft rounded-xl animate-pulse mb-3" />)
+          ? Array.from({ length: 3 }).map((_, i) => <div key={i} className="h-14 bg-[var(--bg-card-soft)] rounded-xl animate-pulse mb-3" />)
           : (
             <div className="app-card overflow-hidden mb-6 border-l-2 border-l-primary relative overflow-hidden group transition-all hover:-translate-y-1 hover:scale-[1.01]">
       <div className="absolute -right-8 -top-8 w-40 h-40 bg-gradient-to-br from-primary/10 to-transparent rounded-full blur-3xl group-hover:scale-125 transition-transform duration-700 pointer-events-none z-0" />
@@ -1351,7 +1347,7 @@ function EvaluatorsTab() {
                 : data.evaluators.map((ev) => (
                   <div key={ev.id} className="border-b last:border-0">
                     <div className="flex flex-wrap items-center gap-4 px-4 py-3 hover:bg-[var(--bg-card-soft)]">
-                      <div className="w-9 h-9 rounded-full bg-cardSoft text-primary font-semibold text-sm flex items-center justify-center shrink-0">
+                      <div className="w-9 h-9 rounded-full bg-[var(--bg-card-soft)] text-primary font-semibold text-sm flex items-center justify-center shrink-0">
                         {ev.first_name[0]}
                       </div>
                       <div className="flex-1 min-w-[200px]">
@@ -1382,7 +1378,7 @@ function EvaluatorsTab() {
                           onClick={() => sendLinkMutation.mutate(ev.id)}
                           disabled={sendLinkMutation.isPending}
                           title={ev.access_link_sent ? "Send access link again" : "Send access link"}
-                          className="flex items-center gap-1 text-xs px-2.5 py-1.5 rounded-lg text-primary hover:bg-cardSoft dark:hover:bg-primary/10 disabled:opacity-50"
+                          className="flex items-center gap-1 text-xs px-2.5 py-1.5 rounded-lg text-primary hover:bg-[var(--bg-card-soft)] dark:hover:bg-primary/10 disabled:opacity-50"
                         >
                           {sendLinkMutation.isPending
                             ? <Loader2 size={12} className="animate-spin" />
@@ -1401,7 +1397,7 @@ function EvaluatorsTab() {
 
                     {/* Expanded: team assignments */}
                     {expandedEval === ev.id && (
-                      <div className="px-4 py-4 bg-[var(--bg-card-soft)] border-t border-border">
+                      <div className="px-4 py-4 bg-[var(--bg-card-soft)] border-t">
                         <p className="text-xs font-bold text-muted mb-2">Current Assignments</p>
                         {assignData?.teams?.length > 0 ? (
                           <div className="flex gap-1.5 flex-wrap mb-3">
@@ -1424,8 +1420,8 @@ function EvaluatorsTab() {
                                 key={t.team_id}
                                 onClick={() => toggleTeamId(t.team_id)}
                                 className={`text-xs px-2.5 py-1.5 rounded-lg border transition-colors ${selected
-                                    ? 'bg-cardSoft border-primary text-primary font-semibold'
-                                    : 'border-border text-muted hover:bg-[var(--bg-card-soft)]'
+                                    ? 'bg-[var(--bg-card-soft)] border-primary text-primary font-semibold'
+                                    : 'soft-button text-muted'
                                   }`}
                               >
                                 {t.team_name}
@@ -1556,7 +1552,7 @@ function LeaderboardTab() {
     <div>
       {/* Anomaly flags */}
       {(anomalies?.total_flagged ?? 0) > 0 && (
-        <div className="bg-cardSoft rounded-xl p-4 mb-6">
+        <div className="bg-[var(--bg-card-soft)] rounded-xl p-4 mb-6">
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-2">
               <AlertTriangle size={16} className="text-primary" />
@@ -1567,14 +1563,14 @@ function LeaderboardTab() {
             <button
               onClick={() => overrideAllMutation.mutate()}
               disabled={overrideAllMutation.isPending}
-              className="text-xs px-3 py-1.5 rounded-lg text-primary hover:bg-cardSoft"
+              className="text-xs px-3 py-1.5 rounded-lg text-primary hover:bg-[var(--bg-card-soft)]"
             >
               Clear all flags
             </button>
           </div>
           <div className="space-y-2">
             {anomalies.scorecards.map((sc) => (
-              <div key={sc.id} className="flex items-start gap-3 glass-card rounded-lg p-3 ">
+              <div key={sc.id} className="flex items-start gap-3 app-card rounded-lg p-3 ">
                 <div className="flex-1 min-w-0">
                   <p className="text-xs font-medium text-foreground">
                     Evaluator <span className="font-semibold text-foreground">{sc.evaluator_name}</span>
@@ -1630,7 +1626,7 @@ function LeaderboardTab() {
           : lb.leaderboard.map((team, i) => (
             <div
               key={team.team_id}
-              className={`grid grid-cols-12 items-center px-4 py-3 border-b text-sm ${i === 0 && !team.has_flags ? 'bg-cardSoft border-l-2 border-l-amber-400' : ''}`}
+              className={`grid grid-cols-12 items-center px-4 py-3 border-b text-sm ${i === 0 && !team.has_flags ? 'bg-[var(--bg-card-soft)] border-l-2 border-l-amber-400' : ''}`}
             >
               <div className={`col-span-1 font-mono font-semibold ${i === 0 && !team.has_flags ? 'text-foreground' : 'text-muted'}`}>
                 {team.rank ?? <span>—</span>}
@@ -1749,8 +1745,7 @@ function CommunicationsTab() {
 
   return (
     <div>
-      <div className="app-card p-5 mb-6 border-l-2 border-l-primary relative overflow-hidden group transition-all hover:-translate-y-1 hover:scale-[1.01]">
-      <div className="absolute -right-8 -top-8 w-40 h-40 bg-gradient-to-br from-primary/10 to-transparent rounded-full blur-3xl group-hover:scale-125 transition-transform duration-700 pointer-events-none z-0" />
+      <div className="section-blue p-5 mb-6">
         <div className="flex items-start justify-between gap-4 mb-4">
           <div>
             <SectionTitle>Email Diagnostics</SectionTitle>
@@ -1767,21 +1762,21 @@ function CommunicationsTab() {
           <div className="h-20 bg-[var(--bg-card-soft)] rounded-lg animate-pulse" />
         ) : (
           <div className="grid md:grid-cols-4 gap-3 mb-4 text-sm">
-            <div className="rounded-lg bg-[var(--bg-card-soft)] p-3">
+            <div className="section-blue p-3">
               <p className="text-xs text-muted mb-1">From email</p>
               <p className="font-semibold text-foreground truncate">{diagnostics?.from_email || 'missing'}</p>
             </div>
-            <div className="rounded-lg bg-[var(--bg-card-soft)] p-3">
+            <div className="section-purple p-3">
               <p className="text-xs text-muted mb-1">SendGrid key</p>
               <p className="font-semibold text-foreground">
                 {diagnostics?.sendgrid_api_key_present ? diagnostics?.sendgrid_key_prefix : 'missing'}
               </p>
             </div>
-            <div className="rounded-lg bg-[var(--bg-card-soft)] p-3">
+            <div className="section-orange p-3">
               <p className="text-xs text-muted mb-1">Frontend base</p>
               <p className="font-semibold text-foreground truncate">{diagnostics?.frontend_base_url}</p>
             </div>
-            <div className="rounded-lg bg-[var(--bg-card-soft)] p-3">
+            <div className="section-green p-3">
               <p className="text-xs text-muted mb-1">Redis</p>
               <p className="font-semibold text-foreground">{diagnostics?.redis_url_present ? 'configured' : 'missing'}</p>
             </div>
@@ -1799,7 +1794,7 @@ function CommunicationsTab() {
               value={preflightEmail}
               onChange={(e) => setPreflightEmail(e.target.value)}
               placeholder="optional@example.com"
-              className="w-full rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary"
+              className="soft-input"
             />
           </div>
           <div>
@@ -1807,7 +1802,7 @@ function CommunicationsTab() {
             <input
               value={preflightName}
               onChange={(e) => setPreflightName(e.target.value)}
-              className="w-full rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary"
+              className="soft-input"
             />
           </div>
           <button
@@ -1820,20 +1815,19 @@ function CommunicationsTab() {
         </div>
 
         {preflightMutation.isSuccess && (
-          <div className="mt-3 rounded-lg border border-emerald-200 dark:border-emerald-800 bg-emerald-50 dark:bg-emerald-900/30 p-3 text-sm text-emerald-700 dark:text-emerald-300">
+          <div className="mt-3 section-green p-3 text-sm" style={{ color: "var(--color-success)" }}>
             Preflight passed via {preflightMutation.data?.provider || preflightMutation.data?.mode || 'provider'}.
             {preflightMutation.data?.message_id && ` Message id: ${preflightMutation.data.message_id}`}
           </div>
         )}
         {preflightMutation.isError && (
-          <div className="mt-3 rounded-lg bg-cardSoft p-3 text-sm text-primary">
+          <div className="mt-3 rounded-lg bg-[var(--bg-card-soft)] p-3 text-sm text-primary">
             {preflightMutation.error?.message || 'Preflight failed.'}
           </div>
         )}
       </div>
       {/* Communication log */}
-      <div className="app-card overflow-hidden mb-8 border-l-2 border-l-primary relative overflow-hidden group transition-all hover:-translate-y-1 hover:scale-[1.01]">
-      <div className="absolute -right-8 -top-8 w-40 h-40 bg-gradient-to-br from-primary/10 to-transparent rounded-full blur-3xl group-hover:scale-125 transition-transform duration-700 pointer-events-none z-0" />
+      <div className="app-card overflow-hidden mb-8">
         <div className="flex items-center justify-between px-4 py-3 border-b">
           <p className="text-sm font-semibold text-foreground">Communication Log</p>
           <div className="flex gap-2">
@@ -1841,12 +1835,12 @@ function CommunicationsTab() {
               value={templateFilter}
               onChange={(e) => setTemplateFilter(e.target.value)}
               placeholder="Filter by template…"
-              className="text-xs rounded-lg px-2.5 py-1.5 focus:outline-none w-36"
+              className="soft-input text-xs w-36"
             />
             <select
               value={successFilter}
               onChange={(e) => setSuccessFilter(e.target.value)}
-              className="text-xs rounded-lg px-2.5 py-1.5 focus:outline-none"
+              className="soft-select text-xs"
             >
               <option value="">All statuses</option>
               <option value="true">Sent</option>
@@ -1854,15 +1848,15 @@ function CommunicationsTab() {
             </select>
           </div>
         </div>
-        <div className="px-4 py-2 bg-card/30/30 border-b text-[11px] text-muted">
+        <div className="px-4 py-2 text-[11px] text-muted" style={{ backgroundColor: "var(--bg-card-soft)" }}>
           <span className="font-medium">Note:</span> Queued means the background worker accepted the job. Sent/Failed is recorded after provider response.
         </div>
 
         {isLoading
-          ? <div className="p-4 space-y-2">{Array.from({ length: 5 }).map((_, i) => <div key={i} className="h-8 bg-cardSoft rounded animate-pulse" />)}</div>
+          ? <div className="p-4 space-y-2">{Array.from({ length: 5 }).map((_, i) => <div key={i} className="h-8 bg-[var(--bg-card-soft)] rounded animate-pulse" />)}</div>
           : !commsData?.logs?.length
             ? <div className="text-center py-10 text-sm text-muted">No emails dispatched yet.</div>
-            : <table className="w-full text-sm">
+            : <table className="soft-table">
               <thead>
                 <tr className="bg-[var(--bg-card-soft)] text-left border-b">
                   {['Recipient', 'Template', 'Stage', 'Status', 'Sent at'].map(h => (
@@ -1872,7 +1866,7 @@ function CommunicationsTab() {
               </thead>
               <tbody>
                 {commsData.logs.map((log) => (
-                  <tr key={log.id} className="border-b hover:bg-[var(--bg-card-soft)]">
+                  <tr key={log.id} className="soft-row">
                     <td className="px-4 py-2.5">
                       <p className="text-foreground font-medium truncate max-w-[160px]">{log.recipient_email}</p>
                     </td>
@@ -1918,8 +1912,8 @@ function CommunicationsTab() {
                       setDraft(null)
                     }}
                     className={`text-xs px-3 py-1.5 rounded-lg border transition-colors ${draftType === t.value
-                        ? 'btn-primary text-white border-primary'
-                        : 'border-border text-muted hover:bg-[var(--bg-card-soft)]'
+                        ? 'app-btn-primary'
+                        : 'soft-button'
                       }`}
                   >
                     {t.label}
@@ -1933,7 +1927,7 @@ function CommunicationsTab() {
               <select
                 value={draftTone}
                 onChange={(e) => setDraftTone(e.target.value)}
-                className="text-sm rounded-lg px-3 py-2 focus:outline-none w-full"
+                className="soft-select"
               >
                 {['professional', 'encouraging', 'formal'].map(t => <option key={t} value={t}>{t}</option>)}
               </select>
@@ -1945,14 +1939,14 @@ function CommunicationsTab() {
                 value={draftContext}
                 onChange={(e) => setDraftContext(e.target.value)}
                 rows={8}
-                className="w-full font-mono text-xs rounded-lg px-3 py-2 focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary resize-none"
+                className="soft-input font-mono text-xs resize-none"
               />
             </div>
 
             <button
               onClick={() => draftMutation.mutate()}
               disabled={draftMutation.isPending}
-              className="w-full flex items-center justify-center gap-2 text-sm px-4 py-2.5 rounded-lg btn-primary text-white hover:bg-primary-dark disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full app-btn-primary text-sm px-4 py-2.5"
             >
               {draftMutation.isPending ? <Loader2 size={14} className="animate-spin" /> : <Wand2 size={14} />}
               {draftMutation.isPending ? 'Generating…' : 'Generate Draft'}
@@ -1961,8 +1955,7 @@ function CommunicationsTab() {
           </div>
 
           {/* Preview */}
-          <div className="app-card p-5 flex flex-col min-h-64 border-l-2 border-l-primary relative overflow-hidden group transition-all hover:-translate-y-1 hover:scale-[1.01]">
-      <div className="absolute -right-8 -top-8 w-40 h-40 bg-gradient-to-br from-primary/10 to-transparent rounded-full blur-3xl group-hover:scale-125 transition-transform duration-700 pointer-events-none z-0" />
+          <div className="section-purple p-5 flex flex-col min-h-64">
             {draft ? (
               <>
                 <div className="flex items-center justify-between mb-3">
@@ -1986,7 +1979,7 @@ function CommunicationsTab() {
                   <p className="text-xs text-muted mb-1.5">Body</p>
                   <p className="text-sm text-foreground whitespace-pre-wrap leading-relaxed">{draft.body_text}</p>
                 </div>
-                <p className="mt-4 pt-3 border-t border-border text-xs text-primary">
+                <p className="mt-4 pt-3 border-t text-xs text-primary">
                   ⚠ Review carefully before dispatching. This draft has not been sent.
                 </p>
               </>
@@ -2091,12 +2084,12 @@ function MentorOpsTab() {
     <div>
       <label className="block text-xs font-medium text-muted mb-1">{label}</label>
       <input type={type} value={form[key]} onChange={e => setForm(f => ({ ...f, [key]: e.target.value }))}
-        placeholder={placeholder} className="w-full bg-background shadow-sm text-foreground rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary" />
+        placeholder={placeholder} className="soft-input" />
     </div>
   )
 
   const riskBadge = (level) => {
-    const cls = { low: 'bg-green-50 border border-green-200 text-green-700', medium: 'bg-cardSoft text-primary-dark', high: 'bg-cardSoft text-primary-dark', critical: 'bg-cardSoft text-foreground border border-primary font-bold' }[level] ?? 'bg-[var(--bg-card-soft)] text-muted'
+    const cls = { low: 'soft-success', medium: 'soft-info', high: 'soft-warning', critical: 'soft-danger' }[level] ?? 'soft-info'
     return <span className={`inline-flex items-center text-xs font-medium px-2 py-0.5 rounded-full ${cls}`}>{level}</span>
   }
 
@@ -2105,15 +2098,14 @@ function MentorOpsTab() {
       <div>
         {/* Ops summary cards */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-          {[{ label: 'Teams without mentor', value: ops.teams_without_mentor, icon: AlertTriangle, colour: ops.teams_without_mentor > 0 ? 'amber' : 'teal' },
-          { label: 'Teams without meeting', value: ops.teams_without_meeting, icon: Calendar, colour: ops.teams_without_meeting > 0 ? 'amber' : 'teal' },
-          { label: 'Missing daily update', value: ops.teams_missing_daily_update, icon: MessageSquare, colour: ops.teams_missing_daily_update > 0 ? 'red' : 'teal' },
-          { label: 'Low progress teams', value: ops.low_progress_teams, icon: BarChart2, colour: ops.low_progress_teams > 0 ? 'red' : 'teal' },
-          ].map(({ label, value, icon: Icon, colour }) => (
-            <div key={label} className="app-card p-4 border-l-2 border-l-primary relative overflow-hidden group transition-all hover:-translate-y-1 hover:scale-[1.01]">
-      <div className="absolute -right-8 -top-8 w-40 h-40 bg-gradient-to-br from-primary/10 to-transparent rounded-full blur-3xl group-hover:scale-125 transition-transform duration-700 pointer-events-none z-0" />
+          {[{ label: 'Teams without mentor', value: ops.teams_without_mentor, icon: AlertTriangle, section: 'section-blue' },
+          { label: 'Teams without meeting', value: ops.teams_without_meeting, icon: Calendar, section: 'section-yellow' },
+          { label: 'Missing daily update', value: ops.teams_missing_daily_update, icon: MessageSquare, section: 'section-red' },
+          { label: 'Low progress teams', value: ops.low_progress_teams, icon: BarChart2, section: 'section-green' },
+          ].map(({ label, value, icon: Icon, section }) => (
+            <div key={label} className={`${section} p-4`}>
               <div className="flex items-center gap-2 mb-1"><Icon size={14} className="text-muted" /><p className="text-xs font-medium text-muted uppercase tracking-wide">{label}</p></div>
-              <p className={`text-2xl font-bold px-2 py-0.5 rounded inline-block bg-${colour}-50 text-${colour}-700 border border-${colour}-200`}>{value ?? '—'}</p>
+              <p className="text-2xl font-bold text-foreground">{value ?? '—'}</p>
             </div>
           ))}
         </div>
@@ -2122,12 +2114,11 @@ function MentorOpsTab() {
         <div className="flex items-center justify-between mb-5">
           <h2 className="text-base font-semibold text-foreground">Mentors</h2>
           <div className="flex items-center gap-2">
-            <button onClick={() => mentorApi.downloadTemplate()} className="text-sm px-3 py-1.5 rounded-lg text-muted hover:bg-[var(--bg-card-soft)]">CSV Template</button>
-            <button onClick={() => mentorApi.downloadExport()} className="text-sm px-3 py-1.5 rounded-lg text-muted hover:bg-[var(--bg-card-soft)]">Export</button>
+            <button onClick={() => mentorApi.downloadTemplate()} className="soft-button text-sm">CSV Template</button>
+            <button onClick={() => mentorApi.downloadExport()} className="soft-button text-sm">Export</button>
             <button
               onClick={() => setShowAutoAssign(true)}
-              className="flex items-center gap-1.5 text-sm px-3 py-1.5 rounded-lg text-primary hover:bg-cardSoft dark:hover:bg-primary/10"
-            >
+              className="soft-button text-sm" style={{ color: "var(--color-ai)" }}>
               <Wand2 size={14} /> Auto-assign
             </button>
             <button onClick={() => setShowForm(s => !s)} className="flex items-center gap-1.5 text-sm px-3 py-1.5 rounded-lg btn-primary text-white hover:bg-primary-dark">
@@ -2137,8 +2128,7 @@ function MentorOpsTab() {
         </div>
 
         {/* Bulk Import */}
-        <div className="app-card p-4 mb-5 flex flex-col gap-3 border-l-2 border-l-primary relative overflow-hidden group transition-all hover:-translate-y-1 hover:scale-[1.01]">
-      <div className="absolute -right-8 -top-8 w-40 h-40 bg-gradient-to-br from-primary/10 to-transparent rounded-full blur-3xl group-hover:scale-125 transition-transform duration-700 pointer-events-none z-0" />
+        <div className="section-green p-4 mb-5 flex flex-col gap-3">
           <div className="flex items-center gap-4">
             <input type="file" accept=".csv" onChange={(e) => setImportFile(e.target.files[0])} className="text-sm" />
             <label className="flex items-center gap-2 text-sm text-foreground">
@@ -2148,7 +2138,7 @@ function MentorOpsTab() {
             <button
               onClick={() => importMutation.mutate()}
               disabled={!importFile || importMutation.isPending}
-              className="text-sm px-4 py-1.5 rounded-lg bg-emerald-600 text-white hover:bg-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="app-btn-primary text-sm px-4 py-1.5"
             >
               {importMutation.isPending ? <Loader2 size={14} className="animate-spin inline" /> : 'Import CSV'}
             </button>
@@ -2174,8 +2164,7 @@ function MentorOpsTab() {
         </div>
 
         {showForm && (
-          <div className="app-card p-5 mb-5 border-l-2 border-l-primary relative overflow-hidden group transition-all hover:-translate-y-1 hover:scale-[1.01]">
-      <div className="absolute -right-8 -top-8 w-40 h-40 bg-gradient-to-br from-primary/10 to-transparent rounded-full blur-3xl group-hover:scale-125 transition-transform duration-700 pointer-events-none z-0" />
+          <div className="section-blue p-5 mb-5">
             <p className="text-sm font-semibold text-foreground mb-4">New Mentor</p>
             <div className="grid grid-cols-2 gap-3 mb-3">
               {fieldFor('first_name', 'First name', 'text', 'Dr. Priya')}
@@ -2196,10 +2185,9 @@ function MentorOpsTab() {
         )}
 
         {isLoading
-          ? Array.from({ length: 3 }).map((_, i) => <div key={i} className="h-14 bg-cardSoft rounded-xl animate-pulse mb-3" />)
+          ? Array.from({ length: 3 }).map((_, i) => <div key={i} className="h-14 bg-[var(--bg-card-soft)] rounded-xl animate-pulse mb-3" />)
           : (
-            <div className="app-card overflow-hidden mb-8 border-l-2 border-l-primary relative overflow-hidden group transition-all hover:-translate-y-1 hover:scale-[1.01]">
-      <div className="absolute -right-8 -top-8 w-40 h-40 bg-gradient-to-br from-primary/10 to-transparent rounded-full blur-3xl group-hover:scale-125 transition-transform duration-700 pointer-events-none z-0" />
+            <div className="app-card overflow-hidden mb-8">
               {(!mentors.length)
                 ? <div className="text-center py-12 text-muted text-sm">No mentors registered yet.</div>
                 : mentors.map(m => {
@@ -2209,7 +2197,7 @@ function MentorOpsTab() {
                   const effectiveAssignedTeamCount = activeAssignmentsForMentor || m.assigned_team_count || 0
                   return (
                     <div key={m.id} className="flex flex-wrap items-center gap-4 px-4 py-3 border-b last:border-0 hover:bg-[var(--bg-card-soft)]">
-                      <div className="w-9 h-9 rounded-full bg-cardSoft text-primary font-semibold text-sm flex items-center justify-center shrink-0">{m.first_name[0]}</div>
+                      <div className="w-9 h-9 rounded-full bg-[var(--bg-card-soft)] text-primary font-semibold text-sm flex items-center justify-center shrink-0">{m.first_name[0]}</div>
                       <div className="flex-1 min-w-[200px]">
                         <p className="text-sm font-medium text-foreground break-words">{m.first_name} {m.last_name}</p>
                         <p className="text-xs text-muted break-words">{m.email}{m.organization ? ` · ${m.organization}` : ''}</p>
@@ -2227,7 +2215,7 @@ function MentorOpsTab() {
                       <div className="flex flex-wrap gap-2 shrink-0 items-center">
                         {effectiveAssignedTeamCount > 0 ? (
                           <button onClick={() => sendLinkMutation.mutate(m.id)} disabled={sendLinkMutation.isPending}
-                            title={m.access_link_sent ? "Send access link again" : "Send access link"} className="flex items-center gap-1 text-xs px-2.5 py-1.5 rounded-lg text-primary hover:bg-cardSoft dark:hover:bg-primary/10 disabled:opacity-50">
+                            title={m.access_link_sent ? "Send access link again" : "Send access link"} className="flex items-center gap-1 text-xs px-2.5 py-1.5 rounded-lg text-primary hover:bg-[var(--bg-card-soft)] dark:hover:bg-primary/10 disabled:opacity-50">
                             {sendLinkMutation.isPending ? <Loader2 size={12} className="animate-spin" /> : <Send size={12} />} {m.access_link_sent ? "Resend Link" : "Send Link"}
                           </button>
                         ) : (
@@ -2286,8 +2274,7 @@ function MentorOpsTab() {
         )}
 
         {assignments.length > 0 && (
-          <div className="app-card overflow-hidden mb-8 border-l-2 border-l-primary relative overflow-hidden group transition-all hover:-translate-y-1 hover:scale-[1.01]">
-      <div className="absolute -right-8 -top-8 w-40 h-40 bg-gradient-to-br from-primary/10 to-transparent rounded-full blur-3xl group-hover:scale-125 transition-transform duration-700 pointer-events-none z-0" />
+          <div className="app-card overflow-hidden mb-8">
             {assignments.map(a => (
               <div key={a.id} className="flex items-center gap-4 px-4 py-3 border-b last:border-0 hover:bg-[var(--bg-card-soft)]">
                 <div className="flex-1 min-w-0">
@@ -2297,7 +2284,7 @@ function MentorOpsTab() {
                 <Badge colour={a.is_active ? 'green' : 'gray'}>{a.is_active ? 'Active' : 'Inactive'}</Badge>
                 {a.is_active && (
                   <button onClick={() => { if (window.confirm('Unassign?')) unassignMutation.mutate(a.id) }}
-                    className="text-xs px-2 py-1 rounded text-primary hover:bg-cardSoft dark:hover:bg-primary/10">Unassign</button>
+                    className="text-xs px-2 py-1 rounded text-primary hover:bg-[var(--bg-card-soft)] dark:hover:bg-primary/10">Unassign</button>
                 )}
               </div>
             ))}
@@ -2322,7 +2309,7 @@ function MentorOpsTab() {
                       <button
                         onClick={() => assignMutation.mutate({ mentor_id: c.mentor_id, team_id: getTeamId(s) })}
                         disabled={assignMutation.isPending}
-                        className="ml-2 text-xs px-2 py-1 rounded bg-cardSoft text-primary hover:bg-cardSoft disabled:opacity-50"
+                        className="ml-2 text-xs px-2 py-1 rounded bg-[var(--bg-card-soft)] text-primary hover:bg-[var(--bg-card-soft)] disabled:opacity-50"
                       >
                         {assignMutation.isPending ? 'Assigning...' : 'Assign'}
                       </button>
@@ -2445,10 +2432,10 @@ function HealthTab() {
   })
 
   const riskColour = {
-    critical: { bg: 'bg-cardSoft', border: 'border-primary', badge: 'bg-cardSoft text-primary-dark', dot: 'bg-primary' },
-    high: { bg: 'bg-cardSoft', border: 'border-primary', badge: 'bg-cardSoft text-primary-dark', dot: 'bg-primary' },
-    medium: { bg: 'bg-yellow-50', border: 'border-yellow-200', badge: 'bg-yellow-100 text-yellow-700', dot: 'bg-yellow-400' },
-    low: { bg: 'bg-green-50', border: 'border-green-200', badge: 'bg-green-100 text-green-700', dot: 'bg-green-500' },
+    critical: { section: 'section-red', badge: 'soft-danger', dot: 'bg-[var(--color-danger)]', scoreColor: 'var(--color-danger)' },
+    high: { section: 'section-yellow', badge: 'soft-warning', dot: 'bg-[var(--color-primary)]', scoreColor: 'var(--color-primary)' },
+    medium: { section: 'section-blue', badge: 'soft-info', dot: 'bg-[var(--color-info)]', scoreColor: 'var(--color-info)' },
+    low: { section: 'section-green', badge: 'soft-success', dot: 'bg-[var(--color-success)]', scoreColor: 'var(--color-success)' },
   }
 
   async function handleRefresh() {
@@ -2487,8 +2474,8 @@ function HealthTab() {
             const c = riskColour[level]
             const count = teams.filter(t => t.risk_level === level).length
             return (
-              <div key={level} className={`${c.bg} ${c.border} border rounded-xl p-4`}>
-                <div className={`inline-flex items-center gap-1.5 ${c.badge} px-2 py-0.5 rounded-full text-xs font-semibold uppercase tracking-wide mb-2`}>
+              <div key={level} className={`${c.section} p-4`}>
+                <div className={`inline-flex items-center gap-1.5 ${c.badge} px-2.5 py-1 rounded-full text-xs font-semibold uppercase tracking-wide mb-2`}>
                   <span className={`w-1.5 h-1.5 rounded-full ${c.dot}`} />
                   {level}
                 </div>
@@ -2512,7 +2499,7 @@ function HealthTab() {
         {teams?.map(team => {
           const c = riskColour[team.risk_level] ?? riskColour.low
           return (
-            <div key={team.team_id} className={`${c.bg} ${c.border} border rounded-xl p-4`}>
+            <div key={team.team_id} className={`app-card p-4`} style={{ borderLeft: `3px solid ${c.scoreColor}` }}>
               <div className="flex items-start justify-between gap-3">
                 <div className="flex-1">
                   <div className="flex items-center gap-3 mb-2">
@@ -2538,7 +2525,7 @@ function HealthTab() {
                   </div>
                 </div>
                 <div className="text-right flex-shrink-0">
-                  <p className="text-2xl font-bold text-foreground">{team.risk_score}</p>
+                  <p className="text-2xl font-bold" style={{ color: c.scoreColor }}>{team.risk_score}</p>
                   <p className="text-xs text-muted">risk score</p>
                   {team.last_update && (
                     <p className="text-xs text-muted mt-1">Last update: {team.last_update}</p>
@@ -2641,7 +2628,7 @@ function AnomalyTab() {
           <button
             onClick={() => { if (window.confirm('Override all flagged scorecards?')) overrideAllMutation.mutate() }}
             disabled={overrideAllMutation.isPending}
-            className="btn-secondary px-4 py-2 rounded-lg flex items-center gap-2 text-sm text-primary hover:text-primary-dark border-border"
+            className="btn-secondary px-4 py-2 rounded-lg flex items-center gap-2 text-sm text-primary hover:text-primary-dark "
           >
             {overrideAllMutation.isPending ? <Loader2 size={16} className="animate-spin" /> : <Shield size={16} />}
             Override All Flags
@@ -2651,12 +2638,11 @@ function AnomalyTab() {
 
       {/* Stats Cards & Analytics */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
-        <div className="glass-card p-5 app-card border-l-2 border-l-primary relative overflow-hidden group transition-all hover:-translate-y-1 hover:scale-[1.01]">
-      <div className="absolute -right-8 -top-8 w-40 h-40 bg-gradient-to-br from-primary/10 to-transparent rounded-full blur-3xl group-hover:scale-125 transition-transform duration-700 pointer-events-none z-0" />
+        <div className="section-red p-5 relative overflow-hidden group transition-all hover:-translate-y-1 hover:scale-[1.01]">
           <p className="text-xs font-medium text-muted uppercase mb-1">Total Flagged Teams</p>
           <p className="text-3xl font-bold text-primary">{totalFlagged}</p>
 
-          <div className="mt-4 pt-4 border-t border-border">
+          <div className="mt-4 pt-4 border-t">
             <p className="text-xs text-muted mb-2">Historical Frequency</p>
             <div className="flex items-end h-8 gap-1">
               {[2, 5, 3, 7, 4, 1, totalFlagged].map((val, idx) => (
@@ -2668,8 +2654,7 @@ function AnomalyTab() {
           </div>
         </div>
 
-        <div className="glass-card p-5 app-card flex flex-col justify-between border-l-2 border-l-primary relative overflow-hidden group transition-all hover:-translate-y-1 hover:scale-[1.01]">
-      <div className="absolute -right-8 -top-8 w-40 h-40 bg-gradient-to-br from-primary/10 to-transparent rounded-full blur-3xl group-hover:scale-125 transition-transform duration-700 pointer-events-none z-0" />
+        <div className="section-yellow p-5 flex flex-col justify-between">
           <div>
             <p className="text-xs font-medium text-muted uppercase mb-1">Sweep Status</p>
             <p className="text-xl font-bold text-primary flex items-center gap-2 mt-1">
@@ -2678,14 +2663,13 @@ function AnomalyTab() {
             <p className="text-xs text-muted mt-2">Checking every 15s</p>
           </div>
           <div className="mt-4">
-            <div className="w-full bg-cardSoft rounded-full h-1.5 mb-1">
+            <div className="w-full bg-[var(--bg-card-soft)] rounded-full h-1.5 mb-1">
               <div className="bg-primary-light h-1.5 rounded-full w-full animate-[progress_2s_ease-in-out_infinite]"></div>
             </div>
           </div>
         </div>
 
-        <div className="glass-card p-5 app-card flex flex-col justify-between border-l-2 border-l-primary relative overflow-hidden group transition-all hover:-translate-y-1 hover:scale-[1.01]">
-      <div className="absolute -right-8 -top-8 w-40 h-40 bg-gradient-to-br from-primary/10 to-transparent rounded-full blur-3xl group-hover:scale-125 transition-transform duration-700 pointer-events-none z-0" />
+        <div className="section-green p-5 flex flex-col justify-between">
           <div>
             <p className="text-xs font-medium text-muted uppercase mb-1">AI Confidence Score</p>
             <p className="text-3xl font-bold text-primary">98.2%</p>
@@ -2700,7 +2684,7 @@ function AnomalyTab() {
       <div className="space-y-4">
         <h3 className="text-lg font-semibold text-foreground mb-2">Flagged Evaluations Pipeline</h3>
         {flaggedTeams.length === 0 ? (
-          <div className="glass-card py-16 text-center app-card border-l-2 border-l-primary relative overflow-hidden group transition-all hover:-translate-y-1 hover:scale-[1.01]">
+          <div className="app-card py-16 text-center border-l-2 border-l-primary relative overflow-hidden group transition-all hover:-translate-y-1 hover:scale-[1.01]">
       <div className="absolute -right-8 -top-8 w-40 h-40 bg-gradient-to-br from-primary/10 to-transparent rounded-full blur-3xl group-hover:scale-125 transition-transform duration-700 pointer-events-none z-0" />
             <CheckSquare size={48} className="mx-auto text-primary/50 mb-3" />
             <p className="text-foreground font-medium">No Anomalies Detected</p>
@@ -2708,7 +2692,7 @@ function AnomalyTab() {
           </div>
         ) : (
           flaggedTeams.map(team => (
-            <div key={team.id} className="glass-card p-5 app-card flex flex-col md:flex-row md:items-center justify-between gap-4 border-l-2 border-l-primary relative overflow-hidden group transition-all hover:-translate-y-1 hover:scale-[1.01]">
+            <div key={team.id} className="app-card p-5 flex flex-col md:flex-row md:items-center justify-between gap-4 border-l-2 border-l-primary relative overflow-hidden group transition-all hover:-translate-y-1 hover:scale-[1.01]">
       <div className="absolute -right-8 -top-8 w-40 h-40 bg-gradient-to-br from-primary/10 to-transparent rounded-full blur-3xl group-hover:scale-125 transition-transform duration-700 pointer-events-none z-0" />
               <div className="flex-1">
                 <div className="flex items-center gap-2 mb-2">
@@ -2738,7 +2722,7 @@ function AnomalyTab() {
                         <Loader2 size={11} className="animate-spin" /> Generating explanation…
                       </div>
                     ) : explanations[team.team_id].status === 'done' ? (
-                      <div className="bg-cardSoft rounded-lg p-2.5 mt-1">
+                      <div className="bg-[var(--bg-card-soft)] rounded-lg p-2.5 mt-1">
                         <p className="text-xs font-medium text-primary mb-1 flex items-center gap-1">
                           <Wand2 size={11} /> AI Explanation
                         </p>
@@ -2758,7 +2742,7 @@ function AnomalyTab() {
                 <button
                   onClick={() => { if (window.confirm(`Override flag for ${team.team_name}?`)) overrideMutation.mutate(team.id) }}
                   disabled={overrideMutation.isPending}
-                  className="btn-secondary px-4 py-2 rounded-lg text-sm flex justify-center items-center gap-2 border-border hover:border-primary"
+                  className="soft-button text-sm flex justify-center items-center gap-2"
                 >
                   {overrideMutation.isPending ? <Loader2 size={16} className="animate-spin" /> : <Shield size={16} />}
                   Force Override
@@ -2812,7 +2796,7 @@ function RiskTab() {
 
   if (capabilityDisabled) {
     return (
-      <div className="glass-card py-16 text-center app-card border-l-2 border-l-primary relative overflow-hidden group transition-all hover:-translate-y-1 hover:scale-[1.01]">
+      <div className="app-card py-16 text-center border-l-2 border-l-primary relative overflow-hidden group transition-all hover:-translate-y-1 hover:scale-[1.01]">
       <div className="absolute -right-8 -top-8 w-40 h-40 bg-gradient-to-br from-primary/10 to-transparent rounded-full blur-3xl group-hover:scale-125 transition-transform duration-700 pointer-events-none z-0" />
         <ShieldAlert size={48} className="mx-auto text-primary/50 mb-3" />
         <p className="text-foreground font-medium">Risk monitoring is not enabled for this event.</p>
@@ -2822,7 +2806,7 @@ function RiskTab() {
 
   if (summaryError || teamsError) {
     return (
-      <div className="glass-card py-16 text-center app-card border-l-2 border-l-primary relative overflow-hidden group transition-all hover:-translate-y-1 hover:scale-[1.01]">
+      <div className="app-card py-16 text-center border-l-2 border-l-primary relative overflow-hidden group transition-all hover:-translate-y-1 hover:scale-[1.01]">
       <div className="absolute -right-8 -top-8 w-40 h-40 bg-gradient-to-br from-primary/10 to-transparent rounded-full blur-3xl group-hover:scale-125 transition-transform duration-700 pointer-events-none z-0" />
         <AlertTriangle size={48} className="mx-auto text-primary/50 mb-3" />
         <p className="text-foreground font-medium">Unable to load risk intelligence.</p>
@@ -2851,22 +2835,22 @@ function RiskTab() {
       </div>
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-        <StatCard label="Total Teams" value={loading ? '—' : summary?.total_teams ?? 0} colour="teal" />
-        <StatCard label="Average Risk Score" value={loading ? '—' : (summary?.average_risk_score ?? 0).toFixed(1)} colour="teal" />
-        <StatCard label="High Risk" value={loading ? '—' : summary?.high_count ?? 0} colour="amber" />
-        <StatCard label="Critical Risk" value={loading ? '—' : summary?.critical_count ?? 0} colour="teal" />
+        <StatCard label="Total Teams" value={loading ? '—' : summary?.total_teams ?? 0} colour="teal" icon={Users} sectionClass="section-green" />
+        <StatCard label="Average Risk Score" value={loading ? '—' : (summary?.average_risk_score ?? 0).toFixed(1)} colour="teal" icon={Activity} sectionClass="section-blue" />
+        <StatCard label="High Risk" value={loading ? '—' : summary?.high_count ?? 0} colour="amber" icon={AlertTriangle} sectionClass="section-yellow" />
+        <StatCard label="Critical Risk" value={loading ? '—' : summary?.critical_count ?? 0} colour="red" icon={ShieldAlert} sectionClass="section-red" />
       </div>
 
       <h3 className="text-lg font-semibold text-foreground mb-4">Team Risk Dashboard</h3>
 
       {loading ? (
-        <div className="glass-card py-16 text-center app-card border-l-2 border-l-primary relative overflow-hidden group transition-all hover:-translate-y-1 hover:scale-[1.01]">
+        <div className="app-card py-16 text-center border-l-2 border-l-primary relative overflow-hidden group transition-all hover:-translate-y-1 hover:scale-[1.01]">
       <div className="absolute -right-8 -top-8 w-40 h-40 bg-gradient-to-br from-primary/10 to-transparent rounded-full blur-3xl group-hover:scale-125 transition-transform duration-700 pointer-events-none z-0" />
           <Loader2 size={48} className="mx-auto text-primary-light mb-3 animate-spin" />
           <p className="text-foreground font-medium">Loading risk intelligence...</p>
         </div>
       ) : teams.length === 0 ? (
-        <div className="glass-card py-16 text-center app-card border-l-2 border-l-primary relative overflow-hidden group transition-all hover:-translate-y-1 hover:scale-[1.01]">
+        <div className="app-card py-16 text-center border-l-2 border-l-primary relative overflow-hidden group transition-all hover:-translate-y-1 hover:scale-[1.01]">
       <div className="absolute -right-8 -top-8 w-40 h-40 bg-gradient-to-br from-primary/10 to-transparent rounded-full blur-3xl group-hover:scale-125 transition-transform duration-700 pointer-events-none z-0" />
           <Activity size={48} className="mx-auto text-primary-light mb-3" />
           <p className="text-foreground font-medium">No risk snapshots yet.</p>
@@ -2877,12 +2861,13 @@ function RiskTab() {
           {teams.map((team) => (
             <div
               key={team.team_id}
-              className={`glass-card p-5 rounded-xl border ${team.risk_level === 'critical'
-                  ? 'border-primary bg-cardSoft'
-                  : team.risk_level === 'high'
-                    ? 'border-primary bg-cardSoft'
-                    : 'border-border'
-                }`}
+              className="app-card p-5"
+              style={{
+                borderLeft: team.risk_level === 'critical' ? '3px solid var(--color-danger)' :
+                  team.risk_level === 'high' ? '3px solid var(--color-primary)' :
+                  team.risk_level === 'medium' ? '3px solid var(--color-info)' :
+                  '3px solid var(--color-success)',
+              }}
             >
               <div className="flex flex-col md:flex-row justify-between gap-4">
                 <div className="flex-1">
@@ -3015,17 +3000,16 @@ function DemoControlsTab() {
         <h2 className="text-lg font-semibold text-foreground mb-4">Demo Controls</h2>
 
         <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-6">
-          <StatCard label="Participants" value={status?.participants} colour="teal" />
-          <StatCard label="Teams" value={status?.teams} colour="teal" />
-          <StatCard label="Evaluations" value={status?.evaluations} colour="amber" />
-          <StatCard label="Mentors" value={status?.mentors} colour="teal" />
-          <StatCard label="Mentor Assignments" value={status?.mentor_assignments} colour="teal" />
-          <StatCard label="Comms Logs" value={status?.communication_logs} colour="amber" />
+          <StatCard label="Participants" value={status?.participants} colour="teal" icon={Users} sectionClass="section-blue" />
+          <StatCard label="Teams" value={status?.teams} colour="teal" icon={GitBranch} sectionClass="section-green" />
+          <StatCard label="Evaluations" value={status?.evaluations} colour="amber" icon={BarChart2} sectionClass="section-purple" />
+          <StatCard label="Mentors" value={status?.mentors} colour="teal" icon={UserCheck} sectionClass="section-yellow" />
+          <StatCard label="Mentor Assignments" value={status?.mentor_assignments} colour="teal" icon={Target} sectionClass="section-orange" />
+          <StatCard label="Comms Logs" value={status?.communication_logs} colour="amber" icon={Mail} sectionClass="section-pink" />
         </div>
 
-        <div className="app-card border border-primary p-6 bg-cardSoft mb-8 border-l-2 border-l-primary relative overflow-hidden group transition-all hover:-translate-y-1 hover:scale-[1.01]">
-      <div className="absolute -right-8 -top-8 w-40 h-40 bg-gradient-to-br from-primary/10 to-transparent rounded-full blur-3xl group-hover:scale-125 transition-transform duration-700 pointer-events-none z-0" />
-          <h3 className="text-base font-bold text-primary flex items-center gap-2 mb-2">
+        <div className="section-orange p-6 mb-8">
+          <h3 className="text-base font-bold flex items-center gap-2 mb-2" style={{ color: "var(--color-primary)" }}>
             <AlertTriangle size={18} /> Reset Demo Data
           </h3>
           <p className="text-sm text-muted mb-4">
@@ -3037,7 +3021,7 @@ function DemoControlsTab() {
               value={confirmText}
               onChange={e => setConfirmText(e.target.value)}
               placeholder="Type RESET_DEMO_DATA"
-              className="bg-background shadow-sm text-foreground rounded-lg px-4 py-2 text-sm focus:outline-none focus:border-primary w-64"
+              className="soft-input w-64"
             />
             <button
               onClick={() => resetMutation.mutate()}
@@ -3050,9 +3034,8 @@ function DemoControlsTab() {
           </div>
         </div>
 
-        <div className="app-card border border-primary p-6 bg-cardSoft mb-8 border-l-2 border-l-primary relative overflow-hidden group transition-all hover:-translate-y-1 hover:scale-[1.01]">
-      <div className="absolute -right-8 -top-8 w-40 h-40 bg-gradient-to-br from-primary/10 to-transparent rounded-full blur-3xl group-hover:scale-125 transition-transform duration-700 pointer-events-none z-0" />
-          <h3 className="text-base font-bold text-primary flex items-center gap-2 mb-2">
+        <div className="section-red p-6 mb-8">
+          <h3 className="text-base font-bold flex items-center gap-2 mb-2" style={{ color: "var(--color-danger)" }}>
             <AlertTriangle size={18} /> Delete Current Event
           </h3>
           <p className="text-sm text-muted mb-2">
@@ -3068,7 +3051,7 @@ function DemoControlsTab() {
               value={deleteEventConfirm}
               onChange={(e) => setDeleteEventConfirm(e.target.value)}
               placeholder="Type DELETE_EVENT"
-              className="bg-background shadow-sm text-foreground rounded-lg px-4 py-2 text-sm focus:outline-none focus:border-primary w-full md:w-64"
+              className="soft-input w-full md:w-64"
             />
 
             <button
@@ -3088,8 +3071,7 @@ function DemoControlsTab() {
 
         <div className="mb-8">
           <h2 className="text-lg font-semibold text-foreground mb-4">Security & Integrity</h2>
-          <div className="app-card p-6 border-l-2 border-l-primary relative overflow-hidden group transition-all hover:-translate-y-1 hover:scale-[1.01]">
-      <div className="absolute -right-8 -top-8 w-40 h-40 bg-gradient-to-br from-primary/10 to-transparent rounded-full blur-3xl group-hover:scale-125 transition-transform duration-700 pointer-events-none z-0" />
+          <div className="section-blue p-6">
             <div className="flex items-center justify-between mb-4">
               <div>
                 <h3 className="text-base font-bold text-foreground flex items-center gap-2">
@@ -3108,9 +3090,9 @@ function DemoControlsTab() {
             </div>
 
             {auditResult && (
-              <div className={`p-4 rounded-xl border ${auditResult.is_secure ? 'bg-emerald-50 border-emerald-300' : 'bg-cardSoft border-primary'}`}>
+              <div className={`p-4 rounded-xl ${auditResult.is_secure ? 'section-green' : 'section-red'}`}>
                 {auditResult.is_secure ? (
-                  <p className="text-emerald-700 dark:text-emerald-300 text-sm font-medium flex items-center gap-2">
+                  <p className="text-sm font-medium flex items-center gap-2" style={{ color: "var(--color-success)" }}>
                     <ShieldCheck size={18} />
                     Secure: {auditResult.total_audited} scorecards cryptographically verified. No tampering detected.
                   </p>
@@ -3132,7 +3114,7 @@ function DemoControlsTab() {
               </div>
             )}
             {auditError && (
-              <div className="p-4 app-card bg-cardSoft text-primary text-sm">
+              <div className="p-4 app-card bg-[var(--bg-card-soft)] text-primary text-sm">
                 {auditError}
               </div>
             )}
@@ -3142,8 +3124,7 @@ function DemoControlsTab() {
 
       <div>
         <h2 className="text-lg font-semibold text-foreground mb-4">Stage Controls</h2>
-        <div className="app-card p-6 border-l-2 border-l-primary relative overflow-hidden group transition-all hover:-translate-y-1 hover:scale-[1.01]">
-      <div className="absolute -right-8 -top-8 w-40 h-40 bg-gradient-to-br from-primary/10 to-transparent rounded-full blur-3xl group-hover:scale-125 transition-transform duration-700 pointer-events-none z-0" />
+        <div className="section-purple p-6">
           <div className="flex items-center justify-between mb-6">
             <div>
               <p className="text-sm font-medium text-muted">Current Stage</p>
@@ -3152,7 +3133,7 @@ function DemoControlsTab() {
               </p>
             </div>
             <div className="flex gap-2">
-              <button onClick={() => stepMutation.mutate('prev')} className="px-4 py-2 bg-cardSoft hover:bg-slate-300 text-foreground text-sm font-semibold rounded-lg transition-colors">Previous</button>
+              <button onClick={() => stepMutation.mutate('prev')} className="soft-button text-sm">Previous</button>
               <button onClick={() => stepMutation.mutate('next')} className="px-4 py-2 bg-primary hover:bg-primary-dark text-white text-sm font-semibold rounded-lg transition-colors">Next</button>
               <button onClick={() => resetStageMutation.mutate()} disabled={resetStageMutation.isPending} className="px-4 py-2 text-muted hover:bg-[var(--bg-card-soft)] text-sm font-semibold rounded-lg transition-colors ml-2 disabled:opacity-50">
                 {resetStageMutation.isPending ? 'Resetting...' : 'Reset to Registration'}
@@ -3165,7 +3146,7 @@ function DemoControlsTab() {
             <select
               value={eventState?.current_stage || ''}
               onChange={e => stageMutation.mutate(e.target.value)}
-              className="w-full md:w-64 bg-background shadow-sm text-foreground rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary"
+              className="w-full md:w-64 soft-select"
             >
               <option value="registration">Registration</option>
               <option value="team_formation">Team Formation</option>
@@ -3252,7 +3233,7 @@ function CreateEventTab() {
                 slug: f.slug || slugifyEventName(e.target.value),
               }))}
               placeholder="Smart India Hackathon Demo"
-              className="w-full rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary"
+              className="soft-input"
             />
           </div>
           <div>
@@ -3261,7 +3242,7 @@ function CreateEventTab() {
               value={form.slug}
               onChange={(e) => setForm((f) => ({ ...f, slug: slugifyEventName(e.target.value) }))}
               placeholder="smart-india-hackathon-demo"
-              className="w-full rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary"
+              className="soft-input"
             />
           </div>
         </div>
@@ -3271,7 +3252,7 @@ function CreateEventTab() {
           <select
             value={form.template_id}
             onChange={(e) => setForm((f) => ({ ...f, template_id: e.target.value }))}
-            className="w-full rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary bg-background"
+            className="soft-select"
           >
             <option value="">{isLoading ? 'Loading templates...' : 'Choose a template'}</option>
             {templates.map((template) => (
@@ -3301,13 +3282,13 @@ function CreateEventTab() {
             onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))}
             rows={3}
             placeholder="Optional internal description for this event..."
-            className="w-full rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary resize-none"
+            className="soft-input resize-none"
           />
         </div>
         <button
           onClick={() => createMutation.mutate()}
           disabled={createMutation.isPending || !form.name.trim() || !form.template_id}
-          className="btn-primary rounded-lg px-4 py-2 text-sm font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
+          className="app-btn-primary px-4 py-2 text-sm font-semibold"
         >
           {createMutation.isPending ? 'Creating...' : 'Create from template'}
         </button>
@@ -3315,8 +3296,7 @@ function CreateEventTab() {
           <p className="text-xs text-primary mt-3">{createMutation.error?.message}</p>
         )}
       </div>
-      <div className="app-card bg-cardSoft p-5 h-fit border-l-2 border-l-primary relative overflow-hidden group transition-all hover:-translate-y-1 hover:scale-[1.01]">
-      <div className="absolute -right-8 -top-8 w-40 h-40 bg-gradient-to-br from-primary/10 to-transparent rounded-full blur-3xl group-hover:scale-125 transition-transform duration-700 pointer-events-none z-0" />
+      <div className="section-purple p-5 h-fit">
         <div className="flex items-center gap-2 mb-3">
           <Sparkles size={16} className="text-primary" />
           <p className="text-sm font-bold text-foreground">Need AI help?</p>
