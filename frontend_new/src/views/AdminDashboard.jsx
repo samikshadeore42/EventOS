@@ -11,13 +11,13 @@ import AutoAssignModal from '../components/AutoAssignModal'
 import { motion } from 'framer-motion'
 import {
   Users, GitBranch, CheckSquare,
-  UserCheck, Mail, Upload, Download,
+  UserCheck, Mail, Download,
   Play, Loader2, Check, X, AlertTriangle,
   ChevronDown, ChevronRight, Wand2,
   BarChart2, MessageSquare, Activity, Target, Calendar,
   Send, Copy, Trash2, Plus, Shield, ShieldAlert, ShieldCheck, FileText, Settings,
   Sparkles, Link, LayoutTemplate, ClipboardList, Lightbulb,
-  User, UserPlus, Building2, Info
+  User, UserPlus, Building2, Info, UploadCloud, Search
 } from 'lucide-react'
 import PipelineStepper from '../components/PipelineStepper'
 import OrgSwitcher from '../components/OrgSwitcher'
@@ -310,6 +310,64 @@ function OverviewTab({ onTileClick }) {
 }
 
 
+// ── HELPER COMPONENTS FOR PARTICIPANTS TAB ─────────────────────────────────
+function ParticipantMetricCard({ title, value, sub, icon: Icon, tone }) {
+  const tones = {
+    blue: 'bg-blue-100 text-blue-600',
+    green: 'bg-emerald-100 text-emerald-600',
+    orange: 'bg-orange-100 text-orange-500'
+  }
+  return (
+    <div className="relative overflow-hidden rounded-[20px] bg-white p-6 min-h-[148px] shadow-[0_14px_35px_rgba(15,23,42,0.06)] ring-1 ring-slate-200/80 dark:bg-slate-900 dark:ring-white/10">
+      <div className="flex items-center gap-4">
+        <div className={`h-12 w-12 rounded-xl flex items-center justify-center shrink-0 ${tones[tone] || tones.blue}`}>
+          <Icon className="h-6 w-6" />
+        </div>
+        <div>
+          <p className="text-sm font-bold text-slate-950 dark:text-white">{title}</p>
+        </div>
+      </div>
+      <div className="mt-4">
+        <p className="text-3xl font-extrabold text-slate-950 dark:text-white">{value}</p>
+        {sub && <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">{sub}</p>}
+      </div>
+      <ParticipantMiniSparkline tone={tone} />
+    </div>
+  )
+}
+
+function ParticipantMiniSparkline({ tone }) {
+  const colors = {
+    blue: '#3b82f6',
+    green: '#10b981',
+    orange: '#f97316'
+  }
+  const color = colors[tone] || colors.blue
+  return (
+    <svg className="absolute right-8 bottom-8 w-28 h-12 opacity-90" viewBox="0 0 100 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M0 30 Q 15 10, 25 25 T 50 15 T 75 25 T 100 5" stroke={color} strokeWidth="2" strokeLinecap="round" />
+      <circle cx="100" cy="5" r="3" fill={color} />
+      <path d="M0 30 Q 15 10, 25 25 T 50 15 T 75 25 T 100 5 L 100 40 L 0 40 Z" fill={`url(#grad-${tone})`} fillOpacity="0.2" />
+      <defs>
+        <linearGradient id={`grad-${tone}`} x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor={color} stopOpacity="1" />
+          <stop offset="100%" stopColor={color} stopOpacity="0" />
+        </linearGradient>
+      </defs>
+    </svg>
+  )
+}
+
+function getRowColors(index) {
+  const colors = [
+    { avatar: 'bg-blue-100 text-blue-600', pill: 'border-blue-400 bg-blue-50 text-blue-600' },
+    { avatar: 'bg-emerald-100 text-emerald-600', pill: 'border-emerald-400 bg-emerald-50 text-emerald-600' },
+    { avatar: 'bg-purple-100 text-purple-600', pill: 'border-purple-400 bg-purple-50 text-purple-600' },
+    { avatar: 'bg-orange-100 text-orange-500', pill: 'border-orange-400 bg-orange-50 text-orange-600' },
+  ]
+  return colors[index % colors.length]
+}
+
 // ── TAB 2: PARTICIPANTS ────────────────────────────────────────────────────
 function ParticipantsTab() {
   const qc = useQueryClient()
@@ -409,26 +467,26 @@ function ParticipantsTab() {
   }
 
   return (
-    <div>
+    <div className="max-w-7xl mx-auto">
       {/* Summary cards */}
       {summary && (
-        <div className="grid grid-cols-3 gap-4 mb-6">
-          <StatCard label="Total" value={summary.total_participants} colour="teal" icon={Users} />
-          <StatCard label="Assigned" value={summary.assigned_to_team} colour="teal" icon={UserCheck} />
-          <StatCard label="Unassigned Participants" value={summary.unassigned} colour="amber" sub="not yet in a team" icon={AlertTriangle} />
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+          <ParticipantMetricCard title="Total" value={summary.total_participants} tone="blue" icon={Users} />
+          <ParticipantMetricCard title="Assigned" value={summary.assigned_to_team} tone="green" icon={UserCheck} />
+          <ParticipantMetricCard title="Unassigned Participants" value={summary.unassigned} sub="not yet in a team" tone="orange" icon={AlertTriangle} />
         </div>
       )}
 
       {/* CSV dropzone */}
-      <div className="section-orange p-5 mb-6">
-        <div className="flex items-center justify-between mb-3">
-          <SectionTitle>Upload Roster CSV</SectionTitle>
+      <div className="mb-8">
+        <div className="flex items-center justify-between mt-8 mb-4">
+          <h2 className="text-xl font-extrabold text-red-600 dark:text-red-500">Upload Roster CSV</h2>
           <a
             href={participantsApi.csvTemplateUrl()}
             download
-            className="soft-button text-xs"
+            className="inline-flex items-center gap-2 text-sm font-semibold text-blue-600 hover:text-blue-700 dark:text-blue-400"
           >
-            <Download size={13} /> Download Template
+            <Download className="h-4 w-4" /> Download Template
           </a>
         </div>
 
@@ -437,10 +495,9 @@ function ParticipantsTab() {
           onDragOver={onDragOver}
           onDragLeave={onDragLeave}
           onClick={() => fileInputRef.current?.click()}
-          className={`border-2 border-dashed rounded-xl p-10 text-center cursor-pointer transition-colors ${dragActive
-            ? 'border-primary/60 bg-[var(--bg-card-soft)]'
-            : 'border-primary/30 hover:border-primary hover:bg-[var(--bg-card-soft)]'
-            }`}
+          className={`rounded-[18px] border-2 border-dashed border-red-400 bg-white px-8 py-12 text-center shadow-[0_10px_28px_rgba(15,23,42,0.04)] transition hover:border-red-500 hover:bg-red-50/20 dark:bg-slate-900 dark:border-red-500/70 dark:hover:bg-red-950/20 cursor-pointer ${
+            dragActive ? 'border-red-500 bg-red-50/20 dark:bg-red-950/20' : ''
+          }`}
         >
           <input
             ref={fileInputRef}
@@ -449,42 +506,41 @@ function ParticipantsTab() {
             className="hidden"
             onChange={(e) => handleFile(e.target.files[0])}
           />
-          {uploadMutation.isPending
-            ? <div className="flex flex-col items-center gap-2">
-              <Loader2 size={28} className="text-primary animate-spin" />
-              <p className="text-sm text-muted">Uploading roster…</p>
+          {uploadMutation.isPending ? (
+            <div className="flex flex-col items-center gap-2">
+              <Loader2 className="h-8 w-8 text-red-600 animate-spin" />
+              <p className="text-sm font-semibold text-slate-700 dark:text-slate-300">Uploading roster…</p>
             </div>
-            : <div className="flex flex-col items-center gap-2">
-              <Upload size={28} className={dragActive ? 'text-primary' : 'text-muted'} />
-              <p className="text-sm font-medium text-foreground">
-                Drop a CSV here or <span className="text-primary">click to browse</span>
+          ) : (
+            <div className="flex flex-col items-center gap-2">
+              <UploadCloud className={`h-10 w-10 mb-2 transition-colors ${dragActive ? 'text-red-600' : 'text-red-500'}`} />
+              <p className="text-base font-bold text-slate-900 dark:text-white">
+                Drop a CSV here or click to browse
               </p>
-              <p className="text-xs text-muted">
-                Required columns: first_name, last_name, email, institution + any skill columns
+              <p className="text-sm font-medium text-slate-500 dark:text-slate-400 mt-1">
+                Required columns: name, email, institution, skills, team_preference (optional)
               </p>
             </div>
-          }
+          )}
         </div>
 
         {/* Upload result */}
         {uploadResult && (
-          <div className="mt-4 p-4 bg-[var(--bg-card-soft)] rounded-lg">
+          <div className="mt-4 p-4 rounded-xl bg-white ring-1 ring-slate-200 shadow-sm dark:bg-slate-900 dark:ring-white/10">
             <div className="flex justify-between mb-2">
-              <p className="text-sm font-medium text-foreground">{uploadResult.message}</p>
-              <button onClick={() => setUploadResult(null)} className="text-muted hover:text-muted">
-                <X size={14} />
+              <p className="text-sm font-semibold text-slate-900 dark:text-white">{uploadResult.message}</p>
+              <button onClick={() => setUploadResult(null)} className="text-slate-400 hover:text-slate-600 dark:hover:text-white">
+                <X className="h-4 w-4" />
               </button>
             </div>
-            <div className="flex gap-4 text-xs">
-              <span className="text-primary font-semibold">{uploadResult.created} created</span>
-              <span className="text-primary font-semibold">{uploadResult.updated} updated</span>
-              <span className="text-primary font-semibold">{uploadResult.skipped} skipped</span>
-              {uploadResult.errors > 0 && (
-                <span className="text-primary font-semibold">{uploadResult.errors} errors</span>
-              )}
+            <div className="flex gap-4 text-xs font-bold text-red-600 dark:text-red-400">
+              <span>{uploadResult.created} created</span>
+              <span>{uploadResult.updated} updated</span>
+              <span>{uploadResult.skipped} skipped</span>
+              {uploadResult.errors > 0 && <span>{uploadResult.errors} errors</span>}
             </div>
             {uploadResult.rows?.filter(r => r.status === 'error').map((r) => (
-              <p key={r.row} className="text-xs text-primary mt-1">
+              <p key={r.row} className="text-xs text-red-500 mt-1">
                 Row {r.row} ({r.email}): {r.error}
               </p>
             ))}
@@ -493,24 +549,34 @@ function ParticipantsTab() {
       </div>
 
       {/* Filter bar & Action Buttons */}
-      <div className="flex flex-col sm:flex-row gap-3 mb-4 justify-between items-center">
-        <div className="flex gap-3 w-full sm:w-auto">
-          <input
-            value={search}
-            onChange={(e) => { setSearch(e.target.value); setPage(1) }}
-            placeholder="Search by name or email…"
-            className="flex-1 sm:w-64 soft-input"
-          />
-          <input
-            value={collegeFilter}
-            onChange={(e) => { setCollegeFilter(e.target.value); setPage(1) }}
-            placeholder="Search by college…"
-            className="flex-1 sm:w-64 soft-input"
-          />
+      <div className="flex flex-col xl:flex-row gap-4 mb-6 justify-between items-start xl:items-center">
+        <div className="flex flex-col sm:flex-row gap-4 w-full xl:w-auto">
+          <div className="relative">
+            <div className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-slate-400">
+              <Search className="h-4 w-4" />
+            </div>
+            <input
+              value={search}
+              onChange={(e) => { setSearch(e.target.value); setPage(1) }}
+              placeholder="Search by name or email..."
+              className="h-12 w-full sm:w-64 rounded-xl bg-white pl-11 pr-4 text-sm font-medium text-slate-900 shadow-sm ring-1 ring-slate-200 placeholder:text-slate-400 outline-none transition focus:ring-2 focus:ring-red-500/35 dark:bg-slate-900 dark:text-white dark:ring-white/10"
+            />
+          </div>
+          <div className="relative">
+            <div className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-slate-400">
+              <Building2 className="h-4 w-4" />
+            </div>
+            <input
+              value={collegeFilter}
+              onChange={(e) => { setCollegeFilter(e.target.value); setPage(1) }}
+              placeholder="Search by college..."
+              className="h-12 w-full sm:w-64 rounded-xl bg-white pl-11 pr-4 text-sm font-medium text-slate-900 shadow-sm ring-1 ring-slate-200 placeholder:text-slate-400 outline-none transition focus:ring-2 focus:ring-red-500/35 dark:bg-slate-900 dark:text-white dark:ring-white/10"
+            />
+          </div>
           <select
             value={teamFilter}
             onChange={(e) => { setTeamFilter(e.target.value); setPage(1) }}
-            className="soft-select"
+            className="h-12 w-full sm:w-[110px] rounded-xl bg-white px-4 text-sm font-bold text-slate-900 shadow-sm ring-1 ring-slate-200 outline-none transition focus:ring-2 focus:ring-red-500/35 dark:bg-slate-900 dark:text-white dark:ring-white/10 appearance-none"
           >
             <option value="">All</option>
             <option value="false">Unassigned</option>
@@ -526,103 +592,112 @@ function ParticipantsTab() {
             }
           }}
           disabled={sendLinksMutation.isPending || !summary?.total_participants}
-          className="relative z-40 pointer-events-auto flex items-center gap-1.5 text-sm px-4 py-2 rounded-lg app-btn-primary disabled:opacity-50 disabled:cursor-not-allowed shadow-md whitespace-nowrap"
+          className="inline-flex h-12 w-full xl:w-auto items-center justify-center gap-2 rounded-xl bg-red-600 px-6 text-sm font-bold text-white shadow-[0_14px_26px_rgba(239,68,68,0.24)] transition hover:bg-red-700 disabled:opacity-50"
         >
-          {sendLinksMutation.isPending ? <Loader2 size={16} className="animate-spin" /> : <Send size={16} />}
+          {sendLinksMutation.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
           {sendLinksMutation.isPending ? 'Dispatching...' : 'Dispatch Magic Links'}
         </button>
       </div>
 
       {/* Participants table */}
-      <div className="app-card overflow-hidden border-l-2 border-l-primary relative overflow-hidden group transition-all hover:-translate-y-1 hover:scale-[1.01]">
-        <div className="absolute -right-8 -top-8 w-40 h-40 bg-gradient-to-br from-primary/10 to-transparent rounded-full blur-3xl group-hover:scale-125 transition-transform duration-700 pointer-events-none z-0" />
-        <table className="soft-table">
-          <thead>
-            <tr className="">
-              {['Name', 'Institution', 'Skills (avg)', 'Team', 'Team Link Status', ''].map((h) => (
-                <th key={h} className="px-4 py-3 text-xs font-medium text-muted uppercase tracking-wide">{h}</th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {isLoading
-              ? Array.from({ length: 6 }).map((_, i) => (
-                <tr key={i} className="">
-                  {[1, 2, 3, 4, 5].map((j) => (
-                    <td key={j} className="px-4 py-3">
-                      <div className="h-3 bg-[var(--bg-card-soft)] rounded animate-pulse w-24" />
-                    </td>
-                  ))}
-                </tr>
-              ))
-              : data?.participants && data.participants.length > 0 ? data.participants.map((p) => {
-                const skills = Object.values(p.skill_vector || {})
-                const avg = skills.length
-                  ? (skills.reduce((a, b) => a + b, 0) / skills.length).toFixed(1)
-                  : null
+      <div className="overflow-hidden rounded-[20px] bg-white shadow-[0_14px_35px_rgba(15,23,42,0.06)] ring-1 ring-slate-200/80 dark:bg-slate-900 dark:ring-white/10 mb-8">
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="bg-white text-left border-b border-slate-200/80 dark:bg-slate-900 dark:border-white/10">
+                {['Name', 'Institution', 'Skills (avg)', 'Team', 'Team Link Status', ''].map((h) => (
+                  <th key={h} className="px-6 py-4 text-xs font-extrabold uppercase tracking-wide text-slate-800 dark:text-slate-300">{h}</th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {isLoading
+                ? Array.from({ length: 6 }).map((_, i) => (
+                  <tr key={i} className="border-b border-slate-100 last:border-b-0 dark:border-white/5">
+                    {[1, 2, 3, 4, 5, 6].map((j) => (
+                      <td key={j} className="px-6 py-4">
+                        <div className="h-4 bg-slate-100 dark:bg-slate-800 rounded animate-pulse w-24" />
+                      </td>
+                    ))}
+                  </tr>
+                ))
+                : data?.participants && data.participants.length > 0 ? data.participants.map((p, index) => {
+                  const skills = Object.values(p.skill_vector || {})
+                  const avg = skills.length
+                    ? (skills.reduce((a, b) => a + b, 0) / skills.length).toFixed(1)
+                    : null
 
-                return (
-                  <tr key={p.id} className="soft-row">
-                    <td className="px-4 py-3">
-                      <p className="font-medium text-foreground">{p.first_name} {p.last_name}</p>
-                      <p className="text-xs text-muted">{p.email}</p>
-                    </td>
-                    <td className="px-4 py-3 text-muted">{p.institution}</td>
-                    <td className="px-4 py-3">
-                      {avg
-                        ? <Badge colour="teal">{avg}/10</Badge>
-                        : <span className="text-muted text-xs">—</span>
-                      }
-                    </td>
-                    <td className="px-4 py-3">
-                      {p.team_name
-                        ? <Badge colour="teal">{p.team_name}</Badge>
-                        : p.team_status === "pending_approval"
-                          ? <Badge colour="amber">Pending Approval</Badge>
-                          : <span className="text-xs text-muted">Unassigned</span>
-                      }
-                    </td>
-                    <td className="px-4 py-3">
-                      {p.team_link_sent ? (
-                        <Badge colour="green">Email Sent</Badge>
-                      ) : (
-                        <Badge colour="slate">Not Sent</Badge>
-                      )}
-                    </td>
-                    <td className="px-4 py-3 text-right">
-                      <button
-                        onClick={() => {
-                          if (window.confirm(`Remove ${p.first_name} ${p.last_name}?`)) {
-                            deleteMutation.mutate(p.id)
-                          }
-                        }}
-                        className="p-1 text-muted hover:text-primary rounded transition-colors"
-                      >
-                        <Trash2 size={14} />
-                      </button>
+                  const colors = getRowColors(index)
+
+                  return (
+                    <tr key={p.id} className="border-b border-slate-100 last:border-b-0 hover:bg-slate-50/80 dark:border-white/5 dark:hover:bg-slate-800/50 transition-colors">
+                      <td className="px-6 py-4 text-slate-800 dark:text-slate-200">
+                        <div className="flex items-center gap-4">
+                          <div className={`h-12 w-12 rounded-full flex items-center justify-center font-bold text-lg shrink-0 ${colors.avatar}`}>
+                            {p.first_name?.[0] || '?'}
+                          </div>
+                          <div>
+                            <p className="font-bold text-slate-950 dark:text-white">{p.first_name} {p.last_name}</p>
+                            <p className="text-xs font-medium text-slate-500 dark:text-slate-400">{p.email}</p>
+                          </div>
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 text-slate-800 dark:text-slate-200 font-medium">{p.institution}</td>
+                      <td className="px-6 py-4 text-slate-800 dark:text-slate-200">
+                        {avg
+                          ? <span className={`rounded-lg border px-3 py-1 text-sm font-extrabold ${colors.pill}`}>{avg}/10</span>
+                          : <span className="text-slate-400 text-sm font-bold">—</span>
+                        }
+                      </td>
+                      <td className="px-6 py-4 text-slate-800 dark:text-slate-200">
+                        {p.team_name
+                          ? <span className={`rounded-lg border px-3 py-1 text-sm font-extrabold ${colors.pill}`}>{p.team_name}</span>
+                          : p.team_status === "pending_approval"
+                            ? <span className="rounded-lg border border-amber-400 bg-amber-50 px-3 py-1 text-sm font-extrabold text-amber-600">Pending Approval</span>
+                            : <span className="text-sm font-bold text-slate-400">Unassigned</span>
+                        }
+                      </td>
+                      <td className="px-6 py-4">
+                        {p.team_link_sent ? (
+                          <span className="rounded-lg border border-emerald-400 bg-emerald-100 px-3 py-1 text-sm font-extrabold text-emerald-700">Email Sent</span>
+                        ) : (
+                          <span className="rounded-lg border border-orange-400 bg-orange-100 px-3 py-1 text-sm font-extrabold text-orange-600">Not Sent</span>
+                        )}
+                      </td>
+                      <td className="px-6 py-4 text-right">
+                        <button
+                          onClick={() => {
+                            if (window.confirm(`Remove ${p.first_name} ${p.last_name}?`)) {
+                              deleteMutation.mutate(p.id)
+                            }
+                          }}
+                          className="p-2 text-slate-400 hover:text-red-600 transition-colors"
+                        >
+                          <Trash2 className="h-5 w-5" />
+                        </button>
+                      </td>
+                    </tr>
+                  )
+                }) : (
+                  <tr>
+                    <td colSpan="6" className="px-6 py-12 text-center text-slate-500 font-medium">
+                      {search || teamFilter !== '' ? "No participants found matching the current filters." : "No participants registered yet."}
                     </td>
                   </tr>
-                )
-              }) : (
-                <tr>
-                  <td colSpan="6" className="px-4 py-8 text-center text-sm text-muted">
-                    {search || teamFilter !== '' ? "No participants found matching the current filters." : "No participants registered yet."}
-                  </td>
-                </tr>
-              )
-            }
-          </tbody>
-        </table>
+                )}
+            </tbody>
+          </table>
+        </div>
 
         {/* Pagination */}
         {data && data.total_pages > 1 && (
-          <div className="flex justify-between items-center px-4 py-3 border-t text-xs text-muted">
+          <div className="flex justify-between items-center px-6 py-4 border-t border-slate-200/80 dark:border-white/10 text-sm font-semibold text-slate-500 dark:text-slate-400 bg-slate-50/50 dark:bg-slate-900">
             <span>Page {data.page} of {data.total_pages} ({data.total} total)</span>
             <div className="flex gap-2">
               <button disabled={page === 1} onClick={() => setPage(p => p - 1)}
-                className="px-3 py-1.5 rounded disabled:opacity-40 hover:bg-[var(--bg-card-soft)]">Prev</button>
+                className="px-4 py-2 rounded-lg bg-white ring-1 ring-slate-200 text-slate-700 hover:bg-slate-50 disabled:opacity-40 transition dark:bg-slate-800 dark:ring-white/10 dark:text-slate-300 dark:hover:bg-slate-800/80">Prev</button>
               <button disabled={page >= data.total_pages} onClick={() => setPage(p => p + 1)}
-                className="px-3 py-1.5 rounded disabled:opacity-40 hover:bg-[var(--bg-card-soft)]">Next</button>
+                className="px-4 py-2 rounded-lg bg-white ring-1 ring-slate-200 text-slate-700 hover:bg-slate-50 disabled:opacity-40 transition dark:bg-slate-800 dark:ring-white/10 dark:text-slate-300 dark:hover:bg-slate-800/80">Next</button>
             </div>
           </div>
         )}
