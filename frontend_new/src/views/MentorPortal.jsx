@@ -8,7 +8,7 @@ import { createPortal } from 'react-dom'
 import {
   Users, Calendar, MessageSquare, AlertTriangle, Loader2,
   Clock, Send, Plus, ChevronDown, ChevronUp,
-  Target, X, ClipboardList, Activity, LayoutDashboard
+  Target, X, ClipboardList, Activity
 } from 'lucide-react'
 import { mentorApi, portalApi,eventStorage } from '../services/api'
 import TeamChatPanel from '../components/TeamChatPanel'
@@ -314,18 +314,18 @@ function WorkspaceCard({ title, icon: Icon, mainText, subText, actionText, onAct
 
 // ── Team card ──────────────────────────────────────────────────────────────
 function TeamCard({ team, token, eventId, mentorId }) {
-  const qc = useQueryClient()
+  // const qc = useQueryClient()
   const [expanded, setExpanded] = useState(false)
   const [activeModal, setActiveModal] = useState(null)
   const [isChatExpanded, setIsChatExpanded] = useState(false)
 
-  const cancelMutation = useMutation({
-    mutationFn: (id) => mentorApi.cancelSession(id, token),
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ['mentor-teams'] })
-      qc.invalidateQueries({ queryKey: ['portal-access'] })
-    }
-  })
+  // const cancelMutation = useMutation({
+  //   mutationFn: (id) => mentorApi.cancelSession(id, token),
+  //   onSuccess: () => {
+  //     qc.invalidateQueries({ queryKey: ['mentor-teams'] })
+  //     qc.invalidateQueries({ queryKey: ['portal-access'] })
+  //   }
+  // })
 
   const closeModal = () => setActiveModal(null)
 
