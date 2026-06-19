@@ -57,7 +57,7 @@ function ChatBubble({ role, text }) {
 
       {/* User avatar */}
       {isUser && (
-        <div className="w-7 h-7 rounded-full bg-slate-200 flex items-center justify-center flex-shrink-0 shadow-sm">
+        <div className="w-7 h-7 rounded-full bg-slate-200 dark:bg-slate-700 flex items-center justify-center flex-shrink-0 shadow-sm">
           <User size={14} className="text-muted" />
         </div>
       )}
@@ -141,7 +141,7 @@ function ConfigSummaryCard({ config, onConfirm, saving, saved }) {
 
       {/* Error */}
       {innerError && (
-        <div className="flex items-center gap-2 text-teal-600 text-sm mb-4 bg-teal-50 border border-teal-200 rounded-lg px-3 py-2">
+        <div className="flex items-center gap-2 text-teal-600 dark:text-teal-400 text-sm mb-4 bg-teal-50 dark:bg-teal-900/30 border border-teal-200 dark:border-teal-800 rounded-lg px-3 py-2">
           <AlertCircle size={14} />
           {innerError}
         </div>
@@ -318,7 +318,7 @@ export default function ConfigureEvent() {
 
         {/* Chat-level error */}
         {chatError && (
-          <div className="flex items-center gap-2 text-teal-600 text-sm mt-3 bg-teal-50 border border-teal-200 rounded-xl px-4 py-3">
+          <div className="flex items-center gap-2 text-teal-600 dark:text-teal-400 text-sm mt-3 bg-teal-50 dark:bg-teal-900/30 border border-teal-200 dark:border-teal-800 rounded-xl px-4 py-3">
             <AlertCircle size={14} className="flex-shrink-0" />
             {chatError}
           </div>

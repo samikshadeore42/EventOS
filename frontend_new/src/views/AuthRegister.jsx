@@ -41,7 +41,7 @@ export default function AuthRegister() {
       <div className="absolute inset-0 bg-[url('data:image/svg+xml,%3Csvg width=\\'60\\' height=\\'60\\' viewBox=\\'0 0 60 60\\' xmlns=\\'http://www.w3.org/2000/svg\\'%3E%3Cg fill=\\'none\\' fill-rule=\\'evenodd\\'%3E%3Cg fill=\\'%230f172a\\' fill-opacity=\\'0.03\\'%3E%3Cpath d=\\'M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z\\'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E')] pointer-events-none opacity-50 z-0"></div>
       
       <div className="sm:mx-auto sm:w-full sm:max-w-md z-10">
-        <div className="flex justify-center text-amber-600">
+        <div className="flex justify-center text-amber-600 dark:text-amber-400">
           <EventOSLogo size={64} />
         </div>
         <h2 className="mt-4 text-center text-3xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-amber-600 to-orange-500">
@@ -61,14 +61,14 @@ export default function AuthRegister() {
                 We've sent a verification link to <strong>{formData.email}</strong>. 
                 Please verify your email address before signing in.
               </p>
-              <Link to="/auth/login" className="font-medium text-amber-600 hover:text-amber-500">
+              <Link to="/auth/login" className="font-medium text-amber-600 dark:text-amber-400 hover:text-amber-500">
                 Go to sign in
               </Link>
             </div>
           ) : (
           <form className="space-y-6" onSubmit={handleRegister}>
             {error && (
-              <div className="bg-amber-50 border border-teal-200 text-amber-600 p-3 rounded-lg text-sm text-center">
+              <div className="bg-amber-50 dark:bg-amber-900/30 border border-teal-200 dark:border-teal-800 text-amber-600 dark:text-amber-400 p-3 rounded-lg text-sm text-center">
                 {error}
               </div>
             )}
@@ -200,7 +200,7 @@ export default function AuthRegister() {
 
           <div className="mt-6 text-center text-sm">
             <span className="text-muted">Already have an account? </span>
-            <Link to="/auth/login" className="font-medium text-amber-600 hover:text-amber-500">
+            <Link to="/auth/login" className="font-medium text-amber-600 dark:text-amber-400 hover:text-amber-500">
               Sign in
             </Link>
           </div>

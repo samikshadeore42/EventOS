@@ -199,7 +199,7 @@ export default function SettingsTab() {
                             setMemberStatusMutation.mutate({ memberId: m.membership_id, status: 'suspended' })
                           }
                         }}
-                        className="text-xs text-amber-600 hover:text-amber-800"
+                        className="text-xs text-amber-600 dark:text-amber-400 hover:text-amber-800"
                       >
                         Suspend
                       </button>
@@ -242,7 +242,7 @@ export default function SettingsTab() {
           <SectionTitle><Mail size={18} className="inline mr-2" /> Pending Invitations</SectionTitle>
           <button 
             onClick={() => setShowInviteForm(!showInviteForm)}
-            className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg border border-teal-200 text-teal-700 bg-teal-50 hover:bg-teal-100 font-medium"
+            className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg border border-teal-200 dark:border-teal-800 text-teal-700 dark:text-teal-300 bg-teal-50 dark:bg-teal-900/30 hover:bg-teal-100 font-medium"
           >
             {showInviteForm ? <X size={14} /> : <Plus size={14} />}
             {showInviteForm ? "Cancel" : "Invite Member"}

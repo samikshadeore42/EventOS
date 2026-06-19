@@ -50,7 +50,7 @@ export default function AuthResetPasswordConfirm() {
         <XCircle className="h-12 w-12 text-amber-500 mx-auto mb-4" />
         <h3 className="text-lg font-medium text-foreground mb-2">Invalid Reset Link</h3>
         <p className="text-sm text-muted mb-6">This password reset link is invalid or has already been used.</p>
-        <Link to="/auth/forgot-password" className="font-medium text-amber-600 hover:text-amber-500">Request a new link</Link>
+        <Link to="/auth/forgot-password" className="font-medium text-amber-600 dark:text-amber-400 hover:text-amber-500">Request a new link</Link>
       </PageWrapper>
     );
   }
@@ -61,7 +61,7 @@ export default function AuthResetPasswordConfirm() {
         <AlertTriangle className="h-12 w-12 text-amber-500 mx-auto mb-4" />
         <h3 className="text-lg font-medium text-foreground mb-2">Link Expired</h3>
         <p className="text-sm text-muted mb-6">This password reset link has expired.</p>
-        <Link to="/auth/forgot-password" className="font-medium text-amber-600 hover:text-amber-500">Request a new link</Link>
+        <Link to="/auth/forgot-password" className="font-medium text-amber-600 dark:text-amber-400 hover:text-amber-500">Request a new link</Link>
       </PageWrapper>
     );
   }
@@ -82,7 +82,7 @@ export default function AuthResetPasswordConfirm() {
   return (
     <div className="min-h-screen bg-surface flex flex-col justify-center py-12 sm:px-6 lg:px-8 relative overflow-hidden text-foreground">
       <div className="sm:mx-auto sm:w-full sm:max-w-md z-10">
-        <div className="flex justify-center text-amber-600">
+        <div className="flex justify-center text-amber-600 dark:text-amber-400">
           <EventOSLogo size={64} />
         </div>
         <h2 className="mt-4 text-center text-3xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-amber-600 to-orange-500">
@@ -94,7 +94,7 @@ export default function AuthResetPasswordConfirm() {
         <div className="bg-white/80 dark:bg-slate-900/80 py-8 px-4 shadow-sm backdrop-blur-xl border border-slate-200/50 dark:border-slate-700/50 sm:rounded-2xl sm:px-10">
           <form className="space-y-6" onSubmit={handleSubmit}>
             {error && (
-              <div className="bg-amber-50 border border-teal-200 text-amber-600 p-3 rounded-lg text-sm text-center">
+              <div className="bg-amber-50 dark:bg-amber-900/30 border border-teal-200 dark:border-teal-800 text-amber-600 dark:text-amber-400 p-3 rounded-lg text-sm text-center">
                 {error}
               </div>
             )}

@@ -75,7 +75,7 @@ export default function NotificationBell() {
             {unread > 0 && (
               <button
                 onClick={() => markAll.mutate()}
-                className="text-xs text-teal-600 hover:underline disabled:opacity-50"
+                className="text-xs text-teal-600 dark:text-teal-400 hover:underline disabled:opacity-50"
                 disabled={markAll.isPending}
               >
                 Mark all read

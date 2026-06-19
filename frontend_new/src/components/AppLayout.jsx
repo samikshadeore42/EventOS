@@ -53,7 +53,7 @@ export default function AppLayout({
       <div className={`flex flex-1 ${renderSidebar ? 'overflow-hidden' : ''}`}>
         {/* Desktop Sidebar Navigation */}
         {renderSidebar && (
-          <aside className={`${blockClass} ${desktopSidebarCollapsed ? 'w-0 border-r-0 opacity-0 px-0 overflow-hidden' : 'w-64 border-r'} shrink-0 border-border bg-surface dark:bg-slate-900 overflow-y-auto transition-all duration-300`}>
+          <aside className={`${blockClass} ${desktopSidebarCollapsed ? 'w-0 border-r-0 opacity-0 px-0 overflow-hidden' : 'w-64 border-r'} shrink-0 border-border bg-white overflow-y-auto transition-all duration-300`}>
             <nav className={`p-4 space-y-1 w-64 ${desktopSidebarCollapsed ? 'invisible' : 'visible'}`}>
               {navigationItems.map((item) => (
                 <button
@@ -61,18 +61,18 @@ export default function AppLayout({
                   onClick={item.onClick}
                   className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold transition-all ${
                     item.isActive
-                      ? 'bg-teal-100 dark:bg-teal-900/60 text-teal-950 dark:text-teal-50 ring-2 ring-teal-500'
-                      : 'text-foreground bg-slate-50 dark:bg-slate-800/50 hover:bg-slate-100 dark:hover:bg-slate-800 border border-border/40 hover:border-teal-400 hover:shadow-md hover:-translate-y-0.5 group'
+                      ? 'bg-amber-50 text-amber-700 ring-1 ring-amber-500/50 shadow-sm'
+                      : 'text-slate-900 hover:text-teal-600 bg-transparent hover:bg-slate-100 border border-transparent group'
                   }`}
                 >
                   {item.Icon && (
                     <item.Icon
                       size={18}
-                      className={item.isActive ? 'text-teal-600 dark:text-teal-400' : 'text-muted'}
+                      className={`transition-colors ${item.isActive ? 'text-amber-600' : 'text-slate-500 group-hover:text-teal-600'}`}
                     />
                   )}
                   <span className="truncate">{item.label}</span>
-                  {item.suffix && <span className="ml-auto text-xs text-muted font-bold">{item.suffix}</span>}
+                  {item.suffix && <span className="ml-auto text-xs text-slate-500 font-bold group-hover:text-teal-600">{item.suffix}</span>}
                 </button>
               ))}
             </nav>
@@ -88,18 +88,18 @@ export default function AppLayout({
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
                 onClick={() => setMobileMenuOpen(false)}
-                className={`fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-[60] ${hiddenClass}`}
+                className={`fixed inset-0 bg-slate-900/50 z-[60] ${hiddenClass}`}
               />
               <motion.div
                 initial={{ x: '-100%' }}
                 animate={{ x: 0 }}
                 exit={{ x: '-100%' }}
                 transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-                className={`fixed inset-y-0 left-0 w-3/4 max-w-sm bg-surface dark:bg-slate-900 border-r border-border shadow-2xl z-[70] overflow-y-auto ${hiddenClass}`}
+                className={`fixed inset-y-0 left-0 w-3/4 max-w-sm bg-white border-r border-border shadow-2xl z-[70] overflow-y-auto ${hiddenClass}`}
               >
-                <div className="p-4 border-b border-border flex justify-between items-center">
-                  <h2 className="font-bold text-teal-800 dark:text-teal-400">Navigation</h2>
-                  <button onClick={() => setMobileMenuOpen(false)} className="p-2 -mr-2 text-foreground hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full transition-colors">
+                <div className="p-4 border-b border-black bg-white flex justify-between items-center">
+                  <h2 className="font-bold text-slate-900">Navigation</h2>
+                  <button onClick={() => setMobileMenuOpen(false)} className="p-2 -mr-2 text-slate-600 hover:text-slate-900 hover:bg-slate-100 rounded-full transition-colors">
                     <X size={20} />
                   </button>
                 </div>
@@ -113,18 +113,18 @@ export default function AppLayout({
                       }}
                       className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold transition-all ${
                         item.isActive
-                          ? 'bg-teal-100 dark:bg-teal-900/60 text-teal-950 dark:text-teal-50 ring-2 ring-teal-500'
-                          : 'text-foreground bg-slate-50 dark:bg-slate-800/50 hover:bg-slate-100 dark:hover:bg-slate-800 border border-border/40 hover:border-teal-400 hover:shadow-md hover:-translate-y-0.5 group'
+                          ? 'bg-amber-50 text-amber-700 ring-1 ring-amber-500/50 shadow-sm'
+                          : 'text-slate-900 hover:text-teal-600 bg-transparent hover:bg-slate-100 border border-transparent group'
                       }`}
                     >
                       {item.Icon && (
                         <item.Icon
                           size={18}
-                          className={item.isActive ? 'text-teal-600 dark:text-teal-400' : 'text-muted'}
+                          className={`transition-colors ${item.isActive ? 'text-amber-600' : 'text-slate-500 group-hover:text-teal-600'}`}
                         />
                       )}
                       <span className="truncate">{item.label}</span>
-                      {item.suffix && <span className="ml-auto text-xs text-muted font-bold">{item.suffix}</span>}
+                      {item.suffix && <span className="ml-auto text-xs text-slate-500 font-bold group-hover:text-teal-600">{item.suffix}</span>}
                     </button>
                   ))}
                 </nav>
