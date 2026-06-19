@@ -17,7 +17,7 @@ import {
   BarChart2, MessageSquare, Activity, Target, Calendar,
   Send, Copy, Trash2, Plus, Shield, ShieldAlert, ShieldCheck, FileText, Settings,
   Sparkles, Link, LayoutTemplate, ClipboardList, Lightbulb,
-  User, UserPlus, Building2, Info, UploadCloud, Search
+  User, UserPlus, Building2, Info, UploadCloud, Search, CheckCircle2
 } from 'lucide-react'
 import PipelineStepper from '../components/PipelineStepper'
 import OrgSwitcher from '../components/OrgSwitcher'
@@ -1096,6 +1096,7 @@ function TeamsTab() {
 // ── TAB 4: APPROVALS ────────────────────────────────────────────────────────
 function ApprovalsTab() {
   const qc = useQueryClient()
+  const { activeEvent } = useAuth()
   const [expanded, setExpanded] = useState(null)
   const [notes, setNotes] = useState('')
 
@@ -1159,190 +1160,250 @@ function ApprovalsTab() {
   const hasPublished = activeTeams.length > 0 && activeTeams.every(t => t.approval_status === 'published')
 
   return (
-    <div>
-      {/* Header actions */}
-      <div className="flex items-center justify-between mb-5">
-        <div>
-          <h2 className="text-base font-semibold text-foreground">Pending Approvals</h2>
-          <p className="text-sm text-muted">{pending?.total_pending ?? 0} team(s) awaiting review</p>
-        </div>
-        {(pending?.total_pending ?? 0) > 0 && (
-          <div className="flex gap-2">
-            <button
-              onClick={() => bulkMutation.mutate('reject')}
-              disabled={bulkMutation.isPending}
-              className="flex items-center gap-1.5 text-sm px-3 py-1.5 rounded-lg text-primary hover:bg-[var(--bg-card-soft)] dark:hover:bg-primary/10"
-            >
-              <X size={14} /> Reject all
-            </button>
-            <button
-              onClick={() => {
-                if (window.confirm('Approve all pending teams and queue assignment emails?')) {
-                  bulkMutation.mutate('approve')
-                }
-              }}
-              disabled={bulkMutation.isPending}
-              className="flex items-center gap-1.5 text-sm px-3 py-1.5 rounded-lg app-btn-primary"
-            >
-              <Shield size={14} /> Approve all
-            </button>
-          </div>
-        )}
-      </div>
+    <div className="max-w-7xl mx-auto pl-8 pt-8">
+      <h1 className="text-[28px] font-extrabold tracking-tight text-slate-950">
+        Approvals
+      </h1>
+      <p className="mt-2 text-base font-semibold text-slate-500">
+        {activeEvent?.name || 'AI Hackathon'}
+      </p>
 
-      {/* Global Status Banner */}
-      {activeTeams.length > 0 && !hasPublished && (
-        <div className={`mb-6 p-4 ${hasRejected ? 'section-red' : allApproved ? 'section-green' : 'section-yellow'}`}>
-          {hasRejected && (
-            <div className="flex items-start gap-3">
-              <AlertTriangle className="text-primary shrink-0 mt-0.5" size={20} />
-              <div>
-                <h3 className="text-sm font-bold text-foreground">Formation Rejected</h3>
-                <p className="text-xs text-primary mt-1">One or more teams in this formation have been rejected. You cannot publish this formation. Please go to the <strong>Teams</strong> tab and rerun the solver to generate a new valid lineup.</p>
-              </div>
-            </div>
-          )}
-          {allApproved && (
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <CheckSquare className="text-primary shrink-0" size={20} />
+      <div className="mt-8 rounded-[24px] bg-white px-8 py-8 shadow-[0_18px_48px_rgba(15,23,42,0.07)] ring-1 ring-slate-200/80 min-h-[610px] w-full">
+        {/* Pending Approvals heading area */}
+        <div className="flex flex-col">
+          <div className="flex items-center gap-2">
+            <h2 className="text-[22px] font-extrabold text-slate-950">
+              Pending Approvals
+            </h2>
+            <span className="inline-flex h-6 min-w-6 items-center justify-center rounded-full bg-red-100 px-2 text-xs font-extrabold text-red-600">
+              {pending?.total_pending ?? 0}
+            </span>
+          </div>
+          <p className="mt-2 text-base font-semibold text-slate-500">
+            {pending?.total_pending ?? 0} team(s) awaiting review
+          </p>
+        </div>
+
+        {/* Global Status Banner / Actions */}
+        {activeTeams.length > 0 && !hasPublished && (
+          <div className={`mt-8 p-5 rounded-xl border ${hasRejected ? 'bg-red-50 border-red-200' : allApproved ? 'bg-emerald-50 border-emerald-200' : 'bg-amber-50 border-amber-200'}`}>
+            {hasRejected && (
+              <div className="flex items-start gap-3">
+                <AlertTriangle className="text-red-600 shrink-0 mt-0.5" size={20} />
                 <div>
-                  <h3 className="text-sm font-bold text-foreground">All Teams Approved</h3>
-                  <p className="text-xs text-primary mt-1">The formation is fully approved. Publish now to make teams visible and dispatch assignment emails.</p>
+                  <h3 className="text-sm font-extrabold text-slate-950">Formation Rejected</h3>
+                  <p className="text-xs font-medium text-slate-600 mt-1">One or more teams in this formation have been rejected. You cannot publish this formation. Please go to the <strong>Teams</strong> tab and rerun the solver to generate a new valid lineup.</p>
                 </div>
               </div>
-              <button
-                onClick={() => {
-                  if (window.confirm("Publish formation? Participants will be notified via email immediately.")) {
-                    publishMutation.mutate()
-                  }
-                }}
-                disabled={publishMutation.isPending}
-                className="relative z-40 pointer-events-auto flex items-center gap-2 text-sm px-4 py-2 rounded-lg app-btn-primary disabled:opacity-50 disabled:cursor-not-allowed font-semibold shadow-sm"
-              >
-                {publishMutation.isPending ? <Loader2 size={16} className="animate-spin" /> : <Send size={16} />}
-                Publish Formation
-              </button>
-            </div>
-          )}
-          {!hasRejected && !allApproved && (
-            <div className="flex items-start gap-3">
-              <Loader2 className="text-muted shrink-0 mt-0.5 animate-spin" size={20} />
-              <div>
-                <h3 className="text-sm font-bold text-foreground">Formation in Review</h3>
-                <p className="text-xs text-muted mt-1">Review all pending teams. All teams must be approved before the formation can be published to participants.</p>
-              </div>
-            </div>
-          )}
-        </div>
-      )}
-
-      {hasPublished && (
-        <div className="mb-6 p-4 section-green flex items-start gap-3">
-          <Check className="text-primary shrink-0 mt-0.5" size={20} />
-          <div>
-            <h3 className="text-sm font-bold text-foreground">Formation Published</h3>
-            <p className="text-xs text-primary mt-1">This formation has been fully published. Participants have been notified and can view their teams.</p>
-          </div>
-        </div>
-      )}
-
-      {isLoading && (
-        <div className="space-y-3">
-          {[1, 2, 3].map(i => <div key={i} className="h-16 bg-[var(--bg-card-soft)] rounded-xl animate-pulse" />)}
-        </div>
-      )}
-
-      {!isLoading && pending?.total_pending === 0 && (
-        <div className="text-center py-16 text-muted">
-          <Shield size={36} className="mx-auto mb-3 opacity-50" />
-          <p className="text-sm text-muted font-medium">All teams reviewed</p>
-          <p className="text-xs text-muted mt-1">Run the solver and commit lineups to populate this queue.</p>
-        </div>
-      )}
-
-      <div className="space-y-3">
-        {pending?.teams.map((team) => (
-          <div key={team.team_id} className="app-card overflow-hidden border-l-2 border-l-primary relative overflow-hidden group transition-all hover:-translate-y-1 hover:scale-[1.01]">
-            <div className="absolute -right-8 -top-8 w-40 h-40 bg-gradient-to-br from-primary/10 to-transparent rounded-full blur-3xl group-hover:scale-125 transition-transform duration-700 pointer-events-none z-0" />
-            {/* Row */}
-            <div
-              className="flex items-center gap-3 px-4 py-3 cursor-pointer hover:bg-[var(--bg-card-soft)]"
-              onClick={() => setExpanded(expanded === team.team_id ? null : team.team_id)}
-            >
-              <div className="w-9 h-9 rounded-lg bg-[var(--bg-card-soft)] text-primary flex items-center justify-center font-semibold text-sm shrink-0">
-                {team.team_name[0]}
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-semibold text-foreground">{team.team_name}</p>
-                <p className="text-xs text-muted">{team.member_count} members</p>
-              </div>
-              <Badge colour="amber">Pending</Badge>
-              {expanded === team.team_id
-                ? <ChevronDown size={16} className="text-muted shrink-0" />
-                : <ChevronRight size={16} className="text-muted shrink-0" />
-              }
-            </div>
-
-            {/* Expanded detail */}
-            {expanded === team.team_id && detail && (
-              <div className="border-t px-4 py-4">
-                {/* Members grid */}
-                <div className="grid grid-cols-2 gap-2 mb-4">
-                  {detail.members?.map((m) => (
-                    <div key={m.id} className="flex items-center gap-2">
-                      <div className="w-7 h-7 rounded-full bg-[var(--bg-card-soft)] text-muted text-xs font-semibold flex items-center justify-center shrink-0">
-                        {m.name[0]}
-                      </div>
-                      <div className="min-w-0">
-                        <p className="text-xs font-medium text-foreground truncate">{m.name}</p>
-                        <p className="text-xs text-muted truncate">{m.institution}</p>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-
-                {/* AI rationale */}
-                {detail.rationale && (
-                  <div className="bg-[var(--bg-card-soft)] rounded-lg p-3 mb-4">
-                    <p className="text-xs font-medium text-primary mb-1 flex items-center gap-1">
-                      <Wand2 size={12} /> AI Rationale
-                    </p>
-                    <p className="text-xs text-foreground leading-relaxed">{detail.rationale}</p>
+            )}
+            {allApproved && (
+              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                <div className="flex items-center gap-3">
+                  <CheckSquare className="text-emerald-600 shrink-0" size={20} />
+                  <div>
+                    <h3 className="text-sm font-extrabold text-slate-950">All Teams Approved</h3>
+                    <p className="text-xs font-medium text-slate-600 mt-1">The formation is fully approved. Publish now to make teams visible and dispatch assignment emails.</p>
                   </div>
-                )}
-
-                {/* Notes + action buttons */}
-                <textarea
-                  value={notes}
-                  onChange={(e) => setNotes(e.target.value)}
-                  placeholder="Notes (required when rejecting)…"
-                  rows={2}
-                  className="soft-input mb-3 resize-none"
-                />
-                <div className="flex justify-end gap-2">
-                  <button
-                    onClick={() => decideMutation.mutate({ id: team.team_id, decision: 'reject' })}
-                    disabled={decideMutation.isPending}
-                    className="soft-button text-sm" style={{ color: "var(--color-danger)" }}>
-                    <X size={14} /> Reject
-                  </button>
-                  <button
-                    onClick={() => decideMutation.mutate({ id: team.team_id, decision: 'approve' })}
-                    disabled={decideMutation.isPending}
-                    className="flex items-center gap-1.5 text-sm px-3 py-1.5 rounded-lg app-btn-primary"
-                  >
-                    {decideMutation.isPending ? <Loader2 size={14} className="animate-spin" /> : <Check size={14} />}
-                    Approve
-                  </button>
                 </div>
-                {decideMutation.isError && (
-                  <p className="mt-2 text-xs text-primary">{decideMutation.error?.message}</p>
+                <button
+                  onClick={() => {
+                    if (window.confirm("Publish formation? Participants will be notified via email immediately.")) {
+                      publishMutation.mutate()
+                    }
+                  }}
+                  disabled={publishMutation.isPending}
+                  className="inline-flex h-10 items-center justify-center gap-2 rounded-xl bg-emerald-600 px-4 text-sm font-extrabold text-slate-50 shadow-sm transition hover:bg-emerald-700 disabled:opacity-50"
+                >
+                  {publishMutation.isPending ? <Loader2 size={16} className="animate-spin" /> : <Send size={16} />}
+                  Publish Formation
+                </button>
+              </div>
+            )}
+            {!hasRejected && !allApproved && (
+              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                <div className="flex items-start gap-3">
+                  <Loader2 className="text-amber-500 shrink-0 mt-0.5 animate-spin" size={20} />
+                  <div>
+                    <h3 className="text-sm font-extrabold text-slate-950">Formation in Review</h3>
+                    <p className="text-xs font-medium text-slate-600 mt-1">Review all pending teams. All teams must be approved before the formation can be published to participants.</p>
+                  </div>
+                </div>
+                {(pending?.total_pending ?? 0) > 0 && (
+                  <div className="flex gap-2 shrink-0">
+                    <button
+                      onClick={() => bulkMutation.mutate('reject')}
+                      disabled={bulkMutation.isPending}
+                      className="inline-flex h-10 items-center justify-center gap-2 rounded-xl bg-white border border-slate-200 px-4 text-sm font-bold text-slate-700 transition hover:bg-slate-50 hover:text-red-600"
+                    >
+                      <X size={14} /> Reject all
+                    </button>
+                    <button
+                      onClick={() => {
+                        if (window.confirm('Approve all pending teams and queue assignment emails?')) {
+                          bulkMutation.mutate('approve')
+                        }
+                      }}
+                      disabled={bulkMutation.isPending}
+                      className="inline-flex h-10 items-center justify-center gap-2 rounded-xl bg-slate-800 px-4 text-sm font-extrabold text-slate-50 shadow-sm transition hover:bg-slate-700 disabled:opacity-50"
+                    >
+                      <Shield size={14} /> Approve all
+                    </button>
+                  </div>
                 )}
               </div>
             )}
           </div>
-        ))}
+        )}
+
+        {hasPublished && (
+          <div className="mt-10 flex items-start gap-4">
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-emerald-100 text-emerald-600">
+              <CheckCircle2 size={22} />
+            </div>
+            <div>
+              <p className="text-base font-extrabold text-slate-950">
+                Formation Published
+              </p>
+              <p className="mt-1 text-sm font-semibold text-slate-500">
+                This formation has been finalized and participants have been notified and can view their teams.
+              </p>
+            </div>
+          </div>
+        )}
+
+        {isLoading && (
+          <div className="mt-8 space-y-4">
+            {[1, 2, 3].map(i => <div key={i} className="h-16 bg-slate-100 rounded-xl animate-pulse" />)}
+          </div>
+        )}
+
+        <div className="mt-8 mb-8 h-px w-full bg-slate-200/80" />
+
+        {/* Empty state center */}
+        {!isLoading && pending?.total_pending === 0 && !hasPublished && !hasRejected && (
+          <div className="flex min-h-[390px] flex-col items-center justify-center text-center">
+            <div className="relative mb-8 h-36 w-44">
+              <div className="absolute left-1/2 top-[96px] h-5 w-28 -translate-x-1/2 rounded-full bg-slate-200/80 blur-sm" />
+              <svg
+                viewBox="0 0 160 130"
+                className="absolute left-1/2 top-0 h-32 w-40 -translate-x-1/2"
+                aria-hidden="true"
+              >
+                <path
+                  d="M80 18L121 35V63C121 91 103 111 80 120C57 111 39 91 39 63V35L80 18Z"
+                  fill="#ecfdf5"
+                  stroke="#10b981"
+                  strokeWidth="3"
+                />
+                <path
+                  d="M62 66L75 79L101 52"
+                  fill="none"
+                  stroke="#10b981"
+                  strokeWidth="4"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+                <circle cx="20" cy="74" r="4" fill="#10b981" />
+                <path d="M30 28L34 36L42 40L34 44L30 52L26 44L18 40L26 36Z" fill="#f59e0b" />
+                <path d="M128 42L132 50L140 54L132 58L128 66L124 58L116 54L124 50Z" fill="#10b981" />
+                <path d="M142 80L145 86L151 89L145 92L142 98L139 92L133 89L139 86Z" fill="#60a5fa" />
+              </svg>
+            </div>
+            <p className="text-lg font-extrabold text-slate-950">
+              All teams reviewed
+            </p>
+            <p className="mt-3 text-sm font-semibold text-slate-500">
+              Run the solver and review lockup to populate this queue.
+            </p>
+          </div>
+        )}
+
+        {/* Pending Teams List */}
+        {!isLoading && (pending?.total_pending ?? 0) > 0 && (
+          <div className="space-y-4">
+            {pending?.teams.map((team) => (
+              <div key={team.team_id} className="rounded-[18px] bg-white p-5 shadow-[0_10px_26px_rgba(15,23,42,0.05)] ring-1 ring-slate-200/80">
+                {/* Row */}
+                <div
+                  className="flex items-center gap-4 cursor-pointer"
+                  onClick={() => setExpanded(expanded === team.team_id ? null : team.team_id)}
+                >
+                  <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-slate-100 text-lg font-extrabold text-slate-700">
+                    {team.team_name[0]}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-base font-extrabold text-slate-950">{team.team_name}</p>
+                    <p className="mt-1 text-sm font-semibold text-slate-500">{team.member_count} members</p>
+                  </div>
+                  <span className="rounded-lg border border-amber-400 bg-amber-50 px-3 py-1 text-sm font-extrabold text-amber-600">Pending</span>
+                  {expanded === team.team_id
+                    ? <ChevronDown size={20} className="text-slate-400 shrink-0" />
+                    : <ChevronRight size={20} className="text-slate-400 shrink-0" />
+                  }
+                </div>
+
+                {/* Expanded detail */}
+                {expanded === team.team_id && detail && (
+                  <div className="mt-4 border-t border-slate-100 pt-4">
+                    {/* Members grid */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-5">
+                      {detail.members?.map((m) => (
+                        <div key={m.id} className="flex items-center gap-3">
+                          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-slate-100 text-sm font-extrabold text-slate-600">
+                            {m.name[0]}
+                          </div>
+                          <div className="min-w-0">
+                            <p className="text-sm font-bold text-slate-950 truncate">{m.name}</p>
+                            <p className="text-xs font-semibold text-slate-500 truncate">{m.institution}</p>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+
+                    {/* AI rationale */}
+                    {detail.rationale && (
+                      <div className="rounded-xl bg-slate-50 p-4 mb-5">
+                        <p className="flex items-center gap-1.5 text-xs font-extrabold text-slate-700 mb-2">
+                          <Wand2 size={14} /> AI Rationale
+                        </p>
+                        <p className="text-sm font-medium text-slate-600 leading-relaxed">{detail.rationale}</p>
+                      </div>
+                    )}
+
+                    {/* Notes + action buttons */}
+                    <textarea
+                      value={notes}
+                      onChange={(e) => setNotes(e.target.value)}
+                      placeholder="Notes (required when rejecting)…"
+                      rows={2}
+                      className="w-full rounded-xl border border-slate-200 bg-white p-3 text-sm font-medium text-slate-900 shadow-sm placeholder:text-slate-400 focus:border-red-500 focus:outline-none focus:ring-1 focus:ring-red-500 mb-4 resize-none"
+                    />
+                    <div className="flex justify-end gap-3">
+                      <button
+                        onClick={() => decideMutation.mutate({ id: team.team_id, decision: 'reject' })}
+                        disabled={decideMutation.isPending}
+                        className="inline-flex h-10 items-center justify-center gap-2 rounded-xl bg-red-600 px-5 text-sm font-extrabold text-slate-50 transition hover:bg-red-700 disabled:opacity-50"
+                      >
+                        <X size={16} /> Reject
+                      </button>
+                      <button
+                        onClick={() => decideMutation.mutate({ id: team.team_id, decision: 'approve' })}
+                        disabled={decideMutation.isPending}
+                        className="inline-flex h-10 items-center justify-center gap-2 rounded-xl bg-emerald-600 px-5 text-sm font-extrabold text-slate-50 transition hover:bg-emerald-700 disabled:opacity-50"
+                      >
+                        {decideMutation.isPending ? <Loader2 size={16} className="animate-spin" /> : <Check size={16} />}
+                        Approve
+                      </button>
+                    </div>
+                    {decideMutation.isError && (
+                      <p className="mt-3 text-sm font-semibold text-red-600">{decideMutation.error?.message}</p>
+                    )}
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   )
