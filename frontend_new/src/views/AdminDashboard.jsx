@@ -1412,6 +1412,7 @@ function ApprovalsTab() {
 // ── TAB 5: EVALUATORS ─────────────────────────────────────────────────────
 function EvaluatorsTab() {
   const qc = useQueryClient()
+  const { activeEvent } = useAuth()
   const [showForm, setShowForm] = useState(false)
   const [showAutoAssign, setShowAutoAssign] = useState(false)
   const [form, setForm] = useState({ first_name: '', last_name: '', email: '', expertise_areas: '', passed_out_institution: '' })
@@ -1489,13 +1490,13 @@ function EvaluatorsTab() {
 
   const fieldFor = (key, label, type = 'text', placeholder = '') => (
     <div>
-      <label className="block text-xs font-medium text-muted mb-1">{label}</label>
+      <label className="block text-sm font-semibold text-slate-950 mb-2">{label}</label>
       <input
         type={type}
         value={form[key]}
         onChange={(e) => setForm((f) => ({ ...f, [key]: e.target.value }))}
         placeholder={placeholder}
-        className="soft-input"
+        className="h-11 w-full rounded-xl bg-white px-4 text-sm font-medium text-slate-900 shadow-sm ring-1 ring-slate-200 placeholder:text-slate-400 outline-none transition focus:ring-2 focus:ring-blue-500/35"
       />
     </div>
   )
@@ -1510,86 +1511,103 @@ function EvaluatorsTab() {
 
   return (
     <>
-      <div>
-        <div className="flex items-center justify-between mb-5">
-          <h2 className="text-base font-semibold text-foreground">Evaluators / Judges</h2>
-          <div className="flex items-center gap-2">
-            <button onClick={() => evaluatorsApi.downloadTemplate()} className="soft-button text-sm">CSV Template</button>
-            <button onClick={() => evaluatorsApi.downloadExport()} className="soft-button text-sm">Export</button>
-            <button
-              onClick={() => setShowAutoAssign(true)}
-              className="soft-button text-sm" style={{ color: "var(--color-ai)" }}>
-              <Wand2 size={14} /> Auto-assign
+      <div className="max-w-7xl mx-auto pl-8 pt-8">
+        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
+          <div>
+            <h1 className="text-[28px] font-extrabold tracking-tight text-slate-950">
+              Evaluators
+            </h1>
+            <p className="mt-2 text-base font-semibold text-slate-500">
+              {activeEvent?.name || 'AI Hackathon'}
+            </p>
+          </div>
+          <div className="flex flex-wrap items-center gap-3">
+            <button onClick={() => evaluatorsApi.downloadTemplate()} className="inline-flex h-11 items-center gap-2 rounded-xl bg-white px-4 text-sm font-extrabold text-slate-800 shadow-sm ring-1 ring-slate-200 transition hover:bg-slate-50">
+              <FileText className="h-5 w-5 text-emerald-600" />
+              CSV Template
             </button>
-            <button
-              onClick={() => setShowForm((s) => !s)}
-              className="flex items-center gap-1.5 text-sm px-3 py-1.5 rounded-lg btn-primary text-white hover:bg-primary-dark"
-            >
-              <Plus size={14} /> Add Evaluator
+            <button onClick={() => evaluatorsApi.downloadExport()} className="inline-flex h-11 items-center gap-2 rounded-xl bg-white px-4 text-sm font-extrabold text-blue-600 shadow-sm ring-1 ring-slate-200 transition hover:bg-blue-50">
+              <Download className="h-5 w-5" /> Export
+            </button>
+            <button onClick={() => setShowAutoAssign(true)} className="inline-flex h-11 items-center gap-2 rounded-xl bg-white px-4 text-sm font-extrabold text-purple-600 shadow-sm ring-1 ring-slate-200 transition hover:bg-purple-50">
+              <Wand2 className="h-5 w-5" /> Auto-assign
+            </button>
+            <button onClick={() => setShowForm((s) => !s)} className="inline-flex h-11 items-center gap-2 rounded-xl bg-blue-600 px-5 text-sm font-extrabold text-slate-50 shadow-[0_14px_26px_rgba(37,99,235,0.24)] transition hover:bg-blue-700">
+              <Plus className="h-5 w-5" /> Add Evaluator
             </button>
           </div>
         </div>
-        <p className="text-xs text-muted mb-6 italic">
-          Evaluators receive secure magic links and score approved teams in the Judge Portal. Submitted scorecards update the leaderboard and anomaly scanner.
-        </p>
 
-        <div className="app-card p-4 mb-5 border-l-2 border-l-primary relative overflow-hidden group transition-all hover:-translate-y-1 hover:scale-[1.01]">
-          <div className="absolute -right-8 -top-8 w-40 h-40 bg-gradient-to-br from-primary/10 to-transparent rounded-full blur-3xl group-hover:scale-125 transition-transform duration-700 pointer-events-none z-0" />
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
-            <div>
-              <p className="text-sm font-semibold text-foreground">Evaluation audit integrity</p>
-              <p className="text-xs text-muted mt-1">
-                Check event-scoped scorecard integrity, evaluator assignments, and suspicious scoring state.
-              </p>
-            </div>
-            <button
-              onClick={() => auditMutation.mutate()}
-              disabled={auditMutation.isPending}
-              className="inline-flex items-center justify-center gap-2 text-sm px-4 py-2 rounded-lg text-primary hover:bg-[var(--bg-card-soft)] dark:hover:bg-primary/10 disabled:opacity-50"
-            >
-              {auditMutation.isPending ? <Loader2 size={14} className="animate-spin" /> : <ShieldCheck size={14} />}
-              Run audit
-            </button>
-          </div>
-          {auditMutation.isSuccess && (
-            <div className="mt-3 section-green p-3 text-sm" style={{ color: "var(--color-success)" }}>
-              Audit completed. Issues found: {auditMutation.data?.issues?.length ?? auditMutation.data?.issue_count ?? 0}
-            </div>
-          )}
-          {auditMutation.isError && (
-            <div className="mt-3 rounded-lg bg-[var(--bg-card-soft)] p-3 text-sm text-primary">
-              {auditMutation.error?.message || 'Audit failed.'}
-            </div>
-          )}
-        </div>
-
-        {/* Bulk Import */}
-        <div className="section-green p-4 mb-5 flex flex-col gap-3">
+        {/* Evaluation audit settings banner */}
+        <div className="mt-8 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6 rounded-[18px] bg-emerald-50/80 px-6 py-5 shadow-[0_12px_32px_rgba(15,23,42,0.05)] ring-1 ring-emerald-300/80 border-l-4 border-emerald-500">
           <div className="flex items-center gap-4">
-            <input type="file" accept=".csv" onChange={(e) => setImportFile(e.target.files[0])} className="text-sm" />
-            <label className="flex items-center gap-2 text-sm text-foreground">
-              <input type="checkbox" checked={importUpsert} onChange={e => setImportUpsert(e.target.checked)} />
+            <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-emerald-100 text-emerald-600">
+              <ShieldCheck size={28} />
+            </div>
+            <div>
+              <p className="text-base font-extrabold text-slate-950">Evaluation audit settings</p>
+              <p className="mt-1 text-sm font-semibold text-slate-600">Check event-scoped scorecard integrity, evaluator assignments, and suspicion scoring state.</p>
+            </div>
+          </div>
+          <button onClick={() => auditMutation.mutate()} disabled={auditMutation.isPending} className="inline-flex h-11 shrink-0 items-center gap-2 rounded-xl bg-white px-5 text-sm font-extrabold text-slate-900 shadow-sm ring-1 ring-slate-200 transition hover:bg-emerald-50">
+            {auditMutation.isPending ? <Loader2 className="h-5 w-5 animate-spin text-emerald-600" /> : <ShieldCheck className="h-5 w-5 text-emerald-600" />}
+            Run audit
+          </button>
+        </div>
+        {auditMutation.isSuccess && (
+          <div className="mt-4 p-4 rounded-xl bg-emerald-50 border border-emerald-200 text-sm text-emerald-700 font-semibold shadow-sm">
+            Audit completed. Issues found: {auditMutation.data?.issues?.length ?? auditMutation.data?.issue_count ?? 0}
+          </div>
+        )}
+        {auditMutation.isError && (
+          <div className="mt-4 rounded-xl bg-red-50 p-4 text-sm text-red-600 border border-red-200 font-semibold shadow-sm">
+            {auditMutation.error?.message || 'Audit failed.'}
+          </div>
+        )}
+
+        {/* Import CSV panel */}
+        <div className="mt-8 rounded-[20px] bg-white p-7 shadow-[0_14px_38px_rgba(15,23,42,0.06)] ring-1 ring-slate-200/80">
+          <div className="flex flex-wrap items-center gap-6">
+            <div className="flex items-center gap-3">
+              <p className="text-lg font-extrabold text-slate-950">Choose File</p>
+              <p className="text-sm font-semibold text-slate-500">{importFile ? importFile.name : 'No file chosen'}</p>
+            </div>
+            <label className="inline-flex items-center gap-2 text-sm font-semibold text-slate-600">
+              <input type="checkbox" checked={importUpsert} onChange={e => setImportUpsert(e.target.checked)} className="h-5 w-5 rounded border-slate-300 text-blue-600 focus:ring-blue-500" />
               Update existing (upsert)
+              <Info size={16} className="text-slate-400" />
             </label>
-            <button
-              onClick={() => importMutation.mutate()}
-              disabled={!importFile || importMutation.isPending}
-              className="app-btn-primary text-sm px-4 py-1.5"
-            >
-              {importMutation.isPending ? <Loader2 size={14} className="animate-spin inline" /> : 'Import CSV'}
+            <button onClick={() => importMutation.mutate()} disabled={!importFile || importMutation.isPending} className="inline-flex h-11 items-center gap-2 rounded-xl bg-white px-5 text-sm font-extrabold text-blue-600 shadow-sm ring-1 ring-blue-500 transition hover:bg-blue-50 disabled:opacity-50 ml-auto">
+              {importMutation.isPending ? <Loader2 size={18} className="animate-spin" /> : <UploadCloud size={18} />}
+              Import CSV
             </button>
           </div>
+          <p className="mt-6 text-sm font-semibold text-slate-600">
+            Evaluators receive secure magic links and score approved teams on the Judge Portal. Submitted scorecards update the leaderboard and anomaly scanner.
+          </p>
+
+          <label className="mt-6 flex min-h-[160px] cursor-pointer flex-col items-center justify-center rounded-[18px] border-2 border-dashed border-blue-500 bg-white px-8 py-10 text-center transition hover:bg-blue-50/30 relative">
+            <input type="file" accept=".csv" onChange={(e) => setImportFile(e.target.files[0])} className="hidden" />
+            <UploadCloud size={42} className="text-blue-600" />
+            <p className="mt-4 text-sm font-extrabold text-slate-950">
+              Drag and drop CSV file here, or click to browse
+            </p>
+            <p className="mt-2 text-sm font-semibold text-slate-500">
+              CSV should include: name, email, role (evaluator/judge), expertise (optional)
+            </p>
+          </label>
+
           {importSummary && (
-            <div className="bg-[var(--bg-card-soft)] p-3 rounded-lg text-sm">
-              <p className="font-semibold text-foreground">Import Summary</p>
-              <div className="flex gap-4 mt-1 mb-2 text-muted">
+            <div className="mt-6 bg-slate-50 border border-slate-200 p-5 rounded-xl text-sm shadow-sm">
+              <p className="font-extrabold text-slate-950">Import Summary</p>
+              <div className="flex gap-4 mt-2 mb-3 font-semibold text-slate-600">
                 <span>Total: {importSummary.total_rows}</span>
-                <span className="text-emerald-600 dark:text-emerald-400">Created: {importSummary.created}</span>
-                <span className="text-primary">Updated: {importSummary.updated}</span>
-                <span className="text-primary">Errors: {importSummary.errors}</span>
+                <span className="text-emerald-600">Created: {importSummary.created}</span>
+                <span className="text-blue-600">Updated: {importSummary.updated}</span>
+                <span className="text-red-600">Errors: {importSummary.errors}</span>
               </div>
               {importSummary.errors > 0 && (
-                <ul className="text-xs text-primary list-disc pl-4 space-y-1">
+                <ul className="text-xs font-medium text-red-600 list-disc pl-4 space-y-1">
                   {importSummary.results.filter(r => r.status === 'error').map((r, idx) => (
                     <li key={idx}>Row {r.row_number} ({r.email || 'No email'}): {r.message}</li>
                   ))}
@@ -1598,147 +1616,173 @@ function EvaluatorsTab() {
             </div>
           )}
         </div>
-        <p className="text-xs text-muted mb-6 italic">
-          Evaluators receive secure magic links and score approved teams in the Judge Portal. Submitted scorecards update the leaderboard and anomaly scanner.
-        </p>
 
         {/* Add form */}
         {showForm && (
-          <div className="app-card p-5 mb-5 border-l-2 border-l-primary relative overflow-hidden group transition-all hover:-translate-y-1 hover:scale-[1.01]">
-            <div className="absolute -right-8 -top-8 w-40 h-40 bg-gradient-to-br from-primary/10 to-transparent rounded-full blur-3xl group-hover:scale-125 transition-transform duration-700 pointer-events-none z-0" />
-            <p className="text-sm font-semibold text-foreground mb-4">New Evaluator</p>
-            <div className="grid grid-cols-2 gap-3 mb-3">
+          <div className="mt-8 rounded-[20px] bg-white p-7 shadow-[0_14px_38px_rgba(15,23,42,0.06)] ring-1 ring-slate-200/80">
+            <p className="text-lg font-extrabold text-slate-950 mb-5">New Evaluator</p>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-5">
               {fieldFor('first_name', 'First name', 'text', 'Dr. Meena')}
               {fieldFor('last_name', 'Last name', 'text', 'Sharma')}
               {fieldFor('email', 'Email', 'email', 'meena@ti.com')}
               {fieldFor('expertise_areas', 'Expertise (comma-separated)', 'text', 'embedded systems, signal processing')}
               {fieldFor('passed_out_institution', 'Passed-out college / institution (optional)', 'text', 'IIT Madras')}
             </div>
-            <div className="flex gap-2 justify-end">
-              <button onClick={() => setShowForm(false)} className="text-sm px-3 py-1.5 rounded-lg text-muted hover:bg-[var(--bg-card-soft)]">Cancel</button>
+            <div className="flex items-center gap-3 justify-end mt-6">
+              <button onClick={() => setShowForm(false)} className="inline-flex h-11 items-center justify-center rounded-xl bg-white px-5 text-sm font-bold text-slate-600 ring-1 ring-slate-200 hover:bg-slate-50 transition">Cancel</button>
               <button
                 onClick={() => createMutation.mutate()}
                 disabled={createMutation.isPending || !form.email}
-                className="flex items-center gap-1.5 text-sm px-4 py-1.5 rounded-lg btn-primary text-white hover:bg-primary-dark disabled:opacity-50 disabled:cursor-not-allowed"
+                className="inline-flex h-11 items-center justify-center gap-2 rounded-xl bg-blue-600 px-6 text-sm font-extrabold text-slate-50 shadow-[0_10px_20px_rgba(37,99,235,0.2)] transition hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                {createMutation.isPending ? <Loader2 size={14} className="animate-spin" /> : <Check size={14} />}
-                Save
+                {createMutation.isPending ? <Loader2 size={16} className="animate-spin" /> : <Check size={16} />}
+                Save Evaluator
               </button>
             </div>
-            {createMutation.isError && <p className="mt-2 text-xs text-primary">{createMutation.error?.message}</p>}
+            {createMutation.isError && <p className="mt-4 text-sm font-semibold text-red-600">{createMutation.error?.message}</p>}
+          </div>
+        )}
+
+        {/* Empty state center */}
+        {!isLoading && (!data?.evaluators?.length) && (
+          <div className="mt-8 flex min-h-[220px] flex-col items-center justify-center rounded-[20px] bg-white px-8 py-12 text-center shadow-[0_14px_38px_rgba(15,23,42,0.06)] ring-1 ring-slate-200/80 mb-8">
+            <div className="relative h-16 w-16 text-slate-300">
+              <ClipboardList size={64} strokeWidth={1.5} />
+              <svg className="absolute -top-3 -right-3 h-6 w-6 text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
+              </svg>
+              <svg className="absolute top-4 -left-6 h-4 w-4 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
+              </svg>
+              <svg className="absolute -bottom-2 -right-4 h-3 w-3 text-amber-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
+              </svg>
+            </div>
+            <p className="mt-5 text-lg font-extrabold text-slate-950">
+              No evaluators registered yet.
+            </p>
+            <p className="mt-2 text-sm font-semibold text-slate-500">
+              Add evaluators manually or import from CSV to get started.
+            </p>
+          </div>
+        )}
+
+        {isLoading && (
+          <div className="mt-8 space-y-4 mb-8">
+            {[1, 2, 3].map(i => <div key={i} className="h-20 bg-white rounded-[20px] ring-1 ring-slate-200/80 shadow-sm animate-pulse" />)}
           </div>
         )}
 
         {/* Evaluator list */}
-        {isLoading
-          ? Array.from({ length: 3 }).map((_, i) => <div key={i} className="h-14 bg-[var(--bg-card-soft)] rounded-xl animate-pulse mb-3" />)
-          : (
-            <div className="app-card overflow-hidden mb-6 border-l-2 border-l-primary relative overflow-hidden group transition-all hover:-translate-y-1 hover:scale-[1.01]">
-              <div className="absolute -right-8 -top-8 w-40 h-40 bg-gradient-to-br from-primary/10 to-transparent rounded-full blur-3xl group-hover:scale-125 transition-transform duration-700 pointer-events-none z-0" />
-              {(!data?.evaluators?.length)
-                ? <div className="text-center py-12 text-muted text-sm">No evaluators registered yet.</div>
-                : data.evaluators.map((ev) => (
-                  <div key={ev.id} className="border-b last:border-0">
-                    <div className="flex flex-wrap items-center gap-4 px-4 py-3 hover:bg-[var(--bg-card-soft)]">
-                      <div className="w-9 h-9 rounded-full bg-[var(--bg-card-soft)] text-primary font-semibold text-sm flex items-center justify-center shrink-0">
-                        {ev.first_name[0]}
-                      </div>
-                      <div className="flex-1 min-w-[200px]">
-                        <p className="text-sm font-medium text-foreground break-words">{ev.first_name} {ev.last_name}</p>
-                        <p className="text-xs text-muted break-words">{ev.email}</p>
-                        {ev.passed_out_institution && (
-                          <p className="text-xs text-muted mt-0.5 break-words">🏛️ {ev.passed_out_institution}</p>
-                        )}
-                        {ev.expertise_areas?.length > 0 && (
-                          <div className="flex gap-1 mt-1 flex-wrap">
-                            {ev.expertise_areas.map((a) => <Badge key={a} colour="gray">{a}</Badge>)}
-                          </div>
-                        )}
-                      </div>
-                      <div className="flex flex-wrap items-center gap-2 shrink-0 ml-auto">
-                        <Badge colour={ev.is_active ? 'green' : 'gray'}>{ev.is_active ? 'Active' : 'Inactive'}</Badge>
-                        {ev.access_link_sent && <Badge colour="green"><Check size={10} /> Link sent</Badge>}
-                      </div>
-                      <div className="flex gap-2 shrink-0">
-                        <button
-                          onClick={() => setExpandedEval(expandedEval === ev.id ? null : ev.id)}
-                          className="flex items-center gap-1 text-xs px-2.5 py-1.5 rounded-lg text-muted hover:bg-[var(--bg-card-soft)]"
-                        >
-                          <UserCheck size={12} />
-                          Assignments
-                        </button>
-                        <button
-                          onClick={() => sendLinkMutation.mutate(ev.id)}
-                          disabled={sendLinkMutation.isPending}
-                          title={ev.access_link_sent ? "Send access link again" : "Send access link"}
-                          className="flex items-center gap-1 text-xs px-2.5 py-1.5 rounded-lg text-primary hover:bg-[var(--bg-card-soft)] dark:hover:bg-primary/10 disabled:opacity-50"
-                        >
-                          {sendLinkMutation.isPending
-                            ? <Loader2 size={12} className="animate-spin" />
-                            : <Send size={12} />
-                          }
-                          {ev.access_link_sent ? "Resend Link" : "Send Link"}
-                        </button>
-                        <button
-                          onClick={() => { if (window.confirm('Remove this evaluator?')) deleteMutation.mutate(ev.id) }}
-                          className="p-1.5 text-muted hover:text-primary rounded transition-colors"
-                        >
-                          <Trash2 size={14} />
-                        </button>
-                      </div>
-                    </div>
-
-                    {/* Expanded: team assignments */}
-                    {expandedEval === ev.id && (
-                      <div className="px-4 py-4 bg-[var(--bg-card-soft)] border-t">
-                        <p className="text-xs font-bold text-muted mb-2">Current Assignments</p>
-                        {assignData?.teams?.length > 0 ? (
-                          <div className="flex gap-1.5 flex-wrap mb-3">
-                            {assignData.teams.map(t => (
-                              <Badge key={t.team_id} colour="teal">{t.team_name}</Badge>
-                            ))}
-                          </div>
-                        ) : (
-                          <p className="text-xs text-muted mb-3">No teams assigned yet.</p>
-                        )}
-
-                        <p className="text-xs font-bold text-muted mb-2">Assign to teams</p>
-                        <div className="flex flex-wrap gap-2 mb-3">
-                          {approvedTeams.length === 0 ? (
-                            <p className="text-xs text-muted">No approved teams available.</p>
-                          ) : approvedTeams.map(t => {
-                            const selected = assignTeamIds.includes(t.team_id)
-                            return (
-                              <button
-                                key={t.team_id}
-                                onClick={() => toggleTeamId(t.team_id)}
-                                className={`text-xs px-2.5 py-1.5 rounded-lg border transition-colors ${selected
-                                  ? 'bg-[var(--bg-card-soft)] border-primary text-primary font-semibold'
-                                  : 'border-border text-muted hover:bg-[var(--bg-card-soft)]'
-                                  }`}
-                              >
-                                {t.team_name}
-                              </button>
-                            )
-                          })}
-                        </div>
-                        <button
-                          onClick={() => assignMutation.mutate({ evaluator_id: ev.id, team_ids: assignTeamIds })}
-                          disabled={assignMutation.isPending || assignTeamIds.length === 0}
-                          className="flex items-center gap-1.5 text-sm px-4 py-1.5 rounded-lg btn-primary text-white hover:bg-primary-dark disabled:opacity-50 disabled:cursor-not-allowed"
-                        >
-                          {assignMutation.isPending ? <Loader2 size={14} className="animate-spin" /> : <Check size={14} />}
-                          Assign Evaluator
-                        </button>
-                        {assignMutation.isError && <p className="mt-2 text-xs text-primary">{assignMutation.error?.message}</p>}
+        {!isLoading && data?.evaluators?.length > 0 && (
+          <div className="mt-8 overflow-hidden rounded-[20px] bg-white shadow-[0_14px_38px_rgba(15,23,42,0.06)] ring-1 ring-slate-200/80 mb-8">
+            {data.evaluators.map((ev) => (
+              <div key={ev.id} className="border-b border-slate-100 last:border-b-0 hover:bg-slate-50/80 transition">
+                <div className="flex flex-wrap items-center gap-4 px-6 py-5">
+                  <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-slate-100 text-lg font-extrabold text-slate-700">
+                    {ev.first_name[0]}
+                  </div>
+                  <div className="flex-1 min-w-[200px]">
+                    <p className="text-base font-extrabold text-slate-950 break-words">{ev.first_name} {ev.last_name}</p>
+                    <p className="mt-1 text-sm font-semibold text-slate-500 break-words">{ev.email}</p>
+                    {ev.passed_out_institution && (
+                      <p className="mt-1 text-xs font-semibold text-slate-500 break-words">🏛️ {ev.passed_out_institution}</p>
+                    )}
+                    {ev.expertise_areas?.length > 0 && (
+                      <div className="flex gap-2 mt-2 flex-wrap">
+                        {ev.expertise_areas.map((a) => (
+                          <span key={a} className="inline-flex items-center rounded-lg bg-slate-100 px-2 py-1 text-xs font-bold text-slate-600">{a}</span>
+                        ))}
                       </div>
                     )}
                   </div>
-                ))
-              }
-            </div>
-          )
-        }
+                  <div className="flex flex-wrap items-center gap-3 shrink-0 ml-auto">
+                    <span className={`inline-flex items-center rounded-lg px-3 py-1 text-xs font-extrabold ${ev.is_active ? 'bg-emerald-50 text-emerald-600 border border-emerald-200' : 'bg-slate-100 text-slate-600 border border-slate-200'}`}>
+                      {ev.is_active ? 'Active' : 'Inactive'}
+                    </span>
+                    {ev.access_link_sent && (
+                      <span className="inline-flex items-center gap-1 rounded-lg bg-emerald-50 border border-emerald-200 px-3 py-1 text-xs font-extrabold text-emerald-600">
+                        <Check size={12} /> Link sent
+                      </span>
+                    )}
+                  </div>
+                  <div className="flex items-center gap-3 shrink-0">
+                    <button
+                      onClick={() => setExpandedEval(expandedEval === ev.id ? null : ev.id)}
+                      className="inline-flex h-9 items-center gap-1.5 rounded-lg bg-white px-3 text-xs font-bold text-slate-700 shadow-sm ring-1 ring-slate-200 hover:bg-slate-50 transition"
+                    >
+                      <UserCheck size={14} />
+                      Assignments
+                    </button>
+                    <button
+                      onClick={() => sendLinkMutation.mutate(ev.id)}
+                      disabled={sendLinkMutation.isPending}
+                      title={ev.access_link_sent ? "Send access link again" : "Send access link"}
+                      className="inline-flex h-9 items-center gap-1.5 rounded-lg bg-blue-50 px-3 text-xs font-bold text-blue-600 hover:bg-blue-100 transition disabled:opacity-50"
+                    >
+                      {sendLinkMutation.isPending ? <Loader2 size={14} className="animate-spin" /> : <Send size={14} />}
+                      {ev.access_link_sent ? "Resend Link" : "Send Link"}
+                    </button>
+                    <button
+                      onClick={() => { if (window.confirm('Remove this evaluator?')) deleteMutation.mutate(ev.id) }}
+                      className="inline-flex h-9 w-9 items-center justify-center rounded-lg text-slate-400 hover:bg-red-50 hover:text-red-600 transition"
+                    >
+                      <Trash2 size={16} />
+                    </button>
+                  </div>
+                </div>
+
+                {/* Expanded: team assignments */}
+                {expandedEval === ev.id && (
+                  <div className="bg-slate-50/50 px-6 py-5 border-t border-slate-100">
+                    <p className="mb-3 text-xs font-extrabold uppercase tracking-wider text-slate-500">Current Assignments</p>
+                    {assignData?.teams?.length > 0 ? (
+                      <div className="mb-5 flex gap-2 flex-wrap">
+                        {assignData.teams.map(t => (
+                          <span key={t.team_id} className="inline-flex items-center rounded-lg bg-teal-50 border border-teal-200 px-3 py-1 text-sm font-extrabold text-teal-700">
+                            {t.team_name}
+                          </span>
+                        ))}
+                      </div>
+                    ) : (
+                      <p className="mb-5 text-sm font-semibold text-slate-500">No teams assigned yet.</p>
+                    )}
+
+                    <p className="mb-3 text-xs font-extrabold uppercase tracking-wider text-slate-500">Assign to teams</p>
+                    <div className="mb-5 flex flex-wrap gap-2">
+                      {approvedTeams.length === 0 ? (
+                        <p className="text-sm font-semibold text-slate-500">No approved teams available.</p>
+                      ) : approvedTeams.map(t => {
+                        const selected = assignTeamIds.includes(t.team_id)
+                        return (
+                          <button
+                            key={t.team_id}
+                            onClick={() => toggleTeamId(t.team_id)}
+                            className={`inline-flex items-center rounded-lg px-3 py-1.5 text-sm font-bold border transition ${selected
+                              ? 'bg-blue-50 border-blue-300 text-blue-700'
+                              : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50'
+                              }`}
+                          >
+                            {t.team_name}
+                          </button>
+                        )
+                      })}
+                    </div>
+                    <button
+                      onClick={() => assignMutation.mutate({ evaluator_id: ev.id, team_ids: assignTeamIds })}
+                      disabled={assignMutation.isPending || assignTeamIds.length === 0}
+                      className="inline-flex h-10 items-center justify-center gap-2 rounded-xl bg-slate-800 px-5 text-sm font-extrabold text-slate-50 shadow-sm transition hover:bg-slate-700 disabled:opacity-50"
+                    >
+                      {assignMutation.isPending ? <Loader2 size={16} className="animate-spin" /> : <Check size={16} />}
+                      Assign Evaluator
+                    </button>
+                    {assignMutation.isError && <p className="mt-3 text-sm font-semibold text-red-600">{assignMutation.error?.message}</p>}
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+        )}
       </div>
 
       {showAutoAssign && (
