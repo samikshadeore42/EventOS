@@ -290,26 +290,35 @@ export default function StageTimelinePanel({ eventStatus }) {
 
 
   return (
-    <div className="space-y-6">
+    <div className="w-full">
       {/* Validation banner */}
-      <div className={`p-4 flex items-start gap-3 ${isValid ? 'section-green' : 'section-yellow'}`}>
-        {isValid
-          ? <ShieldCheck className="w-5 h-5 mt-0.5" style={{ color: 'var(--color-success)' }} />
-          : <AlertTriangle className="w-5 h-5 mt-0.5" style={{ color: 'var(--color-primary)' }} />}
-        <div className="flex-1">
-          <p className="font-medium text-sm" style={{ color: 'var(--text-main)' }}>{isValid ? 'Schedule is valid — ready to publish.' : 'Schedule has issues to fix before publishing.'}
-          </p>
-          {!isValid && violations.length > 0 && (
-            <ul className="mt-2 space-y-1 text-xs list-disc list-inside" style={{ color: 'var(--color-primary)' }}>
-              {violations.map((v, i) => <li key={i}>{v.message}</li>)}
-            </ul>
-          )}
+      <div className={`flex items-center justify-between px-6 py-4 rounded-[16px] border ${
+        isValid
+          ? 'bg-[#ecfdf5] border-[#86efac]'
+          : 'bg-amber-50 border-amber-200'
+      }`}>
+        <div className="flex items-center gap-4">
+          <div className={`flex items-center justify-center w-10 h-10 rounded-full ${
+            isValid ? 'bg-emerald-100 text-emerald-600' : 'bg-amber-100 text-amber-600'
+          }`}>
+            {isValid ? <ShieldCheck className="w-5 h-5" /> : <AlertTriangle className="w-5 h-5" />}
+          </div>
+          <div>
+            <p className="font-extrabold text-sm text-slate-950">
+              {isValid ? 'Schedule is valid — ready to publish.' : 'Schedule has issues to fix before publishing.'}
+            </p>
+            {!isValid && violations.length > 0 && (
+              <ul className="mt-1 space-y-1 text-xs font-semibold text-amber-700 list-disc list-inside">
+                {violations.map((v, i) => <li key={i}>{v.message}</li>)}
+              </ul>
+            )}
+          </div>
         </div>
-        <div className="flex gap-2">
+        <div className="flex gap-3">
           <button
             onClick={() => generateRuns.mutate()}
             disabled={generateRuns.isPending || sortedStages.length === 0}
-            className="app-btn-secondary !text-sm !px-3 !py-2"
+            className="inline-flex h-11 items-center gap-2 rounded-xl bg-white px-5 text-sm font-extrabold text-blue-600 shadow-sm ring-1 ring-blue-200 transition hover:bg-blue-50 disabled:opacity-50"
           >
             {generateRuns.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Play className="w-4 h-4" />}
             Generate runs
@@ -318,7 +327,7 @@ export default function StageTimelinePanel({ eventStatus }) {
             <button
               onClick={() => publish.mutate()}
               disabled={!isValid || publish.isPending}
-              className="app-btn-primary !text-sm !px-4 !py-2"
+              className="inline-flex h-11 items-center gap-2 rounded-xl bg-emerald-600 px-5 text-sm font-extrabold text-white shadow-sm transition hover:bg-emerald-700 disabled:opacity-50"
             >
               {publish.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Rocket className="w-4 h-4" />}
               Publish event
@@ -334,38 +343,37 @@ export default function StageTimelinePanel({ eventStatus }) {
       )}
 
       {awaiting.length > 0 && (
-        <div className="app-card p-4">
-          <h3 className="flex items-center gap-2 font-semibold text-sm mb-3" style={{ color: 'var(--text-main)' }}>
-            <Clock className="w-4 h-4" style={{ color: 'var(--color-primary)' }} /> Stages awaiting approval
+        <div className="mt-8 rounded-[20px] bg-white px-6 py-6 shadow-[0_18px_45px_rgba(15,23,42,0.06)] ring-1 ring-slate-200/80">
+          <h3 className="flex items-center gap-2 font-extrabold text-sm mb-4 text-slate-950">
+            <Clock className="w-5 h-5 text-orange-500" /> Stages awaiting approval
           </h3>
-          <ul className="space-y-2">
+          <div className="space-y-3">
             {awaiting.map((s) => (
-              <li key={s.id} className="flex items-center justify-between rounded-xl px-3 py-2" style={{ backgroundColor: 'var(--bg-card-soft)' }}>
-                <span className="text-sm" style={{ color: 'var(--text-main)' }}>{s.name}</span>
+              <div key={s.id} className="flex items-center justify-between rounded-xl px-5 py-3 bg-orange-50/50 border border-orange-200">
+                <span className="text-sm font-extrabold text-slate-900">{s.name}</span>
                 <button
                   onClick={() => approve.mutate(s.id)}
                   disabled={approve.isPending}
-                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium text-white disabled:opacity-50 disabled:cursor-not-allowed"
-                  style={{ backgroundColor: 'var(--color-success)' }}
+                  className="inline-flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-extrabold text-white bg-amber-500 hover:bg-amber-600 transition shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  <CheckCircle2 className="w-3.5 h-3.5" /> Approve & start
+                  <CheckCircle2 className="w-4 h-4" /> Approve & start
                 </button>
-              </li>
+              </div>
             ))}
-          </ul>
+          </div>
         </div>
       )}
 
       {/* Timeline */}
-      <div className="app-card overflow-hidden">
-        <div className="px-4 py-3 flex items-center justify-between" style={{ borderBottom: '1px solid var(--border-soft)' }}>
+      <div className="mt-8 rounded-[20px] bg-white shadow-[0_18px_45px_rgba(15,23,42,0.06)] ring-1 ring-slate-200/80 overflow-hidden">
+        <div className="px-6 py-5 flex items-center justify-between border-b border-slate-100">
           <div>
-            <h3 className="text-sm font-semibold" style={{ color: 'var(--text-main)' }}>Stage Definitions</h3>
-            <p className="text-xs" style={{ color: 'var(--text-muted)' }}>Create, edit, delete, and reorder creator-defined stages.</p>
+            <h3 className="text-lg font-extrabold text-slate-950">Stage Definitions</h3>
+            <p className="text-sm font-semibold text-slate-500 mt-1">Create, edit, delete, and reorder creator-defined stages.</p>
           </div>
           <button
             onClick={startCreate}
-            className="app-btn-primary !text-sm !px-3 !py-2"
+            className="inline-flex h-10 items-center gap-2 rounded-xl bg-blue-600 px-4 text-sm font-extrabold text-white shadow-sm transition hover:bg-blue-700"
           >
             <Plus className="w-4 h-4" /> Add stage
           </button>
@@ -550,53 +558,54 @@ export default function StageTimelinePanel({ eventStatus }) {
             <p className="px-4 py-8 text-center text-sm" style={{ color: 'var(--text-muted)' }}>No stages defined yet.</p>
           ) : sortedStages.map((s, index) => {
             const runStatus = runByStage[s.id]?.status ?? (status === 'draft' ? 'not started' : 'pending')
-            const isActiveStage = runStatus === 'active'
+
+            // Badge & Pill colors based on runStatus
+            let badgeBg = 'bg-blue-50'
+            let badgeText = 'text-blue-600'
+            if (runStatus === 'completed') {
+              badgeBg = 'bg-emerald-50'
+              badgeText = 'text-emerald-600'
+            } else if (runStatus === 'awaiting_approval' || runStatus === 'active') {
+              badgeBg = 'bg-orange-50'
+              badgeText = 'text-orange-600'
+            }
+
             return (
-              <div key={s.id} className="flex items-center justify-between px-4 py-3 transition-colors"
-                style={{
-                  borderBottom: index < sortedStages.length - 1 ? '1px solid color-mix(in srgb, var(--color-border) 30%, transparent)' : 'none',
-                  borderLeft: isActiveStage ? '3px solid var(--color-primary)' : '3px solid transparent',
-                  backgroundColor: isActiveStage ? 'color-mix(in srgb, var(--color-primary) 5%, var(--bg-card))' : 'transparent',
-                }}
-              >
-                <div className="flex items-center gap-3 min-w-0">
-                  <span className="w-6 h-6 flex items-center justify-center rounded-full text-xs font-semibold"
-                    style={{
-                      backgroundColor: isActiveStage ? 'rgba(232,121,50,0.12)' : 'var(--bg-card-soft)',
-                      color: isActiveStage ? 'var(--color-primary)' : 'var(--text-muted)',
-                    }}
-                  >
+              <div key={s.id} className={`flex items-center justify-between px-6 py-4 bg-white ${index < sortedStages.length - 1 ? 'border-b border-slate-100' : ''}`}>
+                <div className="flex items-center gap-4 min-w-0">
+                  <span className={`w-10 h-10 flex items-center justify-center rounded-full text-sm font-extrabold ${badgeBg} ${badgeText}`}>
                     {s.position}
                   </span>
                   <div className="min-w-0">
-                    <p className="text-sm font-medium truncate" style={{ color: 'var(--text-main)' }}>{s.name}</p>
-                    <p className="text-xs truncate" style={{ color: 'var(--text-muted)' }}>
-                      {new Date(s.start_at).toLocaleString()}{' -> '}{new Date(s.end_at).toLocaleString()}
-                      {' · '}{s.timezone}{' · '}{s.transition_policy}
+                    <p className="text-base font-extrabold text-slate-950 truncate">{s.name}</p>
+                    <p className="text-sm font-semibold text-slate-500 truncate mt-0.5">
+                      {new Date(s.start_at).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' })}
+                      {' → '}
+                      {new Date(s.end_at).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' })}
+                      {' • '}{s.timezone}
                     </p>
                   </div>
                 </div>
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-3">
                   <StatusPill status={runStatus} />
-                  <button onClick={() => moveStage(index, -1)} disabled={index === 0 || reorder.isPending} className="app-icon-button" title="Move up">
-                    <ArrowUp className="w-4 h-4" />
+                  <button onClick={() => moveStage(index, -1)} disabled={index === 0 || reorder.isPending} className="inline-flex w-10 h-10 items-center justify-center rounded-xl bg-white border border-slate-100 text-emerald-600 shadow-sm transition hover:bg-emerald-50 disabled:opacity-50" title="Move up">
+                    <ArrowUp className="w-5 h-5" />
                   </button>
-                  <button onClick={() => moveStage(index, 1)} disabled={index === sortedStages.length - 1 || reorder.isPending} className="app-icon-button" title="Move down">
-                    <ArrowDown className="w-4 h-4" />
+                  <button onClick={() => moveStage(index, 1)} disabled={index === sortedStages.length - 1 || reorder.isPending} className="inline-flex w-10 h-10 items-center justify-center rounded-xl bg-white border border-slate-100 text-blue-600 shadow-sm transition hover:bg-blue-50 disabled:opacity-50" title="Move down">
+                    <ArrowDown className="w-5 h-5" />
                   </button>
-                  <button onClick={() => startEdit(s)} className="app-btn-secondary !text-xs !px-2 !py-1">
-                    Edit
+                  <button onClick={() => startEdit(s)} className="inline-flex w-10 h-10 items-center justify-center rounded-xl bg-white border border-slate-100 text-amber-500 shadow-sm transition hover:bg-amber-50 disabled:opacity-50" title="Edit">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"></path></svg>
                   </button>
                   <button
                     onClick={() => {
                       if (window.confirm(`Delete stage "${s.name}"?`)) deleteStage.mutate(s.id)
                     }}
                     disabled={deleteStage.isPending}
-                    className="app-icon-button"
-                    style={{ color: 'var(--color-danger)' }}
+                    className="inline-flex w-10 h-10 items-center justify-center rounded-xl bg-white border border-slate-100 text-red-500 shadow-sm transition hover:bg-red-50 disabled:opacity-50"
                     title="Delete"
                   >
-                    <Trash2 className="w-4 h-4" />
+                    <Trash2 className="w-5 h-5" />
                   </button>
                 </div>
               </div>
@@ -618,17 +627,11 @@ function Field({ label, children }) {
 }
 
 function StatusPill({ status }) {
-  const map = {
-    active: 'status-active',
-    completed: 'status-completed',
-    awaiting_approval: 'status-active',
-    pending: 'status-pending',
-    skipped: 'app-pill',
-    'not started': 'app-pill',
+  if (status === 'completed') {
+    return <span className="inline-flex items-center justify-center px-3 py-1 rounded-[10px] bg-emerald-50 text-emerald-600 border border-emerald-100 text-xs font-extrabold capitalize">Completed</span>
+  } else if (status === 'awaiting_approval' || status === 'active') {
+    return <span className="inline-flex items-center justify-center px-3 py-1 rounded-[10px] bg-orange-50 text-orange-500 border border-orange-100 text-xs font-extrabold capitalize">Awaiting approval</span>
+  } else {
+    return <span className="inline-flex items-center justify-center px-3 py-1 rounded-[10px] bg-blue-50 text-blue-600 border border-blue-100 text-xs font-extrabold capitalize">Pending</span>
   }
-  return (
-    <span className={map[status] || 'app-pill'}>
-      {String(status).replace('_', ' ')}
-    </span>
-  )
 }
