@@ -10,7 +10,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import AutoAssignModal from '../components/AutoAssignModal'
 import {
   Users, GitBranch, CheckSquare,
-  UserCheck, Trophy, Mail, Upload, Download,
+  UserCheck, Mail, Upload, Download,
   Play, Loader2, Check, X, AlertTriangle,
   ChevronDown, ChevronRight, Wand2,
   BarChart2, MessageSquare, Activity, Target, Calendar,
@@ -23,7 +23,7 @@ import SettingsTab from '../components/SettingsTab'
 import NotificationBell from '../components/NotificationBell'
 import AppLayout from '../components/AppLayout'
 import StageTimelinePanel from '../components/StageTimelinePanel'
-import { motion, AnimatePresence } from 'framer-motion'
+import { motion } from 'framer-motion'
 import {
   participantsApi,
   solverApi,
@@ -80,11 +80,12 @@ function StatCard({ label, value, sub, colour = 'red', icon: Icon, trend }) {
 function Badge({ children, colour = 'gray' }) {
   const cls = {
     green: 'bg-emerald-500/10 border border-emerald-500/20 text-emerald-600',
-    red: 'bg-teal-500/10 border border-teal-500/20 text-teal-600',
+    red: 'bg-rose-500/10 border border-rose-500/20 text-rose-600',
     amber: 'bg-amber-500/10 border border-amber-500/20 text-amber-600',
     teal: 'bg-teal-500/10 border border-teal-500/20 text-teal-600',
     gray: 'bg-surface border border-border text-foreground',
     slate: 'bg-surface border border-border text-foreground',
+    white: 'bg-white/20 border border-white/40 text-white shadow-sm drop-shadow-md',
   }[colour] ?? 'bg-surface border border-border text-foreground'
   return (
     <span className={`inline-flex items-center gap-1 text-[11px] font-bold px-2.5 py-0.5 rounded-full backdrop-blur-md ${cls}`}>
@@ -223,59 +224,6 @@ function OverviewTab() {
 
 
 
-      <div className="w-full">
-        {/* Top Teams Leaderboard */}
-        <motion.div whileHover={{ scale: 1.01 }} className="glass-card rounded-2xl p-6">
-          <SectionTitle>Top Teams</SectionTitle>
-          {lb?.leaderboard?.length ? (
-            <div className="space-y-3">
-              {lb.leaderboard.slice(0, 5).map((team, idx) => (
-                <motion.div
-                  initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: idx * 0.1 }}
-                  key={team.team_id}
-                  className="group flex items-center justify-between p-3 rounded-xl bg-background border border-border hover:bg-surface hover:border-teal-500/30 transition-all"
-                >
-                  <div className="flex items-center gap-4">
-                    <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm shadow-inner
-                      ${idx === 0 ? 'bg-gradient-to-br from-yellow-300 to-yellow-600 text-yellow-900 shadow-yellow-500/50' :
-                        idx === 1 ? 'bg-gradient-to-br from-slate-200 to-slate-400 text-foreground shadow-slate-500/50' :
-                          idx === 2 ? 'bg-gradient-to-br from-teal-300 to-teal-600 text-teal-950 shadow-teal-500/50' :
-                            'bg-surface text-muted border border-border'}`}>
-                      {team.rank ?? (idx + 1)}
-                    </div>
-                    <div>
-                      <p className="text-sm font-bold text-foreground group-hover:text-teal-600 transition-colors">{team.team_name}</p>
-                      <p className="text-xs text-muted">{team.members?.[0]?.institution || 'Institution hidden'}</p>
-                    </div>
-                  </div>
-                  <div className="text-right">
-                    {team.has_flags ? (
-                      <Badge colour="amber"><AlertTriangle size={10} /> Flagged</Badge>
-                    ) : (
-                      <div className="flex flex-col items-end">
-                        <span className="text-lg font-black text-transparent bg-clip-text bg-gradient-to-r from-teal-600 to-teal-800">
-                          {team.weighted_total?.toFixed(2)}
-                        </span>
-                        <div className="w-16 h-1 bg-slate-200 rounded-full mt-1 overflow-hidden">
-                          <div className="h-full bg-gradient-to-r from-teal-500 to-teal-600" style={{ width: `${Math.min(100, team.weighted_total)}%` }} />
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                </motion.div>
-              ))}
-            </div>
-          ) : (
-            <div className="flex flex-col items-center justify-center py-12 text-muted">
-              <Trophy size={48} className="opacity-20 mb-4" />
-              <p className="text-sm">No evaluations submitted yet.</p>
-              <button className="mt-4 px-4 py-2 rounded-lg bg-teal-500/10 text-teal-600 text-xs font-semibold hover:bg-teal-500/20 transition-colors">Start Evaluating</button>
-            </div>
-          )}
-        </motion.div>
-
-
-      </div>
     </motion.div>
   )
 }
@@ -390,7 +338,8 @@ function ParticipantsTab() {
       )}
 
       {/* CSV dropzone */}
-      <div className="glass-card rounded-xl border border-border p-5 mb-6">
+      <div className="glass-card rounded-xl border border-border p-5 mb-6 border-t-4 border-t-teal-500 relative overflow-hidden group transition-all hover:-translate-y-1 hover:scale-[1.01]">
+      <div className="absolute -right-8 -top-8 w-40 h-40 bg-gradient-to-br from-teal-500/20 to-transparent rounded-full blur-3xl group-hover:scale-125 transition-transform duration-700 pointer-events-none z-0" />
         <div className="flex items-center justify-between mb-3">
           <SectionTitle>Upload Roster CSV</SectionTitle>
           <a
@@ -504,7 +453,8 @@ function ParticipantsTab() {
       </div>
 
       {/* Participants table */}
-      <div className="glass-card rounded-xl border border-border overflow-hidden">
+      <div className="glass-card rounded-xl border border-border overflow-hidden border-t-4 border-t-teal-500 relative overflow-hidden group transition-all hover:-translate-y-1 hover:scale-[1.01]">
+      <div className="absolute -right-8 -top-8 w-40 h-40 bg-gradient-to-br from-teal-500/20 to-transparent rounded-full blur-3xl group-hover:scale-125 transition-transform duration-700 pointer-events-none z-0" />
         <table className="w-full text-sm">
           <thead>
             <tr className="bg-surface border-b border-border text-left">
@@ -702,7 +652,8 @@ function TeamsTab() {
   return (
     <div>
       {/* Solver config form */}
-      <div className="glass-card rounded-xl border border-border p-5 mb-6">
+      <div className="glass-card rounded-xl border border-border p-5 mb-6 border-t-4 border-t-teal-500 relative overflow-hidden group transition-all hover:-translate-y-1 hover:scale-[1.01]">
+      <div className="absolute -right-8 -top-8 w-40 h-40 bg-gradient-to-br from-teal-500/20 to-transparent rounded-full blur-3xl group-hover:scale-125 transition-transform duration-700 pointer-events-none z-0" />
         <SectionTitle>Solver Configuration</SectionTitle>
         <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 mb-5">
           {[
@@ -755,7 +706,8 @@ function TeamsTab() {
 
       {/* Task progress panel */}
       {taskId && taskStatus && (
-        <div className="glass-card rounded-xl border border-border p-5 mb-6">
+        <div className="glass-card rounded-xl border border-border p-5 mb-6 border-t-4 border-t-teal-500 relative overflow-hidden group transition-all hover:-translate-y-1 hover:scale-[1.01]">
+      <div className="absolute -right-8 -top-8 w-40 h-40 bg-gradient-to-br from-teal-500/20 to-transparent rounded-full blur-3xl group-hover:scale-125 transition-transform duration-700 pointer-events-none z-0" />
           <div className="flex items-center justify-between mb-2">
             <p className="text-sm font-medium text-foreground">Solver progress</p>
             <span className={`text-sm font-semibold capitalize ${statusColor}`}>
@@ -837,7 +789,8 @@ function TeamsTab() {
 
           <div className="grid md:grid-cols-2 xl:grid-cols-3 gap-4">
             {drafts.teams.map((team) => (
-              <div key={team.team_id} className="glass-card rounded-xl border border-border p-4">
+              <div key={team.team_id} className="glass-card rounded-xl border border-border p-4 border-t-4 border-t-teal-500 relative overflow-hidden group transition-all hover:-translate-y-1 hover:scale-[1.01]">
+      <div className="absolute -right-8 -top-8 w-40 h-40 bg-gradient-to-br from-teal-500/20 to-transparent rounded-full blur-3xl group-hover:scale-125 transition-transform duration-700 pointer-events-none z-0" />
                 <div className="flex items-center justify-between mb-3">
                   <p className="font-semibold text-sm text-foreground">{team.team_name}</p>
                   <Badge colour="teal">{team.size} members</Badge>
@@ -1075,7 +1028,8 @@ function ApprovalsTab() {
 
       <div className="space-y-3">
         {pending?.teams.map((team) => (
-          <div key={team.team_id} className="glass-card rounded-xl border border-border overflow-hidden">
+          <div key={team.team_id} className="glass-card rounded-xl border border-border overflow-hidden border-t-4 border-t-teal-500 relative overflow-hidden group transition-all hover:-translate-y-1 hover:scale-[1.01]">
+      <div className="absolute -right-8 -top-8 w-40 h-40 bg-gradient-to-br from-teal-500/20 to-transparent rounded-full blur-3xl group-hover:scale-125 transition-transform duration-700 pointer-events-none z-0" />
             {/* Row */}
             <div
               className="flex items-center gap-3 px-4 py-3 cursor-pointer hover:bg-surface"
@@ -1285,7 +1239,8 @@ function EvaluatorsTab() {
           Evaluators receive secure magic links and score approved teams in the Judge Portal. Submitted scorecards update the leaderboard and anomaly scanner.
         </p>
 
-        <div className="glass-card rounded-xl border border-border p-4 mb-5">
+        <div className="glass-card rounded-xl border border-border p-4 mb-5 border-t-4 border-t-teal-500 relative overflow-hidden group transition-all hover:-translate-y-1 hover:scale-[1.01]">
+      <div className="absolute -right-8 -top-8 w-40 h-40 bg-gradient-to-br from-teal-500/20 to-transparent rounded-full blur-3xl group-hover:scale-125 transition-transform duration-700 pointer-events-none z-0" />
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
             <div>
               <p className="text-sm font-semibold text-foreground">Evaluation audit integrity</p>
@@ -1315,7 +1270,8 @@ function EvaluatorsTab() {
         </div>
 
         {/* Bulk Import */}
-        <div className="glass-card rounded-xl border border-border p-4 mb-5 flex flex-col gap-3">
+        <div className="glass-card rounded-xl border border-border p-4 mb-5 flex flex-col gap-3 border-t-4 border-t-teal-500 relative overflow-hidden group transition-all hover:-translate-y-1 hover:scale-[1.01]">
+      <div className="absolute -right-8 -top-8 w-40 h-40 bg-gradient-to-br from-teal-500/20 to-transparent rounded-full blur-3xl group-hover:scale-125 transition-transform duration-700 pointer-events-none z-0" />
           <div className="flex items-center gap-4">
             <input type="file" accept=".csv" onChange={(e) => setImportFile(e.target.files[0])} className="text-sm" />
             <label className="flex items-center gap-2 text-sm text-foreground">
@@ -1355,7 +1311,8 @@ function EvaluatorsTab() {
 
         {/* Add form */}
         {showForm && (
-          <div className="glass-card rounded-xl border border-border p-5 mb-5">
+          <div className="glass-card rounded-xl border border-border p-5 mb-5 border-t-4 border-t-teal-500 relative overflow-hidden group transition-all hover:-translate-y-1 hover:scale-[1.01]">
+      <div className="absolute -right-8 -top-8 w-40 h-40 bg-gradient-to-br from-teal-500/20 to-transparent rounded-full blur-3xl group-hover:scale-125 transition-transform duration-700 pointer-events-none z-0" />
             <p className="text-sm font-semibold text-foreground mb-4">New Evaluator</p>
             <div className="grid grid-cols-2 gap-3 mb-3">
               {fieldFor('first_name', 'First name', 'text', 'Dr. Meena')}
@@ -1383,7 +1340,8 @@ function EvaluatorsTab() {
         {isLoading
           ? Array.from({ length: 3 }).map((_, i) => <div key={i} className="h-14 bg-slate-200 rounded-xl animate-pulse mb-3" />)
           : (
-            <div className="glass-card rounded-xl border border-border overflow-hidden mb-6">
+            <div className="glass-card rounded-xl border border-border overflow-hidden mb-6 border-t-4 border-t-teal-500 relative overflow-hidden group transition-all hover:-translate-y-1 hover:scale-[1.01]">
+      <div className="absolute -right-8 -top-8 w-40 h-40 bg-gradient-to-br from-teal-500/20 to-transparent rounded-full blur-3xl group-hover:scale-125 transition-transform duration-700 pointer-events-none z-0" />
               {(!data?.evaluators?.length)
                 ? <div className="text-center py-12 text-muted text-sm">No evaluators registered yet.</div>
                 : data.evaluators.map((ev) => (
@@ -1405,7 +1363,7 @@ function EvaluatorsTab() {
                         )}
                       </div>
                       <div className="flex items-center gap-2 shrink-0">
-                        <Badge colour={ev.is_active ? 'teal' : 'red'}>{ev.is_active ? 'Active' : 'Inactive'}</Badge>
+                        <Badge colour={ev.is_active ? 'green' : 'gray'}>{ev.is_active ? 'Active' : 'Inactive'}</Badge>
                         {ev.access_link_sent && <Badge colour="green"><Check size={10} /> Link sent</Badge>}
                       </div>
                       <div className="flex gap-2 shrink-0">
@@ -1651,7 +1609,8 @@ function LeaderboardTab() {
       </div>
 
       {/* Rankings table */}
-      <div className="glass-card rounded-xl border border-border overflow-hidden">
+      <div className="glass-card rounded-xl border border-border overflow-hidden border-t-4 border-t-teal-500 relative overflow-hidden group transition-all hover:-translate-y-1 hover:scale-[1.01]">
+      <div className="absolute -right-8 -top-8 w-40 h-40 bg-gradient-to-br from-teal-500/20 to-transparent rounded-full blur-3xl group-hover:scale-125 transition-transform duration-700 pointer-events-none z-0" />
         <div className="grid grid-cols-12 bg-surface border-b border-border px-4 py-3 text-xs font-medium text-muted uppercase tracking-wide">
           <div className="col-span-1">#</div>
           <div className="col-span-3">Team</div>
@@ -1680,7 +1639,7 @@ function LeaderboardTab() {
               <div className="col-span-1">
                 {team.has_flags
                   ? <Badge colour="amber"><AlertTriangle size={10} /> Flag</Badge>
-                  : <Badge colour="teal"><Check size={10} /> OK</Badge>
+                  : <Badge colour="green"><Check size={10} /> OK</Badge>
                 }
               </div>
             </div>
@@ -1786,7 +1745,8 @@ function CommunicationsTab() {
 
   return (
     <div>
-      <div className="glass-card rounded-xl border border-border p-5 mb-6">
+      <div className="glass-card rounded-xl border border-border p-5 mb-6 border-t-4 border-t-teal-500 relative overflow-hidden group transition-all hover:-translate-y-1 hover:scale-[1.01]">
+      <div className="absolute -right-8 -top-8 w-40 h-40 bg-gradient-to-br from-teal-500/20 to-transparent rounded-full blur-3xl group-hover:scale-125 transition-transform duration-700 pointer-events-none z-0" />
         <div className="flex items-start justify-between gap-4 mb-4">
           <div>
             <SectionTitle>Email Diagnostics</SectionTitle>
@@ -1868,7 +1828,8 @@ function CommunicationsTab() {
         )}
       </div>
       {/* Communication log */}
-      <div className="glass-card rounded-xl border border-border overflow-hidden mb-8">
+      <div className="glass-card rounded-xl border border-border overflow-hidden mb-8 border-t-4 border-t-teal-500 relative overflow-hidden group transition-all hover:-translate-y-1 hover:scale-[1.01]">
+      <div className="absolute -right-8 -top-8 w-40 h-40 bg-gradient-to-br from-teal-500/20 to-transparent rounded-full blur-3xl group-hover:scale-125 transition-transform duration-700 pointer-events-none z-0" />
         <div className="flex items-center justify-between px-4 py-3 border-b border-border">
           <p className="text-sm font-semibold text-foreground">Communication Log</p>
           <div className="flex gap-2">
@@ -1996,7 +1957,8 @@ function CommunicationsTab() {
           </div>
 
           {/* Preview */}
-          <div className="glass-card rounded-xl border border-border p-5 flex flex-col min-h-64">
+          <div className="glass-card rounded-xl border border-border p-5 flex flex-col min-h-64 border-t-4 border-t-teal-500 relative overflow-hidden group transition-all hover:-translate-y-1 hover:scale-[1.01]">
+      <div className="absolute -right-8 -top-8 w-40 h-40 bg-gradient-to-br from-teal-500/20 to-transparent rounded-full blur-3xl group-hover:scale-125 transition-transform duration-700 pointer-events-none z-0" />
             {draft ? (
               <>
                 <div className="flex items-center justify-between mb-3">
@@ -2144,7 +2106,8 @@ function MentorOpsTab() {
           { label: 'Missing daily update', value: ops.teams_missing_daily_update, icon: MessageSquare, colour: ops.teams_missing_daily_update > 0 ? 'red' : 'teal' },
           { label: 'Low progress teams', value: ops.low_progress_teams, icon: BarChart2, colour: ops.low_progress_teams > 0 ? 'red' : 'teal' },
           ].map(({ label, value, icon: Icon, colour }) => (
-            <div key={label} className="glass-card rounded-xl border border-border p-4">
+            <div key={label} className="glass-card rounded-xl border border-border p-4 border-t-4 border-t-teal-500 relative overflow-hidden group transition-all hover:-translate-y-1 hover:scale-[1.01]">
+      <div className="absolute -right-8 -top-8 w-40 h-40 bg-gradient-to-br from-teal-500/20 to-transparent rounded-full blur-3xl group-hover:scale-125 transition-transform duration-700 pointer-events-none z-0" />
               <div className="flex items-center gap-2 mb-1"><Icon size={14} className="text-muted" /><p className="text-xs font-medium text-muted uppercase tracking-wide">{label}</p></div>
               <p className={`text-2xl font-bold px-2 py-0.5 rounded inline-block bg-${colour}-50 text-${colour}-700 border border-${colour}-200`}>{value ?? '—'}</p>
             </div>
@@ -2170,7 +2133,8 @@ function MentorOpsTab() {
         </div>
 
         {/* Bulk Import */}
-        <div className="glass-card rounded-xl border border-border p-4 mb-5 flex flex-col gap-3">
+        <div className="glass-card rounded-xl border border-border p-4 mb-5 flex flex-col gap-3 border-t-4 border-t-teal-500 relative overflow-hidden group transition-all hover:-translate-y-1 hover:scale-[1.01]">
+      <div className="absolute -right-8 -top-8 w-40 h-40 bg-gradient-to-br from-teal-500/20 to-transparent rounded-full blur-3xl group-hover:scale-125 transition-transform duration-700 pointer-events-none z-0" />
           <div className="flex items-center gap-4">
             <input type="file" accept=".csv" onChange={(e) => setImportFile(e.target.files[0])} className="text-sm" />
             <label className="flex items-center gap-2 text-sm text-foreground">
@@ -2206,7 +2170,8 @@ function MentorOpsTab() {
         </div>
 
         {showForm && (
-          <div className="glass-card rounded-xl border border-border p-5 mb-5">
+          <div className="glass-card rounded-xl border border-border p-5 mb-5 border-t-4 border-t-teal-500 relative overflow-hidden group transition-all hover:-translate-y-1 hover:scale-[1.01]">
+      <div className="absolute -right-8 -top-8 w-40 h-40 bg-gradient-to-br from-teal-500/20 to-transparent rounded-full blur-3xl group-hover:scale-125 transition-transform duration-700 pointer-events-none z-0" />
             <p className="text-sm font-semibold text-foreground mb-4">New Mentor</p>
             <div className="grid grid-cols-2 gap-3 mb-3">
               {fieldFor('first_name', 'First name', 'text', 'Dr. Priya')}
@@ -2229,7 +2194,8 @@ function MentorOpsTab() {
         {isLoading
           ? Array.from({ length: 3 }).map((_, i) => <div key={i} className="h-14 bg-slate-200 rounded-xl animate-pulse mb-3" />)
           : (
-            <div className="glass-card rounded-xl border border-border overflow-hidden mb-8">
+            <div className="glass-card rounded-xl border border-border overflow-hidden mb-8 border-t-4 border-t-teal-500 relative overflow-hidden group transition-all hover:-translate-y-1 hover:scale-[1.01]">
+      <div className="absolute -right-8 -top-8 w-40 h-40 bg-gradient-to-br from-teal-500/20 to-transparent rounded-full blur-3xl group-hover:scale-125 transition-transform duration-700 pointer-events-none z-0" />
               {(!mentors.length)
                 ? <div className="text-center py-12 text-muted text-sm">No mentors registered yet.</div>
                 : mentors.map(m => {
@@ -2251,7 +2217,7 @@ function MentorOpsTab() {
                       </div>
                       <div className="flex items-center gap-2 shrink-0">
                         <Badge colour="teal">{effectiveAssignedTeamCount} teams</Badge>
-                        <Badge colour={m.is_active ? 'teal' : 'red'}>{m.is_active ? 'Active' : 'Inactive'}</Badge>
+                        <Badge colour={m.is_active ? 'green' : 'gray'}>{m.is_active ? 'Active' : 'Inactive'}</Badge>
                         {m.access_link_sent && <Badge colour="green"><Check size={10} /> Link sent</Badge>}
                       </div>
                       <div className="flex gap-2 shrink-0 items-center">
@@ -2283,7 +2249,8 @@ function MentorOpsTab() {
         </div>
 
         {showAssignForm && (
-          <div className="glass-card rounded-xl border border-border p-5 mb-5">
+          <div className="glass-card rounded-xl border border-border p-5 mb-5 border-t-4 border-t-teal-500 relative overflow-hidden group transition-all hover:-translate-y-1 hover:scale-[1.01]">
+      <div className="absolute -right-8 -top-8 w-40 h-40 bg-gradient-to-br from-teal-500/20 to-transparent rounded-full blur-3xl group-hover:scale-125 transition-transform duration-700 pointer-events-none z-0" />
             <p className="text-sm font-semibold text-foreground mb-4">Assign Mentor to Team</p>
             <div className="grid grid-cols-2 gap-3 mb-3">
               <div>
@@ -2315,14 +2282,15 @@ function MentorOpsTab() {
         )}
 
         {assignments.length > 0 && (
-          <div className="glass-card rounded-xl border border-border overflow-hidden mb-8">
+          <div className="glass-card rounded-xl border border-border overflow-hidden mb-8 border-t-4 border-t-teal-500 relative overflow-hidden group transition-all hover:-translate-y-1 hover:scale-[1.01]">
+      <div className="absolute -right-8 -top-8 w-40 h-40 bg-gradient-to-br from-teal-500/20 to-transparent rounded-full blur-3xl group-hover:scale-125 transition-transform duration-700 pointer-events-none z-0" />
             {assignments.map(a => (
               <div key={a.id} className="flex items-center gap-4 px-4 py-3 border-b border-border last:border-0 hover:bg-surface">
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-medium text-foreground">{a.mentor_name} → {a.team_name}</p>
                   <p className="text-xs text-muted">Stage: {a.stage}</p>
                 </div>
-                <Badge colour={a.is_active ? 'teal' : 'gray'}>{a.is_active ? 'Active' : 'Inactive'}</Badge>
+                <Badge colour={a.is_active ? 'green' : 'gray'}>{a.is_active ? 'Active' : 'Inactive'}</Badge>
                 {a.is_active && (
                   <button onClick={() => { if (window.confirm('Unassign?')) unassignMutation.mutate(a.id) }}
                     className="text-xs px-2 py-1 rounded border border-teal-200 text-teal-600 hover:bg-teal-50">Unassign</button>
@@ -2338,7 +2306,8 @@ function MentorOpsTab() {
             <h2 className="text-base font-semibold text-foreground mb-4 flex items-center gap-2"><Wand2 size={16} className="text-teal-500" /> Skill-Gap Mentor Suggestions</h2>
             <div className="space-y-3">
               {suggestions.map(s => (
-                <div key={String(s.team_id)} className="glass-card rounded-xl border border-border p-4">
+                <div key={String(s.team_id)} className="glass-card rounded-xl border border-border p-4 border-t-4 border-t-teal-500 relative overflow-hidden group transition-all hover:-translate-y-1 hover:scale-[1.01]">
+      <div className="absolute -right-8 -top-8 w-40 h-40 bg-gradient-to-br from-teal-500/20 to-transparent rounded-full blur-3xl group-hover:scale-125 transition-transform duration-700 pointer-events-none z-0" />
                   <p className="text-sm font-semibold text-foreground mb-1">{s.team_name}</p>
                   <p className="text-xs text-muted mb-2">{s.reason}</p>
                   {s.suggested_mentors?.map(c => (
@@ -2365,7 +2334,8 @@ function MentorOpsTab() {
         {riskTeams.length > 0 && (
           <div className="mb-8">
             <h2 className="text-base font-semibold text-foreground mb-4 flex items-center gap-2"><Shield size={16} className="text-teal-500" /> Risk Scores</h2>
-            <div className="glass-card rounded-xl border border-border overflow-hidden">
+            <div className="glass-card rounded-xl border border-border overflow-hidden border-t-4 border-t-teal-500 relative overflow-hidden group transition-all hover:-translate-y-1 hover:scale-[1.01]">
+      <div className="absolute -right-8 -top-8 w-40 h-40 bg-gradient-to-br from-teal-500/20 to-transparent rounded-full blur-3xl group-hover:scale-125 transition-transform duration-700 pointer-events-none z-0" />
               <div className="grid grid-cols-12 bg-surface border-b border-border px-4 py-3 text-xs font-medium text-muted uppercase tracking-wide">
                 <div className="col-span-3">Team</div>
                 <div className="col-span-2">Mentor</div>
@@ -2430,10 +2400,11 @@ function MentorOpsTab() {
             </button>
           </div>
           {aiResult && (
-            <div className="glass-card rounded-xl border border-border p-5">
+            <div className="glass-card rounded-xl border border-border p-5 border-t-4 border-t-teal-500 relative overflow-hidden group transition-all hover:-translate-y-1 hover:scale-[1.01]">
+      <div className="absolute -right-8 -top-8 w-40 h-40 bg-gradient-to-br from-teal-500/20 to-transparent rounded-full blur-3xl group-hover:scale-125 transition-transform duration-700 pointer-events-none z-0" />
               <div className="flex items-center gap-2 mb-3">
                 <p className="text-sm font-semibold text-foreground">{aiResult.team_name}</p>
-                <Badge colour={aiResult.tone === 'urgent' ? 'red' : aiResult.tone === 'watchlist' ? 'amber' : 'teal'}>{aiResult.tone}</Badge>
+                <Badge colour={aiResult.tone === 'urgent' ? 'red' : aiResult.tone === 'watchlist' ? 'amber' : 'green'}>{aiResult.tone}</Badge>
               </div>
               <p className="text-sm text-foreground leading-relaxed mb-2">{aiResult.summary}</p>
               {aiResult.recommended_focus && <p className="text-xs text-teal-600 mb-1"><strong>Focus:</strong> {aiResult.recommended_focus}</p>}
@@ -2676,7 +2647,8 @@ function AnomalyTab() {
 
       {/* Stats Cards & Analytics */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
-        <div className="glass-card p-5 rounded-xl border border-border">
+        <div className="glass-card p-5 rounded-xl border border-border border-t-4 border-t-teal-500 relative overflow-hidden group transition-all hover:-translate-y-1 hover:scale-[1.01]">
+      <div className="absolute -right-8 -top-8 w-40 h-40 bg-gradient-to-br from-teal-500/20 to-transparent rounded-full blur-3xl group-hover:scale-125 transition-transform duration-700 pointer-events-none z-0" />
           <p className="text-xs font-medium text-muted uppercase mb-1">Total Flagged Teams</p>
           <p className="text-3xl font-bold text-teal-600">{totalFlagged}</p>
 
@@ -2692,7 +2664,8 @@ function AnomalyTab() {
           </div>
         </div>
 
-        <div className="glass-card p-5 rounded-xl border border-border flex flex-col justify-between">
+        <div className="glass-card p-5 rounded-xl border border-border flex flex-col justify-between border-t-4 border-t-teal-500 relative overflow-hidden group transition-all hover:-translate-y-1 hover:scale-[1.01]">
+      <div className="absolute -right-8 -top-8 w-40 h-40 bg-gradient-to-br from-teal-500/20 to-transparent rounded-full blur-3xl group-hover:scale-125 transition-transform duration-700 pointer-events-none z-0" />
           <div>
             <p className="text-xs font-medium text-muted uppercase mb-1">Sweep Status</p>
             <p className="text-xl font-bold text-teal-600 flex items-center gap-2 mt-1">
@@ -2707,7 +2680,8 @@ function AnomalyTab() {
           </div>
         </div>
 
-        <div className="glass-card p-5 rounded-xl border border-border flex flex-col justify-between">
+        <div className="glass-card p-5 rounded-xl border border-border flex flex-col justify-between border-t-4 border-t-teal-500 relative overflow-hidden group transition-all hover:-translate-y-1 hover:scale-[1.01]">
+      <div className="absolute -right-8 -top-8 w-40 h-40 bg-gradient-to-br from-teal-500/20 to-transparent rounded-full blur-3xl group-hover:scale-125 transition-transform duration-700 pointer-events-none z-0" />
           <div>
             <p className="text-xs font-medium text-muted uppercase mb-1">AI Confidence Score</p>
             <p className="text-3xl font-bold text-teal-600">98.2%</p>
@@ -2722,18 +2696,20 @@ function AnomalyTab() {
       <div className="space-y-4">
         <h3 className="text-lg font-semibold text-foreground mb-2">Flagged Evaluations Pipeline</h3>
         {flaggedTeams.length === 0 ? (
-          <div className="glass-card py-16 text-center rounded-xl border border-border">
+          <div className="glass-card py-16 text-center rounded-xl border border-border border-t-4 border-t-teal-500 relative overflow-hidden group transition-all hover:-translate-y-1 hover:scale-[1.01]">
+      <div className="absolute -right-8 -top-8 w-40 h-40 bg-gradient-to-br from-teal-500/20 to-transparent rounded-full blur-3xl group-hover:scale-125 transition-transform duration-700 pointer-events-none z-0" />
             <CheckSquare size={48} className="mx-auto text-teal-500/50 mb-3" />
             <p className="text-foreground font-medium">No Anomalies Detected</p>
             <p className="text-sm text-muted">All scorecards are currently within expected variance thresholds.</p>
           </div>
         ) : (
           flaggedTeams.map(team => (
-            <div key={team.id} className="glass-card p-5 rounded-xl border border-teal-200 flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div key={team.id} className="glass-card p-5 rounded-xl border border-teal-200 flex flex-col md:flex-row md:items-center justify-between gap-4 border-t-4 border-t-teal-500 relative overflow-hidden group transition-all hover:-translate-y-1 hover:scale-[1.01]">
+      <div className="absolute -right-8 -top-8 w-40 h-40 bg-gradient-to-br from-teal-500/20 to-transparent rounded-full blur-3xl group-hover:scale-125 transition-transform duration-700 pointer-events-none z-0" />
               <div className="flex-1">
                 <div className="flex items-center gap-2 mb-2">
                   <h4 className="font-bold text-foreground text-lg">{team.team_name}</h4>
-                  <Badge colour="teal"><AlertTriangle size={12} /> Flagged</Badge>
+                  <Badge colour="amber"><AlertTriangle size={12} /> Flagged</Badge>
                 </div>
                 <div className="text-sm text-muted space-y-1">
                   <p><span className="text-muted">Weighted Score:</span> {team.weighted_total?.toFixed(2) || team.total_score}</p>
@@ -2832,7 +2808,8 @@ function RiskTab() {
 
   if (capabilityDisabled) {
     return (
-      <div className="glass-card py-16 text-center rounded-xl border border-border">
+      <div className="glass-card py-16 text-center rounded-xl border border-border border-t-4 border-t-teal-500 relative overflow-hidden group transition-all hover:-translate-y-1 hover:scale-[1.01]">
+      <div className="absolute -right-8 -top-8 w-40 h-40 bg-gradient-to-br from-teal-500/20 to-transparent rounded-full blur-3xl group-hover:scale-125 transition-transform duration-700 pointer-events-none z-0" />
         <ShieldAlert size={48} className="mx-auto text-teal-500/50 mb-3" />
         <p className="text-foreground font-medium">Risk monitoring is not enabled for this event.</p>
       </div>
@@ -2841,7 +2818,8 @@ function RiskTab() {
 
   if (summaryError || teamsError) {
     return (
-      <div className="glass-card py-16 text-center rounded-xl border border-teal-200">
+      <div className="glass-card py-16 text-center rounded-xl border border-teal-200 border-t-4 border-t-teal-500 relative overflow-hidden group transition-all hover:-translate-y-1 hover:scale-[1.01]">
+      <div className="absolute -right-8 -top-8 w-40 h-40 bg-gradient-to-br from-teal-500/20 to-transparent rounded-full blur-3xl group-hover:scale-125 transition-transform duration-700 pointer-events-none z-0" />
         <AlertTriangle size={48} className="mx-auto text-teal-500/50 mb-3" />
         <p className="text-foreground font-medium">Unable to load risk intelligence.</p>
         <p className="text-sm text-muted mt-1">{summaryError?.message || teamsError?.message}</p>
@@ -2878,12 +2856,14 @@ function RiskTab() {
       <h3 className="text-lg font-semibold text-foreground mb-4">Team Risk Dashboard</h3>
 
       {loading ? (
-        <div className="glass-card py-16 text-center rounded-xl border border-border">
+        <div className="glass-card py-16 text-center rounded-xl border border-border border-t-4 border-t-teal-500 relative overflow-hidden group transition-all hover:-translate-y-1 hover:scale-[1.01]">
+      <div className="absolute -right-8 -top-8 w-40 h-40 bg-gradient-to-br from-teal-500/20 to-transparent rounded-full blur-3xl group-hover:scale-125 transition-transform duration-700 pointer-events-none z-0" />
           <Loader2 size={48} className="mx-auto text-teal-300 mb-3 animate-spin" />
           <p className="text-foreground font-medium">Loading risk intelligence...</p>
         </div>
       ) : teams.length === 0 ? (
-        <div className="glass-card py-16 text-center rounded-xl border border-border">
+        <div className="glass-card py-16 text-center rounded-xl border border-border border-t-4 border-t-teal-500 relative overflow-hidden group transition-all hover:-translate-y-1 hover:scale-[1.01]">
+      <div className="absolute -right-8 -top-8 w-40 h-40 bg-gradient-to-br from-teal-500/20 to-transparent rounded-full blur-3xl group-hover:scale-125 transition-transform duration-700 pointer-events-none z-0" />
           <Activity size={48} className="mx-auto text-teal-300 mb-3" />
           <p className="text-foreground font-medium">No risk snapshots yet.</p>
           <p className="text-sm text-muted">Run a risk sweep to generate the first report.</p>
@@ -2904,7 +2884,7 @@ function RiskTab() {
                 <div className="flex-1">
                   <div className="flex items-center gap-2 mb-2">
                     <h4 className="font-bold text-foreground text-lg">{team.team_name || 'Unnamed team'}</h4>
-                    <Badge colour={team.risk_level === 'critical' ? 'red' : team.risk_level === 'high' ? 'amber' : team.risk_level === 'medium' ? 'red' : 'green'}>
+                    <Badge colour={team.risk_level === 'critical' ? 'red' : team.risk_level === 'high' ? 'amber' : team.risk_level === 'medium' ? 'amber' : 'green'}>
                       {team.risk_level.toUpperCase()}
                     </Badge>
                   </div>
@@ -3039,7 +3019,8 @@ function DemoControlsTab() {
           <StatCard label="Comms Logs" value={status?.communication_logs} colour="amber" />
         </div>
 
-        <div className="glass-card rounded-xl border border-teal-300 p-6 bg-teal-50 mb-8">
+        <div className="glass-card rounded-xl border border-teal-300 p-6 bg-teal-50 mb-8 border-t-4 border-t-teal-500 relative overflow-hidden group transition-all hover:-translate-y-1 hover:scale-[1.01]">
+      <div className="absolute -right-8 -top-8 w-40 h-40 bg-gradient-to-br from-teal-500/20 to-transparent rounded-full blur-3xl group-hover:scale-125 transition-transform duration-700 pointer-events-none z-0" />
           <h3 className="text-base font-bold text-teal-600 flex items-center gap-2 mb-2">
             <AlertTriangle size={18} /> Reset Demo Data
           </h3>
@@ -3065,7 +3046,8 @@ function DemoControlsTab() {
           </div>
         </div>
 
-        <div className="glass-card rounded-xl border border-teal-300 p-6 bg-teal-50 mb-8">
+        <div className="glass-card rounded-xl border border-teal-300 p-6 bg-teal-50 mb-8 border-t-4 border-t-teal-500 relative overflow-hidden group transition-all hover:-translate-y-1 hover:scale-[1.01]">
+      <div className="absolute -right-8 -top-8 w-40 h-40 bg-gradient-to-br from-teal-500/20 to-transparent rounded-full blur-3xl group-hover:scale-125 transition-transform duration-700 pointer-events-none z-0" />
           <h3 className="text-base font-bold text-teal-600 flex items-center gap-2 mb-2">
             <AlertTriangle size={18} /> Delete Current Event
           </h3>
@@ -3102,7 +3084,8 @@ function DemoControlsTab() {
 
         <div className="mb-8">
           <h2 className="text-lg font-semibold text-foreground mb-4">Security & Integrity</h2>
-          <div className="glass-card rounded-xl border border-border p-6">
+          <div className="glass-card rounded-xl border border-border p-6 border-t-4 border-t-teal-500 relative overflow-hidden group transition-all hover:-translate-y-1 hover:scale-[1.01]">
+      <div className="absolute -right-8 -top-8 w-40 h-40 bg-gradient-to-br from-teal-500/20 to-transparent rounded-full blur-3xl group-hover:scale-125 transition-transform duration-700 pointer-events-none z-0" />
             <div className="flex items-center justify-between mb-4">
               <div>
                 <h3 className="text-base font-bold text-foreground flex items-center gap-2">
@@ -3155,7 +3138,8 @@ function DemoControlsTab() {
 
       <div>
         <h2 className="text-lg font-semibold text-foreground mb-4">Stage Controls</h2>
-        <div className="glass-card rounded-xl border border-border p-6">
+        <div className="glass-card rounded-xl border border-border p-6 border-t-4 border-t-teal-500 relative overflow-hidden group transition-all hover:-translate-y-1 hover:scale-[1.01]">
+      <div className="absolute -right-8 -top-8 w-40 h-40 bg-gradient-to-br from-teal-500/20 to-transparent rounded-full blur-3xl group-hover:scale-125 transition-transform duration-700 pointer-events-none z-0" />
           <div className="flex items-center justify-between mb-6">
             <div>
               <p className="text-sm font-medium text-muted">Current Stage</p>
@@ -3241,7 +3225,8 @@ function CreateEventTab() {
 
   return (
     <div className="grid lg:grid-cols-[1fr_320px] gap-6">
-      <div className="glass-card rounded-xl border border-border p-6">
+      <div className="glass-card rounded-xl border border-border p-6 border-t-4 border-t-teal-500 relative overflow-hidden group transition-all hover:-translate-y-1 hover:scale-[1.01]">
+      <div className="absolute -right-8 -top-8 w-40 h-40 bg-gradient-to-br from-teal-500/20 to-transparent rounded-full blur-3xl group-hover:scale-125 transition-transform duration-700 pointer-events-none z-0" />
         <div className="flex items-start justify-between gap-4 mb-5">
           <div>
             <SectionTitle>Create Event</SectionTitle>
@@ -3326,7 +3311,8 @@ function CreateEventTab() {
           <p className="text-xs text-teal-600 mt-3">{createMutation.error?.message}</p>
         )}
       </div>
-      <div className="glass-card rounded-xl border border-teal-200 bg-teal-50 p-5 h-fit">
+      <div className="glass-card rounded-xl border border-teal-200 bg-teal-50 p-5 h-fit border-t-4 border-t-teal-500 relative overflow-hidden group transition-all hover:-translate-y-1 hover:scale-[1.01]">
+      <div className="absolute -right-8 -top-8 w-40 h-40 bg-gradient-to-br from-teal-500/20 to-transparent rounded-full blur-3xl group-hover:scale-125 transition-transform duration-700 pointer-events-none z-0" />
         <div className="flex items-center gap-2 mb-3">
           <Sparkles size={16} className="text-teal-600" />
           <p className="text-sm font-bold text-teal-900">Need AI help?</p>
@@ -3347,21 +3333,20 @@ function CreateEventTab() {
 
 // ── MAIN DASHBOARD ─────────────────────────────────────────────────────────
 const TABS = [
-  { key: 'createevent', label: 'Create Event', Icon: Plus },
+  { key: 'createevent', label: 'Create Event', Icon: Plus, hideFromNav: true },
   { key: 'participants', label: 'Participants', Icon: Users, requiresEvent: true },
   { key: 'teams', label: 'Team Formation', Icon: GitBranch, requiresEvent: true, capabilities: ['teams'] },
   { key: 'approvals', label: 'Approvals', Icon: CheckSquare, requiresEvent: true, capabilities: ['teams'] },
-  { key: 'timeline', label: 'Timeline', Icon: Calendar, requiresEvent: true },
+  { key: 'timeline', label: 'Timeline', Icon: Calendar, requiresEvent: true, hideFromNav: true },
   { key: 'evaluators', label: 'Evaluators', Icon: UserCheck, requiresEvent: true, capabilities: ['evaluators'] },
-  { key: 'leaderboard', label: 'Leaderboard', Icon: Trophy, requiresEvent: true, anyCapabilities: ['leaderboard', 'weighted_scoring', 'live_scoring', 'evaluators'] },
   { key: 'communications', label: 'Communications', Icon: Mail, requiresEvent: true },
   { key: 'mentorops', label: 'Mentor Ops', Icon: Target, requiresEvent: true, capabilities: ['mentors'] },
   { key: 'anomaly', label: 'Anomaly Scanner', Icon: Activity, requiresEvent: true, anyCapabilities: ['evaluators', 'weighted_scoring'] },
   { key: 'health', label: 'Team Health', Icon: Activity, requiresEvent: true, capabilities: ['risk_monitoring'] },
   { key: 'risk', label: 'Risk', Icon: ShieldAlert, requiresEvent: true, capabilities: ['risk_monitoring'] },
   { key: 'democontrols', label: 'Demo Controls', Icon: AlertTriangle, requiresEvent: true },
-  { key: 'settings', label: 'Settings', Icon: Settings },
-  { key: 'aiconfig', label: 'AI Config', Icon: Sparkles, isNav: true, navTo: '/configure' },
+  { key: 'settings', label: 'Settings', Icon: Settings, hideFromNav: true },
+  { key: 'aiconfig', label: 'AI Config', Icon: Sparkles, isNav: true, navTo: '/configure', hideFromNav: true },
 ]
 
 const VALID_TABS = TABS.map(t => t.key)
@@ -3390,10 +3375,9 @@ export default function AdminDashboard() {
   const { activeOrganization, activeEvent } = useAuth()
   const navigate = useNavigate()
   const [activeTab, setActiveTabState] = useState(getInitialAdminTab)
-  const [isNavMinimized, setIsNavMinimized] = useState(() => localStorage.getItem('eventosNavMinimized') === 'true')
-  const [fabOpen, setFabOpen] = useState(false)
   const visibleTabs = useMemo(() => TABS.filter((tab) => tabAllowed(tab, activeEvent)), [activeEvent])
   const visibleTabKeys = useMemo(() => visibleTabs.map((tab) => tab.key), [visibleTabs])
+  const navTabs = useMemo(() => visibleTabs.filter(tab => !tab.hideFromNav), [visibleTabs])
   const safeActiveTab = visibleTabKeys.includes(activeTab)
     ? activeTab
     : (activeEvent?.id ? 'participants' : 'createevent')
@@ -3407,14 +3391,6 @@ export default function AdminDashboard() {
     window.history.replaceState(null, '', url.toString())
   }
 
-  const toggleNavSize = () => {
-    setIsNavMinimized((prev) => {
-      const next = !prev
-      localStorage.setItem('eventosNavMinimized', next.toString())
-      return next
-    })
-  }
-
   const TAB_CONTENT = {
     createevent: <CreateEventTab />,
     participants: <ParticipantsTab />,
@@ -3422,7 +3398,6 @@ export default function AdminDashboard() {
     approvals: <ApprovalsTab />,
     timeline: <StageTimelinePanel />,
     evaluators: <EvaluatorsTab />,
-    leaderboard: <LeaderboardTab />,
     communications: <CommunicationsTab />,
     mentorops: <MentorOpsTab />,
     anomaly: <AnomalyTab />,
@@ -3455,22 +3430,22 @@ export default function AdminDashboard() {
     >
       <div className="relative z-10 w-full">
         {/* Large Event Banner */}
-        <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} className="relative w-full h-48 md:h-64 rounded-3xl overflow-hidden mb-8 border border-teal-500/20 shadow-[0_0_40px_rgba(20,184,166,0.1)] group">
-          <div className="absolute inset-0 bg-gradient-to-r from-[#042F2E] via-[#0F766E] to-[#14B8A6] opacity-80 mix-blend-multiply group-hover:opacity-100 transition-opacity duration-700"></div>
-          <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1550751827-4bd374c3f58b?auto=format&fit=crop&q=80')] bg-cover bg-center mix-blend-overlay opacity-40"></div>
+        <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} className="relative w-full h-48 md:h-64 rounded-3xl overflow-hidden mb-8 border border-teal-500/20 shadow-[0_0_40px_color-mix(in_srgb,var(--color-teal-500)_10%,transparent)] group">
+          <div className="absolute inset-0 bg-gradient-to-r from-amber-950 via-amber-700 to-amber-500 opacity-80 mix-blend-multiply group-hover:opacity-100 transition-opacity duration-700"></div>
+          <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1517048676732-d65bc937f952?auto=format&fit=crop&q=80')] bg-cover bg-center mix-blend-overlay opacity-50"></div>
           <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent"></div>
           <div className="absolute bottom-0 left-0 p-6 md:p-8 w-full flex flex-col md:flex-row md:items-end justify-between gap-6">
             <div>
               <div className="flex items-center gap-3 mb-3">
                 <Badge colour="teal">Live Event</Badge>
-                <Badge colour="slate">Registration Open</Badge>
+                <Badge colour="white">Registration Open</Badge>
               </div>
               <h1 className="text-3xl md:text-5xl font-black text-white tracking-tight drop-shadow-lg">{activeEvent?.name || 'Select an Event'}</h1>
             </div>
             <div className="flex flex-wrap items-center gap-3">
-              <button onClick={() => setActiveTab('communications')} className="btn-secondary px-4 py-2 rounded-xl text-xs flex items-center gap-2"><Send size={14} /> Announcement</button>
-              <button onClick={() => setActiveTab('teams')} className="btn-secondary px-4 py-2 rounded-xl text-xs flex items-center gap-2"><GitBranch size={14} /> Teams</button>
-              <button onClick={() => setActiveTab('createevent')} className="btn-primary px-5 py-2.5 rounded-xl text-sm flex items-center gap-2 font-bold"><Plus size={16} /> Create Event</button>
+              <button onClick={() => navigate('/configure')} className="btn-secondary px-4 py-2 rounded-xl text-xs flex items-center gap-2"><Sparkles size={14} /> AI Config</button>
+              <button onClick={() => { setActiveTab('timeline'); document.getElementById('tab-content')?.scrollIntoView({ behavior: 'smooth' }); }} className="btn-secondary px-4 py-2 rounded-xl text-xs flex items-center gap-2"><Calendar size={14} /> Timeline</button>
+              <button onClick={() => { setActiveTab('createevent'); document.getElementById('tab-content')?.scrollIntoView({ behavior: 'smooth' }); }} className="btn-primary px-5 py-2.5 rounded-xl text-sm flex items-center gap-2 font-bold"><Plus size={16} /> Create Event</button>
             </div>
           </div>
         </motion.div>
@@ -3480,129 +3455,59 @@ export default function AdminDashboard() {
 
         {/* Persistent Overview Dashboard */}
         {activeEvent?.id && (
-          <div className="mb-8">
+          <div className="mb-8 space-y-8">
             <OverviewTab />
+            <div id="leaderboard-section">
+              <LeaderboardTab />
+            </div>
           </div>
         )}
 
         {/* Navigation Deck Header */}
         <div className="flex items-center justify-between mb-4 mt-2">
           <h2 className="text-sm font-bold text-foreground uppercase tracking-wide">Operating Command Deck</h2>
-          <button
-            onClick={toggleNavSize}
-            className="text-xs font-semibold px-3 py-1.5 rounded-lg border border-teal-200 text-teal-600 bg-teal-50 hover:bg-teal-100 transition-colors"
-          >
-            {isNavMinimized ? 'Maximize Navigation Deck' : 'Minimize Navigation Deck'}
-          </button>
         </div>
 
         {/* Navigation Deck (Desktop Only) */}
         <div className="hidden md:block">
-          <AnimatePresence mode="wait">
-          {!isNavMinimized ? (
-            <motion.div
-              key="maximized"
-              initial={{ opacity: 0, height: 0 }}
-              animate={{ opacity: 1, height: 'auto' }}
-              exit={{ opacity: 0, height: 0 }}
-              className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4 mb-8"
-            >
-              {visibleTabs.map(({ key, label, Icon, isNav, navTo }) => {
-                const isActive = activeTab === key && !isNav;
-                return (
-                  <motion.button
-                    key={key}
-                    whileTap={{ scale: 0.98 }}
-                    onClick={() => isNav ? navigate(navTo) : setActiveTab(key)}
-                    className={`relative flex flex-col items-start p-4 rounded-2xl border text-left transition-all duration-300 group
-                      ${isActive
-                        ? 'bg-teal-100 dark:bg-teal-900/60 border-teal-500 ring-2 ring-teal-500 shadow-[0_8px_30px_rgba(20,184,166,0.3)] z-10'
-                        : 'bg-surface backdrop-blur-xl border-border shadow-sm hover:-translate-y-1 hover:shadow-[0_12px_25px_rgba(20,184,166,0.12)] hover:border-teal-400'}`}
-                  >
-                    <div className={`p-2.5 rounded-xl mb-3 transition-all duration-300 ${isActive ? 'bg-teal-600 text-white shadow-lg scale-110' : 'bg-surface border border-border text-muted group-hover:bg-teal-100 group-hover:text-teal-600 group-hover:scale-110 group-hover:border-teal-200'}`}>
-                      <Icon size={20} />
-                    </div>
-                    <h3 className={`font-bold text-sm mb-1 transition-colors ${isActive ? 'text-teal-950 dark:text-teal-50' : 'text-foreground group-hover:text-teal-700 dark:group-hover:text-teal-300'}`}>{label}</h3>
-                    <p className={`text-[10px] line-clamp-1 transition-colors ${isActive ? 'text-teal-800 dark:text-teal-300' : 'text-muted'}`}>{isNav ? 'External Configuration' : 'Manage ' + label}</p>
-                    {isNav && <span className={`absolute top-3 right-3 text-[10px] ${isActive ? 'text-teal-600' : 'text-muted group-hover:text-teal-500'}`}>↗</span>}
-                  </motion.button>
-                )
-              })}
-            </motion.div>
-          ) : (
-            <motion.div
-              key="minimized"
-              initial={{ opacity: 0, height: 0 }}
-              animate={{ opacity: 1, height: 'auto' }}
-              exit={{ opacity: 0, height: 0 }}
-              className="flex flex-wrap items-center gap-2 pb-4 mb-4"
-            >
-              {visibleTabs.map(({ key, label, Icon, isNav, navTo }) => {
-                const isActive = activeTab === key && !isNav;
-                return (
-                  <button
-                    key={key}
-                    onClick={() => isNav ? navigate(navTo) : setActiveTab(key)}
-                    className={`flex items-center gap-2 px-4 py-2 rounded-xl border text-sm font-semibold transition-all shrink-0
-                      ${isActive
-                        ? 'bg-teal-100 dark:bg-teal-900/60 border-teal-500 ring-2 ring-teal-500 text-teal-950 dark:text-teal-50 shadow-[0_4px_20px_rgba(20,184,166,0.25)] z-10'
-                        : 'bg-surface backdrop-blur-xl border-border text-muted shadow-sm hover:-translate-y-0.5 hover:shadow-[0_4px_15px_rgba(20,184,166,0.1)] hover:border-teal-400 hover:text-teal-600'}`}
-                  >
-                    <Icon size={16} className={isActive ? 'text-teal-600 dark:text-teal-400' : 'text-muted group-hover:text-teal-500'} />
-                    {label}
-                    {isNav && <span className={`text-[10px] ml-1 ${isActive ? 'text-teal-500' : 'text-muted'}`}>↗</span>}
-                  </button>
-                )
-              })}
-            </motion.div>
-          )}
-        </AnimatePresence>
+          <div className="flex flex-wrap items-center gap-2 pb-4 mb-4">
+            {navTabs.map(({ key, label, Icon, isNav, navTo }) => {
+              const isActive = activeTab === key && !isNav;
+              return (
+                <button
+                  key={key}
+                  onClick={() => isNav ? navigate(navTo) : setActiveTab(key)}
+                  className={`flex items-center gap-2 px-4 py-2 rounded-xl border text-sm font-semibold transition-all shrink-0
+                    ${isActive
+                      ? 'bg-teal-100 dark:bg-teal-900/60 border-teal-500 ring-2 ring-teal-500 text-teal-950 dark:text-teal-50 shadow-[0_4px_20px_color-mix(in_srgb,var(--color-teal-500)_25%,transparent)] z-10'
+                      : 'bg-surface backdrop-blur-xl border-border text-muted shadow-sm hover:-translate-y-0.5 hover:shadow-[0_4px_15px_color-mix(in_srgb,var(--color-teal-500)_10%,transparent)] hover:border-teal-400 hover:text-teal-600'}`}
+                >
+                  <Icon size={16} className={isActive ? 'text-teal-600 dark:text-teal-400' : 'text-muted group-hover:text-teal-500'} />
+                  {label}
+                  {isNav && <span className={`text-[10px] ml-1 ${isActive ? 'text-teal-500' : 'text-muted'}`}>↗</span>}
+                </button>
+              )
+            })}
+          </div>
         </div>
 
+
+
         {/* Tab content */}
-        <div className="relative z-30 pointer-events-auto mt-6">
+        <div id="tab-content" className="relative z-30 pointer-events-auto mt-6">
           {TAB_CONTENT[safeActiveTab]}
         </div>
       </div>
 
       {/* Floating Action Button */}
       <div className="fixed bottom-8 right-8 z-50 flex flex-col items-end pointer-events-none">
-        <AnimatePresence>
-          {fabOpen && (
-            <motion.div
-              initial={{ opacity: 0, y: 20, scale: 0.8 }}
-              animate={{ opacity: 1, y: 0, scale: 1 }}
-              exit={{ opacity: 0, y: 20, scale: 0.8 }}
-              className="flex flex-col gap-3 mb-4 items-end pointer-events-auto"
-            >
-              {[
-                { label: 'Create Event', icon: Plus, action: () => setActiveTab('createevent') },
-                { label: 'Send Announcement', icon: Send, action: () => setActiveTab('communications') },
-                { label: 'Generate Teams', icon: GitBranch, action: () => setActiveTab('teams') },
-                { label: 'Add Participant', icon: Users, action: () => setActiveTab('participants') },
-                { label: 'Export Data', icon: Download, action: () => alert('Export functionality to be implemented.') },
-              ].map((btn, i) => (
-                <motion.button
-                  key={i}
-                  whileHover={{ scale: 1.05, x: -5 }}
-                  whileTap={{ scale: 0.95 }}
-                  onClick={() => { btn.action(); setFabOpen(false); }}
-                  className="flex items-center gap-3 bg-background border border-border text-foreground px-4 py-2.5 rounded-xl shadow-lg hover:border-teal-500/50 hover:text-teal-600 transition-colors"
-                >
-                  <span className="text-sm font-semibold">{btn.label}</span>
-                  <btn.icon size={16} />
-                </motion.button>
-              ))}
-            </motion.div>
-          )}
-        </AnimatePresence>
         <motion.button
-          whileHover={{ scale: 1.1 }}
+          whileHover={{ scale: 1.1, rotate: 90 }}
           whileTap={{ scale: 0.9 }}
-          onClick={() => setFabOpen(!fabOpen)}
-          className={`pointer-events-auto w-14 h-14 rounded-full flex items-center justify-center shadow-2xl transition-colors duration-300 ${fabOpen ? 'bg-background text-teal-600 border border-teal-500/50 shadow-teal-500/20' : 'bg-gradient-to-r from-teal-600 to-teal-800 text-white shadow-teal-500/40 hover:from-teal-500 hover:to-teal-700'}`}
+          onClick={() => setActiveTab('settings')}
+          className="pointer-events-auto w-14 h-14 rounded-full flex items-center justify-center shadow-2xl transition-all duration-300 bg-gradient-to-r from-teal-600 to-teal-800 text-white shadow-teal-500/40 hover:from-teal-500 hover:to-teal-700 hover:shadow-teal-500/60"
         >
-          <Plus size={24} className={`transition-transform duration-300 ${fabOpen ? 'rotate-45' : ''}`} />
+          <Settings size={24} />
         </motion.button>
       </div>
     </AppLayout>

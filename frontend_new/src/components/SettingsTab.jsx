@@ -7,7 +7,7 @@ import { Building, Users, Mail, Save, Plus, X, Loader2 } from 'lucide-react'
 function Badge({ children, colour = 'gray' }) {
   const cls = {
     green:  'bg-green-50 border border-green-200 text-green-700',
-    red:    'bg-teal-50 border border-teal-200 text-teal-700',
+    red:    'bg-rose-50 border border-rose-200 text-rose-700',
     amber:  'bg-amber-50 border border-amber-200 text-amber-700',
     teal:   'bg-teal-50 border border-teal-200 text-teal-700',
     gray:   'bg-surface border border-border text-foreground',

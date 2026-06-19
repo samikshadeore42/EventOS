@@ -23,7 +23,7 @@ function initials(name = '') {
 function Badge({ children, colour = 'gray' }) {
   const cls = {
     green:  'bg-green-50 border border-green-200 text-green-700',
-    red:    'bg-teal-50 border border-teal-200 text-teal-700',
+    red:    'bg-rose-50 border border-rose-200 text-rose-700',
     amber:  'bg-amber-50 border border-amber-200 text-amber-700',
     teal:   'bg-teal-50 border border-teal-200 text-teal-700',
     gray:   'bg-surface border border-border text-foreground',
@@ -52,20 +52,35 @@ function PortalSkeleton() {
 }
 
 // ── Stats card ─────────────────────────────────────────────────────────────
-function StatCard({ label, value, icon: Icon, colour = 'red' }) {
-  const bg = {
-    red: 'bg-teal-50 text-teal-700 border-teal-100',
-    teal:   'bg-teal-50 text-teal-700 border-teal-100',
-    amber:  'bg-amber-50 text-amber-700 border-amber-100',
-  }[colour] ?? 'bg-teal-50 text-teal-700 border-teal-100'
+function StatCard({ label, value, sub, colour = 'teal', icon: Icon, trend }) {
+  const colorMap = {
+    emerald: { icon: 'bg-emerald-50 text-emerald-600 border border-emerald-200', glow: 'from-emerald-500/20', border: 'border-t-emerald-500' },
+    green: { icon: 'bg-emerald-50 text-emerald-600 border border-emerald-200', glow: 'from-emerald-500/20', border: 'border-t-emerald-500' },
+    red: { icon: 'bg-rose-50 text-rose-600 border border-rose-200', glow: 'from-rose-500/20', border: 'border-t-rose-500' },
+    amber: { icon: 'bg-amber-50 text-amber-600 border border-amber-200', glow: 'from-amber-500/20', border: 'border-t-amber-500' },
+    teal: { icon: 'bg-teal-50 text-teal-600 border border-teal-200', glow: 'from-teal-500/20', border: 'border-t-teal-500' },
+  }
+  const theme = colorMap[colour] || colorMap.teal;
 
   return (
-    <div className="bg-background rounded-xl border border-border shadow-sm p-4">
-      <div className="flex items-center gap-2 mb-2">
-        <Icon size={14} className="text-muted" />
-        <p className="text-xs font-bold text-muted uppercase tracking-wide">{label}</p>
+    <div className={`glass-card rounded-2xl p-6 relative overflow-hidden group flex flex-col justify-between h-full border-t-4 ${theme.border} transition-all hover:-translate-y-1 hover:scale-[1.02]`}>
+      <div className={`absolute -right-8 -top-8 w-40 h-40 bg-gradient-to-br ${theme.glow} to-transparent rounded-full blur-3xl group-hover:scale-125 transition-transform duration-700`} />
+
+      <div className="flex justify-between items-start mb-6 relative z-10">
+        <div>
+          <p className="text-sm font-bold text-muted uppercase tracking-wider mb-2">{label}</p>
+          <div className="flex items-baseline gap-3">
+            <h3 className="text-4xl font-black text-foreground tracking-tight">{value ?? '—'}</h3>
+            {trend && <span className={`text-sm font-bold ${trend > 0 ? 'text-emerald-500' : 'text-amber-500'}`}>{trend > 0 ? '+' : ''}{trend}%</span>}
+          </div>
+        </div>
+        {Icon && (
+          <div className={`w-12 h-12 rounded-xl flex items-center justify-center shadow-inner ${theme.icon}`}>
+            <Icon size={24} />
+          </div>
+        )}
       </div>
-      <p className={`text-2xl font-black px-3 py-1 rounded-lg inline-block border ${bg}`}>{value ?? '—'}</p>
+      {sub && <p className="text-xs font-semibold text-muted relative z-10">{sub}</p>}
     </div>
   )
 }
@@ -90,45 +105,48 @@ function ScheduleMeetingForm({ teamId, token, onSuccess }) {
   })
 
   return (
-    <div className="bg-background rounded-xl border border-border shadow-sm p-5">
-      <h3 className="text-sm font-bold text-foreground mb-4 flex items-center gap-2">
-        <Calendar size={14} className="text-teal-600" /> Schedule Meeting
-      </h3>
-      <div className="grid grid-cols-2 gap-3 mb-3">
-        <div>
-          <label className="block text-xs font-bold text-muted mb-1">Title</label>
-          <input value={form.title} onChange={e => setForm(f => ({...f, title: e.target.value}))}
-            placeholder="Daily standup" className="w-full bg-background text-foreground border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 shadow-sm placeholder-slate-400" />
+    <div className="glass-card rounded-2xl border-t-4 border-t-teal-500 shadow-sm p-5 relative overflow-hidden group">
+      <div className="absolute -right-8 -top-8 w-40 h-40 bg-gradient-to-br from-teal-500/20 to-transparent rounded-full blur-3xl group-hover:scale-125 transition-transform duration-700 pointer-events-none" />
+      <div className="relative z-10">
+        <h3 className="text-sm font-bold text-foreground mb-4 flex items-center gap-2">
+          <Calendar size={14} className="text-teal-600" /> Schedule Meeting
+        </h3>
+        <div className="grid grid-cols-2 gap-3 mb-3">
+          <div>
+            <label className="block text-xs font-bold text-muted mb-1">Title</label>
+            <input value={form.title} onChange={e => setForm(f => ({...f, title: e.target.value}))}
+              placeholder="Daily standup" className="w-full bg-background text-foreground border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 shadow-sm placeholder-slate-400" />
+          </div>
+          <div>
+            <label className="block text-xs font-bold text-muted mb-1">Meeting URL</label>
+            <input value={form.meeting_url} onChange={e => setForm(f => ({...f, meeting_url: e.target.value}))}
+              placeholder="https://meet.google.com/..." className="w-full bg-background text-foreground border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 shadow-sm placeholder-slate-400" />
+          </div>
+          <div>
+            <label className="block text-xs font-bold text-muted mb-1">Date & Time</label>
+            <input type="datetime-local" value={form.scheduled_at} onChange={e => setForm(f => ({...f, scheduled_at: e.target.value}))}
+              className="w-full bg-background text-foreground border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 shadow-sm" />
+          </div>
+          <div>
+            <label className="block text-xs font-bold text-muted mb-1">Duration (minutes)</label>
+            <input type="number" min={5} max={480} value={form.duration_minutes} onChange={e => setForm(f => ({...f, duration_minutes: e.target.value}))}
+              className="w-full bg-background text-foreground border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 shadow-sm" />
+          </div>
         </div>
-        <div>
-          <label className="block text-xs font-bold text-muted mb-1">Meeting URL</label>
-          <input value={form.meeting_url} onChange={e => setForm(f => ({...f, meeting_url: e.target.value}))}
-            placeholder="https://meet.google.com/..." className="w-full bg-background text-foreground border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 shadow-sm placeholder-slate-400" />
+        <div className="mb-3">
+          <label className="block text-xs font-bold text-muted mb-1">Agenda (optional)</label>
+          <textarea value={form.agenda} onChange={e => setForm(f => ({...f, agenda: e.target.value}))}
+            rows={2} placeholder="Topics to discuss..." className="w-full bg-background text-foreground border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 resize-none shadow-sm placeholder-slate-400" />
         </div>
-        <div>
-          <label className="block text-xs font-bold text-muted mb-1">Date & Time</label>
-          <input type="datetime-local" value={form.scheduled_at} onChange={e => setForm(f => ({...f, scheduled_at: e.target.value}))}
-            className="w-full bg-background text-foreground border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 shadow-sm" />
+        <div className="flex justify-end">
+          <button onClick={() => mutation.mutate()} disabled={mutation.isPending || !form.title || !form.meeting_url || !form.scheduled_at}
+            className="flex items-center gap-1.5 text-sm font-semibold px-4 py-2 rounded-lg btn-primary text-white hover:bg-teal-700 disabled:opacity-100 disabled:bg-teal-100 dark:disabled:bg-teal-900/50 disabled:text-teal-400 dark:disabled:text-teal-600 disabled:border-transparent disabled:shadow-none disabled:cursor-not-allowed shadow-sm transition-all">
+            {mutation.isPending ? <Loader2 size={14} className="animate-spin" /> : <Plus size={14} />} Schedule
+          </button>
         </div>
-        <div>
-          <label className="block text-xs font-bold text-muted mb-1">Duration (minutes)</label>
-          <input type="number" min={5} max={480} value={form.duration_minutes} onChange={e => setForm(f => ({...f, duration_minutes: e.target.value}))}
-            className="w-full bg-background text-foreground border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 shadow-sm" />
-        </div>
+        {mutation.isError && <p className="mt-2 text-xs font-semibold text-teal-500">{mutation.error?.message}</p>}
+        {mutation.isSuccess && <p className="mt-2 text-xs font-semibold text-teal-600">Meeting scheduled successfully!</p>}
       </div>
-      <div className="mb-3">
-        <label className="block text-xs font-bold text-muted mb-1">Agenda (optional)</label>
-        <textarea value={form.agenda} onChange={e => setForm(f => ({...f, agenda: e.target.value}))}
-          rows={2} placeholder="Topics to discuss..." className="w-full bg-background text-foreground border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 resize-none shadow-sm placeholder-slate-400" />
-      </div>
-      <div className="flex justify-end">
-        <button onClick={() => mutation.mutate()} disabled={mutation.isPending || !form.title || !form.meeting_url || !form.scheduled_at}
-          className="flex items-center gap-1.5 text-sm font-semibold px-4 py-2 rounded-lg btn-primary text-white hover:bg-teal-700 disabled:opacity-100 disabled:bg-teal-100 dark:disabled:bg-teal-900/50 disabled:text-teal-400 dark:disabled:text-teal-600 disabled:border-transparent disabled:shadow-none disabled:cursor-not-allowed shadow-sm transition-all">
-          {mutation.isPending ? <Loader2 size={14} className="animate-spin" /> : <Plus size={14} />} Schedule
-        </button>
-      </div>
-      {mutation.isError && <p className="mt-2 text-xs font-semibold text-teal-500">{mutation.error?.message}</p>}
-      {mutation.isSuccess && <p className="mt-2 text-xs font-semibold text-teal-600">Meeting scheduled successfully!</p>}
     </div>
   )
 }
@@ -180,70 +198,73 @@ function DailyProgressForm({ teamId, members, token, onSuccess }) {
   )
 
   return (
-    <div className="bg-background rounded-xl border border-border shadow-sm p-5">
-      <h3 className="text-sm font-bold text-foreground mb-4 flex items-center gap-2">
-        <MessageSquare size={14} className="text-teal-600" /> Submit Feedback
-      </h3>
-      {/* Tab toggle */}
-      <div className="flex gap-1 mb-4 bg-surface border border-border rounded-lg p-1 w-fit shadow-inner">
-        <button onClick={() => setTab('team')} className={`text-xs font-bold px-3 py-1.5 rounded-md transition-all shadow-sm ${tab === 'team' ? 'bg-background text-teal-700 ring-1 ring-slate-200' : 'text-muted hover:text-foreground hover:bg-slate-200/50 shadow-none'}`}>
-          Team Update
-        </button>
-        <button onClick={() => setTab('individual')} className={`text-xs font-bold px-3 py-1.5 rounded-md transition-all shadow-sm ${tab === 'individual' ? 'bg-background text-teal-700 ring-1 ring-slate-200' : 'text-muted hover:text-foreground hover:bg-slate-200/50 shadow-none'}`}>
-          Individual Feedback
-        </button>
-      </div>
+    <div className="glass-card rounded-2xl border-t-4 border-t-teal-500 shadow-sm p-5 relative overflow-hidden group">
+      <div className="absolute -right-8 -top-8 w-40 h-40 bg-gradient-to-br from-teal-500/20 to-transparent rounded-full blur-3xl group-hover:scale-125 transition-transform duration-700 pointer-events-none" />
+      <div className="relative z-10">
+        <h3 className="text-sm font-bold text-foreground mb-4 flex items-center gap-2">
+          <MessageSquare size={14} className="text-teal-600" /> Submit Feedback
+        </h3>
+        {/* Tab toggle */}
+        <div className="flex gap-1 mb-4 bg-surface border border-border rounded-lg p-1 w-fit shadow-inner">
+          <button onClick={() => setTab('team')} className={`text-xs font-bold px-3 py-1.5 rounded-md transition-all shadow-sm ${tab === 'team' ? 'bg-background text-teal-700 ring-1 ring-slate-200' : 'text-muted hover:text-foreground hover:bg-slate-200/50 shadow-none'}`}>
+            Team Update
+          </button>
+          <button onClick={() => setTab('individual')} className={`text-xs font-bold px-3 py-1.5 rounded-md transition-all shadow-sm ${tab === 'individual' ? 'bg-background text-teal-700 ring-1 ring-slate-200' : 'text-muted hover:text-foreground hover:bg-slate-200/50 shadow-none'}`}>
+            Individual Feedback
+          </button>
+        </div>
 
-      {tab === 'individual' && members?.length > 0 && (
+        {tab === 'individual' && members?.length > 0 && (
+          <div className="mb-3">
+            <label className="block text-xs font-bold text-muted mb-1">Select Participant</label>
+            <select value={form.participant_id} onChange={e => setForm(f => ({...f, participant_id: e.target.value}))}
+              className="w-full bg-background text-foreground border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 shadow-sm">
+              <option value="">-- select --</option>
+              {members.map(m => <option key={m.id} value={m.id}>{m.name}</option>)}
+            </select>
+          </div>
+        )}
+
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-3">
+          {scoreField('progress_score', 'Progress')}
+          {scoreField('collaboration_score', 'Collaboration')}
+          {scoreField('execution_score', 'Execution')}
+          {scoreField('clarity_score', 'Clarity')}
+        </div>
+
         <div className="mb-3">
-          <label className="block text-xs font-bold text-muted mb-1">Select Participant</label>
-          <select value={form.participant_id} onChange={e => setForm(f => ({...f, participant_id: e.target.value}))}
-            className="w-full bg-background text-foreground border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 shadow-sm">
-            <option value="">-- select --</option>
-            {members.map(m => <option key={m.id} value={m.id}>{m.name}</option>)}
-          </select>
+          <label className="block text-xs font-bold text-muted mb-1">Feedback</label>
+          <textarea value={form.feedback_text} onChange={e => setForm(f => ({...f, feedback_text: e.target.value}))}
+            rows={3} placeholder="Observations, progress notes..." className="w-full bg-background text-foreground border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 resize-none shadow-sm placeholder-slate-400" />
         </div>
-      )}
 
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-3">
-        {scoreField('progress_score', 'Progress')}
-        {scoreField('collaboration_score', 'Collaboration')}
-        {scoreField('execution_score', 'Execution')}
-        {scoreField('clarity_score', 'Clarity')}
-      </div>
-
-      <div className="mb-3">
-        <label className="block text-xs font-bold text-muted mb-1">Feedback</label>
-        <textarea value={form.feedback_text} onChange={e => setForm(f => ({...f, feedback_text: e.target.value}))}
-          rows={3} placeholder="Observations, progress notes..." className="w-full bg-background text-foreground border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 resize-none shadow-sm placeholder-slate-400" />
-      </div>
-
-      <div className="grid grid-cols-2 gap-3 mb-3">
-        <div>
-          <label className="block text-xs font-bold text-muted mb-1">Blockers</label>
-          <textarea value={form.blockers} onChange={e => setForm(f => ({...f, blockers: e.target.value}))}
-            rows={2} placeholder="Any blockers..." className="w-full bg-background text-foreground border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 resize-none shadow-sm placeholder-slate-400" />
+        <div className="grid grid-cols-2 gap-3 mb-3">
+          <div>
+            <label className="block text-xs font-bold text-muted mb-1">Blockers</label>
+            <textarea value={form.blockers} onChange={e => setForm(f => ({...f, blockers: e.target.value}))}
+              rows={2} placeholder="Any blockers..." className="w-full bg-background text-foreground border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 resize-none shadow-sm placeholder-slate-400" />
+          </div>
+          <div>
+            <label className="block text-xs font-bold text-muted mb-1">Action Items (one per line)</label>
+            <textarea value={form.action_items_str} onChange={e => setForm(f => ({...f, action_items_str: e.target.value}))}
+              rows={2} placeholder="Complete API integration&#10;Fix auth bug" className="w-full bg-background text-foreground border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 resize-none shadow-sm placeholder-slate-400" />
+          </div>
         </div>
-        <div>
-          <label className="block text-xs font-bold text-muted mb-1">Action Items (one per line)</label>
-          <textarea value={form.action_items_str} onChange={e => setForm(f => ({...f, action_items_str: e.target.value}))}
-            rows={2} placeholder="Complete API integration&#10;Fix auth bug" className="w-full bg-background text-foreground border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 resize-none shadow-sm placeholder-slate-400" />
-        </div>
-      </div>
 
-      <div className="flex items-center justify-between">
-        <label className="flex items-center gap-2 text-xs font-medium text-muted cursor-pointer">
-          <input type="checkbox" checked={form.visible_to_participant} onChange={e => setForm(f => ({...f, visible_to_participant: e.target.checked}))}
-            className="rounded border-border text-teal-600 focus:ring-teal-500" />
-          Visible to participant
-        </label>
-        <button onClick={() => mutation.mutate()} disabled={mutation.isPending || !form.feedback_text}
-          className="flex items-center gap-1.5 text-sm font-semibold px-4 py-2 rounded-lg btn-primary text-white hover:bg-teal-700 disabled:opacity-100 disabled:bg-teal-100 dark:disabled:bg-teal-900/50 disabled:text-teal-400 dark:disabled:text-teal-600 disabled:border-transparent disabled:shadow-none disabled:cursor-not-allowed shadow-sm transition-all">
-          {mutation.isPending ? <Loader2 size={14} className="animate-spin" /> : <Send size={14} />} Submit
-        </button>
+        <div className="flex items-center justify-between">
+          <label className="flex items-center gap-2 text-xs font-medium text-muted cursor-pointer">
+            <input type="checkbox" checked={form.visible_to_participant} onChange={e => setForm(f => ({...f, visible_to_participant: e.target.checked}))}
+              className="rounded border-border text-teal-600 focus:ring-teal-500" />
+            Visible to participant
+          </label>
+          <button onClick={() => mutation.mutate()} disabled={mutation.isPending || !form.feedback_text}
+            className="flex items-center gap-1.5 text-sm font-semibold px-4 py-2 rounded-lg btn-primary text-white hover:bg-teal-700 disabled:opacity-100 disabled:bg-teal-100 dark:disabled:bg-teal-900/50 disabled:text-teal-400 dark:disabled:text-teal-600 disabled:border-transparent disabled:shadow-none disabled:cursor-not-allowed shadow-sm transition-all">
+            {mutation.isPending ? <Loader2 size={14} className="animate-spin" /> : <Send size={14} />} Submit
+          </button>
+        </div>
+        {mutation.isError && <p className="mt-2 text-xs font-semibold text-teal-500">{mutation.error?.message}</p>}
+        {mutation.isSuccess && <p className="mt-2 text-xs font-semibold text-teal-600">Feedback submitted!</p>}
       </div>
-      {mutation.isError && <p className="mt-2 text-xs font-semibold text-teal-500">{mutation.error?.message}</p>}
-      {mutation.isSuccess && <p className="mt-2 text-xs font-semibold text-teal-600">Feedback submitted!</p>}
     </div>
   )
 }
@@ -261,124 +282,127 @@ function TeamCard({ team, token, eventId, mentorId }) {
   })
 
   return (
-    <div className="bg-background rounded-xl border border-border shadow-sm overflow-hidden">
-      <div className="flex items-center gap-3 px-4 py-3 cursor-pointer hover:bg-surface transition-colors" onClick={() => setExpanded(!expanded)}>
-        <div className="w-10 h-10 rounded-lg bg-teal-50 border border-teal-100 text-teal-700 flex items-center justify-center font-bold text-sm shrink-0">
-          {initials(team.team_name)}
-        </div>
-        <div className="flex-1 min-w-0">
-          <p className="text-sm font-bold text-foreground">{team.team_name}</p>
-          <p className="text-xs font-medium text-muted">{team.member_count} members · {team.feedback_count} feedbacks</p>
-        </div>
-        <div className="flex items-center gap-2 shrink-0">
-          {team.latest_progress_score != null && (
-            <Badge colour={team.latest_progress_score >= 7 ? 'green' : team.latest_progress_score >= 4 ? 'amber' : 'red'}>
-              {team.latest_progress_score.toFixed(1)}/10
-            </Badge>
-          )}
-          {team.next_meeting && (
-            <Badge colour="teal">
-              <Clock size={10} /> Meeting scheduled
-            </Badge>
-          )}
-        </div>
-        {expanded ? <ChevronUp size={16} className="text-muted" /> : <ChevronDown size={16} className="text-muted" />}
-      </div>
-
-      {expanded && (
-        <div className="border-t border-border px-4 py-4 space-y-4 bg-slate-50/50 dark:bg-slate-800/50">
-          {/* Members */}
-          <div>
-            <p className="text-xs font-bold text-muted mb-2">Team Members</p>
-            <div className="grid grid-cols-2 gap-2">
-              {team.members?.map((m, i) => (
-                <div key={m.id} className="flex items-center gap-2 bg-background border border-border rounded-lg p-2 shadow-sm">
-                  <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold shrink-0 ${
-                    ['bg-teal-50 border border-teal-200 text-teal-700', 'bg-teal-50 border border-teal-200 text-teal-700', 'bg-amber-50 border border-amber-200 text-amber-700', 'bg-teal-50 border border-teal-200 text-teal-700'][i % 4]
-                  }`}>{initials(m.name)}</div>
-                  <div className="min-w-0">
-                    <p className="text-xs font-bold text-foreground truncate">{m.name}</p>
-                    <p className="text-[11px] font-medium text-muted truncate">{m.institution}</p>
-                                        {m.skills && Object.keys(m.skills).length > 0 && (
-                      <div className="flex gap-1 mt-0.5 flex-wrap">
-                        {Object.entries(m.skills).slice(0, 3).map(([k, v]) => (
-                          <span key={k} className="text-[10px] font-bold bg-surface border border-border text-muted px-1.5 py-0.5 rounded">{k}: {Number(v).toFixed(0)}</span>
-                        ))}
-                      </div>
-                    )}
-
-                    {m.latest_daily_update && (
-                      <div className="mt-2 rounded-lg border border-teal-100 bg-teal-50 p-2">
-                        <p className="text-[11px] font-bold text-teal-700">
-                          Latest update · {m.latest_daily_update.update_date}
-                        </p>
-                        <p className="text-[11px] text-foreground mt-1">
-                          {m.latest_daily_update.what_i_built}
-                        </p>
-                        {m.latest_daily_update.blockers && (
-                          <p className="text-[11px] text-amber-700 mt-1">
-                            Blocker: {m.latest_daily_update.blockers}
-                          </p>
-                        )}
-                        {m.latest_daily_update.hours_worked != null && (
-                          <p className="text-[11px] text-muted mt-1">
-                            Hours: {m.latest_daily_update.hours_worked}
-                          </p>
-                        )}
-                      </div>
-                    )}
-                  </div>
-                </div>
-              ))}
-            </div>
+    <div className="glass-card rounded-2xl border-t-4 border-t-teal-500 shadow-sm overflow-hidden relative group transition-all hover:-translate-y-1 hover:scale-[1.01]">
+      <div className="absolute -right-8 -top-8 w-40 h-40 bg-gradient-to-br from-teal-500/20 to-transparent rounded-full blur-3xl group-hover:scale-125 transition-transform duration-700 pointer-events-none" />
+      <div className="relative z-10">
+        <div className="flex items-center gap-3 px-4 py-4 cursor-pointer hover:bg-surface/50 transition-colors" onClick={() => setExpanded(!expanded)}>
+          <div className="w-12 h-12 rounded-xl bg-teal-50 border border-teal-100 text-teal-700 flex items-center justify-center font-bold text-sm shrink-0">
+            {initials(team.team_name)}
           </div>
-
-          {/* Next meeting info */}
-          {team.next_meeting && (
-            <div className="bg-teal-50 border border-teal-100 rounded-lg p-3 shadow-sm">
-              <p className="text-xs font-bold text-teal-700 mb-1">Next Meeting</p>
-              <p className="text-sm font-bold text-teal-900">{team.next_meeting.title}</p>
-              <p className="text-xs font-medium text-teal-700 mt-0.5">
-                {new Date(team.next_meeting.scheduled_at).toLocaleString()} · {team.next_meeting.duration_minutes}min
-              </p>
-              {team.next_meeting.meeting_url && (
-                <a href={team.next_meeting.meeting_url} target="_blank" rel="noreferrer"
-                  className="inline-block mt-2 font-bold text-xs text-white bg-teal-600 px-3 py-1.5 rounded hover:bg-teal-700 transition-colors shadow-sm">Join meeting</a>
-              )}
-              <button 
-                onClick={() => {
-                  if (window.confirm("Remove this scheduled meeting?")) {
-                    cancelMutation.mutate(team.next_meeting.id)
-                  }
-                }}
-                disabled={cancelMutation.isPending}
-                className="inline-block mt-2 ml-2 font-bold text-xs text-teal-600 bg-teal-50 border border-teal-200 px-3 py-1.5 rounded hover:bg-teal-100 transition-colors shadow-sm"
-              >
-                {cancelMutation.isPending ? 'Cancelling...' : 'Cancel Meeting / Remove Meeting'}
-              </button>
-            </div>
-          )}
-
-          {/* Schedule meeting */}
-          <ScheduleMeetingForm teamId={team.team_id} token={token} />
-
-          {/* Daily progress */}
-          <DailyProgressForm teamId={team.team_id} members={team.members} token={token} />
+          <div className="flex-1 min-w-0">
+            <p className="text-base font-bold text-foreground">{team.team_name}</p>
+            <p className="text-xs font-medium text-muted mt-0.5">{team.member_count} members · {team.feedback_count} feedbacks</p>
+          </div>
+          <div className="flex items-center gap-2 shrink-0">
+            {team.latest_progress_score != null && (
+              <Badge colour={team.latest_progress_score >= 7 ? 'green' : team.latest_progress_score >= 4 ? 'amber' : 'red'}>
+                {team.latest_progress_score.toFixed(1)}/10
+              </Badge>
+            )}
+            {team.next_meeting && (
+              <Badge colour="amber">
+                <Clock size={10} /> Meeting scheduled
+              </Badge>
+            )}
+          </div>
+          {expanded ? <ChevronUp size={16} className="text-muted" /> : <ChevronDown size={16} className="text-muted" />}
         </div>
-      )}
 
-      {expanded && eventId && mentorId && (
-        <TeamChatPanel
-          eventId={eventId}
-          teamId={team.team_id}
-          token={token}
-          kind="mentor"
-          title={`Chat — ${team.team_name}`}
-          accentClass="bg-teal-700 hover:bg-teal-800"
-          currentSenderId={mentorId}
-          currentSenderRole="mentor"
-        />
-      )}
+        {expanded && (
+          <div className="border-t border-border px-4 py-4 space-y-4 bg-slate-50/50 dark:bg-slate-800/50">
+            {/* Members */}
+            <div>
+              <p className="text-xs font-bold text-muted mb-2">Team Members</p>
+              <div className="grid grid-cols-2 gap-2">
+                {team.members?.map((m, i) => (
+                  <div key={m.id} className="flex items-center gap-2 bg-background border border-border rounded-lg p-2 shadow-sm">
+                    <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold shrink-0 ${
+                      ['bg-teal-50 border border-teal-200 text-teal-700', 'bg-teal-50 border border-teal-200 text-teal-700', 'bg-amber-50 border border-amber-200 text-amber-700', 'bg-teal-50 border border-teal-200 text-teal-700'][i % 4]
+                    }`}>{initials(m.name)}</div>
+                    <div className="min-w-0">
+                      <p className="text-xs font-bold text-foreground truncate">{m.name}</p>
+                      <p className="text-[11px] font-medium text-muted truncate">{m.institution}</p>
+                                          {m.skills && Object.keys(m.skills).length > 0 && (
+                        <div className="flex gap-1 mt-0.5 flex-wrap">
+                          {Object.entries(m.skills).slice(0, 3).map(([k, v]) => (
+                            <span key={k} className="text-[10px] font-bold bg-surface border border-border text-muted px-1.5 py-0.5 rounded">{k}: {Number(v).toFixed(0)}</span>
+                          ))}
+                        </div>
+                      )}
+
+                      {m.latest_daily_update && (
+                        <div className="mt-2 rounded-lg border border-teal-100 bg-teal-50 p-2">
+                          <p className="text-[11px] font-bold text-teal-700">
+                            Latest update · {m.latest_daily_update.update_date}
+                          </p>
+                          <p className="text-[11px] text-foreground mt-1">
+                            {m.latest_daily_update.what_i_built}
+                          </p>
+                          {m.latest_daily_update.blockers && (
+                            <p className="text-[11px] text-amber-700 mt-1">
+                              Blocker: {m.latest_daily_update.blockers}
+                            </p>
+                          )}
+                          {m.latest_daily_update.hours_worked != null && (
+                            <p className="text-[11px] text-muted mt-1">
+                              Hours: {m.latest_daily_update.hours_worked}
+                            </p>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Next meeting info */}
+            {team.next_meeting && (
+              <div className="bg-teal-50 border border-teal-100 rounded-lg p-3 shadow-sm">
+                <p className="text-xs font-bold text-teal-700 mb-1">Next Meeting</p>
+                <p className="text-sm font-bold text-teal-900">{team.next_meeting.title}</p>
+                <p className="text-xs font-medium text-teal-700 mt-0.5">
+                  {new Date(team.next_meeting.scheduled_at).toLocaleString()} · {team.next_meeting.duration_minutes}min
+                </p>
+                {team.next_meeting.meeting_url && (
+                  <a href={team.next_meeting.meeting_url} target="_blank" rel="noreferrer"
+                    className="inline-block mt-2 font-bold text-xs text-white bg-teal-600 px-3 py-1.5 rounded hover:bg-teal-700 transition-colors shadow-sm">Join meeting</a>
+                )}
+                <button 
+                  onClick={() => {
+                    if (window.confirm("Remove this scheduled meeting?")) {
+                      cancelMutation.mutate(team.next_meeting.id)
+                    }
+                  }}
+                  disabled={cancelMutation.isPending}
+                  className="inline-block mt-2 ml-2 font-bold text-xs text-teal-600 bg-teal-50 border border-teal-200 px-3 py-1.5 rounded hover:bg-teal-100 transition-colors shadow-sm"
+                >
+                  {cancelMutation.isPending ? 'Cancelling...' : 'Cancel Meeting / Remove Meeting'}
+                </button>
+              </div>
+            )}
+
+            {/* Schedule meeting */}
+            <ScheduleMeetingForm teamId={team.team_id} token={token} />
+
+            {/* Daily progress */}
+            <DailyProgressForm teamId={team.team_id} members={team.members} token={token} />
+          </div>
+        )}
+
+        {expanded && eventId && mentorId && (
+          <TeamChatPanel
+            eventId={eventId}
+            teamId={team.team_id}
+            token={token}
+            kind="mentor"
+            title={`Chat — ${team.team_name}`}
+            accentClass="bg-teal-700 hover:bg-teal-800"
+            currentSenderId={mentorId}
+            currentSenderRole="mentor"
+          />
+        )}
+      </div>
     </div>
   )
 }
@@ -500,7 +524,7 @@ export default function MentorPortal() {
           <StatCard label="Assigned Teams" value={profile.assigned_teams_count} icon={Users} colour="teal" />
           <StatCard label="Meetings Scheduled" value={profile.meetings_scheduled} icon={Calendar} colour="teal" />
           <StatCard label="Updates Today" value={profile.updates_today} icon={MessageSquare} colour="teal" />
-          <StatCard label="Pending Updates" value={profile.pending_updates_count} icon={Target} colour={profile.pending_updates_count > 0 ? 'amber' : 'teal'} />
+          <StatCard label="Pending Updates" value={profile.pending_updates_count} icon={Target} colour={profile.pending_updates_count > 0 ? 'amber' : 'green'} />
         </div>
 
         {/* Teams */}

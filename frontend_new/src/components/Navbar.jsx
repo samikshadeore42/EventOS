@@ -9,20 +9,22 @@ export default function Navbar({
   customActions = null,
   mobileMenuOpen,
   setMobileMenuOpen,
+  onMenuClick,
   hasMobileMenu = false,
   mobileBreakpoint = 'md'
 }) {
-  const hiddenClass = mobileBreakpoint === 'lg' ? 'lg:hidden' : 'md:hidden'
-
   return (
     <header className="glass-panel border-b border-border dark:border-slate-800 px-4 sm:px-6 py-4 flex items-center justify-between relative z-50 sticky top-0 w-full transition-colors">
       <div className="flex items-center gap-3 sm:gap-4">
         {hasMobileMenu && (
           <button
-            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            className={`${hiddenClass} p-2 -ml-2 text-muted hover:text-foreground transition-colors`}
+            onClick={() => {
+              if (onMenuClick) onMenuClick()
+              else if (setMobileMenuOpen) setMobileMenuOpen(!mobileMenuOpen)
+            }}
+            className={`p-2 -ml-2 text-foreground hover:opacity-80 transition-opacity`}
           >
-            {mobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
+            {mobileMenuOpen && mobileBreakpoint !== 'never' && window.innerWidth < (mobileBreakpoint === 'lg' ? 1024 : 768) ? <X size={24} /> : <Menu size={24} />}
           </button>
         )}
         <EventOSLogo className="text-teal-600 dark:text-teal-400 shrink-0" size={32} />

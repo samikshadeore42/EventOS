@@ -309,12 +309,15 @@ function TeamRevealSection({ teamName, rationale, teammates }) {
   return (
     <div className="mb-6 h-full flex flex-col">
       {/* Team name hero */}
-      <div className="bg-gradient-to-br from-teal-600 to-teal-600 rounded-2xl p-6 mb-4 text-white text-center shadow-md">
-        <p className="text-xs font-bold uppercase tracking-widest opacity-80 mb-2">
-          You have been assigned to
-        </p>
-        <h2 className="text-3xl font-black mb-1">{teamName}</h2>
-        <p className="text-sm opacity-90 font-medium">Your team assignment is confirmed</p>
+      <div className="glass-card rounded-2xl p-6 mb-4 text-center relative overflow-hidden group border-t-4 border-t-teal-500 transition-all hover:-translate-y-1 hover:scale-[1.02]">
+        <div className="absolute -right-8 -top-8 w-40 h-40 bg-gradient-to-br from-teal-500/20 to-transparent rounded-full blur-3xl group-hover:scale-125 transition-transform duration-700" />
+        <div className="relative z-10">
+          <p className="text-xs font-bold uppercase tracking-widest text-teal-600 mb-2">
+            You have been assigned to
+          </p>
+          <h2 className="text-3xl font-black mb-1 text-foreground">{teamName}</h2>
+          <p className="text-sm font-medium text-muted">Your team assignment is confirmed</p>
+        </div>
       </div>
 
       {/* AI rationale accordion */}
@@ -365,15 +368,18 @@ function TeamRevealSection({ teamName, rationale, teammates }) {
 
 function AwaitingCard() {
   return (
-    <div className="bg-amber-50 border border-amber-200 rounded-2xl p-6 text-center mb-6 shadow-sm h-full flex flex-col justify-center">
-      <div className="w-12 h-12 rounded-full bg-background border border-amber-200 flex items-center justify-center mx-auto mb-3 shadow-sm">
-        <Clock size={22} className="text-amber-600" />
+    <div className="glass-card rounded-2xl p-6 text-center mb-6 relative overflow-hidden group border-t-4 border-t-amber-500 flex flex-col justify-center h-full transition-all hover:-translate-y-1 hover:scale-[1.02]">
+      <div className="absolute -right-8 -top-8 w-40 h-40 bg-gradient-to-br from-amber-500/20 to-transparent rounded-full blur-3xl group-hover:scale-125 transition-transform duration-700" />
+      <div className="relative z-10">
+        <div className="w-12 h-12 rounded-full bg-amber-50 border border-amber-200 flex items-center justify-center mx-auto mb-3 shadow-sm text-amber-600">
+          <Clock size={22} />
+        </div>
+        <h3 className="text-base font-bold text-amber-900 mb-1">Team assignment pending</h3>
+        <p className="text-sm text-amber-700 leading-relaxed font-medium">
+          The committee is currently running the team formation algorithm.
+          You'll receive an email notification as soon as your team has been assigned and approved.
+        </p>
       </div>
-      <h3 className="text-base font-bold text-amber-900 mb-1">Team assignment pending</h3>
-      <p className="text-sm text-amber-700 leading-relaxed font-medium">
-        The committee is currently running the team formation algorithm.
-        You'll receive an email notification as soon as your team has been assigned and approved.
-      </p>
     </div>
   )
 }
@@ -613,26 +619,29 @@ function ResultsSection({ data }) {
   const hasRank = typeof data?.rank === 'number'
 
   return (
-    <div className="bg-teal-50 rounded-2xl border border-teal-200 p-6 mb-6 text-center shadow-sm">
-      <div className="flex items-center justify-center gap-2 mb-4">
-        <Trophy size={20} className="text-amber-500" />
-        <h3 className="text-lg font-bold text-foreground">Final Results</h3>
-      </div>
-      <div className="flex justify-center gap-12 mt-2">
-        <div>
-          <p className="text-xs font-bold text-muted uppercase tracking-widest mb-1">Your Score</p>
-          <p className="text-4xl font-black text-teal-600">
-            {hasScore ? data.total_score.toFixed(2) : 'Pending'}
-          </p>
+    <div className="glass-card rounded-2xl p-6 mb-6 text-center relative overflow-hidden group border-t-4 border-t-emerald-500 transition-all hover:-translate-y-1 hover:scale-[1.02]">
+      <div className="absolute -right-8 -top-8 w-40 h-40 bg-gradient-to-br from-emerald-500/20 to-transparent rounded-full blur-3xl group-hover:scale-125 transition-transform duration-700" />
+      <div className="relative z-10">
+        <div className="flex items-center justify-center gap-2 mb-4">
+          <Trophy size={20} className="text-amber-500" />
+          <h3 className="text-lg font-bold text-foreground">Final Results</h3>
         </div>
-        <div>
-           <p className="text-xs font-bold text-muted uppercase tracking-widest mb-1">Global Rank</p>
-           <p className="text-4xl font-black text-teal-600">
-             {hasRank ? `#${data.rank}` : '—'}
-           </p>
+        <div className="flex justify-center gap-12 mt-2">
+          <div>
+            <p className="text-xs font-bold text-muted uppercase tracking-widest mb-1">Your Score</p>
+            <p className="text-4xl font-black text-emerald-600">
+              {hasScore ? data.total_score.toFixed(2) : 'Pending'}
+            </p>
+          </div>
+          <div>
+             <p className="text-xs font-bold text-muted uppercase tracking-widest mb-1">Global Rank</p>
+             <p className="text-4xl font-black text-emerald-600">
+               {hasRank ? `#${data.rank}` : '—'}
+             </p>
+          </div>
         </div>
+        <p className="text-xs font-medium text-muted mt-4">Results are final. Congratulations on completing the WiSE@TI Hackathon!</p>
       </div>
-      <p className="text-xs font-medium text-muted mt-4">Results are final. Congratulations on completing the WiSE@TI Hackathon!</p>
     </div>
   )
 }
@@ -727,13 +736,14 @@ function ProgressionInvitationSection({ participantId, currentStatus }) {
   }
 
   return (
-    <div className="bg-gradient-to-br from-teal-600 to-teal-600 rounded-2xl p-6 mb-6 shadow-md text-white">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+    <div className="glass-card rounded-2xl p-6 mb-6 relative overflow-hidden group border-t-4 border-t-teal-500 transition-all hover:-translate-y-1 hover:scale-[1.02]">
+      <div className="absolute -right-8 -top-8 w-40 h-40 bg-gradient-to-br from-teal-500/20 to-transparent rounded-full blur-3xl group-hover:scale-125 transition-transform duration-700" />
+      <div className="relative z-10 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div className="min-w-0">
-          <h3 className="text-base font-bold text-white flex items-center gap-2">
+          <h3 className="text-base font-bold text-foreground flex items-center gap-2">
             🎉 Final Round Invitation!
           </h3>
-          <p className="text-xs text-white opacity-90 mt-1 leading-relaxed">
+          <p className="text-xs text-muted mt-1 leading-relaxed">
             Your team has qualified for the Grand Finale round. Please confirm your availability now.
           </p>
         </div>
@@ -741,14 +751,14 @@ function ProgressionInvitationSection({ participantId, currentStatus }) {
           <button
             disabled={mutation.isPending}
             onClick={() => mutation.mutate(true)}
-            className="flex-1 sm:flex-none text-xs bg-teal-500 hover:bg-teal-400 text-white font-semibold px-4 py-2.5 rounded-xl transition-all disabled:opacity-100 disabled:bg-teal-100 dark:disabled:bg-teal-900/50 disabled:text-teal-400 dark:disabled:text-teal-600 disabled:border-transparent disabled:shadow-none disabled:cursor-not-allowed flex items-center justify-center gap-2"
+            className="flex-1 sm:flex-none text-xs btn-primary text-white font-semibold px-4 py-2.5 rounded-xl transition-all disabled:opacity-100 disabled:bg-teal-100 dark:disabled:bg-teal-900/50 disabled:text-teal-400 dark:disabled:text-teal-600 disabled:border-transparent disabled:shadow-none disabled:cursor-not-allowed flex items-center justify-center gap-2"
           >
             {mutation.isPending && mutation.variables === true ? 'Saving...' : 'Accept Invite'}
           </button>
           <button
             disabled={mutation.isPending}
             onClick={() => mutation.mutate(false)}
-            className="flex-1 sm:flex-none text-xs border border-white hover:bg-white/10 dark:bg-slate-900/10 text-white font-medium px-4 py-2.5 rounded-xl transition-all disabled:opacity-50 flex items-center justify-center gap-2"
+            className="flex-1 sm:flex-none text-xs border border-border bg-background hover:bg-surface text-foreground font-medium px-4 py-2.5 rounded-xl transition-all disabled:opacity-50 flex items-center justify-center gap-2"
           >
             {mutation.isPending && mutation.variables === false ? '...' : 'Decline'}
           </button>
