@@ -16,7 +16,7 @@ import {
   ChevronDown, ChevronRight, Wand2,
   BarChart2, MessageSquare, Activity, Target, Calendar,
   Send, Copy, Trash2, Plus, Shield, ShieldAlert, ShieldCheck, FileText, Settings,
-  Sparkles,
+  Sparkles, Link, LayoutTemplate, ClipboardList, Lightbulb
 } from 'lucide-react'
 import PipelineStepper from '../components/PipelineStepper'
 import OrgSwitcher from '../components/OrgSwitcher'
@@ -3302,64 +3302,83 @@ function CreateEventTab() {
   })
 
   return (
-    <div className="grid lg:grid-cols-[1fr_320px] gap-6">
-      <div className="app-card p-6 border-l-2 border-l-primary relative overflow-hidden group transition-all hover:-translate-y-1 hover:scale-[1.01]">
-      <div className="absolute -right-8 -top-8 w-40 h-40 bg-gradient-to-br from-primary/10 to-transparent rounded-full blur-3xl group-hover:scale-125 transition-transform duration-700 pointer-events-none z-0" />
-        <div className="flex items-start justify-between gap-4 mb-5">
+    <div className="grid grid-cols-1 xl:grid-cols-[minmax(0,1fr)_320px] gap-6 items-start">
+      <div className="app-card bg-white/95 dark:bg-white/[0.06] rounded-[24px] p-7 shadow-[0_18px_45px_rgba(15,23,42,0.08)] border border-slate-200/70 dark:border-white/10">
+        <div className="flex items-start justify-between gap-4 mb-8">
           <div>
-            <SectionTitle>Create Event</SectionTitle>
-            <p className="text-sm text-muted">
+            <h2 className="text-2xl font-bold text-red-600 dark:text-red-500">Create Event</h2>
+            <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">
               Create from a system template. The event receives a copied template config and its own active capabilities.
             </p>
           </div>
-          <Badge colour="teal">Template method</Badge>
+          <button type="button" className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 shadow-sm hover:bg-slate-50 dark:border-white/10 dark:bg-white/5 dark:text-slate-200 dark:hover:bg-white/10 shrink-0 transition-colors">
+            Template marketplace
+          </button>
         </div>
 
-        <div className="grid md:grid-cols-2 gap-4 mb-4">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 mb-5">
           <div>
-            <label className="block text-xs font-medium text-muted mb-1">Event name</label>
-            <input
-              value={form.name}
-              onChange={(e) => setForm((f) => ({
-                ...f,
-                name: e.target.value,
-                slug: f.slug || slugifyEventName(e.target.value),
-              }))}
-              placeholder="Smart India Hackathon Demo"
-              className="soft-input"
-            />
+            <label className="block text-sm font-semibold text-slate-900 dark:text-slate-200 mb-2">Event name</label>
+            <div className="relative">
+              <div className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 flex h-9 w-9 items-center justify-center rounded-lg bg-green-100 text-green-600 dark:bg-green-500/15 dark:text-green-300">
+                <Calendar className="h-4 w-4" />
+              </div>
+              <input
+                value={form.name}
+                onChange={(e) => setForm((f) => ({
+                  ...f,
+                  name: e.target.value,
+                  slug: f.slug || slugifyEventName(e.target.value),
+                }))}
+                placeholder="Smart India Hackathon Demo"
+                className="soft-input h-12 w-full rounded-xl pl-14 pr-4 text-sm text-slate-900 placeholder:text-slate-400 dark:text-white dark:placeholder:text-slate-500 bg-slate-50 dark:bg-white/5 border-slate-200 dark:border-white/10 focus:border-red-500 focus:ring-1 focus:ring-red-500 transition-colors"
+              />
+            </div>
           </div>
           <div>
-            <label className="block text-xs font-medium text-muted mb-1">Slug</label>
-            <input
-              value={form.slug}
-              onChange={(e) => setForm((f) => ({ ...f, slug: slugifyEventName(e.target.value) }))}
-              placeholder="smart-india-hackathon-demo"
-              className="soft-input"
-            />
+            <label className="block text-sm font-semibold text-slate-900 dark:text-slate-200 mb-2">Slug</label>
+            <div className="relative">
+              <div className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 flex h-9 w-9 items-center justify-center rounded-lg bg-blue-100 text-blue-600 dark:bg-blue-500/15 dark:text-blue-300">
+                <Link className="h-4 w-4" />
+              </div>
+              <input
+                value={form.slug}
+                onChange={(e) => setForm((f) => ({ ...f, slug: slugifyEventName(e.target.value) }))}
+                placeholder="smart-india-hackathon-demo"
+                className="soft-input h-12 w-full rounded-xl pl-14 pr-4 text-sm text-slate-900 placeholder:text-slate-400 dark:text-white dark:placeholder:text-slate-500 bg-slate-50 dark:bg-white/5 border-slate-200 dark:border-white/10 focus:border-red-500 focus:ring-1 focus:ring-red-500 transition-colors"
+              />
+            </div>
           </div>
         </div>
 
-        <div className="mb-4">
-          <label className="block text-xs font-medium text-muted mb-1">Template</label>
-          <select
-            value={form.template_id}
-            onChange={(e) => setForm((f) => ({ ...f, template_id: e.target.value }))}
-            className="soft-select"
-          >
-            <option value="">{isLoading ? 'Loading templates...' : 'Choose a template'}</option>
-            {templates.map((template) => (
-              <option key={template.id} value={template.id}>
-                {template.name}
-              </option>
-            ))}
-          </select>
+        <div className="mb-5">
+          <label className="block text-sm font-semibold text-slate-900 dark:text-slate-200 mb-2">Template</label>
+          <div className="relative">
+            <div className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 flex h-9 w-9 items-center justify-center rounded-lg bg-orange-100 text-orange-600 dark:bg-orange-500/15 dark:text-orange-300">
+              <LayoutTemplate className="h-4 w-4" />
+            </div>
+            <select
+              value={form.template_id}
+              onChange={(e) => setForm((f) => ({ ...f, template_id: e.target.value }))}
+              className="soft-select h-12 w-full rounded-xl pl-14 pr-10 text-sm text-slate-900 dark:text-white bg-slate-50 dark:bg-white/5 border-slate-200 dark:border-white/10 focus:border-red-500 focus:ring-1 focus:ring-red-500 transition-colors appearance-none"
+            >
+              <option value="">{isLoading ? 'Loading templates...' : 'Choose a template'}</option>
+              {templates.map((template) => (
+                <option key={template.id} value={template.id}>
+                  {template.name}
+                </option>
+              ))}
+            </select>
+            <div className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-slate-400">
+              <ChevronDown className="h-4 w-4" />
+            </div>
+          </div>
         </div>
 
         {selectedTemplate && (
-          <div className="rounded-lg bg-[var(--bg-card-soft)] p-4 mb-4">
-            <p className="text-sm font-semibold text-foreground">{selectedTemplate.name}</p>
-            <p className="text-xs text-muted mt-1">{selectedTemplate.description}</p>
+          <div className="rounded-xl bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 p-4 mb-5">
+            <p className="text-sm font-bold text-slate-900 dark:text-white">{selectedTemplate.name}</p>
+            <p className="text-xs text-slate-600 dark:text-slate-400 mt-1">{selectedTemplate.description}</p>
             <div className="flex gap-2 flex-wrap mt-3">
               {(selectedTemplate.default_capabilities || []).map((cap) => (
                 <Badge key={cap} colour="teal">{cap}</Badge>
@@ -3368,42 +3387,52 @@ function CreateEventTab() {
           </div>
         )}
 
-        <div className="mb-5">
-          <label className="block text-xs font-medium text-muted mb-1">Description</label>
-          <textarea
-            value={form.description}
-            onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))}
-            rows={3}
-            placeholder="Optional internal description for this event..."
-            className="soft-input resize-none"
-          />
+        <div className="mb-8">
+          <label className="block text-sm font-semibold text-slate-900 dark:text-slate-200 mb-2">Description</label>
+          <div className="relative">
+            <div className="pointer-events-none absolute left-3 top-3 flex h-9 w-9 items-center justify-center rounded-lg bg-purple-100 text-purple-600 dark:bg-purple-500/15 dark:text-purple-300">
+              <ClipboardList className="h-4 w-4" />
+            </div>
+            <textarea
+              value={form.description}
+              onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))}
+              rows={4}
+              placeholder="Optional internal description for this event..."
+              className="soft-input min-h-[150px] w-full rounded-xl py-3.5 pl-14 pr-4 text-sm text-slate-900 placeholder:text-slate-400 dark:text-white dark:placeholder:text-slate-500 bg-slate-50 dark:bg-white/5 border-slate-200 dark:border-white/10 focus:border-red-500 focus:ring-1 focus:ring-red-500 transition-colors resize-none"
+            />
+          </div>
         </div>
+
         <button
           onClick={() => createMutation.mutate()}
           disabled={createMutation.isPending || !form.name.trim() || !form.template_id}
-          className="app-btn-primary px-4 py-2 text-sm font-semibold"
+          className="inline-flex h-12 items-center justify-center gap-2 rounded-xl bg-red-600 px-6 text-sm font-bold text-white shadow-[0_12px_24px_rgba(239,68,68,0.25)] transition hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-60 w-full sm:w-auto"
         >
+          <FileText className="h-4 w-4" />
           {createMutation.isPending ? 'Creating...' : 'Create from template'}
         </button>
         {createMutation.isError && (
-          <p className="text-xs text-primary mt-3">{createMutation.error?.message}</p>
+          <p className="text-sm font-medium text-red-500 mt-3">{createMutation.error?.message}</p>
         )}
       </div>
-      <div className="section-purple p-5 h-fit">
-        <div className="flex items-center gap-2 mb-3">
-          <Sparkles size={16} className="text-primary" />
-          <p className="text-sm font-bold text-foreground">Need AI help?</p>
+
+      <aside className="app-card rounded-[24px] bg-white/95 p-7 shadow-[0_18px_45px_rgba(15,23,42,0.08)] border border-slate-200/70 dark:border-white/10 dark:bg-white/[0.06]">
+        <div className="mb-5 flex h-12 w-12 items-center justify-center rounded-2xl bg-orange-100 text-orange-500 dark:bg-orange-500/15 dark:text-orange-300">
+          <Lightbulb className="h-7 w-7" />
         </div>
-        <p className="text-sm text-foreground mb-4">
+        <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-2">Need AI help?</h3>
+        <p className="text-sm text-slate-600 dark:text-slate-400 mb-6 leading-relaxed">
           Use the AI event builder when you do not know the template, stages, team size, or scoring structure yet.
         </p>
         <button
+          type="button"
           onClick={() => navigate('/configure')}
-          className="w-full rounded-lg app-btn-primary px-4 py-2 text-sm font-semibold hover:bg-primary-dark"
+          className="inline-flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-orange-500 to-red-600 text-sm font-bold text-white shadow-[0_14px_28px_rgba(239,68,68,0.28)] transition hover:from-orange-600 hover:to-red-700"
         >
+          <Sparkles className="h-4 w-4" />
           Create with AI
         </button>
-      </div>
+      </aside>
     </div>
   )
 }
