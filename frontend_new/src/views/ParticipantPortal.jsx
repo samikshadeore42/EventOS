@@ -53,14 +53,14 @@ function DailyUpdateForm({ token }) {
   )
 
   return (
-    <div className="app-card p-6">
-      <div className="flex items-center gap-3 mb-6">
-        <div className="w-12 h-12 rounded-2xl bg-[#F8E8FA] text-[#C84BEA] border border-[#F0D1F5] flex items-center justify-center shrink-0 shadow-sm">
+    <div className="section-yellow p-6">
+      <div className="flex items-center gap-3 mb-4">
+        <div className="soft-icon-box" style={{ color: 'var(--color-warning)' }}>
           <ClipboardList size={22} />
         </div>
         <div>
-          <h3 className="text-lg font-bold text-foreground">Daily Progress</h3>
-          <p className="text-sm font-medium text-muted">Log your team's work</p>
+          <h3 className="text-lg font-bold" style={{ color: 'var(--text-main)' }}>Daily Progress</h3>
+          <p className="text-sm font-medium" style={{ color: 'var(--text-muted)' }}>Log your team's work</p>
         </div>
       </div>
       <div className="space-y-5">
@@ -69,7 +69,7 @@ function DailyUpdateForm({ token }) {
             What did you build today? <span className="text-primary">*</span>
           </label>
           <textarea
-            className="w-full bg-cardSoft border border-border rounded-xl px-4 py-3 text-sm text-foreground placeholder-muted focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary focus:border-transparent transition-all resize-none shadow-sm"
+            className="soft-input resize-none"
             rows={3}
             placeholder="Implemented the login flow, fixed the API integration..."
             value={what}
@@ -82,7 +82,7 @@ function DailyUpdateForm({ token }) {
               Any blockers?
             </label>
             <input
-              className="w-full bg-cardSoft border border-border rounded-xl px-4 py-2.5 text-sm text-foreground placeholder-muted focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary focus:border-transparent transition-all shadow-sm"
+              className="soft-input"
               placeholder="e.g. Docker networking..."
               value={blockers}
               onChange={e => setBlockers(e.target.value)}
@@ -94,7 +94,7 @@ function DailyUpdateForm({ token }) {
             </label>
             <input
               type="number" min="0" max="24"
-              className="w-full bg-cardSoft border border-border rounded-xl px-4 py-2.5 text-sm text-foreground placeholder-muted focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary focus:border-transparent transition-all shadow-sm"
+              className="soft-input"
               placeholder="e.g. 4"
               value={hours}
               onChange={e => setHours(e.target.value)}
@@ -103,11 +103,11 @@ function DailyUpdateForm({ token }) {
         </div>
         {error && <p className="text-primary text-sm font-medium">{error}</p>}
       </div>
-      <div className="pt-5 mt-5 border-t">
+      <div className="pt-5 mt-5">
         <button
           onClick={handleSubmit}
           disabled={submitting || !what.trim()}
-          className="w-full bg-primary hover:bg-primary-dark disabled:bg-cardSoft disabled:text-muted text-white shadow-sm px-5 py-3 rounded-xl text-sm font-bold transition-all flex justify-center items-center gap-2"
+          className="w-full bg-primary hover:bg-primary-dark disabled:bg-[var(--bg-card-soft)] disabled:text-muted text-white shadow-sm px-5 py-3 rounded-xl text-sm font-bold transition-all flex justify-center items-center gap-2"
         >
           {submitting ? <Loader2 size={18} className="animate-spin" /> : <CheckCircle size={18} />}
           {submitting ? 'Submitting...' : 'Submit Update'}
@@ -160,7 +160,7 @@ function PortalHeader({ name, email, eventName, stage, timeline }) {
         </p>
 
         {stage && (
-          <div className="inline-flex items-center self-start gap-2.5 px-5 py-2.5 rounded-xl bg-cardSoft border border-border/50 text-sm font-bold text-foreground shadow-sm mb-6">
+          <div className="inline-flex items-center self-start gap-2.5 px-5 py-2.5 rounded-xl bg-[var(--bg-card-soft)] /50 text-sm font-bold text-foreground shadow-sm mb-6">
             <Clock size={18} className="text-primary" />
             Current Phase: <span className="text-foreground">{STAGE_LABELS[stage] ?? stage}</span>
           </div>
@@ -180,7 +180,7 @@ function EventTimeline({ timeline }) {
   if (!timeline?.length) return null
 
   return (
-    <div className="w-full mt-10 pt-8 border-t">
+    <div className="w-full mt-10 pt-8" style={{ borderTop: "1px solid var(--border-soft)" }}>
       <h2 className="text-sm font-bold text-foreground mb-6">Your Event Journey</h2>
 
       <div className="w-full pb-2">
@@ -195,11 +195,17 @@ function EventTimeline({ timeline }) {
             <div key={index} className={`flex items-center ${isLast ? 'flex-shrink-0' : 'flex-1'}`}>
               <div className="flex flex-col items-center relative group">
                 {/* Node */}
-                <div className={`relative z-10 w-10 h-10 rounded-full border-2 flex items-center justify-center shrink-0 transition-colors shadow-sm ${
-                  isCompleted ? 'bg-cardSoft border-primary text-primary' :
-                  isActive    ? 'bg-primary border-primary text-white shadow-md shadow-primary/20' :
-                                'bg-surface border-border text-muted'
-                }`}>
+                <div
+                  className="relative z-10 w-10 h-10 rounded-full border-2 flex items-center justify-center shrink-0 transition-colors shadow-sm"
+                  style={{
+                    backgroundColor: isCompleted ? 'color-mix(in srgb, var(--color-success) 15%, var(--bg-card))' :
+                      isActive ? 'var(--color-primary)' : 'var(--bg-card-soft)',
+                    borderColor: isCompleted ? 'var(--color-success)' :
+                      isActive ? 'var(--color-primary)' : 'color-mix(in srgb, var(--color-border) 50%, transparent)',
+                    color: isCompleted ? 'var(--color-success)' : isActive ? '#fff' : 'var(--text-muted)',
+                    boxShadow: isActive ? '0 0 16px rgba(232,121,50,0.35)' : 'none',
+                  }}
+                >
                   {isCompleted && <CheckCircle size={18} />}
                   {isActive    && <Clock size={16} />}
                   {isPending   && <Circle size={16} />}
@@ -209,10 +215,10 @@ function EventTimeline({ timeline }) {
                 </div>
                 {/* Label */}
                 <div className="absolute top-12 whitespace-nowrap text-center">
-                  <p className={`text-xs font-bold ${isActive ? 'text-primary-dark' : isCompleted ? 'text-foreground' : 'text-muted'}`}>
+                  <p className="text-xs font-bold" style={{ color: isActive ? 'var(--color-primary)' : isCompleted ? 'var(--text-main)' : 'var(--text-muted)' }}>
                     {phase.phase}
                   </p>
-                  <p className={`text-[10px] font-semibold mt-0.5 ${isActive ? 'text-primary' : 'text-muted'}`}>
+                  <p className="text-[10px] font-semibold mt-0.5" style={{ color: isActive ? 'var(--color-primary)' : 'var(--text-muted)' }}>
                     {isActive ? 'In Progress' : isCompleted ? 'Complete' : 'Pending'}
                   </p>
                 </div>
@@ -220,8 +226,8 @@ function EventTimeline({ timeline }) {
 
               {/* Connecting Line */}
               {!isLast && (
-                <div className="flex-1 h-1 mx-2 rounded-full overflow-hidden bg-cardSoft">
-                  <div className={`h-full transition-all duration-500 ${isCompleted ? 'bg-primary' : 'bg-transparent'}`} />
+                <div className="flex-1 h-1 mx-2 rounded-full overflow-hidden" style={{ backgroundColor: 'var(--bg-card-soft)' }}>
+                  <div className="h-full transition-all duration-500" style={{ backgroundColor: isCompleted ? 'var(--color-success)' : 'transparent' }} />
                 </div>
               )}
             </div>
@@ -326,18 +332,18 @@ function ChatDrawer({ eventId, teamId, token, mentorData, participantId, onClose
 // ── Teammate card ──────────────────────────────────────────────────────────
 
 const AVATAR_COLOURS = [
-  'bg-cardSoft border border-border text-primary-dark',
-  'bg-cardSoft border border-border text-primary-dark',
-  'bg-cardSoft border border-border text-primary-dark',
-  'bg-cardSoft border border-border text-primary-dark',
-  'bg-cardSoft border border-border text-primary-dark',
+  'bg-[var(--bg-card-soft)]  text-primary-dark',
+  'bg-[var(--bg-card-soft)]  text-primary-dark',
+  'bg-[var(--bg-card-soft)]  text-primary-dark',
+  'bg-[var(--bg-card-soft)]  text-primary-dark',
+  'bg-[var(--bg-card-soft)]  text-primary-dark',
 ]
 
 function TeammateCard({ teammate, index }) {
   const colour = AVATAR_COLOURS[index % AVATAR_COLOURS.length]
 
   return (
-    <div className="flex items-center gap-3 bg-cardSoft rounded-xl p-3 border border-border shadow-sm transition-colors hover:bg-[var(--bg-card-soft)]">
+    <div className="flex items-center gap-3 bg-[var(--bg-card-soft)] rounded-xl p-3  shadow-sm transition-colors hover:bg-[var(--bg-card-soft)]">
       <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm shrink-0 ${colour}`}>
         {initials(teammate.name)}
       </div>
@@ -377,7 +383,7 @@ function TeamRevealSection({ teamName, rationale, teammates }) {
           >
             <div className="flex items-center gap-3 text-left">
               <span className="text-sm font-bold text-foreground">Why was this team formed?</span>
-              <span className="text-[10px] uppercase tracking-wider text-primary bg-cardSoft border border-border/50 px-2 py-0.5 rounded-md font-bold">AI analysis</span>
+              <span className="text-[10px] uppercase tracking-wider text-primary bg-[var(--bg-card-soft)] /50 px-2 py-0.5 rounded-md font-bold">AI analysis</span>
             </div>
             {rationaleOpen
               ? <ChevronUp   size={18} className="text-muted shrink-0" />
@@ -419,7 +425,7 @@ function AwaitingCard() {
     <div className="app-card p-8 text-center mb-6 relative overflow-hidden group  flex flex-col justify-center h-full transition-all hover:-translate-y-1">
       <div className="absolute -right-8 -top-8 w-40 h-40 bg-gradient-to-br from-primary/10 to-transparent rounded-full blur-3xl group-hover:scale-125 transition-transform duration-700 pointer-events-none" />
       <div className="relative z-10 flex flex-col items-center">
-        <div className="w-16 h-16 rounded-2xl bg-cardSoft border border-border flex items-center justify-center mb-5 shadow-sm text-primary transition-transform group-hover:scale-105">
+        <div className="w-16 h-16 rounded-2xl bg-[var(--bg-card-soft)]  flex items-center justify-center mb-5 shadow-sm text-primary transition-transform group-hover:scale-105">
           <Clock size={28} />
         </div>
         <h3 className="text-xl font-black text-foreground mb-2">Team assignment pending</h3>
@@ -437,20 +443,20 @@ function YourMentorCard({ mentorData }) {
   const hasMentor = !!mentorData.mentor_name
 
   return (
-    <div className="app-card p-6 flex flex-col h-full">
-      <div className="flex items-center gap-3 mb-6">
-        <div className="w-12 h-12 rounded-2xl bg-cardSoft text-primary border border-border flex items-center justify-center shrink-0 shadow-sm transition-transform hover:scale-105">
+    <div className="section-blue p-6 flex flex-col h-full">
+      <div className="flex items-center gap-3 mb-4">
+        <div className="soft-icon-box" style={{ color: "var(--color-info)" }}>
           <UserCheck size={22} />
         </div>
         <div>
-          <h3 className="text-lg font-bold text-foreground">Your Mentor</h3>
+          <h3 className="text-lg font-bold" style={{ color: "var(--text-main)" }}>Your Mentor</h3>
           <p className="text-sm font-medium text-muted">Mentor Status</p>
         </div>
       </div>
 
       {hasMentor ? (
-        <div className="flex items-center gap-4 bg-cardSoft p-4 rounded-xl border border-border mt-auto">
-          <div className="w-14 h-14 rounded-full bg-card text-primary border border-border flex items-center justify-center font-black text-lg shrink-0 shadow-sm">
+        <div className="flex items-center gap-4 p-4 rounded-xl" style={{ backgroundColor: "var(--bg-card-soft)" }}>
+          <div className="w-14 h-14 rounded-full flex items-center justify-center font-black text-lg shrink-0" style={{ backgroundColor: "var(--bg-card)", color: "var(--color-primary)" }}>
             {initials(mentorData.mentor_name)}
           </div>
           <div className="min-w-0">
@@ -464,18 +470,18 @@ function YourMentorCard({ mentorData }) {
             {mentorData.expertise_areas?.length > 0 && (
               <div className="flex gap-1.5 mt-2 flex-wrap">
                 {mentorData.expertise_areas.map(a => (
-                  <span key={a} className="text-[11px] font-bold tracking-wide uppercase bg-cardSoft text-primary px-2.5 py-1 rounded-md border border-border/50">{a}</span>
+                  <span key={a} className="text-[11px] font-bold tracking-wide uppercase px-2.5 py-1 rounded-md soft-info">{a}</span>
                 ))}
               </div>
             )}
           </div>
         </div>
       ) : (
-        <div className="text-center py-8 bg-cardSoft rounded-xl border border-dashed mt-auto">
-          <div className="w-14 h-14 bg-card rounded-2xl flex items-center justify-center mx-auto mb-3 shadow-sm border border-border">
+        <div className="text-center py-6 rounded-xl" style={{ backgroundColor: "var(--bg-card-soft)" }}>
+          <div className="w-14 h-14 rounded-2xl flex items-center justify-center mx-auto mb-3 soft-icon-box">
             <span className="text-2xl">👨‍🏫</span>
           </div>
-          <h4 className="text-base font-bold text-foreground mb-1">Mentor assignment pending</h4>
+          <h4 className="text-base font-bold mb-1" style={{ color: "var(--text-main)" }}>Mentor assignment pending</h4>
           <p className="text-sm text-muted font-medium max-w-[220px] mx-auto leading-relaxed">A mentor will be assigned during the mentoring phase.</p>
         </div>
       )}
@@ -487,26 +493,26 @@ function NextMeetingCard({ mentorData }) {
   if (!mentorData) return null
 
   return (
-    <div className="app-card p-6 flex flex-col h-full">
-      <div className="flex items-center gap-3 mb-6">
-        <div className="w-12 h-12 rounded-2xl bg-info/10 text-info border border-border flex items-center justify-center shrink-0 shadow-sm transition-transform hover:scale-105">
+    <div className="section-purple p-6 flex flex-col h-full">
+      <div className="flex items-center gap-3 mb-4">
+        <div className="soft-icon-box" style={{ color: "var(--color-ai)" }}>
           <Video size={22} />
         </div>
         <div>
-          <h3 className="text-lg font-bold text-foreground">Next Mentor Meeting</h3>
+          <h3 className="text-lg font-bold" style={{ color: "var(--text-main)" }}>Next Mentor Meeting</h3>
           <p className="text-sm font-medium text-muted">Scheduled Sessions</p>
         </div>
       </div>
 
       {mentorData.next_meeting ? (
-        <div className="bg-cardSoft border border-border/50 rounded-xl p-5 shadow-sm mt-auto">
+        <div className="rounded-xl p-5" style={{ backgroundColor: "var(--bg-card-soft)" }}>
           <p className="text-base font-bold text-foreground">{mentorData.next_meeting.title}</p>
           <p className="text-sm text-primary mt-1 font-medium flex items-center gap-2">
             <CalendarDays size={14} />
             {new Date(mentorData.next_meeting.scheduled_at).toLocaleString()} · {mentorData.next_meeting.duration_minutes}min
           </p>
           {mentorData.next_meeting.agenda && (
-            <p className="text-sm text-foreground mt-2 font-medium bg-card/50 p-2.5 rounded-lg border border-border">
+            <p className="text-sm mt-2 font-medium p-2.5 rounded-lg" style={{ backgroundColor: "var(--bg-card)", color: "var(--text-main)" }}>
               <span className="font-bold">Agenda:</span> {mentorData.next_meeting.agenda}
             </p>
           )}
@@ -518,9 +524,9 @@ function NextMeetingCard({ mentorData }) {
           )}
         </div>
       ) : (
-        <div className="text-center py-8 bg-cardSoft rounded-xl border border-dashed mt-auto">
-          <div className="w-14 h-14 bg-card rounded-2xl flex items-center justify-center mx-auto mb-3 shadow-sm border border-border">
-            <CalendarDays size={20} className="text-muted" />
+        <div className="text-center py-6 rounded-xl" style={{ backgroundColor: "var(--bg-card-soft)" }}>
+          <div className="w-14 h-14 rounded-2xl flex items-center justify-center mx-auto mb-3 soft-icon-box">
+            <CalendarDays size={20} style={{ color: "var(--text-muted)" }} />
           </div>
           <h4 className="text-base font-bold text-foreground mb-1">No upcoming sessions</h4>
           <p className="text-sm text-muted font-medium max-w-[220px] mx-auto leading-relaxed">Your mentor hasn't scheduled any check-ins yet.</p>
@@ -541,10 +547,10 @@ function MentorFeedbackCard({ mentorData }) {
       </div>
       <div className="space-y-4">
         {mentorData.visible_feedback.slice(0, 3).map((fb, i) => (
-          <div key={fb.id || i} className="bg-cardSoft rounded-xl p-4 border border-border relative">
+          <div key={fb.id || i} className="rounded-xl p-4 relative" style={{ backgroundColor: "var(--bg-card-soft)" }}>
             <p className="text-sm text-foreground leading-relaxed font-medium">{fb.feedback_text}</p>
             {fb.progress_score != null && (
-              <div className="absolute top-4 right-4 bg-card text-primary text-[10px] font-black tracking-widest uppercase px-2 py-1 rounded-md border border-border shadow-sm">
+              <div className="absolute top-4 right-4 text-[10px] font-black tracking-widest uppercase px-2 py-1 rounded-md soft-info">
                 Score: {fb.progress_score}/10
               </div>
             )}
@@ -569,7 +575,7 @@ function MentorActionItemsCard({ mentorData }) {
       </div>
       <ul className="space-y-3">
         {mentorData.action_items.map((item, i) => (
-          <li key={i} className="flex items-start gap-3 bg-cardSoft p-3.5 rounded-xl border border-border">
+          <li key={i} className="flex items-start gap-3 p-3.5 rounded-xl" style={{ backgroundColor: "var(--bg-card-soft)" }}>
             <div className="mt-0.5 shrink-0 w-4 h-4 rounded bg-primary/15 flex items-center justify-center text-primary">
               <Check size={10} strokeWidth={4} />
             </div>
@@ -637,7 +643,7 @@ function ProjectSubmissionSection({ token }) {
   }
 
   return (
-    <div className="glass-card rounded-2xl border border-border p-6 mb-6">
+    <div className="glass-card rounded-2xl  p-6 mb-6">
        <div className="flex items-center gap-2 mb-4">
          <Send size={16} className="text-primary" />
          <h3 className="text-sm font-bold text-foreground">Submit Final Project (ZIP, max 50MB)</h3>
@@ -645,7 +651,7 @@ function ProjectSubmissionSection({ token }) {
 
        {/* Show existing submission info */}
        {existingSub && !showReplace ? (
-         <div className="bg-cardSoft border border-border rounded-xl p-4 shadow-sm">
+         <div className="bg-[var(--bg-card-soft)]  rounded-xl p-4 shadow-sm">
             <div className="flex items-center gap-2 mb-2">
               <CheckCircle size={18} className="text-primary" />
               <p className="text-sm font-bold text-foreground">Project Submitted</p>
@@ -669,7 +675,7 @@ function ProjectSubmissionSection({ token }) {
              <input
                type="file"
                accept=".zip"
-               className="flex-1 bg-background border border-border rounded-lg px-4 py-2 text-sm text-foreground focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary shadow-sm"
+               className="flex-1 bg-background  rounded-lg px-4 py-2 text-sm text-foreground focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary shadow-sm"
                onChange={e => { setFile(e.target.files[0]); setError(''); }}
              />
              <button
@@ -749,22 +755,22 @@ function PortalSkeleton() {
   return (
     <div className="max-w-lg mx-auto px-4 py-12">
       <div className="text-center mb-10">
-        <div className="h-3 w-32 bg-cardSoft rounded animate-pulse mx-auto mb-3" />
-        <div className="h-8 w-56 bg-cardSoft rounded animate-pulse mx-auto mb-2" />
-        <div className="h-3 w-40 bg-cardSoft rounded animate-pulse mx-auto" />
+        <div className="h-3 w-32 bg-[var(--bg-card-soft)] rounded animate-pulse mx-auto mb-3" />
+        <div className="h-8 w-56 bg-[var(--bg-card-soft)] rounded animate-pulse mx-auto mb-2" />
+        <div className="h-3 w-40 bg-[var(--bg-card-soft)] rounded animate-pulse mx-auto" />
       </div>
-      <div className="glass-card rounded-2xl border border-border p-6 mb-4">
-        <div className="h-4 w-32 bg-cardSoft rounded animate-pulse mb-5" />
+      <div className="glass-card rounded-2xl  p-6 mb-4">
+        <div className="h-4 w-32 bg-[var(--bg-card-soft)] rounded animate-pulse mb-5" />
         {[1,2,3,4].map(i => (
           <div key={i} className="flex items-center gap-4 mb-5">
-            <div className="w-8 h-8 rounded-full bg-cardSoft animate-pulse shrink-0" />
+            <div className="w-8 h-8 rounded-full bg-[var(--bg-card-soft)] animate-pulse shrink-0" />
             <div className="flex-1">
-              <div className="h-3 w-24 bg-cardSoft rounded animate-pulse" />
+              <div className="h-3 w-24 bg-[var(--bg-card-soft)] rounded animate-pulse" />
             </div>
           </div>
         ))}
       </div>
-      <div className="h-32 bg-cardSoft rounded-2xl animate-pulse" />
+      <div className="h-32 bg-[var(--bg-card-soft)] rounded-2xl animate-pulse" />
     </div>
   )
 }
@@ -836,7 +842,7 @@ function ProgressionInvitationSection({ participantId, currentStatus }) {
           <button
             disabled={mutation.isPending}
             onClick={() => mutation.mutate(false)}
-            className="flex-1 sm:flex-none text-xs border border-border bg-background hover:bg-surface text-foreground font-medium px-4 py-2.5 rounded-xl transition-all disabled:opacity-50 flex items-center justify-center gap-2"
+            className="flex-1 sm:flex-none text-xs  bg-background hover:bg-surface text-foreground font-medium px-4 py-2.5 rounded-xl transition-all disabled:opacity-50 flex items-center justify-center gap-2"
           >
             {mutation.isPending && mutation.variables === false ? '...' : 'Decline'}
           </button>
@@ -902,7 +908,7 @@ export default function ParticipantPortal() {
           <h2 className="text-lg font-bold text-foreground mb-1">No access token</h2>
           <p className="text-sm font-medium text-muted">
             Please use the secure participant link sent to your email.
-            It looks like <code className="text-xs bg-cardSoft text-foreground px-1 py-0.5 rounded">/participant?token=…</code>
+            It looks like <code className="text-xs bg-[var(--bg-card-soft)] text-foreground px-1 py-0.5 rounded">/participant?token=…</code>
           </p>
         </div>
       </div>
@@ -939,7 +945,7 @@ export default function ParticipantPortal() {
           <h2 className="text-lg font-bold text-foreground mb-1">Wrong portal</h2>
           <p className="text-sm font-medium text-muted">
             This link is for participants. Judges should visit{' '}
-            <code className="text-xs bg-cardSoft text-foreground px-1 py-0.5 rounded">/judge?token=…</code>
+            <code className="text-xs bg-[var(--bg-card-soft)] text-foreground px-1 py-0.5 rounded">/judge?token=…</code>
           </p>
         </div>
       </div>
