@@ -1405,7 +1405,6 @@ function ApprovalsTab() {
 // ── TAB 5: EVALUATORS ─────────────────────────────────────────────────────
 function EvaluatorsTab() {
   const qc = useQueryClient()
-  const { activeEvent } = useAuth()
   const [showForm, setShowForm] = useState(false)
   const [showAutoAssign, setShowAutoAssign] = useState(false)
   const [form, setForm] = useState({ first_name: '', last_name: '', email: '', expertise_areas: '', passed_out_institution: '' })
@@ -1504,35 +1503,25 @@ function EvaluatorsTab() {
 
   return (
     <>
-      <div className="max-w-7xl mx-auto pl-8 pt-8">
-        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
-          <div>
-            <h1 className="text-[28px] font-extrabold tracking-tight text-slate-950">
-              Evaluators
-            </h1>
-            <p className="mt-2 text-base font-semibold text-slate-500">
-              {activeEvent?.name || 'AI Hackathon'}
-            </p>
-          </div>
-          <div className="flex flex-wrap items-center gap-3">
-            <button onClick={() => evaluatorsApi.downloadTemplate()} className="inline-flex h-11 items-center gap-2 rounded-xl bg-white px-4 text-sm font-extrabold text-slate-800 shadow-sm ring-1 ring-slate-200 transition hover:bg-slate-50">
-              <FileText className="h-5 w-5 text-emerald-600" />
-              CSV Template
-            </button>
-            <button onClick={() => evaluatorsApi.downloadExport()} className="inline-flex h-11 items-center gap-2 rounded-xl bg-white px-4 text-sm font-extrabold text-blue-600 shadow-sm ring-1 ring-slate-200 transition hover:bg-blue-50">
-              <Download className="h-5 w-5" /> Export
-            </button>
-            <button onClick={() => setShowAutoAssign(true)} className="inline-flex h-11 items-center gap-2 rounded-xl bg-white px-4 text-sm font-extrabold text-purple-600 shadow-sm ring-1 ring-slate-200 transition hover:bg-purple-50">
-              <Wand2 className="h-5 w-5" /> Auto-assign
-            </button>
-            <button onClick={() => setShowForm((s) => !s)} className="inline-flex h-11 items-center gap-2 rounded-xl bg-blue-600 px-5 text-sm font-extrabold text-slate-50 shadow-[0_14px_26px_rgba(37,99,235,0.24)] transition hover:bg-blue-700">
-              <Plus className="h-5 w-5" /> Add Evaluator
-            </button>
-          </div>
+      <div className="space-y-8">
+        <div className="flex items-center justify-end gap-4">
+          <button onClick={() => evaluatorsApi.downloadTemplate()} className="inline-flex h-11 items-center gap-2 rounded-xl bg-white px-4 text-sm font-extrabold text-slate-800 shadow-sm ring-1 ring-slate-200 transition hover:bg-slate-50">
+            <FileText className="h-5 w-5 text-emerald-600" />
+            CSV Template
+          </button>
+          <button onClick={() => evaluatorsApi.downloadExport()} className="inline-flex h-11 items-center gap-2 rounded-xl bg-white px-4 text-sm font-extrabold text-blue-600 shadow-sm ring-1 ring-slate-200 transition hover:bg-blue-50">
+            <Download className="h-5 w-5" /> Export
+          </button>
+          <button onClick={() => setShowAutoAssign(true)} className="inline-flex h-11 items-center gap-2 rounded-xl bg-white px-4 text-sm font-extrabold text-purple-600 shadow-sm ring-1 ring-slate-200 transition hover:bg-purple-50">
+            <Wand2 className="h-5 w-5" /> Auto-assign
+          </button>
+          <button onClick={() => setShowForm((s) => !s)} className="inline-flex h-11 items-center gap-2 rounded-xl bg-blue-600 px-5 text-sm font-extrabold text-white shadow-[0_14px_26px_rgba(37,99,235,0.24)] transition hover:bg-blue-700">
+            <Plus className="h-5 w-5" /> Add Evaluator
+          </button>
         </div>
 
         {/* Evaluation audit settings banner */}
-        <div className="mt-8 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6 rounded-[18px] bg-emerald-50/80 px-6 py-5 shadow-[0_12px_32px_rgba(15,23,42,0.05)] ring-1 ring-emerald-300/80 border-l-4 border-emerald-500">
+        <section className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6 rounded-[18px] bg-emerald-50/80 px-6 py-5 shadow-[0_12px_32px_rgba(15,23,42,0.05)] ring-1 ring-emerald-300/80 border-l-4 border-emerald-500">
           <div className="flex items-center gap-4">
             <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-emerald-100 text-emerald-600">
               <ShieldCheck size={28} />
@@ -1546,7 +1535,7 @@ function EvaluatorsTab() {
             {auditMutation.isPending ? <Loader2 className="h-5 w-5 animate-spin text-emerald-600" /> : <ShieldCheck className="h-5 w-5 text-emerald-600" />}
             Run audit
           </button>
-        </div>
+        </section>
         {auditMutation.isSuccess && (
           <div className="mt-4 p-4 rounded-xl bg-emerald-50 border border-emerald-200 text-sm text-emerald-700 font-semibold shadow-sm">
             Audit completed. Issues found: {auditMutation.data?.issues?.length ?? auditMutation.data?.issue_count ?? 0}
@@ -1559,7 +1548,7 @@ function EvaluatorsTab() {
         )}
 
         {/* Import CSV panel */}
-        <div className="mt-8 rounded-[20px] bg-white p-7 shadow-[0_14px_38px_rgba(15,23,42,0.06)] ring-1 ring-slate-200/80">
+        <section className="rounded-[20px] bg-white p-7 shadow-[0_14px_38px_rgba(15,23,42,0.06)] ring-1 ring-slate-200/80">
           <div className="flex flex-wrap items-center gap-6">
             <div className="flex items-center gap-3">
               <p className="text-lg font-extrabold text-slate-950">Choose File</p>
@@ -1608,11 +1597,11 @@ function EvaluatorsTab() {
               )}
             </div>
           )}
-        </div>
+        </section>
 
         {/* Add form */}
         {showForm && (
-          <div className="mt-8 rounded-[20px] bg-white p-7 shadow-[0_14px_38px_rgba(15,23,42,0.06)] ring-1 ring-slate-200/80">
+          <section className="rounded-[20px] bg-white p-7 shadow-[0_14px_38px_rgba(15,23,42,0.06)] ring-1 ring-slate-200/80">
             <p className="text-lg font-extrabold text-slate-950 mb-5">New Evaluator</p>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-5">
               {fieldFor('first_name', 'First name', 'text', 'Dr. Meena')}
@@ -1633,12 +1622,12 @@ function EvaluatorsTab() {
               </button>
             </div>
             {createMutation.isError && <p className="mt-4 text-sm font-semibold text-red-600">{createMutation.error?.message}</p>}
-          </div>
+          </section>
         )}
 
         {/* Empty state center */}
         {!isLoading && (!data?.evaluators?.length) && (
-          <div className="mt-8 flex min-h-[220px] flex-col items-center justify-center rounded-[20px] bg-white px-8 py-12 text-center shadow-[0_14px_38px_rgba(15,23,42,0.06)] ring-1 ring-slate-200/80 mb-8">
+          <section className="flex min-h-[220px] flex-col items-center justify-center rounded-[20px] bg-white px-8 py-12 text-center shadow-[0_14px_38px_rgba(15,23,42,0.06)] ring-1 ring-slate-200/80">
             <div className="relative h-16 w-16 text-slate-300">
               <ClipboardList size={64} strokeWidth={1.5} />
               <svg className="absolute -top-3 -right-3 h-6 w-6 text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -1657,7 +1646,7 @@ function EvaluatorsTab() {
             <p className="mt-2 text-sm font-semibold text-slate-500">
               Add evaluators manually or import from CSV to get started.
             </p>
-          </div>
+          </section>
         )}
 
         {isLoading && (
@@ -1668,7 +1657,7 @@ function EvaluatorsTab() {
 
         {/* Evaluator list */}
         {!isLoading && data?.evaluators?.length > 0 && (
-          <div className="mt-8 overflow-hidden rounded-[20px] bg-white shadow-[0_14px_38px_rgba(15,23,42,0.06)] ring-1 ring-slate-200/80 mb-8">
+          <section className="overflow-hidden rounded-[20px] bg-white shadow-[0_14px_38px_rgba(15,23,42,0.06)] ring-1 ring-slate-200/80">
             {data.evaluators.map((ev) => (
               <div key={ev.id} className="border-b border-slate-100 last:border-b-0 hover:bg-slate-50/80 transition">
                 <div className="flex flex-wrap items-center gap-4 px-6 py-5">
@@ -1774,7 +1763,7 @@ function EvaluatorsTab() {
                 )}
               </div>
             ))}
-          </div>
+          </section>
         )}
       </div>
 
