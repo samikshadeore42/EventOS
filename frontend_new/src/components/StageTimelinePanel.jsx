@@ -292,14 +292,7 @@ export default function StageTimelinePanel({ eventStatus }) {
   return (
     <div className="space-y-6">
       {/* Validation banner */}
-      <div className={`app-card p-4 flex items-start gap-3 ${
-        isValid ? '!border-l-3' : ''
-      }`}
-        style={{
-          borderLeftWidth: '3px',
-          borderLeftColor: isValid ? 'var(--color-success)' : 'var(--color-primary)',
-        }}
-      >
+      <div className={`p-4 flex items-start gap-3 ${isValid ? 'section-green' : 'section-yellow'}`}>
         {isValid
           ? <ShieldCheck className="w-5 h-5 mt-0.5" style={{ color: 'var(--color-success)' }} />
           : <AlertTriangle className="w-5 h-5 mt-0.5" style={{ color: 'var(--color-primary)' }} />}
