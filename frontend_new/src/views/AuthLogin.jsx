@@ -58,42 +58,42 @@ export default function AuthLogin() {
   };
 
   return (
-    <div className="min-h-screen bg-surface flex flex-col justify-center py-12 sm:px-6 lg:px-8 relative overflow-hidden text-foreground">
+    <div className="min-h-screen flex flex-col justify-center py-12 sm:px-6 lg:px-8 relative overflow-hidden text-foreground">
       <div className="absolute inset-0 bg-[url('data:image/svg+xml,%3Csvg width=\\'60\\' height=\\'60\\' viewBox=\\'0 0 60 60\\' xmlns=\\'http://www.w3.org/2000/svg\\'%3E%3Cg fill=\\'none\\' fill-rule=\\'evenodd\\'%3E%3Cg fill=\\'%230f172a\\' fill-opacity=\\'0.03\\'%3E%3Cpath d=\\'M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z\\'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E')] pointer-events-none opacity-50 z-0"></div>
-      
+
       <div className="sm:mx-auto sm:w-full sm:max-w-md z-10">
-        <div className="flex justify-center text-amber-600 dark:text-amber-400">
+        <div className="flex justify-center shrink-0">
           <EventOSLogo size={64} />
         </div>
-        <h2 className="mt-4 text-center text-3xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-amber-600 to-orange-500">
+        <h2 className="mt-4 text-center text-3xl font-extrabold text-foreground">
           Sign in to EventOS
         </h2>
       </div>
 
       <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md z-10">
-        <div className="bg-white/80 dark:bg-slate-900/80 py-8 px-4 shadow-sm backdrop-blur-xl border border-slate-200/50 dark:border-slate-700/50 sm:rounded-2xl sm:px-10">
+        <div className="app-card py-8 px-4 sm:rounded-2xl sm:px-10">
           <form className="space-y-6" onSubmit={handleLogin}>
             {error && (
-              <div className="bg-amber-50 dark:bg-amber-900/30 border border-teal-200 dark:border-teal-800 text-amber-600 dark:text-amber-400 p-3 rounded-lg text-sm text-center">
+              <div className="bg-cardSoft border border-border shrink-0 p-3 rounded-lg text-sm text-center">
                 {error}
               </div>
             )}
 
             {verificationRequired && (
-              <div className="bg-amber-50 dark:bg-amber-900/30 border border-amber-200 dark:border-amber-800 text-amber-700 dark:text-amber-300 p-3 rounded-lg text-sm text-center">
+              <div className="bg-cardSoft border border-border text-primary p-3 rounded-lg text-sm text-center">
                 <p className="font-medium mb-1">Email verification required</p>
                 <p className="mb-2">Please check your inbox and verify your email before signing in.</p>
                 {resendSuccess ? (
                   <p className="text-green-600 font-medium">Verification email sent!</p>
                 ) : (
                   <button type="button" onClick={handleResendVerification}
-                    className="text-amber-600 dark:text-amber-400 hover:text-amber-500 font-medium underline">
+                    className="shrink-0 hover:text-warning font-medium underline">
                     Resend verification email
                   </button>
                 )}
               </div>
             )}
-            
+
             <div>
               <label className="block text-sm font-medium text-foreground">Email address</label>
               <div className="mt-1 relative rounded-md shadow-sm">
@@ -105,7 +105,7 @@ export default function AuthLogin() {
                   required
                   value={formData.email}
                   onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                  className="block w-full pl-10 bg-surface text-foreground placeholder-slate-400 border border-border rounded-lg focus:ring-amber-500 focus:border-amber-500 sm:text-sm p-2.5"
+                  className="block w-full pl-10 bg-surface text-foreground placeholder-muted border border-border rounded-lg focus:ring-1 focus:ring-primary focus:border-primary sm:text-sm p-2.5"
                   placeholder="you@example.com (or username)"
                 />
               </div>
@@ -122,7 +122,7 @@ export default function AuthLogin() {
                   required
                   value={formData.password}
                   onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                  className="block w-full pl-10 bg-surface text-foreground placeholder-slate-400 border border-border rounded-lg focus:ring-amber-500 focus:border-amber-500 sm:text-sm p-2.5"
+                  className="block w-full pl-10 bg-surface text-foreground placeholder-muted border border-border rounded-lg focus:ring-1 focus:ring-primary focus:border-primary sm:text-sm p-2.5"
                   placeholder="••••••••"
                 />
               </div>
@@ -130,7 +130,7 @@ export default function AuthLogin() {
 
             <div className="flex items-center justify-between">
               <div className="text-sm">
-                <Link to="/auth/forgot-password" className="font-medium text-amber-600 dark:text-amber-400 hover:text-amber-500">
+                <Link to="/auth/forgot-password" className="font-medium shrink-0 hover:text-warning">
                   Forgot your password?
                 </Link>
               </div>
@@ -139,7 +139,7 @@ export default function AuthLogin() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full flex justify-center py-2.5 px-4 border border-amber-400/20 rounded-lg shadow-lg shadow-amber-500/25 text-sm font-medium text-white bg-amber-600 hover:bg-amber-500 focus:outline-none transition-all disabled:opacity-100 disabled:bg-amber-100 dark:disabled:bg-amber-900/50 disabled:text-amber-400 dark:disabled:text-amber-600 disabled:border-transparent disabled:shadow-none disabled:cursor-not-allowed"
+              className="w-full flex justify-center py-2.5 px-4 app-btn-primary w-full !py-2.5"
             >
               {loading ? <Loader2 className="animate-spin h-5 w-5" /> : 'Sign in'}
             </button>
@@ -147,7 +147,7 @@ export default function AuthLogin() {
 
           <div className="mt-6 text-center text-sm">
             <span className="text-muted">Don't have an organization? </span>
-            <Link to="/auth/register" className="font-medium text-amber-600 dark:text-amber-400 hover:text-amber-500">
+            <Link to="/auth/register" className="font-medium shrink-0 hover:text-warning">
               Create one
             </Link>
           </div>
