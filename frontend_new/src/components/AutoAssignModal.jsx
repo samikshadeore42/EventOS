@@ -46,19 +46,19 @@ export default function AutoAssignModal({
           animate={{ opacity: 1, scale: 1 }}
           exit={{ opacity: 0, scale: 0.95 }}
           transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-          className="bg-white dark:bg-slate-900 rounded-[20px] border border-white/10 shadow-2xl w-full max-w-2xl max-h-full flex flex-col"
+          className="bg-card rounded-[20px] border border-white/10 shadow-2xl w-full max-w-2xl max-h-full flex flex-col"
         >
           {/* Header */}
           <div className="flex items-center justify-between px-6 py-4 border-b border-border">
             <div className="flex items-center gap-2">
-              <Wand2 size={20} className="text-teal-600 dark:text-teal-400" />
+              <Wand2 size={20} className="text-primary" />
               <h3 className="text-lg font-bold text-foreground">
                 Auto-assign {entityLabel}s
               </h3>
             </div>
             <button
               onClick={onClose}
-              className="w-10 h-10 rounded-full flex items-center justify-center bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 transition-colors focus:outline-none focus:ring-2 focus:ring-teal-500"
+              className="w-10 h-10 rounded-full flex items-center justify-center bg-cardSoft hover:bg-cardSoft dark:hover:bg-cardSoft text-slate-700 dark:text-muted transition-colors focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary"
             >
               <X size={20} />
             </button>
@@ -74,7 +74,7 @@ export default function AutoAssignModal({
               <button
                 onClick={() => proposeMutation.mutate()}
                 disabled={proposeMutation.isPending}
-                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg bg-teal-600 text-white text-sm font-semibold hover:bg-teal-700 disabled:opacity-100 disabled:bg-teal-100 dark:disabled:bg-teal-900/50 disabled:text-teal-400 dark:disabled:text-teal-600 disabled:border-transparent disabled:shadow-none disabled:cursor-not-allowed"
+                className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg app-btn-primary text-sm font-semibold hover:bg-primary-dark disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {proposeMutation.isPending
                   ? <Loader2 size={16} className="animate-spin" />
@@ -82,7 +82,7 @@ export default function AutoAssignModal({
                 Generate proposal
               </button>
               {proposeMutation.isError && (
-                <p className="mt-3 text-sm text-teal-600 dark:text-teal-400">{proposeMutation.error?.message}</p>
+                <p className="mt-3 text-sm text-primary">{proposeMutation.error?.message}</p>
               )}
             </div>
           )}
@@ -109,11 +109,11 @@ export default function AutoAssignModal({
 
               {/* Relaxed constraints — always shown explicitly, never hidden */}
               {proposal.relaxed_constraints?.length > 0 && (
-                <div className="rounded-lg border border-amber-200 dark:border-amber-800 bg-amber-50 dark:bg-amber-900/30 p-3">
-                  <p className="text-sm font-semibold text-amber-800 dark:text-amber-200 flex items-center gap-1.5 mb-2">
+                <div className="rounded-lg border border-border bg-cardSoft p-3">
+                  <p className="text-sm font-semibold text-primary-dark dark:text-amber-200 flex items-center gap-1.5 mb-2">
                     <AlertTriangle size={14} /> {proposal.relaxed_constraints.length} constraint(s) relaxed
                   </p>
-                  <ul className="text-xs text-amber-700 dark:text-amber-300 space-y-1.5">
+                  <ul className="text-xs text-primary space-y-1.5">
                     {proposal.relaxed_constraints.map((rc, i) => (
                       <li key={i}>
                         <span className="font-semibold">{rc.team_name}</span> ← {rc.entity_name}: {rc.detail}
@@ -125,11 +125,11 @@ export default function AutoAssignModal({
 
               {/* Unassigned teams */}
               {proposal.unassigned_teams?.length > 0 && (
-                <div className="rounded-lg border border-teal-200 dark:border-teal-800 bg-teal-50 dark:bg-teal-900/30 p-3">
-                  <p className="text-sm font-semibold text-teal-700 dark:text-teal-300 mb-1.5">
+                <div className="rounded-lg border border-border bg-cardSoft p-3">
+                  <p className="text-sm font-semibold text-primary mb-1.5">
                     These teams need manual assignment:
                   </p>
-                  <ul className="text-xs text-teal-600 dark:text-teal-400 space-y-1">
+                  <ul className="text-xs text-primary space-y-1">
                     {proposal.unassigned_teams.map((t) => (
                       <li key={t.team_id}>{t.team_name} — {t.reason}</li>
                     ))}
@@ -149,7 +149,7 @@ export default function AutoAssignModal({
                       </span>
                     </div>
                     {kind === 'mentor' && a.matched_skills?.length > 0 && (
-                      <span className="text-xs text-teal-600 dark:text-teal-400 font-medium">
+                      <span className="text-xs text-primary font-medium">
                         {a.matched_skills.join(', ')}
                       </span>
                     )}
@@ -161,7 +161,7 @@ export default function AutoAssignModal({
               </div>
 
               {commitMutation.isError && (
-                <p className="text-sm text-teal-600 dark:text-teal-400">{commitMutation.error?.message}</p>
+                <p className="text-sm text-primary">{commitMutation.error?.message}</p>
               )}
             </div>
           )}
@@ -179,7 +179,7 @@ export default function AutoAssignModal({
             <button
               onClick={() => commitMutation.mutate()}
               disabled={commitMutation.isPending || proposal.assignments.length === 0}
-              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg bg-emerald-600 text-white text-sm font-semibold hover:bg-emerald-700 disabled:opacity-100 disabled:bg-teal-100 dark:disabled:bg-teal-900/50 disabled:text-teal-400 dark:disabled:text-teal-600 disabled:border-transparent disabled:shadow-none disabled:cursor-not-allowed"
+              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg bg-emerald-600 text-white text-sm font-semibold hover:bg-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {commitMutation.isPending
                 ? <Loader2 size={16} className="animate-spin" />

@@ -40,7 +40,7 @@ function ChatBubble({ role, text }) {
     <div className={`flex items-end gap-2 ${isUser ? 'justify-end' : 'justify-start'}`}>
       {/* AI avatar */}
       {!isUser && (
-        <div className="w-7 h-7 rounded-full bg-gradient-to-br from-teal-500 to-teal-600 flex items-center justify-center flex-shrink-0 shadow-sm">
+        <div className="w-7 h-7 rounded-full bg-gradient-to-br from-primary to-primary-dark flex items-center justify-center flex-shrink-0 shadow-sm">
           <Bot size={14} className="text-white" />
         </div>
       )}
@@ -48,8 +48,8 @@ function ChatBubble({ role, text }) {
       <div className={`
         max-w-[78%] px-4 py-2.5 rounded-2xl text-sm leading-relaxed shadow-sm
         ${isUser
-          ? 'bg-gradient-to-br from-teal-600 to-teal-600 text-white rounded-br-sm'
-          : 'bg-white/80 dark:bg-slate-900/80 backdrop-blur text-foreground border border-border rounded-bl-sm'
+          ? 'bg-gradient-to-br from-primary to-teal-600 text-white rounded-br-sm'
+          : 'bg-card backdrop-blur text-foreground border border-border rounded-bl-sm'
         }
       `}>
         {text}
@@ -57,7 +57,7 @@ function ChatBubble({ role, text }) {
 
       {/* User avatar */}
       {isUser && (
-        <div className="w-7 h-7 rounded-full bg-slate-200 dark:bg-slate-700 flex items-center justify-center flex-shrink-0 shadow-sm">
+        <div className="w-7 h-7 rounded-full bg-cardSoft flex items-center justify-center flex-shrink-0 shadow-sm">
           <User size={14} className="text-muted" />
         </div>
       )}
@@ -68,14 +68,14 @@ function ChatBubble({ role, text }) {
 function TypingIndicator() {
   return (
     <div className="flex items-end gap-2 justify-start">
-      <div className="w-7 h-7 rounded-full bg-gradient-to-br from-teal-500 to-teal-600 flex items-center justify-center flex-shrink-0 shadow-sm">
+      <div className="w-7 h-7 rounded-full bg-gradient-to-br from-primary to-primary-dark flex items-center justify-center flex-shrink-0 shadow-sm">
         <Bot size={14} className="text-white" />
       </div>
-      <div className="bg-white/80 dark:bg-slate-900/80 backdrop-blur border border-border px-4 py-3 rounded-2xl rounded-bl-sm shadow-sm">
+      <div className="bg-card backdrop-blur border border-border px-4 py-3 rounded-2xl rounded-bl-sm shadow-sm">
         <span className="flex gap-1 items-center">
-          <span className="w-1.5 h-1.5 bg-teal-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
-          <span className="w-1.5 h-1.5 bg-teal-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
-          <span className="w-1.5 h-1.5 bg-teal-400 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
+          <span className="w-1.5 h-1.5 bg-primary-light rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
+          <span className="w-1.5 h-1.5 bg-primary-light rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
+          <span className="w-1.5 h-1.5 bg-primary-light rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
         </span>
       </div>
     </div>
@@ -141,7 +141,7 @@ function ConfigSummaryCard({ config, onConfirm, saving, saved }) {
 
       {/* Error */}
       {innerError && (
-        <div className="flex items-center gap-2 text-teal-600 dark:text-teal-400 text-sm mb-4 bg-teal-50 dark:bg-teal-900/30 border border-teal-200 dark:border-teal-800 rounded-lg px-3 py-2">
+        <div className="flex items-center gap-2 text-primary text-sm mb-4 bg-cardSoft border border-border rounded-lg px-3 py-2">
           <AlertCircle size={14} />
           {innerError}
         </div>
@@ -157,7 +157,7 @@ function ConfigSummaryCard({ config, onConfirm, saving, saved }) {
         <button
           onClick={handleConfirm}
           disabled={saving}
-          className="w-full btn-primary rounded-xl px-4 py-3 font-semibold text-sm flex items-center justify-center gap-2 disabled:opacity-100 disabled:bg-teal-100 dark:disabled:bg-teal-900/50 disabled:text-teal-400 dark:disabled:text-teal-600 disabled:border-transparent disabled:shadow-none disabled:cursor-not-allowed disabled:cursor-not-allowed"
+          className="w-full btn-primary rounded-xl px-4 py-3 font-semibold text-sm flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed disabled:cursor-not-allowed"
         >
           {saving
             ? <><Loader2 size={15} className="animate-spin" /> Creating event…</>
@@ -268,7 +268,7 @@ export default function ConfigureEvent() {
         {/* Intro */}
         <div className="mb-6">
           <h2 className="text-xl font-bold text-foreground mb-1 flex items-center gap-2">
-            <Sparkles size={20} className="text-teal-500" />
+            <Sparkles size={20} className="text-primary" />
             Configure Your Event with AI
           </h2>
           <p className="text-sm text-muted">
@@ -295,7 +295,7 @@ export default function ConfigureEvent() {
           <div className="border-t border-border p-3 flex gap-2">
             <input
               ref={inputRef}
-              className="flex-1 bg-background border border-border text-foreground placeholder-slate-400 rounded-xl px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-teal-400 focus:border-teal-400 transition-all"
+              className="flex-1 bg-background border border-border text-foreground placeholder-muted rounded-xl px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-teal-400 focus:border-primary transition-all"
               placeholder={config ? 'Configuration complete ✓' : 'Describe your event…'}
               value={input}
               onChange={e => setInput(e.target.value)}
@@ -318,7 +318,7 @@ export default function ConfigureEvent() {
 
         {/* Chat-level error */}
         {chatError && (
-          <div className="flex items-center gap-2 text-teal-600 dark:text-teal-400 text-sm mt-3 bg-teal-50 dark:bg-teal-900/30 border border-teal-200 dark:border-teal-800 rounded-xl px-4 py-3">
+          <div className="flex items-center gap-2 text-primary text-sm mt-3 bg-cardSoft border border-border rounded-xl px-4 py-3">
             <AlertCircle size={14} className="flex-shrink-0" />
             {chatError}
           </div>

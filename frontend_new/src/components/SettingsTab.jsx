@@ -8,8 +8,8 @@ function Badge({ children, colour = 'gray' }) {
   const cls = {
     green:  'bg-green-50 border border-green-200 text-green-700',
     red:    'bg-rose-50 border border-rose-200 text-rose-700',
-    amber:  'bg-amber-50 border border-amber-200 text-amber-700',
-    teal:   'bg-teal-50 border border-teal-200 text-teal-700',
+    amber:  'bg-cardSoft border border-border text-primary-dark',
+    teal:   'bg-cardSoft border border-border text-primary-dark',
     gray:   'bg-surface border border-border text-foreground',
   }[colour] ?? 'bg-surface border border-border text-foreground'
   return (
@@ -20,13 +20,13 @@ function Badge({ children, colour = 'gray' }) {
 }
 
 function SectionTitle({ children }) {
-  return <h2 className="text-lg font-bold text-transparent bg-clip-text bg-gradient-to-r from-teal-600 to-teal-600 font-black mb-4">{children}</h2>
+  return <h2 className="text-lg font-bold text-transparent bg-clip-text bg-gradient-to-r from-primary to-teal-600 font-black mb-4">{children}</h2>
 }
 
 export default function SettingsTab() {
   const qc = useQueryClient()
   const { activeOrganization } = useAuth()
-  
+
   const orgId = activeOrganization?.id
 
   // Data Queries
@@ -110,24 +110,24 @@ export default function SettingsTab() {
         <div className="max-w-xl space-y-4">
           <div>
             <label className="block text-xs font-medium text-muted mb-1">Organization Name</label>
-            <input 
-              value={orgName} 
+            <input
+              value={orgName}
               onChange={e => setOrgName(e.target.value)}
-              className="w-full border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500" 
+              className="w-full border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary"
             />
           </div>
           <div>
             <label className="block text-xs font-medium text-muted mb-1">Description</label>
-            <textarea 
-              value={orgDesc} 
+            <textarea
+              value={orgDesc}
               onChange={e => setOrgDesc(e.target.value)}
-              className="w-full border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 min-h-[80px]" 
+              className="w-full border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary min-h-[80px]"
             />
           </div>
-          <button 
+          <button
             onClick={() => updateOrgMutation.mutate({ name: orgName, description: orgDesc })}
             disabled={updateOrgMutation.isPending || (orgName === activeOrganization?.name && orgDesc === (activeOrganization?.description || ''))}
-            className="flex items-center gap-1.5 text-sm px-4 py-2 rounded-lg btn-primary text-white hover:bg-teal-700 disabled:opacity-100 disabled:bg-teal-100 dark:disabled:bg-teal-900/50 disabled:text-teal-400 dark:disabled:text-teal-600 disabled:border-transparent disabled:shadow-none disabled:cursor-not-allowed"
+            className="flex items-center gap-1.5 text-sm px-4 py-2 rounded-lg btn-primary text-white hover:bg-primary-dark disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {updateOrgMutation.isPending ? <Loader2 size={14} className="animate-spin"/> : <Save size={14} />}
             Save Changes
@@ -199,7 +199,7 @@ export default function SettingsTab() {
                             setMemberStatusMutation.mutate({ memberId: m.membership_id, status: 'suspended' })
                           }
                         }}
-                        className="text-xs text-amber-600 dark:text-amber-400 hover:text-amber-800"
+                        className="text-xs text-primary hover:text-primary-dark"
                       >
                         Suspend
                       </button>
@@ -223,7 +223,7 @@ export default function SettingsTab() {
                             setMemberStatusMutation.mutate({ memberId: m.membership_id, status: 'revoked' })
                           }
                         }}
-                        className="text-xs text-teal-500 hover:text-teal-700"
+                        className="text-xs text-primary hover:text-primary-dark"
                       >
                         Revoke
                       </button>
@@ -240,9 +240,9 @@ export default function SettingsTab() {
       <div className="glass-card rounded-xl border border-border p-5">
         <div className="flex items-center justify-between mb-4">
           <SectionTitle><Mail size={18} className="inline mr-2" /> Pending Invitations</SectionTitle>
-          <button 
+          <button
             onClick={() => setShowInviteForm(!showInviteForm)}
-            className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg border border-teal-200 dark:border-teal-800 text-teal-700 dark:text-teal-300 bg-teal-50 dark:bg-teal-900/30 hover:bg-teal-100 font-medium"
+            className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg border border-border text-primary bg-cardSoft hover:bg-cardSoft font-medium"
           >
             {showInviteForm ? <X size={14} /> : <Plus size={14} />}
             {showInviteForm ? "Cancel" : "Invite Member"}
@@ -253,29 +253,29 @@ export default function SettingsTab() {
           <div className="mb-4 p-4 bg-surface border border-border rounded-lg flex items-end gap-4">
             <div className="flex-1">
               <label className="block text-xs font-medium text-muted mb-1">Email Address</label>
-              <input 
-                type="email" 
-                value={inviteEmail} 
+              <input
+                type="email"
+                value={inviteEmail}
                 onChange={e => setInviteEmail(e.target.value)}
                 placeholder="colleague@example.com"
-                className="w-full border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500" 
+                className="w-full border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary"
               />
             </div>
             <div className="w-48">
               <label className="block text-xs font-medium text-muted mb-1">Role</label>
-              <select 
-                value={inviteRole} 
+              <select
+                value={inviteRole}
                 onChange={e => setInviteRole(e.target.value)}
-                className="w-full border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 bg-background"
+                className="w-full border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary bg-background"
               >
                 <option value="admin">Admin</option>
                 <option value="member">Member</option>
               </select>
             </div>
-            <button 
+            <button
               onClick={() => inviteMutation.mutate({ email: inviteEmail, role: inviteRole })}
               disabled={inviteMutation.isPending || !inviteEmail}
-              className="flex items-center gap-1.5 text-sm px-4 py-2 rounded-lg bg-teal-600 text-white hover:bg-teal-700 disabled:opacity-100 disabled:bg-teal-100 dark:disabled:bg-teal-900/50 disabled:text-teal-400 dark:disabled:text-teal-600 disabled:border-transparent disabled:shadow-none disabled:cursor-not-allowed h-[38px]"
+              className="flex items-center gap-1.5 text-sm px-4 py-2 rounded-lg app-btn-primary disabled:opacity-50 disabled:cursor-not-allowed h-[38px]"
             >
               {inviteMutation.isPending ? <Loader2 size={14} className="animate-spin" /> : <Mail size={14} />}
               Send Invite
@@ -306,11 +306,11 @@ export default function SettingsTab() {
                     <Badge colour={inv.status === 'pending' ? 'amber' : 'gray'}>{inv.status}</Badge>
                   </td>
                   <td className="px-4 py-3 text-right">
-                    <button 
+                    <button
                       onClick={() => {
                         if(window.confirm('Revoke invitation?')) revokeMutation.mutate(inv.id)
                       }}
-                      className="text-xs text-teal-500 hover:text-teal-700"
+                      className="text-xs text-primary hover:text-primary-dark"
                     >
                       Revoke
                     </button>

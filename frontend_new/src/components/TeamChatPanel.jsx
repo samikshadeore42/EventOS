@@ -22,7 +22,7 @@ function formatTime(iso) {
 }
 
 export default function TeamChatPanel({
-  eventId, teamId, token, kind, title, accentClass = 'bg-teal-600 hover:bg-teal-700',
+  eventId, teamId, token, kind, title, accentClass = 'bg-primary hover:bg-primary-dark',
   currentSenderId, currentSenderRole,
   inline = false,
 }) {
@@ -74,7 +74,7 @@ export default function TeamChatPanel({
         {open ? <X size={18} /> : <MessageCircle size={18} />}
         <span className="hidden sm:inline">{title}</span>
         {!open && unseenCount > 0 && (
-          <span className="absolute -top-1 -right-1 min-w-[20px] h-5 px-1 flex items-center justify-center text-[11px] font-bold bg-teal-500 rounded-full">
+          <span className="absolute -top-1 -right-1 min-w-[20px] h-5 px-1 flex items-center justify-center text-[11px] font-bold bg-cardSoft0 rounded-full">
             {unseenCount > 9 ? '9+' : unseenCount}
           </span>
         )}
@@ -102,17 +102,17 @@ export default function TeamChatPanel({
             </div>
           )}
           {inline && !isConnected && (
-             <div className="relative z-10 bg-teal-50 dark:bg-teal-900/20 px-4 py-2 border-b border-teal-500/20 text-[11px] font-medium text-teal-700 dark:text-teal-400 text-center">
+             <div className="relative z-10 bg-cardSoft dark:bg-teal-900/20 px-4 py-2 border-b border-primary/20 text-[11px] font-medium text-primary-dark dark:text-primary-light text-center">
                 {connectionState === 'connecting' ? 'Connecting…' : 'Reconnecting…'}
              </div>
           )}
 
           <div className="relative flex-1 overflow-y-auto px-3 py-3 space-y-2 bg-background">
             {/* Chat background pattern */}
-            <div className="absolute inset-0 bg-teal-500 opacity-[0.04] dark:opacity-[0.02] pointer-events-none" style={{ WebkitMaskImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z' fill='black'/%3E%3C/svg%3E")`, maskImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z' fill='black'/%3E%3C/svg%3E")` }}></div>
+            <div className="absolute inset-0 bg-cardSoft0 opacity-[0.04] dark:opacity-[0.02] pointer-events-none" style={{ WebkitMaskImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z' fill='black'/%3E%3C/svg%3E")`, maskImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z' fill='black'/%3E%3C/svg%3E")` }}></div>
 
             {historyError && (
-              <p className="relative z-10 text-xs text-teal-500 flex items-center gap-1.5">
+              <p className="relative z-10 text-xs text-primary flex items-center gap-1.5">
                 <AlertTriangle size={12} /> Couldn't load history: {historyError}
               </p>
             )}
@@ -133,7 +133,7 @@ export default function TeamChatPanel({
                   )}
                   <div
                     className={`px-3 py-2 rounded-2xl text-sm leading-relaxed shadow-sm ${
-                      isMine ? 'bg-teal-600 text-white rounded-br-sm' : 'bg-surface border border-border text-foreground rounded-bl-sm'
+                      isMine ? 'app-btn-primary rounded-br-sm' : 'bg-surface border border-border text-foreground rounded-bl-sm'
                     }`}
                   >
                     {m.body}
@@ -168,6 +168,6 @@ export default function TeamChatPanel({
   )
 
   if (inline) return content
-  
+
   return typeof document !== 'undefined' ? createPortal(content, document.body) : content
 }

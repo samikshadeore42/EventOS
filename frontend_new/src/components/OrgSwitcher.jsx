@@ -55,7 +55,7 @@ export default function OrgSwitcher() {
             }}
             className="flex items-center gap-2 text-sm px-3 py-1.5 rounded-lg border border-border bg-background hover:bg-surface transition-colors text-foreground"
           >
-            <CalendarDays size={14} className="text-teal-500" />
+            <CalendarDays size={14} className="text-primary" />
             <span className="max-w-[180px] truncate font-medium">
               {activeEvent?.name || 'Select Event'}
             </span>
@@ -77,18 +77,18 @@ export default function OrgSwitcher() {
             }}
             className={`w-full text-left px-3 py-2 text-sm flex items-center gap-2 hover:bg-surface transition-colors ${
               activeEvent?.id === event.id
-                ? 'bg-surface text-teal-600 dark:text-teal-400 font-medium'
+                ? 'bg-surface text-primary font-medium'
                 : 'text-foreground'
             }`}
           >
             <CalendarDays
               size={14}
-              className={activeEvent?.id === event.id ? 'text-teal-500' : 'text-muted'}
+              className={activeEvent?.id === event.id ? 'text-primary' : 'text-muted'}
             />
             <span className="truncate">{event.name}</span>
 
             {activeEvent?.id === event.id && (
-              <span className="ml-auto w-2 h-2 rounded-full bg-teal-500" />
+              <span className="ml-auto w-2 h-2 rounded-full bg-cardSoft0" />
             )}
           </button>
         ))}
@@ -106,7 +106,7 @@ export default function OrgSwitcher() {
             }}
             className="flex items-center gap-2 text-sm px-3 py-1.5 rounded-lg border border-border bg-background hover:bg-surface transition-colors text-foreground"
           >
-            <Building size={14} className="text-teal-500" />
+            <Building size={14} className="text-primary" />
             <span className="max-w-[160px] truncate font-medium">
               {activeOrganization?.name || 'Select Organization'}
             </span>
@@ -126,13 +126,13 @@ export default function OrgSwitcher() {
                     setOpen(false)
                   }}
                   className={`w-full text-left px-3 py-2 text-sm flex items-center gap-2 hover:bg-surface transition-colors ${
-                    activeOrganization?.id === org.id ? 'bg-surface text-teal-600 dark:text-teal-400 font-medium' : 'text-foreground'
+                    activeOrganization?.id === org.id ? 'bg-surface text-primary font-medium' : 'text-foreground'
                   }`}
                 >
-                  <Building size={14} className={activeOrganization?.id === org.id ? 'text-teal-500' : 'text-muted'} />
+                  <Building size={14} className={activeOrganization?.id === org.id ? 'text-primary' : 'text-muted'} />
                   <span className="truncate">{org.name}</span>
                   {activeOrganization?.id === org.id && (
-                    <span className="ml-auto w-2 h-2 rounded-full bg-teal-500" />
+                    <span className="ml-auto w-2 h-2 rounded-full bg-cardSoft0" />
                   )}
                 </button>
               ))}
@@ -140,7 +140,7 @@ export default function OrgSwitcher() {
               <div className="border-t border-border mt-1 pt-1">
                 <button
                   onClick={handleLogout}
-                  className="w-full text-left px-3 py-2 text-sm flex items-center gap-2 text-teal-600 dark:text-teal-400 hover:bg-surface transition-colors"
+                  className="w-full text-left px-3 py-2 text-sm flex items-center gap-2 text-primary hover:bg-surface transition-colors"
                 >
                   <LogOut size={14} />
                   Sign out
@@ -153,7 +153,7 @@ export default function OrgSwitcher() {
 
       {/* User identity badge */}
       <div className="flex items-center gap-2 text-xs text-muted">
-        <div className="w-7 h-7 rounded-full bg-gradient-to-br from-teal-500 to-teal-500 text-white text-xs font-bold flex items-center justify-center">
+        <div className="w-7 h-7 rounded-full bg-gradient-to-br from-cardSoft0 to-teal-500 text-white text-xs font-bold flex items-center justify-center">
           {userName[0]?.toUpperCase() || '?'}
         </div>
       </div>

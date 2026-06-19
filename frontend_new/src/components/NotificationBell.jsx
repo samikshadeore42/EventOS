@@ -61,7 +61,7 @@ export default function NotificationBell() {
         <Bell className="w-5 h-5 text-muted hover:text-foreground transition-colors" />
         {unread > 0 && (
           <span className="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] px-1 flex items-center justify-center
-                           text-[11px] font-semibold text-white bg-teal-500 rounded-full">
+                           text-[11px] font-semibold text-white bg-cardSoft0 rounded-full">
             {unread > 99 ? '99+' : unread}
           </span>
         )}
@@ -75,7 +75,7 @@ export default function NotificationBell() {
             {unread > 0 && (
               <button
                 onClick={() => markAll.mutate()}
-                className="text-xs text-teal-600 dark:text-teal-400 hover:underline disabled:opacity-50"
+                className="text-xs text-primary hover:underline disabled:opacity-50"
                 disabled={markAll.isPending}
               >
                 Mark all read
@@ -94,7 +94,7 @@ export default function NotificationBell() {
               {items.map((n) => (
                 <li
                   key={n.id}
-                  className={`px-4 py-3 flex gap-3 ${n.read ? 'opacity-60' : 'bg-teal-500/10'}`}
+                  className={`px-4 py-3 flex gap-3 ${n.read ? 'opacity-60' : 'bg-cardSoft0/10'}`}
                 >
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-medium text-foreground truncate">{n.title}</p>
