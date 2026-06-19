@@ -16,7 +16,7 @@ import {
   ChevronDown, ChevronRight, Wand2,
   BarChart2, Activity, Target, Calendar, Clock,
   Send, Copy, Trash2, Plus, Shield, ShieldAlert, ShieldCheck, FileText, Settings,
-  Sparkles, Link, LayoutTemplate, ClipboardList, Lightbulb,
+  Sparkles, Link, LayoutTemplate, ClipboardList, Lightbulb, ClipboardCheck,
   User, UserPlus, Building2, Info, UploadCloud, Search, CheckCircle2,
   Key, Globe, Database, Flag
 } from 'lucide-react'
@@ -3093,6 +3093,7 @@ function HealthTab() {
 // ── TAB 9: ANOMALY SCANNER ──────────────────────────────────────────────────
 function AnomalyTab() {
   const qc = useQueryClient()
+  const { activeEvent } = useAuth()
 
   const [explanations, setExplanations] = useState({})
 
@@ -3153,9 +3154,9 @@ function AnomalyTab() {
 
   if (isLoading) {
     return (
-      <div className="flex flex-col items-center justify-center py-20 text-muted">
-        <Loader2 size={32} className="animate-spin mb-4 text-primary" />
-        <p>Scanning for anomalies...</p>
+      <div className="flex flex-col items-center justify-center py-20 text-slate-500">
+        <Loader2 size={32} className="animate-spin mb-4 text-orange-500" />
+        <p className="font-medium text-sm">Scanning for anomalies...</p>
       </div>
     )
   }
@@ -3165,95 +3166,120 @@ function AnomalyTab() {
 
   return (
     <div>
-      {/* Stats Header */}
-      <div className="flex items-center justify-between mb-6">
-        <div>
-          <h2 className="text-xl font-bold text-foreground flex items-center gap-2">
-            <Activity className="text-primary" /> Anomaly Detector Scanner
-          </h2>
-          <p className="text-sm text-muted mt-1">Real-time monitoring of judge evaluations and score distributions.</p>
-        </div>
+      {/* Page Header */}
+      <div className="mb-8">
+        <h1 className="text-[24px] font-extrabold text-slate-950">Anomaly Scanner</h1>
+        <p className="text-sm font-medium text-slate-500 mt-1">{activeEvent?.name || 'Loading...'}</p>
+      </div>
 
+      {/* Section Intro */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-6 gap-4">
+        <div>
+          <h2 className="text-lg font-extrabold text-slate-950 flex items-center gap-2">
+            <Activity className="text-orange-500" size={20} /> Anomaly Detector Scanner
+          </h2>
+          <p className="text-sm font-medium text-slate-500 mt-1">Real-time monitoring of judge evaluations and score distributions.</p>
+        </div>
         {totalFlagged > 0 && (
           <button
             onClick={() => { if (window.confirm('Override all flagged scorecards?')) overrideAllMutation.mutate() }}
             disabled={overrideAllMutation.isPending}
-            className="btn-secondary px-4 py-2 rounded-lg flex items-center gap-2 text-sm text-primary hover:text-primary-dark border-border"
+            className="flex items-center justify-center gap-2 text-sm px-5 py-2.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 font-extrabold shadow-sm transition-colors disabled:opacity-50"
           >
-            {overrideAllMutation.isPending ? <Loader2 size={16} className="animate-spin" /> : <Shield size={16} />}
+            {overrideAllMutation.isPending ? <Loader2 size={16} className="animate-spin" /> : <ShieldCheck size={16} className="text-emerald-500" />}
             Override All Flags
           </button>
         )}
       </div>
 
-      {/* Stats Cards & Analytics */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
-        <div className="section-red p-5 relative overflow-hidden group transition-all hover:-translate-y-1 hover:scale-[1.01]">
-          <p className="text-xs font-medium text-muted uppercase mb-1">Total Flagged Teams</p>
-          <p className="text-3xl font-bold text-primary">{totalFlagged}</p>
+      {/* Stats Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+        {/* Card 1 */}
+        <div className="bg-white border border-slate-200/80 rounded-[22px] shadow-[0_18px_45px_rgba(15,23,42,0.06)] p-6 flex flex-col justify-between">
+          <div>
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-12 h-12 rounded-2xl bg-blue-50 text-blue-600 flex items-center justify-center shrink-0">
+                <Users size={22} />
+              </div>
+              <p className="text-sm font-bold text-slate-950">Total Flagged Teams</p>
+            </div>
+            <p className="text-3xl font-extrabold text-blue-600 mb-6">{totalFlagged}</p>
+          </div>
+          <div>
+            <div className="w-1/3 bg-blue-100 rounded-full h-1.5 mb-3">
+              <div className="bg-blue-500 h-1.5 rounded-full w-full"></div>
+            </div>
+            <p className="text-xs font-semibold text-slate-500">Historical Frequency</p>
+          </div>
+        </div>
 
-          <div className="mt-4 pt-4 border-t">
-            <p className="text-xs text-muted mb-2">Historical Frequency</p>
-            <div className="flex items-end h-8 gap-1">
-              {[2, 5, 3, 7, 4, 1, totalFlagged].map((val, idx) => (
-                <div key={idx} className="flex-1 bg-primary/20 rounded-t" style={{ height: `${Math.max(10, val * 10)}%` }}>
-                  {idx === 6 && <div className="w-full h-full bg-primary/50 rounded-t border-t-2 border-primary" />}
-                </div>
-              ))}
+        {/* Card 2 */}
+        <div className="bg-white border border-slate-200/80 rounded-[22px] shadow-[0_18px_45px_rgba(15,23,42,0.06)] p-6 flex flex-col justify-between">
+          <div>
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-12 h-12 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0">
+                <ShieldCheck size={22} />
+              </div>
+              <p className="text-sm font-bold text-slate-950">Sweep Status</p>
+            </div>
+            <p className="text-xl font-extrabold text-slate-950 mb-1">Active Pipeline</p>
+            <p className="text-xs font-semibold text-slate-500 mb-6">Checking every 15s</p>
+          </div>
+          <div>
+            <div className="w-full bg-slate-100 rounded-full h-1.5">
+              <div className="bg-emerald-500 h-1.5 rounded-full w-2/3"></div>
             </div>
           </div>
         </div>
 
-        <div className="section-yellow p-5 flex flex-col justify-between">
+        {/* Card 3 */}
+        <div className="bg-white border border-slate-200/80 rounded-[22px] shadow-[0_18px_45px_rgba(15,23,42,0.06)] p-6 flex flex-col justify-between">
           <div>
-            <p className="text-xs font-medium text-muted uppercase mb-1">Sweep Status</p>
-            <p className="text-xl font-bold text-primary flex items-center gap-2 mt-1">
-              <span className="w-2.5 h-2.5 rounded-full bg-primary-light animate-pulse"></span> Active Pipeline
-            </p>
-            <p className="text-xs text-muted mt-2">Checking every 15s</p>
-          </div>
-          <div className="mt-4">
-            <div className="w-full bg-[var(--bg-card-soft)] rounded-full h-1.5 mb-1">
-              <div className="bg-primary-light h-1.5 rounded-full w-full animate-[progress_2s_ease-in-out_infinite]"></div>
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-12 h-12 rounded-2xl bg-purple-50 text-purple-600 flex items-center justify-center shrink-0">
+                <Shield size={22} />
+              </div>
+              <p className="text-sm font-bold text-slate-950">AI Confidence Score</p>
+            </div>
+            <div className="flex items-end gap-3 mb-4">
+              <p className="text-3xl font-extrabold text-slate-950">98.2%</p>
+              <span className="inline-flex items-center px-2.5 py-1 rounded-full bg-emerald-50 text-[10px] font-extrabold text-emerald-600 border border-emerald-200 mb-1.5">High Confidence</span>
             </div>
           </div>
-        </div>
-
-        <div className="section-green p-5 flex flex-col justify-between">
-          <div>
-            <p className="text-xs font-medium text-muted uppercase mb-1">AI Confidence Score</p>
-            <p className="text-3xl font-bold text-primary">98.2%</p>
-          </div>
-          <p className="text-xs text-muted leading-relaxed mt-3">
-            Detector model operates with high precision. Overriding a flag will permanently unblock the team's progression.
+          <p className="text-xs font-medium text-slate-500 leading-relaxed">
+            Detector model operates with high precision. Overriding a flag will permanently unlock the team's progression.
           </p>
         </div>
       </div>
 
-      {/* Flagged Cards List */}
+      {/* Flagged Pipeline */}
       <div className="space-y-4">
-        <h3 className="text-lg font-semibold text-foreground mb-2">Flagged Evaluations Pipeline</h3>
+        <h3 className="text-lg font-extrabold text-slate-950 mb-4">Flagged Evaluations Pipeline</h3>
         {flaggedTeams.length === 0 ? (
-          <div className="app-card py-16 text-center border-l-2 border-l-primary relative overflow-hidden group transition-all hover:-translate-y-1 hover:scale-[1.01]">
-            <div className="absolute -right-8 -top-8 w-40 h-40 bg-gradient-to-br from-primary/10 to-transparent rounded-full blur-3xl group-hover:scale-125 transition-transform duration-700 pointer-events-none z-0" />
-            <CheckSquare size={48} className="mx-auto text-primary/50 mb-3" />
-            <p className="text-foreground font-medium">No Anomalies Detected</p>
-            <p className="text-sm text-muted">All scorecards are currently within expected variance thresholds.</p>
+          <div className="bg-white border border-dashed border-slate-300/80 rounded-[22px] shadow-[0_18px_45px_rgba(15,23,42,0.04)] py-16 text-center relative overflow-hidden">
+            <div className="w-20 h-20 bg-blue-50 rounded-full flex items-center justify-center mx-auto mb-4 relative">
+              <ClipboardCheck size={32} className="text-blue-600" />
+              <div className="absolute top-2 -left-6 w-2 h-2 rounded-full bg-blue-400" />
+              <div className="absolute bottom-4 -left-3 w-1.5 h-1.5 rounded-full bg-orange-400" />
+              <div className="absolute top-4 -right-4 w-2 h-2 rounded-full bg-purple-400" />
+              <div className="absolute bottom-2 -right-6 w-1.5 h-1.5 rounded-full bg-emerald-400" />
+            </div>
+            <h4 className="text-[20px] font-extrabold text-slate-950 mb-2">No Anomalies Detected</h4>
+            <p className="text-sm font-medium text-slate-500">All scorecards are currently within expected variance thresholds.</p>
           </div>
         ) : (
           flaggedTeams.map(team => (
-            <div key={team.id} className="app-card p-5 flex flex-col md:flex-row md:items-center justify-between gap-4 border-l-2 border-l-primary relative overflow-hidden group transition-all hover:-translate-y-1 hover:scale-[1.01]">
-              <div className="absolute -right-8 -top-8 w-40 h-40 bg-gradient-to-br from-primary/10 to-transparent rounded-full blur-3xl group-hover:scale-125 transition-transform duration-700 pointer-events-none z-0" />
+            <div key={team.id} className="bg-white border border-slate-200/80 rounded-[22px] shadow-[0_18px_45px_rgba(15,23,42,0.06)] p-5 flex flex-col md:flex-row md:items-center justify-between gap-4">
               <div className="flex-1">
                 <div className="flex items-center gap-2 mb-2">
-                  <h4 className="font-bold text-foreground text-lg">{team.team_name}</h4>
-                  <Badge colour="amber"><AlertTriangle size={12} /> Flagged</Badge>
+                  <h4 className="font-extrabold text-slate-950 text-lg">{team.team_name}</h4>
+                  <span className="inline-flex items-center px-2.5 py-1 rounded-full bg-amber-50 text-[10px] font-extrabold text-amber-600 border border-amber-200"><AlertTriangle size={12} className="mr-1" /> Flagged</span>
                 </div>
-                <div className="text-sm text-muted space-y-1">
-                  <p><span className="text-muted">Weighted Score:</span> {team.weighted_total?.toFixed(2) || team.total_score}</p>
+                <div className="text-sm text-slate-500 space-y-1 font-medium">
+                  <p><span className="text-slate-400">Weighted Score:</span> {team.weighted_total?.toFixed(2) || team.total_score}</p>
                   <p>
-                    <span className="text-muted">Anomaly Reason:</span>{' '}
-                    <span className="text-primary font-mono text-xs">
+                    <span className="text-slate-400">Anomaly Reason:</span>{' '}
+                    <span className="text-orange-500 font-mono text-xs font-semibold">
                       {team.flag_reason || 'Statistical Variance Exception'}
                     </span>
                   </p>
@@ -3263,28 +3289,28 @@ function AnomalyTab() {
                     {!explanations[team.team_id] ? (
                       <button
                         onClick={() => generateExplanation(team)}
-                        className="flex items-center gap-1 text-xs text-primary hover:text-primary-dark"
+                        className="flex items-center gap-1 text-xs text-blue-600 hover:text-blue-700 font-bold transition-colors"
                       >
                         <Wand2 size={11} /> AI Explain
                       </button>
                     ) : explanations[team.team_id].status === 'loading' ? (
-                      <div className="flex items-center gap-1.5 text-xs text-muted">
+                      <div className="flex items-center gap-1.5 text-xs text-slate-500 font-medium">
                         <Loader2 size={11} className="animate-spin" /> Generating explanation…
                       </div>
                     ) : explanations[team.team_id].status === 'done' ? (
-                      <div className="bg-[var(--bg-card-soft)] rounded-lg p-2.5 mt-1">
-                        <p className="text-xs font-medium text-primary mb-1 flex items-center gap-1">
+                      <div className="bg-slate-50 rounded-xl p-3 mt-2 border border-slate-100">
+                        <p className="text-xs font-extrabold text-purple-600 mb-1 flex items-center gap-1">
                           <Wand2 size={11} /> AI Explanation
                         </p>
-                        <p className="text-xs text-foreground leading-relaxed">
+                        <p className="text-xs text-slate-700 font-medium leading-relaxed">
                           {explanations[team.team_id].text}
                         </p>
                       </div>
                     ) : (
-                      <p className="text-xs text-primary">{explanations[team.team_id].text}</p>
+                      <p className="text-xs font-bold text-red-500">{explanations[team.team_id].text}</p>
                     )}
                   </div>
-                  <p><span className="text-muted">Detector Confidence:</span> 99.4%</p>
+                  <p className="mt-2"><span className="text-slate-400">Detector Confidence:</span> <span className="text-slate-700 font-bold">99.4%</span></p>
                 </div>
               </div>
 
@@ -3292,9 +3318,9 @@ function AnomalyTab() {
                 <button
                   onClick={() => { if (window.confirm(`Override flag for ${team.team_name}?`)) overrideMutation.mutate(team.id) }}
                   disabled={overrideMutation.isPending}
-                  className="soft-button text-sm flex justify-center items-center gap-2"
+                  className="flex justify-center items-center gap-2 text-sm px-4 py-2 rounded-xl bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 font-extrabold shadow-sm transition-colors disabled:opacity-50"
                 >
-                  {overrideMutation.isPending ? <Loader2 size={16} className="animate-spin" /> : <Shield size={16} />}
+                  {overrideMutation.isPending ? <Loader2 size={16} className="animate-spin" /> : <ShieldCheck size={16} className="text-emerald-500" />}
                   Force Override
                 </button>
               </div>
