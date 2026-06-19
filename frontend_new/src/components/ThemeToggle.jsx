@@ -5,40 +5,34 @@ export default function ThemeToggle() {
   const [theme, setTheme] = useState(() => {
     if (typeof localStorage !== 'undefined') {
       const saved = localStorage.getItem('theme');
-      if (saved) return saved;
-      return window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+      if (saved === 'light' || saved === 'dark') return saved;
     }
-    return 'light';
+    return 'dark';
   });
 
   useEffect(() => {
     const root = document.documentElement;
-    root.classList.remove('dark', 'theme-eventos');
-    
-    if (theme === 'dark') {
-      root.classList.add('dark');
-    } else if (theme === 'eventos') {
-      root.classList.add('theme-eventos');
-    }
-    
+    root.classList.remove('dark', 'light', 'theme-eventos');
+    root.classList.add(theme);
     localStorage.setItem('theme', theme);
   }, [theme]);
 
-  const cycleTheme = () => {
-    setTheme(current => current === 'light' ? 'dark' : 'light');
+  const toggleTheme = () => {
+    setTheme(current => current === 'dark' ? 'light' : 'dark');
   };
 
   return (
     <button
-      onClick={cycleTheme}
-      className="p-2 rounded-xl text-muted hover:text-[var(--color-primary)] hover:bg-[var(--color-bg-soft)] transition-colors border border-transparent hover:border-[var(--color-border)]"
+      onClick={toggleTheme}
+      className="p-2 rounded-xl hover:bg-[var(--bg-card-soft)] transition-colors border border-transparent hover:border-[var(--color-border)]"
       aria-label="Toggle Theme"
-      title={`Current Theme: ${theme}`}
+      title={`Current: ${theme}`}
+      style={{ color: 'var(--text-muted)' }}
     >
-      {theme === 'light' ? (
-        <Moon size={20} />
+      {theme === 'dark' ? (
+        <Sun size={20} style={{ color: 'var(--color-primary-light)' }} />
       ) : (
-        <Sun size={20} className="text-teal-400" />
+        <Moon size={20} />
       )}
     </button>
   );
