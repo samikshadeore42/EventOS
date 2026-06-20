@@ -214,7 +214,7 @@ function Hero() {
       <div className="max-w-7xl mx-auto w-full relative z-10 flex flex-col lg:flex-row items-center gap-16 mb-16">
         
         {/* Left Content */}
-        <div className="w-full lg:w-[45%] flex flex-col relative h-[380px] justify-center">
+        <div className="w-full lg:w-[45%] flex flex-col relative h-[450px] justify-center">
           {heroSlides.map((slide, index) => (
             <div 
               key={index} 
@@ -229,20 +229,20 @@ function Hero() {
                 <span className="text-red-500">{slide.highlight}</span>
               </h1>
               
-              <p className="text-lg text-slate-600 font-medium leading-relaxed max-w-lg mb-8">
+              <p className="text-lg text-slate-600 font-medium leading-relaxed max-w-lg">
                 {slide.description}
               </p>
+
+              <div className="flex flex-col sm:flex-row gap-4 mt-8">
+                <Link to="/participant" className="flex items-center justify-center gap-2 px-8 py-3.5 bg-gradient-to-r from-red-500 to-red-600 text-white text-sm font-bold rounded-xl shadow-lg shadow-red-500/20 hover:from-red-600 hover:to-red-700 transition-all">
+                  Explore Competitions <ArrowRight size={16} />
+                </Link>
+                <a href="#about" className="flex items-center justify-center gap-2 px-8 py-3.5 bg-white border border-slate-200 text-slate-700 text-sm font-bold rounded-xl shadow-sm hover:bg-slate-50 transition-all">
+                  View Case Studies
+                </a>
+              </div>
             </div>
           ))}
-
-          <div className="flex flex-col sm:flex-row gap-4 mt-auto relative z-20">
-            <Link to="/participant" className="flex items-center justify-center gap-2 px-8 py-3.5 bg-gradient-to-r from-red-500 to-red-600 text-white text-sm font-bold rounded-xl shadow-lg shadow-red-500/20 hover:from-red-600 hover:to-red-700 transition-all">
-              Explore Competitions <ArrowRight size={16} />
-            </Link>
-            <a href="#about" className="flex items-center justify-center gap-2 px-8 py-3.5 bg-white border border-slate-200 text-slate-700 text-sm font-bold rounded-xl shadow-sm hover:bg-slate-50 transition-all">
-              View Case Studies
-            </a>
-          </div>
         </div>
 
         {/* Right Visual */}
