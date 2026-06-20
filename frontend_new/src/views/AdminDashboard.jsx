@@ -804,26 +804,26 @@ function TeamsTab() {
   return (
     <div>
       {/* Solver config form */}
-      <div className="rounded-[24px] bg-card p-8 shadow-[0_18px_45px_rgba(15,23,42,0.08)] ring-1 ring-border mb-6">
+      <div className="rounded-[24px] border border-slate-200/80 bg-white p-8 shadow-[0_18px_45px_rgba(15,23,42,0.06)] ring-0 mb-6">
         <h2 className="text-2xl font-extrabold text-red-600">Solver Configuration</h2>
 
         <div className="mt-8 grid grid-cols-1 gap-8 lg:grid-cols-3">
           {/* Column 1 */}
-          <div className="space-y-10 lg:border-r lg:border-border lg:pr-10">
+          <div className="space-y-10 lg:border-r lg:border-slate-200/80 lg:pr-10">
             {/* Number of teams */}
             <div className="flex items-start gap-5">
               <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-blue-100 text-blue-600">
                 <Users className="h-6 w-6" />
               </div>
               <div>
-                <label className="block text-sm font-semibold text-muted">
+                <label className="block text-sm font-semibold text-slate-700">
                   Number of teams
                 </label>
                 <input
                   type="number" min={1} max={50}
                   value={config.num_teams}
                   onChange={(e) => setConfig((c) => ({ ...c, num_teams: +e.target.value }))}
-                  className="mt-2 w-24 bg-transparent text-2xl font-extrabold text-foreground outline-none placeholder:text-slate-400"
+                  className="mt-2 w-24 bg-transparent text-2xl font-extrabold text-slate-950 outline-none placeholder:text-slate-400"
                 />
               </div>
             </div>
@@ -834,35 +834,35 @@ function TeamsTab() {
                 <UserPlus className="h-6 w-6" />
               </div>
               <div>
-                <label className="block text-sm font-semibold text-muted">
+                <label className="block text-sm font-semibold text-slate-700">
                   Max size
                 </label>
                 <input
                   type="number" min={2} max={10}
                   value={config.k_max}
                   onChange={(e) => setConfig((c) => ({ ...c, k_max: +e.target.value }))}
-                  className="mt-2 w-24 bg-transparent text-2xl font-extrabold text-foreground outline-none placeholder:text-slate-400"
+                  className="mt-2 w-24 bg-transparent text-2xl font-extrabold text-slate-950 outline-none placeholder:text-slate-400"
                 />
               </div>
             </div>
           </div>
 
           {/* Column 2 */}
-          <div className="space-y-10 lg:border-r lg:border-border lg:pr-10">
+          <div className="space-y-10 lg:border-r lg:border-slate-200/80 lg:pr-10">
             {/* Target team size */}
             <div className="flex items-start gap-5">
               <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-green-100 text-green-600">
                 <Target className="h-6 w-6" />
               </div>
               <div>
-                <label className="block text-sm font-semibold text-muted">
+                <label className="block text-sm font-semibold text-slate-700">
                   Target team size
                 </label>
                 <input
                   type="number" min={2} max={10}
                   value={config.target_size}
                   onChange={(e) => setConfig((c) => ({ ...c, target_size: +e.target.value }))}
-                  className="mt-2 w-24 bg-transparent text-2xl font-extrabold text-foreground outline-none placeholder:text-slate-400"
+                  className="mt-2 w-24 bg-transparent text-2xl font-extrabold text-slate-950 outline-none placeholder:text-slate-400"
                 />
               </div>
             </div>
@@ -873,14 +873,14 @@ function TeamsTab() {
                 <Building2 className="h-6 w-6" />
               </div>
               <div>
-                <label className="block text-sm font-semibold text-muted">
+                <label className="block text-sm font-semibold text-slate-700">
                   Max / institution
                 </label>
                 <input
                   type="number" min={1} max={5}
                   value={config.max_per_institution}
                   onChange={(e) => setConfig((c) => ({ ...c, max_per_institution: +e.target.value }))}
-                  className="mt-2 w-24 bg-transparent text-2xl font-extrabold text-foreground outline-none placeholder:text-slate-400"
+                  className="mt-2 w-24 bg-transparent text-2xl font-extrabold text-slate-950 outline-none placeholder:text-slate-400"
                 />
               </div>
             </div>
@@ -894,21 +894,21 @@ function TeamsTab() {
                 <User className="h-6 w-6" />
               </div>
               <div>
-                <label className="block text-sm font-semibold text-muted">
+                <label className="block text-sm font-semibold text-slate-700">
                   Min size
                 </label>
                 <input
                   type="number" min={1} max={10}
                   value={config.k_min}
                   onChange={(e) => setConfig((c) => ({ ...c, k_min: +e.target.value }))}
-                  className="mt-2 w-24 bg-transparent text-2xl font-extrabold text-foreground outline-none placeholder:text-slate-400"
+                  className="mt-2 w-24 bg-transparent text-2xl font-extrabold text-slate-950 outline-none placeholder:text-slate-400"
                 />
               </div>
             </div>
 
             {/* Use mock data */}
             <div className="flex items-start gap-5 pt-2">
-              <label className="flex items-center gap-3 text-sm font-semibold text-muted cursor-pointer">
+              <label className="flex items-center gap-3 text-sm font-semibold text-slate-700 cursor-pointer">
                 <input
                   type="checkbox"
                   checked={config.use_mock_data}
@@ -1160,18 +1160,18 @@ function ApprovalsTab() {
 
   return (
     <div className="w-full pt-8">
-      <section className="w-full min-h-[640px] rounded-[24px] bg-card px-8 py-8 shadow-[0_18px_48px_rgba(15,23,42,0.07)] ring-1 ring-border">
+      <section className="w-full min-h-[640px] rounded-[24px] border border-slate-200/80 bg-white px-8 py-8 shadow-[0_18px_48px_rgba(15,23,42,0.06)] ring-0">
         {/* Pending Approvals heading area */}
         <div className="flex flex-col">
           <div className="flex items-center gap-2">
-            <h2 className="text-[22px] font-extrabold text-foreground">
+            <h2 className="text-[22px] font-extrabold text-slate-950">
               Pending Approvals
             </h2>
             <span className="inline-flex h-6 min-w-6 items-center justify-center rounded-full bg-red-100 px-2 text-xs font-extrabold text-red-600">
               {pending?.total_pending ?? 0}
             </span>
           </div>
-          <p className="mt-2 text-base font-semibold text-muted">
+          <p className="mt-2 text-base font-semibold text-slate-600">
             {pending?.total_pending ?? 0} team(s) awaiting review
           </p>
         </div>
@@ -1253,10 +1253,10 @@ function ApprovalsTab() {
               <CheckCircle2 size={22} />
             </div>
             <div>
-              <p className="text-base font-extrabold text-foreground">
+              <p className="text-base font-extrabold text-slate-950">
                 Formation Published
               </p>
-              <p className="mt-1 text-sm font-semibold text-muted">
+              <p className="mt-1 text-sm font-semibold text-slate-600">
                 This formation has been finalized and participants have been notified and can view their teams.
               </p>
             </div>
@@ -1272,7 +1272,7 @@ function ApprovalsTab() {
         <div className="mt-8 h-px w-full bg-slate-200/80" />
 
         {/* Empty state center */}
-        {!isLoading && pending?.total_pending === 0 && !hasPublished && !hasRejected && (
+        {!isLoading && (pending?.total_pending ?? 0) === 0 && !hasRejected && (
           <div className="flex min-h-[390px] flex-col items-center justify-center text-center">
             <div className="relative mb-8 h-36 w-44">
               <div className="absolute left-1/2 top-[96px] h-5 w-28 -translate-x-1/2 rounded-full bg-slate-200/80 blur-sm pointer-events-none" />
@@ -1301,10 +1301,10 @@ function ApprovalsTab() {
                 <path d="M142 80L145 86L151 89L145 92L142 98L139 92L133 89L139 86Z" fill="#60a5fa" />
               </svg>
             </div>
-            <p className="text-lg font-extrabold text-foreground">
+            <p className="text-lg font-extrabold text-slate-950">
               All teams reviewed
             </p>
-            <p className="mt-3 text-sm font-semibold text-muted">
+            <p className="mt-3 text-sm font-semibold text-slate-600">
               Run the solver and review lockup to populate this queue.
             </p>
           </div>
@@ -1314,18 +1314,18 @@ function ApprovalsTab() {
         {!isLoading && (pending?.total_pending ?? 0) > 0 && (
           <div className="space-y-4">
             {pending?.teams.map((team) => (
-              <div key={team.team_id} className="rounded-[18px] bg-card p-5 shadow-[0_10px_26px_rgba(15,23,42,0.05)] ring-1 ring-border">
+              <div key={team.team_id} className="rounded-[18px] border border-slate-200/80 bg-white p-5 shadow-[0_10px_26px_rgba(15,23,42,0.05)] ring-0">
                 {/* Row */}
                 <div
                   className="flex items-center gap-4 cursor-pointer"
                   onClick={() => setExpanded(expanded === team.team_id ? null : team.team_id)}
                 >
-                  <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-cardSoft text-lg font-extrabold text-muted">
+                  <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-slate-100 text-lg font-extrabold text-slate-600">
                     {team.team_name[0]}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-base font-extrabold text-foreground">{team.team_name}</p>
-                    <p className="mt-1 text-sm font-semibold text-muted">{team.member_count} members</p>
+                    <p className="text-base font-extrabold text-slate-950">{team.team_name}</p>
+                    <p className="mt-1 text-sm font-semibold text-slate-600">{team.member_count} members</p>
                   </div>
                   <span className="rounded-lg border border-amber-400 bg-amber-50 px-3 py-1 text-sm font-extrabold text-amber-600">Pending</span>
                   {expanded === team.team_id
@@ -1434,6 +1434,20 @@ function EvaluatorsTab() {
   const { data, isLoading } = useQuery({ queryKey: ['evaluators'], queryFn: evaluatorsApi.list })
   const { data: teamsData } = useQuery({ queryKey: ['all-teams'], queryFn: approvalsApi.all })
 
+  const evaluatorTeams = Array.isArray(teamsData)
+    ? teamsData
+    : Array.isArray(teamsData?.teams)
+      ? teamsData.teams
+      : Array.isArray(teamsData?.data)
+        ? teamsData.data
+        : []
+
+  const approvedTeams = evaluatorTeams.filter((team) =>
+    team?.is_approved ||
+    team?.approval_status === 'approved' ||
+    team?.approval_status === 'published'
+  )
+
   // Fetch assignments for expanded evaluator
   const { data: assignData } = useQuery({
     queryKey: ['evaluator-assignments', expandedEval],
@@ -1492,7 +1506,17 @@ function EvaluatorsTab() {
     </div>
   )
 
-  const approvedTeams = (teamsData?.teams || []).filter(t => t.is_approved)
+  const evaluatorAvatarStyles = [
+    'bg-blue-100 text-blue-700',
+    'bg-red-100 text-red-700',
+    'bg-yellow-100 text-yellow-700',
+    'bg-orange-100 text-orange-700',
+    'bg-green-100 text-green-700',
+    'bg-purple-100 text-purple-700',
+    'bg-pink-100 text-pink-700',
+  ]
+
+  const evaluatorAvatarClassFor = (index) => evaluatorAvatarStyles[index % evaluatorAvatarStyles.length]
 
   function toggleTeamId(tid) {
     setAssignTeamIds(ids =>
@@ -1504,14 +1528,14 @@ function EvaluatorsTab() {
     <>
       <div className="space-y-8">
         <div className="flex items-center justify-end gap-4">
-          <button onClick={() => evaluatorsApi.downloadTemplate()} className="inline-flex h-11 items-center gap-2 rounded-xl bg-card px-4 text-sm font-extrabold text-foreground shadow-sm ring-1 ring-slate-200 transition hover:bg-cardSoft">
+          <button onClick={() => evaluatorsApi.downloadTemplate()} className="inline-flex h-11 items-center gap-2 rounded-xl bg-white px-4 text-sm font-extrabold text-slate-800 shadow-sm ring-1 ring-slate-200/80 transition hover:bg-slate-50">
             <FileText className="h-5 w-5 text-emerald-600" />
             CSV Template
           </button>
-          <button onClick={() => evaluatorsApi.downloadExport()} className="inline-flex h-11 items-center gap-2 rounded-xl bg-card px-4 text-sm font-extrabold text-blue-600 shadow-sm ring-1 ring-slate-200 transition hover:bg-blue-50">
+          <button onClick={() => evaluatorsApi.downloadExport()} className="inline-flex h-11 items-center gap-2 rounded-xl bg-white px-4 text-sm font-extrabold text-blue-600 shadow-sm ring-1 ring-slate-200/80 transition hover:bg-blue-50">
             <Download className="h-5 w-5" /> Export
           </button>
-          <button onClick={() => setShowAutoAssign(true)} className="inline-flex h-11 items-center gap-2 rounded-xl bg-card px-4 text-sm font-extrabold text-purple-600 shadow-sm ring-1 ring-slate-200 transition hover:bg-purple-50">
+          <button onClick={() => setShowAutoAssign(true)} className="inline-flex h-11 items-center gap-2 rounded-xl bg-white px-4 text-sm font-extrabold text-purple-600 shadow-sm ring-1 ring-slate-200/80 transition hover:bg-purple-50">
             <Wand2 className="h-5 w-5" /> Auto-assign
           </button>
           <button onClick={() => setShowForm((s) => !s)} className="inline-flex h-11 items-center gap-2 rounded-xl bg-blue-600 px-5 text-sm font-extrabold text-white shadow-[0_14px_26px_rgba(37,99,235,0.24)] transition hover:bg-blue-700">
@@ -1526,11 +1550,11 @@ function EvaluatorsTab() {
               <ShieldCheck size={28} />
             </div>
             <div>
-              <p className="text-base font-extrabold text-foreground">Evaluation audit settings</p>
-              <p className="mt-1 text-sm font-semibold text-muted">Check event-scoped scorecard integrity, evaluator assignments, and suspicion scoring state.</p>
+              <p className="text-base font-extrabold text-slate-950">Evaluation audit settings</p>
+              <p className="mt-1 text-sm font-semibold text-slate-600">Check event-scoped scorecard integrity, evaluator assignments, and suspicion scoring state.</p>
             </div>
           </div>
-          <button onClick={() => auditMutation.mutate()} disabled={auditMutation.isPending} className="inline-flex h-11 shrink-0 items-center gap-2 rounded-xl bg-card px-5 text-sm font-extrabold text-foreground shadow-sm ring-1 ring-slate-200 transition hover:bg-emerald-50">
+          <button onClick={() => auditMutation.mutate()} disabled={auditMutation.isPending} className="inline-flex h-11 shrink-0 items-center gap-2 rounded-xl bg-white px-5 text-sm font-extrabold text-slate-800 shadow-sm ring-1 ring-slate-200/80 transition hover:bg-emerald-50">
             {auditMutation.isPending ? <Loader2 className="h-5 w-5 animate-spin text-emerald-600" /> : <ShieldCheck className="h-5 w-5 text-emerald-600" />}
             Run audit
           </button>
@@ -1547,33 +1571,33 @@ function EvaluatorsTab() {
         )}
 
         {/* Import CSV panel */}
-        <section className="rounded-[20px] bg-card p-7 shadow-[0_14px_38px_rgba(15,23,42,0.06)] ring-1 ring-border">
+        <section className="rounded-[20px] border border-slate-200/80 bg-white p-7 shadow-[0_18px_45px_rgba(15,23,42,0.06)] ring-0">
           <div className="flex flex-wrap items-center gap-6">
             <div className="flex items-center gap-3">
-              <p className="text-lg font-extrabold text-foreground">Choose File</p>
-              <p className="text-sm font-semibold text-muted">{importFile ? importFile.name : 'No file chosen'}</p>
+              <p className="text-lg font-extrabold text-slate-950">Choose File</p>
+              <p className="text-sm font-semibold text-slate-600">{importFile ? importFile.name : 'No file chosen'}</p>
             </div>
-            <label className="inline-flex items-center gap-2 text-sm font-semibold text-muted">
+            <label className="inline-flex items-center gap-2 text-sm font-semibold text-slate-600">
               <input type="checkbox" checked={importUpsert} onChange={e => setImportUpsert(e.target.checked)} className="h-5 w-5 rounded border-slate-300 text-blue-600 focus:ring-blue-500" />
               Update existing (upsert)
               <Info size={16} className="text-slate-400" />
             </label>
-            <button onClick={() => importMutation.mutate()} disabled={!importFile || importMutation.isPending} className="inline-flex h-11 items-center gap-2 rounded-xl bg-card px-5 text-sm font-extrabold text-blue-600 shadow-sm ring-1 ring-blue-500 transition hover:bg-cardSoft dark:hover:bg-blue-500/10 disabled:opacity-50 ml-auto">
+            <button onClick={() => importMutation.mutate()} disabled={!importFile || importMutation.isPending} className="inline-flex h-11 items-center gap-2 rounded-xl bg-white px-5 text-sm font-extrabold text-blue-600 shadow-sm ring-1 ring-blue-500/70 transition hover:bg-blue-50 disabled:opacity-50 ml-auto">
               {importMutation.isPending ? <Loader2 size={18} className="animate-spin" /> : <UploadCloud size={18} />}
               Import CSV
             </button>
           </div>
-          <p className="mt-6 text-sm font-semibold text-muted">
+          <p className="mt-6 text-sm font-semibold text-slate-600">
             Evaluators receive secure magic links and score approved teams on the Judge Portal. Submitted scorecards update the leaderboard and anomaly scanner.
           </p>
 
-          <label className="mt-6 flex min-h-[160px] cursor-pointer flex-col items-center justify-center rounded-[18px] border-2 border-dashed border-blue-500 bg-card px-8 py-10 text-center transition hover:bg-blue-50/30 relative">
+          <label className="mt-6 flex min-h-[160px] cursor-pointer flex-col items-center justify-center rounded-[18px] border-2 border-dashed border-blue-500/80 bg-white px-8 py-10 text-center transition hover:bg-blue-50/30 relative">
             <input type="file" accept=".csv" onChange={(e) => setImportFile(e.target.files[0])} className="hidden" />
             <UploadCloud size={42} className="text-blue-600" />
-            <p className="mt-4 text-sm font-extrabold text-foreground">
+            <p className="mt-4 text-sm font-extrabold text-slate-950">
               Drag and drop CSV file here, or click to browse
             </p>
-            <p className="mt-2 text-sm font-semibold text-muted">
+            <p className="mt-2 text-sm font-semibold text-slate-600">
               CSV should include: name, email, role (evaluator/judge), expertise (optional)
             </p>
           </label>
@@ -1639,10 +1663,10 @@ function EvaluatorsTab() {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
               </svg>
             </div>
-            <p className="mt-5 text-lg font-extrabold text-foreground">
+            <p className="mt-5 text-lg font-extrabold text-slate-950">
               No evaluators registered yet.
             </p>
-            <p className="mt-2 text-sm font-semibold text-muted">
+            <p className="mt-2 text-sm font-semibold text-slate-600">
               Add evaluators manually or import from CSV to get started.
             </p>
           </section>
@@ -1650,35 +1674,35 @@ function EvaluatorsTab() {
 
         {isLoading && (
           <div className="mt-8 space-y-4 mb-8">
-            {[1, 2, 3].map(i => <div key={i} className="h-20 bg-card rounded-[20px] ring-1 ring-border shadow-sm animate-pulse" />)}
+            {[1, 2, 3].map(i => <div key={i} className="h-20 bg-white rounded-[20px] border border-slate-200/80 shadow-sm animate-pulse" />)}
           </div>
         )}
 
         {/* Evaluator list */}
         {!isLoading && data?.evaluators?.length > 0 && (
-          <section className="overflow-hidden rounded-[20px] bg-card shadow-[0_14px_38px_rgba(15,23,42,0.06)] ring-1 ring-border">
-            {data.evaluators.map((ev) => (
-              <div key={ev.id} className="border-b border-border last:border-b-0 hover:bg-cardSoft/80 transition">
+          <section className="overflow-hidden rounded-[20px] border border-slate-200/80 bg-white shadow-[0_18px_45px_rgba(15,23,42,0.06)] ring-0">
+            {data.evaluators.map((ev, index) => (
+              <div key={ev.id} className="border-b border-slate-100 last:border-b-0 bg-white hover:bg-slate-50/80 transition">
                 <div className="flex flex-wrap items-center gap-4 px-6 py-5">
-                  <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-cardSoft text-lg font-extrabold text-muted">
+                  <div className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-full text-lg font-extrabold ${evaluatorAvatarClassFor(index)}`}>
                     {ev.first_name[0]}
                   </div>
                   <div className="flex-1 min-w-[200px]">
-                    <p className="text-base font-extrabold text-foreground break-words">{ev.first_name} {ev.last_name}</p>
-                    <p className="mt-1 text-sm font-semibold text-muted break-words">{ev.email}</p>
+                    <p className="text-base font-extrabold text-slate-950 break-words">{ev.first_name} {ev.last_name}</p>
+                    <p className="mt-1 text-sm font-semibold text-slate-600 break-words">{ev.email}</p>
                     {ev.passed_out_institution && (
-                      <p className="mt-1 text-xs font-semibold text-muted break-words">🏛️ {ev.passed_out_institution}</p>
+                      <p className="mt-1 text-xs font-semibold text-slate-500 break-words">🏛️ {ev.passed_out_institution}</p>
                     )}
                     {ev.expertise_areas?.length > 0 && (
                       <div className="flex gap-2 mt-2 flex-wrap">
                         {ev.expertise_areas.map((a) => (
-                          <span key={a} className="inline-flex items-center rounded-lg bg-cardSoft px-2 py-1 text-xs font-bold text-muted">{a}</span>
+                          <span key={a} className="inline-flex items-center rounded-lg bg-slate-50 px-2 py-1 text-xs font-bold text-slate-600 ring-1 ring-slate-200/70">{a}</span>
                         ))}
                       </div>
                     )}
                   </div>
                   <div className="flex flex-wrap items-center gap-3 shrink-0 ml-auto">
-                    <span className={`inline-flex items-center rounded-lg px-3 py-1 text-xs font-extrabold ${ev.is_active ? 'bg-emerald-50 text-emerald-600 border border-emerald-200' : 'bg-cardSoft text-muted border border-border'}`}>
+                    <span className={`inline-flex items-center rounded-lg px-3 py-1 text-xs font-extrabold ${ev.is_active ? 'bg-emerald-50 text-emerald-600 border border-emerald-200' : 'bg-slate-50 text-slate-500 border border-slate-200'}`}>
                       {ev.is_active ? 'Active' : 'Inactive'}
                     </span>
                     {ev.access_link_sent && (
@@ -1690,7 +1714,7 @@ function EvaluatorsTab() {
                   <div className="flex items-center gap-3 shrink-0">
                     <button
                       onClick={() => setExpandedEval(expandedEval === ev.id ? null : ev.id)}
-                      className="inline-flex h-9 items-center gap-1.5 rounded-lg bg-card px-3 text-xs font-bold text-muted shadow-sm ring-1 ring-slate-200 hover:bg-cardSoft transition"
+                      className="inline-flex h-9 items-center gap-1.5 rounded-lg bg-white px-3 text-xs font-bold text-slate-700 shadow-sm ring-1 ring-slate-200/80 hover:bg-slate-50 transition"
                     >
                       <UserCheck size={14} />
                       Assignments
@@ -1699,7 +1723,7 @@ function EvaluatorsTab() {
                       onClick={() => sendLinkMutation.mutate(ev.id)}
                       disabled={sendLinkMutation.isPending}
                       title={ev.access_link_sent ? "Send access link again" : "Send access link"}
-                      className="inline-flex h-9 items-center gap-1.5 rounded-lg bg-blue-50 dark:bg-blue-500/10 px-3 text-xs font-bold text-blue-600 dark:text-blue-400 hover:bg-blue-100 dark:hover:bg-blue-500/20 transition disabled:opacity-50"
+                      className="inline-flex h-9 items-center gap-1.5 rounded-lg bg-blue-50 px-3 text-xs font-bold text-blue-600 hover:bg-blue-100 transition disabled:opacity-50"
                     >
                       {sendLinkMutation.isPending ? <Loader2 size={14} className="animate-spin" /> : <Send size={14} />}
                       {ev.access_link_sent ? "Resend Link" : "Send Link"}
@@ -1715,8 +1739,8 @@ function EvaluatorsTab() {
 
                 {/* Expanded: team assignments */}
                 {expandedEval === ev.id && (
-                  <div className="bg-cardSoft/50 px-6 py-5 border-t border-border">
-                    <p className="mb-3 text-xs font-extrabold uppercase tracking-wider text-muted">Current Assignments</p>
+                  <div className="bg-slate-50/70 px-6 py-5 border-t border-slate-100">
+                    <p className="mb-3 text-xs font-extrabold uppercase tracking-wider text-slate-600">Current Assignments</p>
                     {assignData?.teams?.length > 0 ? (
                       <div className="mb-5 flex gap-2 flex-wrap">
                         {assignData.teams.map(t => (
@@ -1726,13 +1750,13 @@ function EvaluatorsTab() {
                         ))}
                       </div>
                     ) : (
-                      <p className="mb-5 text-sm font-semibold text-muted">No teams assigned yet.</p>
+                      <p className="mb-5 text-sm font-semibold text-slate-600">No teams assigned yet.</p>
                     )}
 
-                    <p className="mb-3 text-xs font-extrabold uppercase tracking-wider text-muted">Assign to teams</p>
+                    <p className="mb-3 text-xs font-extrabold uppercase tracking-wider text-slate-600">Assign to teams</p>
                     <div className="mb-5 flex flex-wrap gap-2">
                       {approvedTeams.length === 0 ? (
-                        <p className="text-sm font-semibold text-muted">No approved teams available.</p>
+                        <p className="text-sm font-semibold text-slate-600">No approved teams available.</p>
                       ) : approvedTeams.map(t => {
                         const selected = assignTeamIds.includes(t.team_id)
                         return (
@@ -1741,7 +1765,7 @@ function EvaluatorsTab() {
                             onClick={() => toggleTeamId(t.team_id)}
                             className={`inline-flex items-center rounded-lg px-3 py-1.5 text-sm font-bold border transition ${selected
                               ? 'bg-blue-50 border-blue-300 text-blue-700'
-                              : 'app-input text-muted hover:bg-cardSoft'
+                              : 'app-input text-slate-600 hover:bg-slate-50'
                               }`}
                           >
                             {t.team_name}
@@ -2070,16 +2094,16 @@ function CommunicationsTab() {
   }
 
   return (
-    <div className="w-full pt-8">
-      <div className="bg-card rounded-[20px] shadow-[0_18px_45px_rgba(15,23,42,0.06)] ring-1 ring-border overflow-hidden mb-8 p-6 lg:p-8">
-        <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4 mb-8">
+     <div className="w-full max-w-[1480px] mx-auto pt-8">
+      <div className="overflow-hidden rounded-[20px] border border-slate-200/80 bg-white shadow-[0_18px_45px_rgba(15,23,42,0.06)] ring-0 mb-8">
+        <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4 px-6 py-5 lg:px-8 border-b border-slate-100">
           <div className="flex gap-4">
             <div className="flex items-center justify-center h-12 w-12 rounded-xl bg-blue-50 text-blue-600 shrink-0">
               <Mail className="w-6 h-6" />
             </div>
             <div>
-              <h2 className="text-[20px] font-extrabold text-foreground">Email Diagnostics</h2>
-              <p className="text-sm font-semibold text-muted mt-1 max-w-2xl">
+              <h2 className="text-[20px] font-extrabold text-slate-950">Email Diagnostics</h2>
+              <p className="text-sm font-semibold text-slate-600 mt-1 max-w-2xl">
                 Verify event-scoped email delivery configuration before sending participant, mentor, or evaluator links.
               </p>
             </div>
@@ -2098,36 +2122,36 @@ function CommunicationsTab() {
         </div>
 
         {diagnosticsLoading ? (
-          <div className="h-20 bg-cardSoft rounded-xl animate-pulse mb-6" />
+          <div className="h-20 bg-slate-50 rounded-xl animate-pulse mb-6" />
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
-            <div className="flex gap-3 relative lg:after:absolute lg:after:right-0 lg:after:top-1/2 lg:after:-translate-y-1/2 lg:after:h-10 lg:after:w-px lg:after:bg-cardSoft pr-6">
+            <div className="flex gap-3 relative lg:after:absolute lg:after:right-0 lg:after:top-1/2 lg:after:-translate-y-1/2 lg:after:h-10 lg:after:w-px lg:after:bg-slate-200/80 pr-6">
               <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-blue-50 text-blue-600 shrink-0 mt-0.5">
                 <Mail className="w-4 h-4" />
               </div>
               <div className="min-w-0">
-                <p className="text-xs font-semibold text-muted mb-0.5">From email</p>
-                <p className="text-sm font-extrabold text-foreground truncate">{diagnostics?.from_email || 'missing'}</p>
+                <p className="text-xs font-semibold text-slate-500 mb-0.5">From email</p>
+                <p className="text-sm font-extrabold text-slate-950 truncate">{diagnostics?.from_email || 'missing'}</p>
               </div>
             </div>
-            <div className="flex gap-3 relative lg:after:absolute lg:after:right-0 lg:after:top-1/2 lg:after:-translate-y-1/2 lg:after:h-10 lg:after:w-px lg:after:bg-cardSoft pr-6">
+            <div className="flex gap-3 relative lg:after:absolute lg:after:right-0 lg:after:top-1/2 lg:after:-translate-y-1/2 lg:after:h-10 lg:after:w-px lg:after:bg-slate-200/80 pr-6">
               <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-blue-50 text-blue-600 shrink-0 mt-0.5">
                 <Key className="w-4 h-4" />
               </div>
               <div className="min-w-0">
-                <p className="text-xs font-semibold text-muted mb-0.5">SendGrid key</p>
-                <p className="text-sm font-extrabold text-foreground truncate">
+                <p className="text-xs font-semibold text-slate-500 mb-0.5">SendGrid key</p>
+                <p className="text-sm font-extrabold text-slate-950 truncate">
                   {diagnostics?.sendgrid_api_key_present ? diagnostics?.sendgrid_key_prefix : 'missing'}
                 </p>
               </div>
             </div>
-            <div className="flex gap-3 relative lg:after:absolute lg:after:right-0 lg:after:top-1/2 lg:after:-translate-y-1/2 lg:after:h-10 lg:after:w-px lg:after:bg-cardSoft pr-6">
+            <div className="flex gap-3 relative lg:after:absolute lg:after:right-0 lg:after:top-1/2 lg:after:-translate-y-1/2 lg:after:h-10 lg:after:w-px lg:after:bg-slate-200/80 pr-6">
               <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-blue-50 text-blue-600 shrink-0 mt-0.5">
                 <Globe className="w-4 h-4" />
               </div>
               <div className="min-w-0">
-                <p className="text-xs font-semibold text-muted mb-0.5">Frontend base</p>
-                <p className="text-sm font-extrabold text-foreground truncate">{diagnostics?.frontend_base_url}</p>
+                <p className="text-xs font-semibold text-slate-500 mb-0.5">Frontend base</p>
+                <p className="text-sm font-extrabold text-slate-950 truncate">{diagnostics?.frontend_base_url}</p>
               </div>
             </div>
             <div className="flex gap-3">
@@ -2135,7 +2159,7 @@ function CommunicationsTab() {
                 <Database className="w-4 h-4" />
               </div>
               <div className="min-w-0">
-                <p className="text-xs font-semibold text-muted mb-0.5">Redis</p>
+                <p className="text-xs font-semibold text-slate-500 mb-0.5">Redis</p>
                 <p className="text-sm font-extrabold text-emerald-600">{diagnostics?.redis_url_present ? 'Configured' : 'Missing'}</p>
               </div>
             </div>
@@ -2155,27 +2179,27 @@ function CommunicationsTab() {
           </ul>
         )}
 
-        <div className="pt-6 border-t border-border grid md:grid-cols-[1fr_1fr_auto] gap-4 items-end">
+        <div className="grid gap-4 px-6 py-5 lg:px-8 md:grid-cols-[1fr_1fr_auto] items-end">
           <div className="relative">
-            <label className="block text-xs font-bold text-muted mb-1.5">Preflight recipient email</label>
+            <label className="block text-xs font-bold text-slate-600 mb-1.5">Preflight recipient email</label>
             <div className="relative">
               <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-blue-500" />
               <input
                 value={preflightEmail}
                 onChange={(e) => setPreflightEmail(e.target.value)}
                 placeholder="test.user@example.com"
-                className="w-full pl-9 pr-4 py-2.5 app-input text-sm font-bold text-foreground focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none transition-shadow"
+                className="w-full pl-9 pr-4 py-2.5 rounded-xl border border-slate-200/80 bg-white text-sm font-bold text-slate-800 shadow-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none transition-shadow"
               />
             </div>
           </div>
           <div className="relative">
-            <label className="block text-xs font-bold text-muted mb-1.5">Recipient name</label>
+            <label className="block text-xs font-bold text-slate-600 mb-1.5">Recipient name</label>
             <div className="relative">
               <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-blue-500" />
               <input
                 value={preflightName}
                 onChange={(e) => setPreflightName(e.target.value)}
-                className="w-full pl-9 pr-4 py-2.5 app-input text-sm font-bold text-foreground focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none transition-shadow"
+                className="w-full pl-9 pr-4 py-2.5 rounded-xl border border-slate-200/80 bg-white text-sm font-bold text-slate-800 shadow-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none transition-shadow"
               />
             </div>
           </div>
@@ -2202,11 +2226,11 @@ function CommunicationsTab() {
         )}
       </div>
       {/* Communication log */}
-      <div className="bg-card rounded-[20px] shadow-[0_18px_45px_rgba(15,23,42,0.06)] ring-1 ring-border overflow-hidden mb-8">
-        <div className="flex flex-col md:flex-row md:items-center justify-between px-6 py-5 border-b border-border gap-4">
+      <div className="overflow-hidden rounded-[20px] border border-slate-200/80 bg-white shadow-[0_18px_45px_rgba(15,23,42,0.06)] ring-0 mb-8">
+        <div className="flex flex-col md:flex-row md:items-center justify-between px-6 py-5 border-b border-slate-100 gap-4">
           <div>
-            <h3 className="text-lg font-extrabold text-foreground">Communication Log</h3>
-            <p className="text-xs font-semibold text-muted mt-1">
+            <h3 className="text-lg font-extrabold text-slate-950">Communication Log</h3>
+            <p className="text-xs font-semibold text-slate-600 mt-1">
               Note: Queued means the background worker accepted the job. Sent/Failed is recorded after provider response.
             </p>
           </div>
@@ -2217,13 +2241,13 @@ function CommunicationsTab() {
                 value={templateFilter}
                 onChange={(e) => setTemplateFilter(e.target.value)}
                 placeholder="Filter by recipient..."
-                className="w-48 pl-9 pr-4 py-2 app-input text-sm font-semibold text-foreground focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none transition-shadow"
+                className="w-48 pl-9 pr-4 py-2 rounded-xl border border-slate-200/80 bg-white text-sm font-semibold text-slate-700 shadow-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none transition-shadow"
               />
             </div>
             <select
               value={successFilter}
               onChange={(e) => setSuccessFilter(e.target.value)}
-              className="px-4 py-2 app-input text-sm font-semibold text-foreground focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none transition-shadow appearance-none pr-10 relative"
+              className="px-4 py-2 rounded-xl border border-slate-200/80 bg-white text-sm font-semibold text-slate-700 shadow-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none transition-shadow appearance-none pr-10 relative"
               style={{ backgroundImage: 'url("data:image/svg+xml,%3csvg xmlns=\'http://www.w3.org/2000/svg\' fill=\'none\' viewBox=\'0 0 20 20\'%3e%3cpath stroke=\'%236b7280\' stroke-linecap=\'round\' stroke-linejoin=\'round\' stroke-width=\'1.5\' d=\'M6 8l4 4 4-4\'/%3e%3c/svg%3e")', backgroundPosition: 'right 0.5rem center', backgroundRepeat: 'no-repeat', backgroundSize: '1.5em 1.5em' }}
             >
               <option value="">All statuses</option>
@@ -2236,25 +2260,25 @@ function CommunicationsTab() {
         {isLoading ? (
           <div className="p-6 space-y-3">
             {Array.from({ length: 5 }).map((_, i) => (
-              <div key={i} className="h-10 bg-cardSoft rounded-xl animate-pulse" />
+              <div key={i} className="h-10 bg-slate-50 rounded-xl animate-pulse" />
             ))}
           </div>
         ) : !commsData?.logs?.length ? (
-          <div className="text-center py-12 text-sm font-semibold text-muted">No emails dispatched yet.</div>
+          <div className="text-center py-12 text-sm font-semibold text-slate-600">No emails dispatched yet.</div>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-left border-collapse">
               <thead>
-                <tr className="bg-cardSoft border-b border-border">
+                <tr className="bg-slate-50/70 border-b border-slate-100">
                   {['Recipient', 'Template', 'Stage', 'Status', 'Sent at'].map(h => (
-                    <th key={h} className="px-6 py-4 text-xs font-bold uppercase tracking-wider text-muted">{h}</th>
+                    <th key={h} className="px-6 py-4 text-xs font-bold uppercase tracking-wider text-slate-600">{h}</th>
                   ))}
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
                 {commsData.logs.map((log) => {
-                  let templateBg = 'bg-cardSoft'
-                  let templateText = 'text-muted'
+                  let templateBg = 'bg-slate-50'
+                  let templateText = 'text-slate-600'
                   if (log.template === 'notification') {
                     templateBg = 'bg-blue-50'
                     templateText = 'text-blue-600'
@@ -2267,16 +2291,16 @@ function CommunicationsTab() {
                   }
 
                   return (
-                    <tr key={log.id} className="bg-card hover:bg-cardSoft transition-colors">
+                    <tr key={log.id} className="bg-white border-b border-slate-100 last:border-b-0 hover:bg-slate-50/80 transition-colors">
                       <td className="px-6 py-4">
-                        <p className="text-sm font-extrabold text-foreground truncate max-w-[200px]">{log.recipient_email}</p>
+                        <p className="text-sm font-extrabold text-slate-950 truncate max-w-[200px]">{log.recipient_email}</p>
                       </td>
                       <td className="px-6 py-4">
                         <span className={`inline-flex items-center px-2.5 py-1 rounded-md text-xs font-bold ${templateBg} ${templateText}`}>
                           {log.template}
                         </span>
                       </td>
-                      <td className="px-6 py-4 text-sm font-semibold text-muted capitalize">{log.stage}</td>
+                      <td className="px-6 py-4 text-sm font-semibold text-slate-700 capitalize">{log.stage}</td>
                       <td className="px-6 py-4">
                         <div className="flex flex-col gap-1">
                           <div>
@@ -2297,7 +2321,7 @@ function CommunicationsTab() {
                           )}
                         </div>
                       </td>
-                      <td className="px-6 py-4 text-sm font-semibold text-muted">
+                      <td className="px-6 py-4 text-sm font-semibold text-slate-600">
                         {new Date(log.sent_at).toLocaleString([], { dateStyle: 'short', timeStyle: 'medium' })}
                       </td>
                     </tr>
@@ -2310,17 +2334,17 @@ function CommunicationsTab() {
       </div>
 
       {/* AI Draft Generator */}
-      <div className="bg-card rounded-[20px] shadow-[0_18px_45px_rgba(15,23,42,0.06)] ring-1 ring-border p-8 mb-8">
+      <div className="rounded-[20px] border border-slate-200/80 bg-white p-8 shadow-[0_18px_45px_rgba(15,23,42,0.06)] ring-0 mb-8">
         <div className="flex items-center gap-2 mb-6">
           <Sparkles className="w-6 h-6 text-orange-500" />
           <h2 className="text-[20px] font-extrabold text-orange-500">AI Email Draft Generator</h2>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-stretch">
+        <div className="grid grid-cols-1 lg:grid-cols-[1fr_0.95fr] gap-8 items-stretch">
           {/* Config */}
           <div className="space-y-6 w-full min-w-0">
             <div>
-              <label className="block text-sm font-bold text-muted mb-2">Draft type</label>
+              <label className="block text-sm font-bold text-slate-700 mb-2">Draft type</label>
               <div className="flex flex-wrap gap-2">
                 {DRAFT_TYPES.map((t) => {
                   const isSelected = draftType === t.value;
@@ -2336,7 +2360,7 @@ function CommunicationsTab() {
                       className={`inline-flex items-center gap-2 text-sm font-extrabold px-4 py-2.5 rounded-xl transition-all ${
                         isSelected
                           ? 'bg-gradient-to-r from-orange-500 to-orange-600 text-white shadow-[0_10px_22px_rgba(249,115,22,0.22)]'
-                          : 'bg-card text-muted border border-border hover:bg-cardSoft'
+                          : 'bg-white text-slate-700 border border-slate-200/80 hover:bg-slate-50'
                       }`}
                     >
                       <Icon className="w-4 h-4" />
@@ -2348,11 +2372,11 @@ function CommunicationsTab() {
             </div>
 
             <div>
-              <label className="block text-sm font-bold text-muted mb-2">Tone</label>
+              <label className="block text-sm font-bold text-slate-700 mb-2">Tone</label>
               <select
                 value={draftTone}
                 onChange={(e) => setDraftTone(e.target.value)}
-                className="w-48 px-4 py-2.5 app-input text-sm font-bold text-foreground focus:border-orange-500 focus:ring-1 focus:ring-orange-500 focus:outline-none transition-shadow appearance-none pr-10 relative"
+                className="w-48 px-4 py-2.5 rounded-xl border border-slate-200/80 bg-white text-sm font-bold text-slate-800 shadow-sm focus:border-orange-500 focus:ring-1 focus:ring-orange-500 focus:outline-none transition-shadow appearance-none pr-10 relative"
                 style={{ backgroundImage: 'url("data:image/svg+xml,%3csvg xmlns=\'http://www.w3.org/2000/svg\' fill=\'none\' viewBox=\'0 0 20 20\'%3e%3cpath stroke=\'%236b7280\' stroke-linecap=\'round\' stroke-linejoin=\'round\' stroke-width=\'1.5\' d=\'M6 8l4 4 4-4\'/%3e%3c/svg%3e")', backgroundPosition: 'right 0.5rem center', backgroundRepeat: 'no-repeat', backgroundSize: '1.5em 1.5em' }}
               >
                 {['professional', 'encouraging', 'formal'].map(t => <option key={t} value={t} className="capitalize">{t}</option>)}
@@ -2360,7 +2384,7 @@ function CommunicationsTab() {
             </div>
 
             <div>
-              <label className="flex items-center gap-1.5 text-sm font-bold text-muted mb-2">
+              <label className="flex items-center gap-1.5 text-sm font-bold text-slate-700 mb-2">
                 Context (JSON) <Info className="w-4 h-4 text-slate-400" />
               </label>
               <div className="relative">
@@ -2368,7 +2392,7 @@ function CommunicationsTab() {
                 <textarea
                   value={draftContext}
                   onChange={(e) => setDraftContext(e.target.value)}
-                  className="block w-full min-h-[220px] bg-cardSoft/50 border border-border rounded-xl pl-6 pr-4 py-4 text-[13px] font-mono text-foreground focus:border-orange-500 focus:ring-1 focus:ring-orange-500 focus:outline-none transition-shadow resize-y"
+                  className="block w-full min-h-[220px] bg-white border border-slate-200/80 rounded-xl pl-6 pr-4 py-4 text-[13px] font-mono text-slate-800 shadow-sm focus:border-orange-500 focus:ring-1 focus:ring-orange-500 focus:outline-none transition-shadow resize-y"
                 />
               </div>
             </div>
@@ -2385,10 +2409,10 @@ function CommunicationsTab() {
           </div>
 
           {/* Preview */}
-          <div className="flex flex-col bg-orange-50/30 border-2 border-dashed border-orange-300 rounded-2xl p-6 min-h-[300px]">
+          <div className="flex flex-col bg-orange-50/20 border-2 border-dashed border-orange-300 rounded-2xl p-6 min-h-[300px]">
             {draft ? (
-              <div className="flex flex-col h-full bg-card rounded-xl shadow-sm border border-border p-6 relative">
-                <div className="flex items-center justify-between mb-6 pb-4 border-b border-border">
+              <div className="flex flex-col h-full bg-white rounded-xl shadow-sm border border-slate-200/80 p-6 relative">
+                <div className="flex items-center justify-between mb-6 pb-4 border-b border-slate-100">
                   <p className="text-xs font-extrabold text-orange-500 uppercase tracking-wider">Draft Preview</p>
                   <button
                     onClick={() => {
@@ -2396,20 +2420,20 @@ function CommunicationsTab() {
                       setCopied(true)
                       setTimeout(() => setCopied(false), 2000)
                     }}
-                    className="flex items-center gap-1.5 text-xs font-bold text-muted hover:text-foreground px-3 py-1.5 rounded-lg border border-border bg-card shadow-sm transition-colors"
+                    className="flex items-center gap-1.5 text-xs font-bold text-slate-600 hover:text-slate-950 px-3 py-1.5 rounded-lg border border-slate-200/80 bg-white shadow-sm transition-colors"
                   >
                     <Copy className="w-3.5 h-3.5" /> {copied ? 'Copied!' : 'Copy'}
                   </button>
                 </div>
                 <div className="mb-4">
-                  <p className="text-xs font-bold text-muted mb-1">Subject</p>
-                  <p className="text-base font-extrabold text-foreground">{draft.subject}</p>
+                  <p className="text-xs font-bold text-slate-600 mb-1">Subject</p>
+                  <p className="text-base font-extrabold text-slate-950">{draft.subject}</p>
                 </div>
                 <div className="flex-1 overflow-auto">
-                  <p className="text-xs font-bold text-muted mb-2">Body</p>
-                  <p className="text-sm font-medium text-foreground whitespace-pre-wrap leading-relaxed">{draft.body_text}</p>
+                  <p className="text-xs font-bold text-slate-600 mb-2">Body</p>
+                  <p className="text-sm font-medium text-slate-700 whitespace-pre-wrap leading-relaxed">{draft.body_text}</p>
                 </div>
-                <p className="mt-6 pt-4 border-t border-border text-[11px] font-bold text-amber-600 flex items-center gap-1.5">
+                <p className="mt-6 pt-4 border-t border-slate-100 text-[11px] font-bold text-amber-600 flex items-center gap-1.5">
                   <AlertTriangle className="w-3.5 h-3.5" /> Review carefully before dispatching. This draft has not been sent.
                 </p>
               </div>
