@@ -2094,16 +2094,16 @@ function CommunicationsTab() {
   }
 
   return (
-    <div className="w-full pt-8">
-      <div className="bg-card rounded-[20px] shadow-[0_18px_45px_rgba(15,23,42,0.06)] ring-1 ring-border overflow-hidden mb-8 p-6 lg:p-8">
-        <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4 mb-8">
+     <div className="w-full max-w-[1480px] mx-auto pt-8">
+      <div className="overflow-hidden rounded-[20px] border border-slate-200/80 bg-white shadow-[0_18px_45px_rgba(15,23,42,0.06)] ring-0 mb-8">
+        <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4 px-6 py-5 lg:px-8 border-b border-slate-100">
           <div className="flex gap-4">
             <div className="flex items-center justify-center h-12 w-12 rounded-xl bg-blue-50 text-blue-600 shrink-0">
               <Mail className="w-6 h-6" />
             </div>
             <div>
-              <h2 className="text-[20px] font-extrabold text-foreground">Email Diagnostics</h2>
-              <p className="text-sm font-semibold text-muted mt-1 max-w-2xl">
+              <h2 className="text-[20px] font-extrabold text-slate-950">Email Diagnostics</h2>
+              <p className="text-sm font-semibold text-slate-600 mt-1 max-w-2xl">
                 Verify event-scoped email delivery configuration before sending participant, mentor, or evaluator links.
               </p>
             </div>
@@ -2122,36 +2122,36 @@ function CommunicationsTab() {
         </div>
 
         {diagnosticsLoading ? (
-          <div className="h-20 bg-cardSoft rounded-xl animate-pulse mb-6" />
+          <div className="h-20 bg-slate-50 rounded-xl animate-pulse mb-6" />
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
-            <div className="flex gap-3 relative lg:after:absolute lg:after:right-0 lg:after:top-1/2 lg:after:-translate-y-1/2 lg:after:h-10 lg:after:w-px lg:after:bg-cardSoft pr-6">
+            <div className="flex gap-3 relative lg:after:absolute lg:after:right-0 lg:after:top-1/2 lg:after:-translate-y-1/2 lg:after:h-10 lg:after:w-px lg:after:bg-slate-200/80 pr-6">
               <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-blue-50 text-blue-600 shrink-0 mt-0.5">
                 <Mail className="w-4 h-4" />
               </div>
               <div className="min-w-0">
-                <p className="text-xs font-semibold text-muted mb-0.5">From email</p>
-                <p className="text-sm font-extrabold text-foreground truncate">{diagnostics?.from_email || 'missing'}</p>
+                <p className="text-xs font-semibold text-slate-500 mb-0.5">From email</p>
+                <p className="text-sm font-extrabold text-slate-950 truncate">{diagnostics?.from_email || 'missing'}</p>
               </div>
             </div>
-            <div className="flex gap-3 relative lg:after:absolute lg:after:right-0 lg:after:top-1/2 lg:after:-translate-y-1/2 lg:after:h-10 lg:after:w-px lg:after:bg-cardSoft pr-6">
+            <div className="flex gap-3 relative lg:after:absolute lg:after:right-0 lg:after:top-1/2 lg:after:-translate-y-1/2 lg:after:h-10 lg:after:w-px lg:after:bg-slate-200/80 pr-6">
               <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-blue-50 text-blue-600 shrink-0 mt-0.5">
                 <Key className="w-4 h-4" />
               </div>
               <div className="min-w-0">
-                <p className="text-xs font-semibold text-muted mb-0.5">SendGrid key</p>
-                <p className="text-sm font-extrabold text-foreground truncate">
+                <p className="text-xs font-semibold text-slate-500 mb-0.5">SendGrid key</p>
+                <p className="text-sm font-extrabold text-slate-950 truncate">
                   {diagnostics?.sendgrid_api_key_present ? diagnostics?.sendgrid_key_prefix : 'missing'}
                 </p>
               </div>
             </div>
-            <div className="flex gap-3 relative lg:after:absolute lg:after:right-0 lg:after:top-1/2 lg:after:-translate-y-1/2 lg:after:h-10 lg:after:w-px lg:after:bg-cardSoft pr-6">
+            <div className="flex gap-3 relative lg:after:absolute lg:after:right-0 lg:after:top-1/2 lg:after:-translate-y-1/2 lg:after:h-10 lg:after:w-px lg:after:bg-slate-200/80 pr-6">
               <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-blue-50 text-blue-600 shrink-0 mt-0.5">
                 <Globe className="w-4 h-4" />
               </div>
               <div className="min-w-0">
-                <p className="text-xs font-semibold text-muted mb-0.5">Frontend base</p>
-                <p className="text-sm font-extrabold text-foreground truncate">{diagnostics?.frontend_base_url}</p>
+                <p className="text-xs font-semibold text-slate-500 mb-0.5">Frontend base</p>
+                <p className="text-sm font-extrabold text-slate-950 truncate">{diagnostics?.frontend_base_url}</p>
               </div>
             </div>
             <div className="flex gap-3">
@@ -2159,7 +2159,7 @@ function CommunicationsTab() {
                 <Database className="w-4 h-4" />
               </div>
               <div className="min-w-0">
-                <p className="text-xs font-semibold text-muted mb-0.5">Redis</p>
+                <p className="text-xs font-semibold text-slate-500 mb-0.5">Redis</p>
                 <p className="text-sm font-extrabold text-emerald-600">{diagnostics?.redis_url_present ? 'Configured' : 'Missing'}</p>
               </div>
             </div>
@@ -2179,27 +2179,27 @@ function CommunicationsTab() {
           </ul>
         )}
 
-        <div className="pt-6 border-t border-border grid md:grid-cols-[1fr_1fr_auto] gap-4 items-end">
+        <div className="grid gap-4 px-6 py-5 lg:px-8 md:grid-cols-[1fr_1fr_auto] items-end">
           <div className="relative">
-            <label className="block text-xs font-bold text-muted mb-1.5">Preflight recipient email</label>
+            <label className="block text-xs font-bold text-slate-600 mb-1.5">Preflight recipient email</label>
             <div className="relative">
               <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-blue-500" />
               <input
                 value={preflightEmail}
                 onChange={(e) => setPreflightEmail(e.target.value)}
                 placeholder="test.user@example.com"
-                className="w-full pl-9 pr-4 py-2.5 app-input text-sm font-bold text-foreground focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none transition-shadow"
+                className="w-full pl-9 pr-4 py-2.5 rounded-xl border border-slate-200/80 bg-white text-sm font-bold text-slate-800 shadow-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none transition-shadow"
               />
             </div>
           </div>
           <div className="relative">
-            <label className="block text-xs font-bold text-muted mb-1.5">Recipient name</label>
+            <label className="block text-xs font-bold text-slate-600 mb-1.5">Recipient name</label>
             <div className="relative">
               <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-blue-500" />
               <input
                 value={preflightName}
                 onChange={(e) => setPreflightName(e.target.value)}
-                className="w-full pl-9 pr-4 py-2.5 app-input text-sm font-bold text-foreground focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none transition-shadow"
+                className="w-full pl-9 pr-4 py-2.5 rounded-xl border border-slate-200/80 bg-white text-sm font-bold text-slate-800 shadow-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none transition-shadow"
               />
             </div>
           </div>
@@ -2226,11 +2226,11 @@ function CommunicationsTab() {
         )}
       </div>
       {/* Communication log */}
-      <div className="bg-card rounded-[20px] shadow-[0_18px_45px_rgba(15,23,42,0.06)] ring-1 ring-border overflow-hidden mb-8">
-        <div className="flex flex-col md:flex-row md:items-center justify-between px-6 py-5 border-b border-border gap-4">
+      <div className="overflow-hidden rounded-[20px] border border-slate-200/80 bg-white shadow-[0_18px_45px_rgba(15,23,42,0.06)] ring-0 mb-8">
+        <div className="flex flex-col md:flex-row md:items-center justify-between px-6 py-5 border-b border-slate-100 gap-4">
           <div>
-            <h3 className="text-lg font-extrabold text-foreground">Communication Log</h3>
-            <p className="text-xs font-semibold text-muted mt-1">
+            <h3 className="text-lg font-extrabold text-slate-950">Communication Log</h3>
+            <p className="text-xs font-semibold text-slate-600 mt-1">
               Note: Queued means the background worker accepted the job. Sent/Failed is recorded after provider response.
             </p>
           </div>
@@ -2241,13 +2241,13 @@ function CommunicationsTab() {
                 value={templateFilter}
                 onChange={(e) => setTemplateFilter(e.target.value)}
                 placeholder="Filter by recipient..."
-                className="w-48 pl-9 pr-4 py-2 app-input text-sm font-semibold text-foreground focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none transition-shadow"
+                className="w-48 pl-9 pr-4 py-2 rounded-xl border border-slate-200/80 bg-white text-sm font-semibold text-slate-700 shadow-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none transition-shadow"
               />
             </div>
             <select
               value={successFilter}
               onChange={(e) => setSuccessFilter(e.target.value)}
-              className="px-4 py-2 app-input text-sm font-semibold text-foreground focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none transition-shadow appearance-none pr-10 relative"
+              className="px-4 py-2 rounded-xl border border-slate-200/80 bg-white text-sm font-semibold text-slate-700 shadow-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none transition-shadow appearance-none pr-10 relative"
               style={{ backgroundImage: 'url("data:image/svg+xml,%3csvg xmlns=\'http://www.w3.org/2000/svg\' fill=\'none\' viewBox=\'0 0 20 20\'%3e%3cpath stroke=\'%236b7280\' stroke-linecap=\'round\' stroke-linejoin=\'round\' stroke-width=\'1.5\' d=\'M6 8l4 4 4-4\'/%3e%3c/svg%3e")', backgroundPosition: 'right 0.5rem center', backgroundRepeat: 'no-repeat', backgroundSize: '1.5em 1.5em' }}
             >
               <option value="">All statuses</option>
@@ -2260,25 +2260,25 @@ function CommunicationsTab() {
         {isLoading ? (
           <div className="p-6 space-y-3">
             {Array.from({ length: 5 }).map((_, i) => (
-              <div key={i} className="h-10 bg-cardSoft rounded-xl animate-pulse" />
+              <div key={i} className="h-10 bg-slate-50 rounded-xl animate-pulse" />
             ))}
           </div>
         ) : !commsData?.logs?.length ? (
-          <div className="text-center py-12 text-sm font-semibold text-muted">No emails dispatched yet.</div>
+          <div className="text-center py-12 text-sm font-semibold text-slate-600">No emails dispatched yet.</div>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-left border-collapse">
               <thead>
-                <tr className="bg-cardSoft border-b border-border">
+                <tr className="bg-slate-50/70 border-b border-slate-100">
                   {['Recipient', 'Template', 'Stage', 'Status', 'Sent at'].map(h => (
-                    <th key={h} className="px-6 py-4 text-xs font-bold uppercase tracking-wider text-muted">{h}</th>
+                    <th key={h} className="px-6 py-4 text-xs font-bold uppercase tracking-wider text-slate-600">{h}</th>
                   ))}
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
                 {commsData.logs.map((log) => {
-                  let templateBg = 'bg-cardSoft'
-                  let templateText = 'text-muted'
+                  let templateBg = 'bg-slate-50'
+                  let templateText = 'text-slate-600'
                   if (log.template === 'notification') {
                     templateBg = 'bg-blue-50'
                     templateText = 'text-blue-600'
@@ -2291,16 +2291,16 @@ function CommunicationsTab() {
                   }
 
                   return (
-                    <tr key={log.id} className="bg-card hover:bg-cardSoft transition-colors">
+                    <tr key={log.id} className="bg-white border-b border-slate-100 last:border-b-0 hover:bg-slate-50/80 transition-colors">
                       <td className="px-6 py-4">
-                        <p className="text-sm font-extrabold text-foreground truncate max-w-[200px]">{log.recipient_email}</p>
+                        <p className="text-sm font-extrabold text-slate-950 truncate max-w-[200px]">{log.recipient_email}</p>
                       </td>
                       <td className="px-6 py-4">
                         <span className={`inline-flex items-center px-2.5 py-1 rounded-md text-xs font-bold ${templateBg} ${templateText}`}>
                           {log.template}
                         </span>
                       </td>
-                      <td className="px-6 py-4 text-sm font-semibold text-muted capitalize">{log.stage}</td>
+                      <td className="px-6 py-4 text-sm font-semibold text-slate-700 capitalize">{log.stage}</td>
                       <td className="px-6 py-4">
                         <div className="flex flex-col gap-1">
                           <div>
@@ -2321,7 +2321,7 @@ function CommunicationsTab() {
                           )}
                         </div>
                       </td>
-                      <td className="px-6 py-4 text-sm font-semibold text-muted">
+                      <td className="px-6 py-4 text-sm font-semibold text-slate-600">
                         {new Date(log.sent_at).toLocaleString([], { dateStyle: 'short', timeStyle: 'medium' })}
                       </td>
                     </tr>
@@ -2334,17 +2334,17 @@ function CommunicationsTab() {
       </div>
 
       {/* AI Draft Generator */}
-      <div className="bg-card rounded-[20px] shadow-[0_18px_45px_rgba(15,23,42,0.06)] ring-1 ring-border p-8 mb-8">
+      <div className="rounded-[20px] border border-slate-200/80 bg-white p-8 shadow-[0_18px_45px_rgba(15,23,42,0.06)] ring-0 mb-8">
         <div className="flex items-center gap-2 mb-6">
           <Sparkles className="w-6 h-6 text-orange-500" />
           <h2 className="text-[20px] font-extrabold text-orange-500">AI Email Draft Generator</h2>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-stretch">
+        <div className="grid grid-cols-1 lg:grid-cols-[1fr_0.95fr] gap-8 items-stretch">
           {/* Config */}
           <div className="space-y-6 w-full min-w-0">
             <div>
-              <label className="block text-sm font-bold text-muted mb-2">Draft type</label>
+              <label className="block text-sm font-bold text-slate-700 mb-2">Draft type</label>
               <div className="flex flex-wrap gap-2">
                 {DRAFT_TYPES.map((t) => {
                   const isSelected = draftType === t.value;
@@ -2360,7 +2360,7 @@ function CommunicationsTab() {
                       className={`inline-flex items-center gap-2 text-sm font-extrabold px-4 py-2.5 rounded-xl transition-all ${
                         isSelected
                           ? 'bg-gradient-to-r from-orange-500 to-orange-600 text-white shadow-[0_10px_22px_rgba(249,115,22,0.22)]'
-                          : 'bg-card text-muted border border-border hover:bg-cardSoft'
+                          : 'bg-white text-slate-700 border border-slate-200/80 hover:bg-slate-50'
                       }`}
                     >
                       <Icon className="w-4 h-4" />
@@ -2372,11 +2372,11 @@ function CommunicationsTab() {
             </div>
 
             <div>
-              <label className="block text-sm font-bold text-muted mb-2">Tone</label>
+              <label className="block text-sm font-bold text-slate-700 mb-2">Tone</label>
               <select
                 value={draftTone}
                 onChange={(e) => setDraftTone(e.target.value)}
-                className="w-48 px-4 py-2.5 app-input text-sm font-bold text-foreground focus:border-orange-500 focus:ring-1 focus:ring-orange-500 focus:outline-none transition-shadow appearance-none pr-10 relative"
+                className="w-48 px-4 py-2.5 rounded-xl border border-slate-200/80 bg-white text-sm font-bold text-slate-800 shadow-sm focus:border-orange-500 focus:ring-1 focus:ring-orange-500 focus:outline-none transition-shadow appearance-none pr-10 relative"
                 style={{ backgroundImage: 'url("data:image/svg+xml,%3csvg xmlns=\'http://www.w3.org/2000/svg\' fill=\'none\' viewBox=\'0 0 20 20\'%3e%3cpath stroke=\'%236b7280\' stroke-linecap=\'round\' stroke-linejoin=\'round\' stroke-width=\'1.5\' d=\'M6 8l4 4 4-4\'/%3e%3c/svg%3e")', backgroundPosition: 'right 0.5rem center', backgroundRepeat: 'no-repeat', backgroundSize: '1.5em 1.5em' }}
               >
                 {['professional', 'encouraging', 'formal'].map(t => <option key={t} value={t} className="capitalize">{t}</option>)}
@@ -2384,7 +2384,7 @@ function CommunicationsTab() {
             </div>
 
             <div>
-              <label className="flex items-center gap-1.5 text-sm font-bold text-muted mb-2">
+              <label className="flex items-center gap-1.5 text-sm font-bold text-slate-700 mb-2">
                 Context (JSON) <Info className="w-4 h-4 text-slate-400" />
               </label>
               <div className="relative">
@@ -2392,7 +2392,7 @@ function CommunicationsTab() {
                 <textarea
                   value={draftContext}
                   onChange={(e) => setDraftContext(e.target.value)}
-                  className="block w-full min-h-[220px] bg-cardSoft/50 border border-border rounded-xl pl-6 pr-4 py-4 text-[13px] font-mono text-foreground focus:border-orange-500 focus:ring-1 focus:ring-orange-500 focus:outline-none transition-shadow resize-y"
+                  className="block w-full min-h-[220px] bg-white border border-slate-200/80 rounded-xl pl-6 pr-4 py-4 text-[13px] font-mono text-slate-800 shadow-sm focus:border-orange-500 focus:ring-1 focus:ring-orange-500 focus:outline-none transition-shadow resize-y"
                 />
               </div>
             </div>
@@ -2409,10 +2409,10 @@ function CommunicationsTab() {
           </div>
 
           {/* Preview */}
-          <div className="flex flex-col bg-orange-50/30 border-2 border-dashed border-orange-300 rounded-2xl p-6 min-h-[300px]">
+          <div className="flex flex-col bg-orange-50/20 border-2 border-dashed border-orange-300 rounded-2xl p-6 min-h-[300px]">
             {draft ? (
-              <div className="flex flex-col h-full bg-card rounded-xl shadow-sm border border-border p-6 relative">
-                <div className="flex items-center justify-between mb-6 pb-4 border-b border-border">
+              <div className="flex flex-col h-full bg-white rounded-xl shadow-sm border border-slate-200/80 p-6 relative">
+                <div className="flex items-center justify-between mb-6 pb-4 border-b border-slate-100">
                   <p className="text-xs font-extrabold text-orange-500 uppercase tracking-wider">Draft Preview</p>
                   <button
                     onClick={() => {
@@ -2420,20 +2420,20 @@ function CommunicationsTab() {
                       setCopied(true)
                       setTimeout(() => setCopied(false), 2000)
                     }}
-                    className="flex items-center gap-1.5 text-xs font-bold text-muted hover:text-foreground px-3 py-1.5 rounded-lg border border-border bg-card shadow-sm transition-colors"
+                    className="flex items-center gap-1.5 text-xs font-bold text-slate-600 hover:text-slate-950 px-3 py-1.5 rounded-lg border border-slate-200/80 bg-white shadow-sm transition-colors"
                   >
                     <Copy className="w-3.5 h-3.5" /> {copied ? 'Copied!' : 'Copy'}
                   </button>
                 </div>
                 <div className="mb-4">
-                  <p className="text-xs font-bold text-muted mb-1">Subject</p>
-                  <p className="text-base font-extrabold text-foreground">{draft.subject}</p>
+                  <p className="text-xs font-bold text-slate-600 mb-1">Subject</p>
+                  <p className="text-base font-extrabold text-slate-950">{draft.subject}</p>
                 </div>
                 <div className="flex-1 overflow-auto">
-                  <p className="text-xs font-bold text-muted mb-2">Body</p>
-                  <p className="text-sm font-medium text-foreground whitespace-pre-wrap leading-relaxed">{draft.body_text}</p>
+                  <p className="text-xs font-bold text-slate-600 mb-2">Body</p>
+                  <p className="text-sm font-medium text-slate-700 whitespace-pre-wrap leading-relaxed">{draft.body_text}</p>
                 </div>
-                <p className="mt-6 pt-4 border-t border-border text-[11px] font-bold text-amber-600 flex items-center gap-1.5">
+                <p className="mt-6 pt-4 border-t border-slate-100 text-[11px] font-bold text-amber-600 flex items-center gap-1.5">
                   <AlertTriangle className="w-3.5 h-3.5" /> Review carefully before dispatching. This draft has not been sent.
                 </p>
               </div>
