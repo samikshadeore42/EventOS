@@ -98,6 +98,13 @@ function CriterionSlider({ criterion, value, onChange }) {
   const colors = themeColors[criterion.theme]
   const Icon = criterion.icon
 
+  const activeColor =
+    criterion.key === 'technical_depth' ? '#ef4444' :
+    criterion.key === 'innovation' ? '#3b82f6' :
+    criterion.key === 'presentation' ? '#f59e0b' :
+    criterion.key === 'feasibility' ? '#10b981' :
+    '#3b82f6';
+
   return (
     <div className="bg-white dark:bg-slate-900/80 border border-slate-200 dark:border-white/10/80 dark:border-white/10 rounded-[18px] p-6 shadow-[0_12px_30px_rgba(15,23,42,0.04)] flex flex-col md:flex-row md:items-center gap-6">
       
@@ -124,7 +131,8 @@ function CriterionSlider({ criterion, value, onChange }) {
           onChange={(e) => onChange(+e.target.value)}
           className="w-full h-1.5 rounded-full appearance-none cursor-pointer bg-slate-200 absolute top-1/2 -translate-y-1/2 z-0"
           style={{
-            background: `linear-gradient(to right, var(--tw-colors-${criterion.theme}-500, ${criterion.theme === 'amber' ? '#f59e0b' : criterion.theme === 'emerald' ? '#10b981' : criterion.theme === 'red' ? '#ef4444' : '#3b82f6'}) ${pct}%, #e2e8f0 ${pct}%)`
+            background: `linear-gradient(to right, ${activeColor} 0%, ${activeColor} ${pct}%, #e2e8f0 ${pct}%, #e2e8f0 100%)`,
+            accentColor: activeColor,
           }}
         />
         <style dangerouslySetInnerHTML={{__html: `
@@ -135,7 +143,7 @@ function CriterionSlider({ criterion, value, onChange }) {
             height: 16px;
             border-radius: 50%;
             background: white;
-            border: 2px solid var(--tw-colors-${criterion.theme}-500, ${criterion.theme === 'amber' ? '#f59e0b' : criterion.theme === 'emerald' ? '#10b981' : criterion.theme === 'red' ? '#ef4444' : '#3b82f6'});
+            border: 2px solid ${activeColor};
             cursor: pointer;
             box-shadow: 0 2px 4px rgba(0,0,0,0.1);
             position: relative;
