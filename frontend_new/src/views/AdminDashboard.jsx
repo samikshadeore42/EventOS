@@ -45,6 +45,8 @@ import {
 
 // ── Shared micro-components ────────────────────────────────────────────────
 
+
+
 function MiniSparkline({ color = 'blue' }) {
   const stroke =
     color === 'purple' ? '#a855f7'
