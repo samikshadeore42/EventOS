@@ -18,19 +18,26 @@ function SidebarNav({ navigationItems, onItemClick }) {
             item.onClick()
             if (onItemClick) onItemClick()
           }}
-          className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all ${
+          className={`group relative flex w-full items-center gap-3 overflow-hidden rounded-xl px-3 py-2.5 text-sm font-semibold transition-all duration-200 ease-out ${
             item.isActive
-              ? 'bg-red-50 text-red-600 dark:bg-red-500/10 dark:text-red-400'
-              : 'text-muted hover:bg-cardSoft hover:text-foreground bg-transparent'
+              ? 'bg-red-50 text-red-600 shadow-sm'
+              : 'text-slate-700 hover:translate-x-1 hover:bg-red-50/70 hover:text-red-600 hover:shadow-sm'
           }`}
         >
+          <span
+            className={`absolute left-0 top-1/2 h-6 w-1 -translate-y-1/2 rounded-r-full bg-red-500 transition-all duration-200 ${
+              item.isActive ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'
+            }`}
+          />
           {item.Icon && (
-            <item.Icon
-              size={18}
-              className={item.isActive ? 'text-red-600 dark:text-red-400' : 'text-muted group-hover:text-foreground'}
-            />
-          )}
-          <span className="truncate">{item.label}</span>
+              <item.Icon
+                size={18}
+                className={`relative z-10 shrink-0 transition-transform duration-200 ${
+                  item.isActive ? 'text-red-600' : 'text-slate-700 group-hover:scale-110 group-hover:text-red-600'
+                }`}
+              />
+            )}
+          <span className="relative z-10 truncate">{item.label}</span>
           {item.suffix && (
             <span className="ml-auto text-xs font-bold" style={{ color: 'var(--text-muted)' }}>
               {item.suffix}
