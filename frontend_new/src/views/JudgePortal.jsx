@@ -41,6 +41,12 @@ const themeColors = {
  green: { text: 'text-emerald-600', bg: 'bg-emerald-50', border: 'border-emerald-200', slider: 'bg-emerald-500' },
 }
 
+function formatStageLabel(stage) {
+ return String(stage || 'current stage')
+  .replace(/_/g, ' ')
+  .replace(/\b\w/g, (char) => char.toUpperCase())
+}
+
 // ── Shared UI Components ───────────────────────────────────────────────────
 
 function compactGuideText(value, maxWords = 12) {
@@ -773,17 +779,30 @@ return (
 
  // Wrong role guard
  if (portalData && portalData.participant_id) {
- return (
+  return (
  <FullPageMessage
  icon={AlertTriangle}
  title="Wrong portal"
  message="This link is for participants. Use your participant portal link instead."
  />
  )
- }
+}
 
- const teams = portalData?.assigned_teams ?? []
- const evaluatorName = portalData?.name ?? 'Evaluator'
+const currentStage = portalData?.stage
+const evaluationStageOpen = !currentStage || currentStage === 'evaluation'
+
+if (!evaluationStageOpen) {
+ return (
+ <FullPageMessage
+ icon={AlertTriangle}
+ title="Evaluation stage has not started yet"
+ message={`You are authorized, but evaluations are locked until the event reaches the Evaluation stage. Current stage: ${formatStageLabel(currentStage)}.`}
+ />
+ )
+}
+
+const teams = portalData?.assigned_teams ?? []
+const evaluatorName = portalData?.name ?? 'Evaluator'
 
  function handleTeamSelect(team) {
  setSelectedTeam(team)

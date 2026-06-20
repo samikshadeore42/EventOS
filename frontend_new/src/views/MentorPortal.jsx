@@ -910,22 +910,33 @@ export default function MentorPortal() {
 
 function MentorPortalContent() {
  const { isDark } = useTheme();
- const { token, setToken } = useAuth()
+ const { setToken } = useAuth()
+ const { eventId } = useParams()
+
+ const rawUrlToken = useMemo(() => {
+ return new URLSearchParams(window.location.search).get('token')
+ }, [])
+
+ const mentorPortalTokenKey = eventId
+ ? `eventos_portal_mentor_token_${eventId}`
+ : null
 
  const urlToken = useMemo(() => {
- return new URLSearchParams(window.location.search).get('token') || token
- }, [token])
+ if (rawUrlToken) return rawUrlToken
+ return mentorPortalTokenKey
+ ? sessionStorage.getItem(mentorPortalTokenKey)
+ : null
+ }, [rawUrlToken, mentorPortalTokenKey])
 
- const { eventId } = useParams()
  useEffect(() => {
  if (eventId) eventStorage.set(eventId)
  }, [eventId])
 
  useEffect(() => {
- const t = new URLSearchParams(window.location.search).get('token')
- if (t) setToken(t)
- // eslint-disable-next-line react-hooks/exhaustive-deps
- }, [])
+ if (!rawUrlToken || !mentorPortalTokenKey) return
+ sessionStorage.setItem(mentorPortalTokenKey, rawUrlToken)
+ setToken(rawUrlToken)
+ }, [rawUrlToken, mentorPortalTokenKey, setToken])
 
 
  // Load mentor profile via portal access
@@ -952,7 +963,9 @@ function MentorPortalContent() {
  <div className={isDark ? "border shadow-sm rounded-[22px] p-8 max-w-sm text-center bg-slate-900/80 border-white/10" : "text-center max-w-sm bg-white p-8 rounded-[22px] shadow-sm border border-slate-200"}>
  <AlertTriangle size={40} className="text-orange-500 mx-auto mb-4" />
  <h2 className={isDark ? "mb-1 font-bold text-slate-100" : "text-lg font-bold text-slate-950 mb-1"}>No access token</h2>
- <p className={isDark ? "font-medium text-slate-300" : "text-sm font-medium text-slate-600"}>Please use the secure mentor link sent to your email.</p>
+ <p className={isDark ? "font-medium text-slate-300" : "text-sm font-medium text-slate-600"}>
+ Please use the secure mentor link sent to your email. It looks like /mentor?token=...
+ </p>
  </div>
  </div>
  )
