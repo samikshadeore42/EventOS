@@ -3363,216 +3363,216 @@ function AnomalyTab() {
 }
 
 // ── TAB: RISK INTELLIGENCE ───────────────────────────────────────────────
-function RiskTab() {
+// function RiskTab() {
 
-  const {
-    data: summary,
-    error: summaryError,
-    isLoading: summaryLoading,
-    refetch: refetchSummary,
-  } = useQuery({
-    queryKey: ['risk-summary'],
-    queryFn: riskApi.summary,
-    retry: false,
-  })
+//   const {
+//     data: summary,
+//     error: summaryError,
+//     isLoading: summaryLoading,
+//     refetch: refetchSummary,
+//   } = useQuery({
+//     queryKey: ['risk-summary'],
+//     queryFn: riskApi.summary,
+//     retry: false,
+//   })
 
-  const {
-    data: teams = [],
-    error: teamsError,
-    isLoading: teamsLoading,
-    refetch: refetchTeams,
-  } = useQuery({
-    queryKey: ['risk-teams'],
-    queryFn: riskApi.teams,
-    retry: false,
-  })
+//   const {
+//     data: teams = [],
+//     error: teamsError,
+//     isLoading: teamsLoading,
+//     refetch: refetchTeams,
+//   } = useQuery({
+//     queryKey: ['risk-teams'],
+//     queryFn: riskApi.teams,
+//     retry: false,
+//   })
 
-  const sweepMutation = useMutation({
-    mutationFn: riskApi.sweep,
-    onSuccess: () => {
-      refetchSummary()
-      refetchTeams()
-    },
-    onError: (err) => alert(`Error running risk sweep: ${err.message}`),
-  })
+//   const sweepMutation = useMutation({
+//     mutationFn: riskApi.sweep,
+//     onSuccess: () => {
+//       refetchSummary()
+//       refetchTeams()
+//     },
+//     onError: (err) => alert(`Error running risk sweep: ${err.message}`),
+//   })
 
-  const capabilityDisabled = [summaryError, teamsError].some((err) =>
-    err?.message?.includes('risk_monitoring') ||
-    err?.message?.includes('does not enable capability')
-  )
+//   const capabilityDisabled = [summaryError, teamsError].some((err) =>
+//     err?.message?.includes('risk_monitoring') ||
+//     err?.message?.includes('does not enable capability')
+//   )
 
-  if (capabilityDisabled) {
-    return (
-      <div className="app-card rounded-[22px] py-16 text-center">
-        <ShieldAlert size={48} className="mx-auto text-slate-300 mb-3" />
-        <p className="text-foreground font-extrabold text-[20px]">Risk monitoring is not enabled for this event.</p>
-      </div>
-    )
-  }
+//   if (capabilityDisabled) {
+//     return (
+//       <div className="app-card rounded-[22px] py-16 text-center">
+//         <ShieldAlert size={48} className="mx-auto text-slate-300 mb-3" />
+//         <p className="text-foreground font-extrabold text-[20px]">Risk monitoring is not enabled for this event.</p>
+//       </div>
+//     )
+//   }
 
-  if (summaryError || teamsError) {
-    return (
-      <div className="app-card rounded-[22px] py-16 text-center">
-        <AlertTriangle size={48} className="mx-auto text-red-400 mb-3" />
-        <p className="text-foreground font-extrabold text-[20px]">Unable to load risk intelligence.</p>
-        <p className="text-sm text-muted font-medium mt-1">{summaryError?.message || teamsError?.message}</p>
-      </div>
-    )
-  }
+//   if (summaryError || teamsError) {
+//     return (
+//       <div className="app-card rounded-[22px] py-16 text-center">
+//         <AlertTriangle size={48} className="mx-auto text-red-400 mb-3" />
+//         <p className="text-foreground font-extrabold text-[20px]">Unable to load risk intelligence.</p>
+//         <p className="text-sm text-muted font-medium mt-1">{summaryError?.message || teamsError?.message}</p>
+//       </div>
+//     )
+//   }
 
-  const loading = summaryLoading || teamsLoading
+//   const loading = summaryLoading || teamsLoading
 
-  const riskLevelStyles = {
-    critical: { cardBorder: 'border-l-[4px] border-l-red-500', pill: 'bg-red-50 text-red-600 border border-red-200' },
-    high: { cardBorder: 'border-l-[4px] border-l-orange-500', pill: 'bg-orange-50 text-orange-600 border border-orange-200' },
-    medium: { cardBorder: 'border-l-[4px] border-l-blue-500', pill: 'bg-blue-50 text-blue-600 border border-blue-200' },
-    low: { cardBorder: 'border-l-[4px] border-l-emerald-500', pill: 'bg-emerald-50 text-emerald-600 border border-emerald-200' },
-  }
+//   const riskLevelStyles = {
+//     critical: { cardBorder: 'border-l-[4px] border-l-red-500', pill: 'bg-red-50 text-red-600 border border-red-200' },
+//     high: { cardBorder: 'border-l-[4px] border-l-orange-500', pill: 'bg-orange-50 text-orange-600 border border-orange-200' },
+//     medium: { cardBorder: 'border-l-[4px] border-l-blue-500', pill: 'bg-blue-50 text-blue-600 border border-blue-200' },
+//     low: { cardBorder: 'border-l-[4px] border-l-emerald-500', pill: 'bg-emerald-50 text-emerald-600 border border-emerald-200' },
+//   }
 
-  return (
-    <div>
+//   return (
+//     <div>
 
-      {/* Main AI Risk Intelligence Card */}
-      <div className="app-card rounded-[22px] p-6 lg:p-8 mb-8">
-        <div className="flex flex-col md:flex-row items-start md:items-center justify-between mb-8 gap-4">
-          <div>
-            <h2 className="text-lg font-extrabold text-foreground">AI Risk Intelligence</h2>
-            <p className="text-sm font-medium text-muted mt-1">
-              Continuous monitoring of team health and participant engagement.
-            </p>
-          </div>
-          <button
-            onClick={() => sweepMutation.mutate()}
-            disabled={sweepMutation.isPending}
-            className="flex items-center gap-2 bg-[#ff6b1a] hover:bg-[#ea580c] text-white px-4 py-2 rounded-xl text-sm font-extrabold transition-colors shadow-[0_10px_20px_rgba(255,107,26,0.2)] disabled:opacity-50"
-          >
-            {sweepMutation.isPending ? <Loader2 size={16} className="animate-spin" /> : <Activity size={16} />}
-            Run risk sweep
-          </button>
-        </div>
+//       {/* Main AI Risk Intelligence Card */}
+//       <div className="app-card rounded-[22px] p-6 lg:p-8 mb-8">
+//         <div className="flex flex-col md:flex-row items-start md:items-center justify-between mb-8 gap-4">
+//           <div>
+//             <h2 className="text-lg font-extrabold text-foreground">AI Risk Intelligence</h2>
+//             <p className="text-sm font-medium text-muted mt-1">
+//               Continuous monitoring of team health and participant engagement.
+//             </p>
+//           </div>
+//           <button
+//             onClick={() => sweepMutation.mutate()}
+//             disabled={sweepMutation.isPending}
+//             className="flex items-center gap-2 bg-[#ff6b1a] hover:bg-[#ea580c] text-white px-4 py-2 rounded-xl text-sm font-extrabold transition-colors shadow-[0_10px_20px_rgba(255,107,26,0.2)] disabled:opacity-50"
+//           >
+//             {sweepMutation.isPending ? <Loader2 size={16} className="animate-spin" /> : <Activity size={16} />}
+//             Run risk sweep
+//           </button>
+//         </div>
 
-        {/* Summary Cards */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          {/* Total Teams */}
-          <div className="app-card rounded-[18px] p-5">
-            <div className="flex items-center gap-3 mb-4">
-              <div className="w-10 h-10 rounded-xl bg-blue-50 flex items-center justify-center">
-                <Users size={20} className="text-blue-600" />
-              </div>
-              <p className="text-sm font-extrabold text-foreground">Total Teams</p>
-            </div>
-            <p className="text-3xl font-extrabold text-foreground">{loading ? '—' : summary?.total_teams ?? 0}</p>
-          </div>
-          {/* Average Risk Score */}
-          <div className="app-card rounded-[18px] p-5">
-            <div className="flex items-center gap-3 mb-4">
-              <div className="w-10 h-10 rounded-xl bg-emerald-50 flex items-center justify-center">
-                <Activity size={20} className="text-emerald-600" />
-              </div>
-              <p className="text-sm font-extrabold text-foreground">Average Risk Score</p>
-            </div>
-            <p className="text-3xl font-extrabold text-foreground">{loading ? '—' : (summary?.average_risk_score ?? 0).toFixed(1)}</p>
-          </div>
-          {/* High Risk */}
-          <div className="app-card rounded-[18px] p-5">
-            <div className="flex items-center gap-3 mb-4">
-              <div className="w-10 h-10 rounded-xl bg-orange-50 flex items-center justify-center">
-                <AlertTriangle size={20} className="text-orange-500" />
-              </div>
-              <p className="text-sm font-extrabold text-foreground">High Risk</p>
-            </div>
-            <p className="text-3xl font-extrabold text-foreground">{loading ? '—' : summary?.high_count ?? 0}</p>
-          </div>
-          {/* Critical Risk */}
-          <div className="app-card rounded-[18px] p-5">
-            <div className="flex items-center gap-3 mb-4">
-              <div className="w-10 h-10 rounded-xl bg-red-50 flex items-center justify-center">
-                <ShieldAlert size={20} className="text-red-500" />
-              </div>
-              <p className="text-sm font-extrabold text-foreground">Critical Risk</p>
-            </div>
-            <p className="text-3xl font-extrabold text-foreground">{loading ? '—' : summary?.critical_count ?? 0}</p>
-          </div>
-        </div>
-      </div>
+//         {/* Summary Cards */}
+//         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+//           {/* Total Teams */}
+//           <div className="app-card rounded-[18px] p-5">
+//             <div className="flex items-center gap-3 mb-4">
+//               <div className="w-10 h-10 rounded-xl bg-blue-50 flex items-center justify-center">
+//                 <Users size={20} className="text-blue-600" />
+//               </div>
+//               <p className="text-sm font-extrabold text-foreground">Total Teams</p>
+//             </div>
+//             <p className="text-3xl font-extrabold text-foreground">{loading ? '—' : summary?.total_teams ?? 0}</p>
+//           </div>
+//           {/* Average Risk Score */}
+//           <div className="app-card rounded-[18px] p-5">
+//             <div className="flex items-center gap-3 mb-4">
+//               <div className="w-10 h-10 rounded-xl bg-emerald-50 flex items-center justify-center">
+//                 <Activity size={20} className="text-emerald-600" />
+//               </div>
+//               <p className="text-sm font-extrabold text-foreground">Average Risk Score</p>
+//             </div>
+//             <p className="text-3xl font-extrabold text-foreground">{loading ? '—' : (summary?.average_risk_score ?? 0).toFixed(1)}</p>
+//           </div>
+//           {/* High Risk */}
+//           <div className="app-card rounded-[18px] p-5">
+//             <div className="flex items-center gap-3 mb-4">
+//               <div className="w-10 h-10 rounded-xl bg-orange-50 flex items-center justify-center">
+//                 <AlertTriangle size={20} className="text-orange-500" />
+//               </div>
+//               <p className="text-sm font-extrabold text-foreground">High Risk</p>
+//             </div>
+//             <p className="text-3xl font-extrabold text-foreground">{loading ? '—' : summary?.high_count ?? 0}</p>
+//           </div>
+//           {/* Critical Risk */}
+//           <div className="app-card rounded-[18px] p-5">
+//             <div className="flex items-center gap-3 mb-4">
+//               <div className="w-10 h-10 rounded-xl bg-red-50 flex items-center justify-center">
+//                 <ShieldAlert size={20} className="text-red-500" />
+//               </div>
+//               <p className="text-sm font-extrabold text-foreground">Critical Risk</p>
+//             </div>
+//             <p className="text-3xl font-extrabold text-foreground">{loading ? '—' : summary?.critical_count ?? 0}</p>
+//           </div>
+//         </div>
+//       </div>
 
-      <h3 className="text-[20px] font-extrabold text-foreground mb-6">Team Risk Dashboard</h3>
+//       <h3 className="text-[20px] font-extrabold text-foreground mb-6">Team Risk Dashboard</h3>
 
-      {loading ? (
-        <div className="app-card rounded-[22px] py-16 text-center">
-          <Loader2 size={48} className="mx-auto text-blue-500 mb-3 animate-spin" />
-          <p className="text-foreground font-extrabold text-[20px]">Loading risk intelligence...</p>
-        </div>
-      ) : teams.length === 0 ? (
-        <div className="app-card rounded-[22px] py-16 text-center">
-          <div className="w-16 h-16 bg-cardSoft rounded-full flex items-center justify-center mx-auto mb-4">
-            <Activity size={32} className="text-slate-400" />
-          </div>
-          <p className="text-[20px] font-extrabold text-foreground mb-2">No team risk snapshots available</p>
-          <p className="text-sm font-medium text-muted">Run a risk sweep to generate updated team risk intelligence.</p>
-        </div>
-      ) : (
-        <div className="space-y-4">
-          {teams.map((team) => {
-            const style = riskLevelStyles[team.risk_level] ?? riskLevelStyles.low;
-            const computedDate = team.created_at || team.computed_at ? new Date(team.created_at || team.computed_at).toLocaleString() : '—';
+//       {loading ? (
+//         <div className="app-card rounded-[22px] py-16 text-center">
+//           <Loader2 size={48} className="mx-auto text-blue-500 mb-3 animate-spin" />
+//           <p className="text-foreground font-extrabold text-[20px]">Loading risk intelligence...</p>
+//         </div>
+//       ) : teams.length === 0 ? (
+//         <div className="app-card rounded-[22px] py-16 text-center">
+//           <div className="w-16 h-16 bg-cardSoft rounded-full flex items-center justify-center mx-auto mb-4">
+//             <Activity size={32} className="text-slate-400" />
+//           </div>
+//           <p className="text-[20px] font-extrabold text-foreground mb-2">No team risk snapshots available</p>
+//           <p className="text-sm font-medium text-muted">Run a risk sweep to generate updated team risk intelligence.</p>
+//         </div>
+//       ) : (
+//         <div className="space-y-4">
+//           {teams.map((team) => {
+//             const style = riskLevelStyles[team.risk_level] ?? riskLevelStyles.low;
+//             const computedDate = team.created_at || team.computed_at ? new Date(team.created_at || team.computed_at).toLocaleString() : '—';
             
-            return (
-              <div
-                key={team.team_id}
-                className={`app-card rounded-[22px] p-6 ${style.cardBorder}`}
-              >
-                <div className="flex flex-col md:flex-row justify-between gap-4">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-3 mb-2">
-                      <h4 className="font-extrabold text-foreground text-lg">{team.team_name || 'Team'}</h4>
-                      <span className={`px-3 py-1 rounded-full text-[10px] font-extrabold uppercase tracking-wide ${style.pill}`}>
-                        {team.risk_level || 'MEDIUM'}
-                      </span>
-                    </div>
+//             return (
+//               <div
+//                 key={team.team_id}
+//                 className={`app-card rounded-[22px] p-6 ${style.cardBorder}`}
+//               >
+//                 <div className="flex flex-col md:flex-row justify-between gap-4">
+//                   <div className="flex-1">
+//                     <div className="flex items-center gap-3 mb-2">
+//                       <h4 className="font-extrabold text-foreground text-lg">{team.team_name || 'Team'}</h4>
+//                       <span className={`px-3 py-1 rounded-full text-[10px] font-extrabold uppercase tracking-wide ${style.pill}`}>
+//                         {team.risk_level || 'MEDIUM'}
+//                       </span>
+//                     </div>
 
-                    <p className="text-sm text-muted mb-6 font-medium">
-                      <span className="text-muted">Risk Score:</span> {team.risk_score || 0}/100
-                    </p>
+//                     <p className="text-sm text-muted mb-6 font-medium">
+//                       <span className="text-muted">Risk Score:</span> {team.risk_score || 0}/100
+//                     </p>
 
-                    <div className="mb-4">
-                      <p className="text-xs font-extrabold text-foreground uppercase tracking-wide mb-2">Reasons</p>
-                      {team.reasons?.length > 0 ? (
-                        <ul className="list-disc pl-5 text-sm text-muted font-medium space-y-1">
-                          {team.reasons.map((reason, index) => <li key={index} className="pl-1">{reason}</li>)}
-                        </ul>
-                      ) : (
-                        <p className="text-sm text-muted font-medium">No risk reasons available.</p>
-                      )}
-                    </div>
+//                     <div className="mb-4">
+//                       <p className="text-xs font-extrabold text-foreground uppercase tracking-wide mb-2">Reasons</p>
+//                       {team.reasons?.length > 0 ? (
+//                         <ul className="list-disc pl-5 text-sm text-muted font-medium space-y-1">
+//                           {team.reasons.map((reason, index) => <li key={index} className="pl-1">{reason}</li>)}
+//                         </ul>
+//                       ) : (
+//                         <p className="text-sm text-muted font-medium">No risk reasons available.</p>
+//                       )}
+//                     </div>
 
-                    <div>
-                      <p className="text-xs font-extrabold text-foreground uppercase tracking-wide mb-2">Recommended Actions</p>
-                      {team.recommended_actions?.length > 0 ? (
-                        <ul className="list-disc pl-5 text-sm text-muted font-medium space-y-1">
-                          {team.recommended_actions.map((action, index) => <li key={index} className="pl-1">{action}</li>)}
-                        </ul>
-                      ) : (
-                        <p className="text-sm text-muted font-medium">No recommended actions available.</p>
-                      )}
-                    </div>
-                  </div>
+//                     <div>
+//                       <p className="text-xs font-extrabold text-foreground uppercase tracking-wide mb-2">Recommended Actions</p>
+//                       {team.recommended_actions?.length > 0 ? (
+//                         <ul className="list-disc pl-5 text-sm text-muted font-medium space-y-1">
+//                           {team.recommended_actions.map((action, index) => <li key={index} className="pl-1">{action}</li>)}
+//                         </ul>
+//                       ) : (
+//                         <p className="text-sm text-muted font-medium">No recommended actions available.</p>
+//                       )}
+//                     </div>
+//                   </div>
 
-                  <div className="flex items-start justify-end gap-3 mt-1 md:mt-0">
-                    <p className="text-xs font-medium text-muted mt-1">Computed: {computedDate}</p>
-                    <button className="text-slate-400 hover:text-muted transition-colors">
-                      <MoreVertical size={16} />
-                    </button>
-                  </div>
-                </div>
-              </div>
-            );
-          })}
-        </div>
-      )}
-    </div>
-  )
-}
+//                   <div className="flex items-start justify-end gap-3 mt-1 md:mt-0">
+//                     <p className="text-xs font-medium text-muted mt-1">Computed: {computedDate}</p>
+//                     <button className="text-slate-400 hover:text-muted transition-colors">
+//                       <MoreVertical size={16} />
+//                     </button>
+//                   </div>
+//                 </div>
+//               </div>
+//             );
+//           })}
+//         </div>
+//       )}
+//     </div>
+//   )
+// }
 
 // ── TAB: DEMO CONTROLS ───────────────────────────────────────────────────
 function DemoControlsTab() {
@@ -4080,7 +4080,7 @@ const TABS = [
   { key: 'mentorops', label: 'Mentor Ops', Icon: Target, requiresEvent: true, capabilities: ['mentors'] },
   { key: 'anomaly', label: 'Anomaly Scanner', Icon: Activity, requiresEvent: true, anyCapabilities: ['evaluators', 'weighted_scoring'] },
   { key: 'health', label: 'Team Health', Icon: Activity, requiresEvent: true, capabilities: ['risk_monitoring'] },
-  { key: 'risk', label: 'Risk', Icon: ShieldAlert, requiresEvent: true, capabilities: ['risk_monitoring'] },
+  // { key: 'risk', label: 'Risk', Icon: ShieldAlert, requiresEvent: true, capabilities: ['risk_monitoring'] },
   { key: 'democontrols', label: 'Demo Controls', Icon: AlertTriangle, requiresEvent: true },
   { key: 'settings', label: 'Settings', Icon: Settings },
 ]
@@ -4160,7 +4160,7 @@ export default function AdminDashboard() {
     mentorops: <MentorOpsTab />,
     anomaly: <AnomalyTab />,
     health: <HealthTab />,
-    risk: <RiskTab />,
+    // risk: <RiskTab />,
     democontrols: <DemoControlsTab />,
     settings: <SettingsTab key={activeOrganization?.id || 'no-org'} />,
   }
