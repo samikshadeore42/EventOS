@@ -126,7 +126,7 @@ export default function SettingsTab() {
             <h2 className="text-lg font-extrabold">Members</h2>
           </div>
           
-          <div className="border border-border rounded-[16px] overflow-hidden bg-white">
+          <div className="border border-border rounded-[16px] overflow-hidden bg-card">
             <table className="w-full text-left">
               <thead className="bg-cardSoft/60 border-b border-border/70">
                 <tr>
@@ -226,7 +226,7 @@ export default function SettingsTab() {
             </div>
             <button
               onClick={() => setShowInviteForm(!showInviteForm)}
-              className="bg-white border border-border text-foreground hover:bg-cardSoft h-10 px-4 rounded-xl text-sm font-extrabold transition-colors flex items-center justify-center gap-2"
+              className="bg-card border border-border text-foreground hover:bg-cardSoft h-10 px-4 rounded-xl text-sm font-extrabold transition-colors flex items-center justify-center gap-2"
             >
               {showInviteForm ? <X size={16} /> : <Plus size={16} />}
               {showInviteForm ? "Cancel" : "Invite Member"}
@@ -267,7 +267,7 @@ export default function SettingsTab() {
             </div>
           )}
 
-          <div className="border border-border rounded-[16px] overflow-hidden bg-white">
+          <div className="border border-border rounded-[16px] overflow-hidden bg-card">
             <table className="w-full text-left">
               <thead className="bg-cardSoft/60 border-b border-border/70">
                 <tr>
