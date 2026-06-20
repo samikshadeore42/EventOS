@@ -50,7 +50,7 @@ function DailyUpdateForm({ token }) {
   )
 
   return (
-    <div className="bg-amber-50/80 border border-amber-200 rounded-[22px] p-6 flex flex-col h-full shadow-[0_18px_45px_rgba(15,23,42,0.08)] backdrop-blur">
+    <div className="bg-amber-50/80 border border-amber-200/80 rounded-[22px] p-6 flex flex-col h-full">
       <div className="flex items-center gap-3 mb-6">
         <div className="w-10 h-10 rounded-xl bg-white/60 border border-amber-200 text-orange-600 flex items-center justify-center shrink-0">
           <ClipboardList size={20} />
@@ -66,7 +66,7 @@ function DailyUpdateForm({ token }) {
             What did you build today? <span className="text-orange-500">*</span>
           </label>
           <textarea
-            className="w-full bg-white border border-slate-200 rounded-xl px-4 py-3 text-sm text-slate-700 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-blue-300 transition-all resize-none"
+            className="w-full bg-white border border-slate-200 rounded-xl px-4 py-3 text-sm text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-4 focus:ring-blue-100/70 focus:border-blue-300 transition-all resize-none"
             rows={3}
             placeholder="Implemented the login flow, fixed the API integration..."
             value={what}
@@ -79,7 +79,7 @@ function DailyUpdateForm({ token }) {
               Any blockers?
             </label>
             <input
-              className="w-full bg-white border border-slate-200 rounded-xl px-4 py-2.5 text-sm text-slate-700 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-blue-300 transition-all"
+              className="w-full bg-white border border-slate-200 rounded-xl px-4 py-2.5 text-sm text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-4 focus:ring-blue-100/70 focus:border-blue-300 transition-all"
               placeholder="e.g. Docker network"
               value={blockers}
               onChange={e => setBlockers(e.target.value)}
@@ -91,7 +91,7 @@ function DailyUpdateForm({ token }) {
             </label>
             <input
               type="number" min="0" max="24"
-              className="w-full bg-white border border-slate-200 rounded-xl px-4 py-2.5 text-sm text-slate-700 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-blue-300 transition-all"
+              className="w-full bg-white border border-slate-200 rounded-xl px-4 py-2.5 text-sm text-slate-800 placeholder:text-slate-400 focus:outline-none focus:ring-4 focus:ring-blue-100/70 focus:border-blue-300 transition-all"
               placeholder="e.g. 4"
               value={hours}
               onChange={e => setHours(e.target.value)}
@@ -133,7 +133,7 @@ const STAGE_LABELS = {
 // ── Sub-components ─────────────────────────────────────────────────────────
 function PortalHeader({ name, email, eventName, stage, timeline }) {
   return (
-    <div className="bg-white/90 border border-slate-200/80 rounded-[22px] shadow-[0_18px_45px_rgba(15,23,42,0.08)] backdrop-blur p-8 flex flex-col justify-center h-full">
+    <div className="bg-white/90 border border-white/80 rounded-[22px] shadow-[0_18px_45px_rgba(15,23,42,0.08)] backdrop-blur-sm p-8 flex flex-col justify-center h-full">
       <div className="flex flex-col h-full">
         <div className="flex items-center gap-2.5 mb-6">
           <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.6)]" />
@@ -321,7 +321,7 @@ function TeamRevealSection({ teamName, rationale, teammates }) {
   return (
     <div className="mb-6 h-full flex flex-col gap-4">
       {/* Team name hero */}
-      <div className="bg-white/90 border border-slate-200/80 rounded-[22px] shadow-[0_18px_45px_rgba(15,23,42,0.08)] backdrop-blur p-6 text-center flex flex-col items-center justify-center py-10">
+      <div className="bg-white/90 border border-white/80 rounded-[22px] shadow-[0_16px_40px_rgba(15,23,42,0.07)] backdrop-blur-sm p-6 text-center flex flex-col items-center justify-center py-10">
         <p className="text-xs font-bold uppercase tracking-widest text-slate-500 mb-2">
           YOU HAVE BEEN ASSIGNED TO
         </p>
@@ -331,7 +331,7 @@ function TeamRevealSection({ teamName, rationale, teammates }) {
 
       {/* AI rationale accordion */}
       {rationale && (
-        <div className="bg-white/90 border border-slate-200/80 rounded-[22px] shadow-[0_18px_45px_rgba(15,23,42,0.08)] backdrop-blur overflow-hidden">
+        <div className="bg-white/90 border border-white/80 rounded-[22px] shadow-[0_16px_40px_rgba(15,23,42,0.07)] backdrop-blur-sm overflow-hidden">
           <button
             onClick={() => setRationaleOpen((o) => !o)}
             className="w-full flex items-center justify-between px-6 py-4 hover:bg-slate-50 transition-colors"
@@ -355,7 +355,7 @@ function TeamRevealSection({ teamName, rationale, teammates }) {
 
       {/* Teammates */}
       {teammates?.length > 0 && (
-        <div className="bg-white/90 border border-slate-200/80 rounded-[22px] shadow-[0_18px_45px_rgba(15,23,42,0.08)] backdrop-blur p-6 flex-1">
+        <div className="bg-white/90 border border-white/80 rounded-[22px] shadow-[0_16px_40px_rgba(15,23,42,0.07)] backdrop-blur-sm p-6 flex-1">
           <div className="flex items-center gap-2 mb-4">
             <Users size={18} className="text-slate-400" />
             <h3 className="text-base font-bold text-slate-950">
@@ -375,7 +375,7 @@ function TeamRevealSection({ teamName, rationale, teammates }) {
 
 function AwaitingCard() {
   return (
-    <div className="bg-white/90 border border-slate-200/80 rounded-[22px] shadow-[0_18px_45px_rgba(15,23,42,0.08)] backdrop-blur p-8 text-center h-full flex flex-col justify-center">
+    <div className="bg-white/90 border border-white/80 rounded-[22px] shadow-[0_16px_40px_rgba(15,23,42,0.07)] backdrop-blur-sm p-8 text-center h-full flex flex-col justify-center">
       <div className="w-16 h-16 rounded-full bg-slate-50 flex items-center justify-center mx-auto mb-5 text-slate-400 border border-slate-200">
         <Clock size={28} />
       </div>
@@ -393,7 +393,7 @@ function YourMentorCard({ mentorData }) {
   const hasMentor = !!mentorData.mentor_name
 
   return (
-    <div className="bg-blue-50/70 border border-blue-200 rounded-[22px] p-6 flex flex-col h-full shadow-[0_18px_45px_rgba(15,23,42,0.08)] backdrop-blur">
+    <div className="bg-blue-50/70 border border-blue-200/70 rounded-[22px] p-6 flex flex-col h-full">
       <div className="flex items-center gap-3 mb-6">
         <div className="w-10 h-10 rounded-xl bg-white/60 border border-blue-200 text-blue-600 flex items-center justify-center shrink-0">
           <UserCheck size={20} />
@@ -448,7 +448,7 @@ function NextMeetingCard({ mentorData }) {
   if (!mentorData) return null
 
   return (
-    <div className="bg-fuchsia-50/70 border border-fuchsia-200 rounded-[22px] p-6 flex flex-col h-full shadow-[0_18px_45px_rgba(15,23,42,0.08)] backdrop-blur">
+    <div className="bg-fuchsia-50/70 border border-fuchsia-200/70 rounded-[22px] p-6 flex flex-col h-full">
       <div className="flex items-center gap-3 mb-6">
         <div className="w-10 h-10 rounded-xl bg-white/60 border border-fuchsia-200 text-fuchsia-600 flex items-center justify-center shrink-0">
           <Video size={20} />
@@ -542,7 +542,7 @@ function ProjectSubmissionSection({ token }) {
   }
 
   return (
-    <div className="bg-white/90 border border-slate-200/80 rounded-[22px] p-6 shadow-[0_18px_45px_rgba(15,23,42,0.08)] backdrop-blur">
+    <div className="bg-white/90 border border-white/80 rounded-[22px] p-6 shadow-[0_16px_40px_rgba(15,23,42,0.07)] backdrop-blur-sm">
        <div className="flex items-center gap-2 mb-4 text-slate-950">
          <Send size={18} className="text-slate-500" />
          <h3 className="text-base font-bold text-slate-950">Submit Final Project (ZIP, max 50MB)</h3>
@@ -566,12 +566,12 @@ function ProjectSubmissionSection({ token }) {
              <p className="text-xs text-orange-600 font-bold mb-1">Replacing: {existingSub.original_filename}</p>
            )}
            <div className="flex flex-col sm:flex-row gap-3">
-             <input
-               type="file"
-               accept=".zip"
-               className="flex-1 bg-white border border-slate-200 rounded-xl px-4 py-2.5 text-sm text-slate-700 focus:outline-none focus:border-orange-300 focus:ring-2 focus:ring-orange-100 shadow-sm"
-               onChange={e => { setFile(e.target.files[0]); setError(''); }}
-             />
+              <input
+                type="file"
+                accept=".zip"
+                className="flex-1 bg-white border border-slate-200 rounded-xl px-4 py-2.5 text-sm text-slate-800 placeholder:text-slate-400 focus:outline-none focus:border-blue-300 focus:ring-4 focus:ring-blue-100/70 shadow-sm"
+                onChange={e => { setFile(e.target.files[0]); setError(''); }}
+              />
              <button
                onClick={handleUpload}
                className="bg-gradient-to-r from-orange-400 to-orange-500 hover:from-orange-500 hover:to-orange-600 text-white shadow-lg shadow-orange-500/20 px-6 py-2.5 rounded-xl text-sm font-bold flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed shrink-0"
@@ -595,7 +595,7 @@ function ResultsSection({ data }) {
   const hasRank = typeof data?.rank === 'number'
 
   return (
-    <div className="bg-white/90 border border-slate-200/80 rounded-[22px] p-8 shadow-[0_18px_45px_rgba(15,23,42,0.08)] backdrop-blur text-center border-t-4 border-t-emerald-500">
+    <div className="bg-white/90 border border-white/80 rounded-[22px] p-8 shadow-[0_16px_40px_rgba(15,23,42,0.07)] backdrop-blur-sm text-center border-t-4 border-t-emerald-500">
       <div className="flex items-center justify-center gap-2 mb-6 text-slate-950">
         <Trophy size={20} className="text-emerald-500" />
         <h3 className="text-lg font-extrabold text-slate-950">Final Results</h3>
@@ -657,7 +657,7 @@ function ProgressionInvitationSection({ participantId, currentStatus }) {
   }
 
   return (
-    <div className="bg-white/90 border border-orange-200 rounded-[22px] p-6 shadow-[0_18px_45px_rgba(15,23,42,0.08)] backdrop-blur mt-6">
+    <div className="bg-white/90 border border-white/80 rounded-[22px] p-6 shadow-[0_16px_40px_rgba(15,23,42,0.07)] backdrop-blur-sm mt-6">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div className="min-w-0">
           <h3 className="text-base font-bold text-slate-950 flex items-center gap-2">
@@ -702,7 +702,7 @@ function SupportFooter({ supportEmail }) {
 
 function PortalSkeleton() {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/40 to-slate-100 text-slate-950 px-4 py-12 flex flex-col items-center">
+    <div className="min-h-screen bg-gradient-to-br from-[#f8fbff] via-[#eef6fb] to-[#f7fbff] text-slate-950 px-4 py-12 flex flex-col items-center">
       <div className="w-full max-w-7xl">
         <div className="h-4 w-32 bg-slate-200 rounded animate-pulse mb-4" />
         <div className="h-10 w-64 bg-slate-200 rounded animate-pulse mb-12" />
@@ -824,7 +824,7 @@ export default function ParticipantPortal() {
   const supportEmail = import.meta.env.VITE_SUPPORT_EMAIL || 'events@ti.com'
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/40 to-slate-100 text-slate-950 font-sans pb-20">
+    <div className="min-h-screen bg-gradient-to-br from-[#f8fbff] via-[#eef6fb] to-[#f7fbff] text-slate-950 font-sans pb-20">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 py-10 space-y-6">
 
         {/* Top Row: Event Status, Phase, Notifications */}
@@ -887,7 +887,7 @@ export default function ParticipantPortal() {
       {team_assigned && team_id && !isChatOpen && (
         <button
           onClick={() => setIsChatOpen(true)}
-          className="fixed bottom-6 right-6 z-40 flex items-center gap-2.5 px-6 py-4 rounded-full text-white bg-gradient-to-r from-orange-400 to-orange-500 hover:from-orange-500 hover:to-orange-600 shadow-xl shadow-orange-500/20 transition-transform hover:-translate-y-1"
+          className="fixed bottom-8 right-8 z-40 flex items-center gap-2.5 rounded-full bg-gradient-to-r from-orange-500 to-orange-600 px-6 py-4 text-white font-semibold shadow-[0_18px_35px_rgba(249,115,22,0.35)] hover:from-orange-600 hover:to-orange-700 transition-transform hover:-translate-y-1"
         >
           <MessageSquare size={22} className="text-white" />
           <span className="hidden sm:inline font-bold">Team & Mentor Chat</span>
