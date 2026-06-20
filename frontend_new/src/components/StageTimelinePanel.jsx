@@ -304,7 +304,7 @@ export default function StageTimelinePanel({ eventStatus }) {
             {isValid ? <ShieldCheck className="w-5 h-5" /> : <AlertTriangle className="w-5 h-5" />}
           </div>
           <div>
-            <p className="font-extrabold text-sm text-slate-950">
+            <p className="font-extrabold text-sm text-foreground">
               {isValid ? 'Schedule is valid — ready to publish.' : 'Schedule has issues to fix before publishing.'}
             </p>
             {!isValid && violations.length > 0 && (
@@ -318,7 +318,7 @@ export default function StageTimelinePanel({ eventStatus }) {
           <button
             onClick={() => generateRuns.mutate()}
             disabled={generateRuns.isPending || sortedStages.length === 0}
-            className="inline-flex h-11 items-center gap-2 rounded-xl bg-white px-5 text-sm font-extrabold text-blue-600 shadow-sm ring-1 ring-blue-200 transition hover:bg-blue-50 disabled:opacity-50"
+            className="inline-flex h-11 items-center gap-2 rounded-xl bg-card px-5 text-sm font-extrabold text-blue-600 dark:text-blue-400 shadow-sm ring-1 ring-border transition hover:bg-cardSoft dark:hover:bg-blue-500/10 disabled:opacity-50"
           >
             {generateRuns.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Play className="w-4 h-4" />}
             Generate runs
@@ -343,14 +343,14 @@ export default function StageTimelinePanel({ eventStatus }) {
       )}
 
       {awaiting.length > 0 && (
-        <div className="mt-8 rounded-[20px] bg-white px-6 py-6 shadow-[0_18px_45px_rgba(15,23,42,0.06)] ring-1 ring-slate-200/80">
-          <h3 className="flex items-center gap-2 font-extrabold text-sm mb-4 text-slate-950">
+        <div className="mt-8 rounded-[20px] app-card px-6 py-6">
+          <h3 className="flex items-center gap-2 font-extrabold text-sm mb-4 text-foreground">
             <Clock className="w-5 h-5 text-orange-500" /> Stages awaiting approval
           </h3>
           <div className="space-y-3">
             {awaiting.map((s) => (
               <div key={s.id} className="flex items-center justify-between rounded-xl px-5 py-3 bg-orange-50/50 border border-orange-200">
-                <span className="text-sm font-extrabold text-slate-900">{s.name}</span>
+                <span className="text-sm font-extrabold text-foreground">{s.name}</span>
                 <button
                   onClick={() => approve.mutate(s.id)}
                   disabled={approve.isPending}
@@ -365,11 +365,11 @@ export default function StageTimelinePanel({ eventStatus }) {
       )}
 
       {/* Timeline */}
-      <div className="mt-8 rounded-[20px] bg-white shadow-[0_18px_45px_rgba(15,23,42,0.06)] ring-1 ring-slate-200/80 overflow-hidden">
-        <div className="px-6 py-5 flex items-center justify-between border-b border-slate-100">
+      <div className="mt-8 rounded-[20px] app-card overflow-hidden">
+        <div className="px-6 py-5 flex items-center justify-between border-b border-border">
           <div>
-            <h3 className="text-lg font-extrabold text-slate-950">Stage Definitions</h3>
-            <p className="text-sm font-semibold text-slate-500 mt-1">Create, edit, delete, and reorder creator-defined stages.</p>
+            <h3 className="text-lg font-extrabold text-foreground">Stage Definitions</h3>
+            <p className="text-sm font-semibold text-muted mt-1">Create, edit, delete, and reorder creator-defined stages.</p>
           </div>
           <button
             onClick={startCreate}
@@ -571,14 +571,14 @@ export default function StageTimelinePanel({ eventStatus }) {
             }
 
             return (
-              <div key={s.id} className={`flex items-center justify-between px-6 py-4 bg-white ${index < sortedStages.length - 1 ? 'border-b border-slate-100' : ''}`}>
+              <div key={s.id} className={`flex items-center justify-between px-6 py-4 bg-card ${index < sortedStages.length - 1 ? 'border-b border-border' : ''}`}>
                 <div className="flex items-center gap-4 min-w-0">
                   <span className={`w-10 h-10 flex items-center justify-center rounded-full text-sm font-extrabold ${badgeBg} ${badgeText}`}>
                     {s.position}
                   </span>
                   <div className="min-w-0">
-                    <p className="text-base font-extrabold text-slate-950 truncate">{s.name}</p>
-                    <p className="text-sm font-semibold text-slate-500 truncate mt-0.5">
+                    <p className="text-base font-extrabold text-foreground truncate">{s.name}</p>
+                    <p className="text-sm font-semibold text-muted truncate mt-0.5">
                       {new Date(s.start_at).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' })}
                       {' → '}
                       {new Date(s.end_at).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' })}
@@ -588,13 +588,13 @@ export default function StageTimelinePanel({ eventStatus }) {
                 </div>
                 <div className="flex items-center gap-3">
                   <StatusPill status={runStatus} />
-                  <button onClick={() => moveStage(index, -1)} disabled={index === 0 || reorder.isPending} className="inline-flex w-10 h-10 items-center justify-center rounded-xl bg-white border border-slate-100 text-emerald-600 shadow-sm transition hover:bg-emerald-50 disabled:opacity-50" title="Move up">
+                  <button onClick={() => moveStage(index, -1)} disabled={index === 0 || reorder.isPending} className="inline-flex w-10 h-10 items-center justify-center rounded-xl bg-card border border-border text-emerald-600 dark:text-emerald-400 shadow-sm transition hover:bg-cardSoft dark:hover:bg-emerald-500/10 disabled:opacity-50" title="Move up">
                     <ArrowUp className="w-5 h-5" />
                   </button>
-                  <button onClick={() => moveStage(index, 1)} disabled={index === sortedStages.length - 1 || reorder.isPending} className="inline-flex w-10 h-10 items-center justify-center rounded-xl bg-white border border-slate-100 text-blue-600 shadow-sm transition hover:bg-blue-50 disabled:opacity-50" title="Move down">
+                  <button onClick={() => moveStage(index, 1)} disabled={index === sortedStages.length - 1 || reorder.isPending} className="inline-flex w-10 h-10 items-center justify-center rounded-xl bg-card border border-border text-blue-600 dark:text-blue-400 shadow-sm transition hover:bg-cardSoft dark:hover:bg-blue-500/10 disabled:opacity-50" title="Move down">
                     <ArrowDown className="w-5 h-5" />
                   </button>
-                  <button onClick={() => startEdit(s)} className="inline-flex w-10 h-10 items-center justify-center rounded-xl bg-white border border-slate-100 text-amber-500 shadow-sm transition hover:bg-amber-50 disabled:opacity-50" title="Edit">
+                  <button onClick={() => startEdit(s)} className="inline-flex w-10 h-10 items-center justify-center rounded-xl bg-card border border-border text-amber-500 dark:text-amber-400 shadow-sm transition hover:bg-cardSoft dark:hover:bg-amber-500/10 disabled:opacity-50" title="Edit">
                     <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"></path></svg>
                   </button>
                   <button
@@ -602,7 +602,7 @@ export default function StageTimelinePanel({ eventStatus }) {
                       if (window.confirm(`Delete stage "${s.name}"?`)) deleteStage.mutate(s.id)
                     }}
                     disabled={deleteStage.isPending}
-                    className="inline-flex w-10 h-10 items-center justify-center rounded-xl bg-white border border-slate-100 text-red-500 shadow-sm transition hover:bg-red-50 disabled:opacity-50"
+                    className="inline-flex w-10 h-10 items-center justify-center rounded-xl bg-card border border-border text-red-500 dark:text-red-400 shadow-sm transition hover:bg-cardSoft dark:hover:bg-red-500/10 disabled:opacity-50"
                     title="Delete"
                   >
                     <Trash2 className="w-5 h-5" />
