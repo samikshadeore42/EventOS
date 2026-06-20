@@ -3632,6 +3632,7 @@ function DemoControlsTab() {
   const [deleteEventConfirm, setDeleteEventConfirm] = useState('')
   const [deleteEventError, setDeleteEventError] = useState('')
   const [deleteEventSuccess, setDeleteEventSuccess] = useState('')
+  const [deleteEventDialogOpen, setDeleteEventDialogOpen] = useState(false)
   const [confirmText, setConfirmText] = useState('')
   const [auditResult, setAuditResult] = useState(null);
   const [auditError, setAuditError] = useState('');
@@ -3698,9 +3699,7 @@ function DemoControlsTab() {
   })
 
   const deleteEventMutation = useMutation({
-    mutationFn: async () => {
-      const eventId = activeEvent?.id
-
+    mutationFn: async ({ eventId }) => {
       if (!eventId) {
         throw new Error('No active event selected.')
       }
@@ -3711,15 +3710,16 @@ function DemoControlsTab() {
       setDeleteEventError('')
       setDeleteEventSuccess('')
     },
-    onSuccess: async (res) => {
+    onSuccess: async (res, variables) => {
+      const deletedName = variables?.eventName || activeEvent?.name || 'Event'
       const message =
-        res?.data?.message ||
         res?.message ||
-        `${activeEvent?.name || 'Event'} deleted successfully.`
+        `${deletedName} deleted successfully.`
 
       setDeleteEventConfirm('')
       setDeleteEventError('')
       setDeleteEventSuccess(message)
+      setDeleteEventDialogOpen(false)
 
       try {
         localStorage.removeItem('eventos_active_event_id')
@@ -3739,12 +3739,12 @@ function DemoControlsTab() {
 
       setDeleteEventError(message)
       setDeleteEventSuccess('')
+      setDeleteEventDialogOpen(false)
       alert(`Delete event failed: ${message}`)
     },
   })
 
-
-  const handleDeleteCurrentEvent = useCallback((event) => {
+  const openDeleteEventDialog = (event) => {
     event?.preventDefault?.()
     event?.stopPropagation?.()
 
@@ -3760,19 +3760,50 @@ function DemoControlsTab() {
       return
     }
 
-    const ok = window.confirm(
-      `Delete event "${activeEvent?.name}" permanently? This cannot be undone.`
-    )
+    setDeleteEventError('')
+    setDeleteEventSuccess('')
+    setDeleteEventDialogOpen(true)
+  }
 
-    if (!ok) return
+  const confirmDeleteCurrentEvent = () => {
+    if (!activeEvent?.id || deleteEventMutation.isPending) return
 
-    deleteEventMutation.mutate()
-  }, [activeEvent?.id, activeEvent?.name, deleteEventConfirm, deleteEventMutation])
+    deleteEventMutation.mutate({
+      eventId: activeEvent.id,
+      eventName: activeEvent.name || 'Event',
+    })
+  }
+
 
 
 
   return (
-    <div>
+  <div data-demo-controls-safe-zone>
+    <style>{`
+      [data-demo-controls-safe-zone] {
+        position: relative;
+        isolation: isolate;
+        pointer-events: auto;
+      }
+
+      [data-demo-controls-safe-zone] button,
+      [data-demo-controls-safe-zone] input,
+      [data-demo-controls-safe-zone] [role="button"] {
+        pointer-events: auto !important;
+        position: relative;
+        z-index: 30;
+      }
+
+      [data-demo-controls-safe-zone] [class*="blur-"],
+      [data-demo-controls-safe-zone] [class*="bg-gradient"] {
+        pointer-events: none !important;
+      }
+
+      [data-delete-event-modal],
+      [data-delete-event-modal] * {
+        pointer-events: auto !important;
+      }
+    `}</style>
 
       <h2 className="text-[20px] font-extrabold text-foreground mb-6">Demo Controls</h2>
 
@@ -3896,7 +3927,7 @@ function DemoControlsTab() {
                 e.preventDefault()
                 const typed = e.target.value.trim()
                 if (activeEvent?.id && typed === 'DELETE_EVENT' && !deleteEventMutation.isPending) {
-                  handleDeleteCurrentEvent(e)
+                  openDeleteEventDialog(e)
                 }
               }
             }}
@@ -3906,9 +3937,9 @@ function DemoControlsTab() {
 
           <button
             type="button"
-            onClick={handleDeleteCurrentEvent}
+            onClick={openDeleteEventDialog}
             disabled={!activeEvent?.id || deleteEventConfirm.trim() !== 'DELETE_EVENT' || deleteEventMutation.isPending}
-            className="w-full md:w-auto shrink-0 px-6 h-11 bg-red-500 hover:bg-red-600 text-white text-sm font-extrabold rounded-xl transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+            className="relative z-30 w-full md:w-auto shrink-0 px-6 h-11 bg-red-500 hover:bg-red-600 text-white text-sm font-extrabold rounded-xl transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
           >
             {deleteEventMutation.isPending ? <Loader2 size={16} className="animate-spin" /> : <Trash2 size={16} />}
             Delete Event
@@ -3927,6 +3958,57 @@ function DemoControlsTab() {
           </div>
         )}
       </div>
+
+      {deleteEventDialogOpen && (
+        <div
+          data-delete-event-modal
+          className="fixed inset-0 z-[120] flex items-center justify-center bg-slate-950/45 backdrop-blur-sm px-4"
+        >
+          <div className="w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl border border-red-100">
+            <div className="flex items-center gap-3 mb-4 text-red-600">
+              <AlertTriangle size={22} />
+              <h3 className="text-lg font-extrabold">Delete Event Permanently?</h3>
+            </div>
+
+            <p className="text-sm font-medium text-slate-600 mb-2">
+              This will permanently delete:
+            </p>
+
+            <p className="text-base font-extrabold text-slate-900 mb-5">
+              {activeEvent?.name || 'Selected event'}
+            </p>
+
+            <p className="text-sm font-semibold text-red-600 mb-6">
+              This action cannot be undone.
+            </p>
+
+            <div className="flex flex-col sm:flex-row justify-end gap-3">
+              <button
+                type="button"
+                onClick={() => setDeleteEventDialogOpen(false)}
+                disabled={deleteEventMutation.isPending}
+                className="px-5 h-11 rounded-xl border border-slate-200 bg-white text-slate-700 text-sm font-extrabold hover:bg-slate-50 transition-colors disabled:opacity-50"
+              >
+                Cancel
+              </button>
+
+              <button
+                type="button"
+                onClick={confirmDeleteCurrentEvent}
+                disabled={deleteEventMutation.isPending}
+                className="px-5 h-11 rounded-xl bg-red-600 text-white text-sm font-extrabold hover:bg-red-700 transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+              >
+                {deleteEventMutation.isPending ? (
+                  <Loader2 size={16} className="animate-spin" />
+                ) : (
+                  <Trash2 size={16} />
+                )}
+                Delete Permanently
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Security & Integrity Section */}
       <h3 className="text-[20px] font-extrabold text-foreground mb-6">Security & Integrity</h3>
