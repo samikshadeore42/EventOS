@@ -136,23 +136,22 @@ Return ONLY valid JSON in this exact shape:
 """
 
 RUBRIC_SYSTEM = """\
-You are an expert hackathon judge assistant.
+You are a hackathon judge assistant.
 
-Create a very compact AI scoring guide for the given criteria and weights.
+Create an ultra-compact scoring guide for the given criteria and weights.
 
 Rules:
 - Use every criterion exactly as provided.
 - Preserve each criterion weight exactly.
 - Do not collapse criteria.
-- Keep everything short and judge-friendly.
+- Keep output very short.
 - Return ONLY valid JSON. No markdown. No extra text.
 
 For each criterion:
-- description must be one short sentence under 12 words.
-- what_to_look_for must contain exactly 2 short checkpoints.
-- each checkpoint must be under 8 words.
-- scoring_guide must contain these bands: 9-10, 7-8, 4-6, 0-3.
-- each scoring band must be one short phrase under 10 words.
+- description must be under 7 words.
+- what_to_look_for must contain exactly 1 short checkpoint under 6 words.
+- scoring_guide must contain bands: 9-10, 7-8, 4-6, 0-3.
+- each band must be a short phrase under 5 words.
 
 Return ONLY valid JSON in this exact shape:
 {
@@ -162,14 +161,13 @@ Return ONLY valid JSON in this exact shape:
       "weight": 0.25,
       "description": "Short description.",
       "what_to_look_for": [
-        "Checkpoint 1",
-        "Checkpoint 2"
+        "Checkpoint"
       ],
       "scoring_guide": {
-        "9-10": "Excellent benchmark.",
-        "7-8": "Good benchmark.",
-        "4-6": "Average benchmark.",
-        "0-3": "Weak benchmark."
+        "9-10": "Excellent.",
+        "7-8": "Good.",
+        "4-6": "Average.",
+        "0-3": "Weak."
       }
     }
   ]

@@ -470,23 +470,20 @@ function ScoringGuideModal({ open, onClose, loading, error, rubric }) {
 
  return (
    <div className={isDark ? "mt-3 w-full rounded-2xl border border-white/10 bg-slate-900/80 shadow-sm overflow-hidden" : "mt-3 w-full rounded-2xl border border-slate-200 bg-white shadow-[0_12px_30px_rgba(15,23,42,0.04)] overflow-hidden"}>
-     <div className="px-5 py-5">
+     <div className="px-4 py-4">
        {loading ? (
-         <div className="py-8 text-center">
-           <Loader2 size={24} className="animate-spin text-red-500 mx-auto mb-3" />
+         <div className="py-6 text-center">
+           <Loader2 size={22} className="animate-spin text-red-500 mx-auto mb-2" />
            <p className={isDark ? "text-sm font-bold text-slate-100" : "text-sm font-bold text-slate-950"}>
-             Generating AI scoring guide…
-           </p>
-           <p className={isDark ? "text-xs text-slate-400 mt-1" : "text-xs text-slate-500 mt-1"}>
-             This may take a few seconds.
+             Generating guide…
            </p>
          </div>
        ) : error ? (
-         <div className="rounded-xl border border-red-200 bg-red-50 p-4 text-red-700 text-sm font-medium">
+         <div className="rounded-xl border border-red-200 bg-red-50 p-3 text-red-700 text-xs font-medium">
            {error}
          </div>
        ) : rubric?.criteria?.length ? (
-         <div className="space-y-3">
+         <div className="space-y-2">
            <div className="flex items-center justify-between gap-3">
              <p className={isDark ? "text-[10px] font-black uppercase tracking-[0.2em] text-slate-400" : "text-[10px] font-black uppercase tracking-[0.2em] text-slate-500"}>
                Generated guide
@@ -503,57 +500,54 @@ function ScoringGuideModal({ open, onClose, loading, error, rubric }) {
            {rubric.criteria.map((criterion) => (
              <div
                key={criterion.name}
-               className={isDark ? "rounded-2xl border border-white/10 bg-slate-950/50 p-4" : "rounded-2xl border border-slate-200 bg-slate-50/70 p-4"}
+               className={isDark ? "rounded-xl border border-white/10 bg-slate-950/50 p-3" : "rounded-xl border border-slate-200 bg-slate-50/70 p-3"}
              >
-               <div className="flex items-start justify-between gap-4 mb-2">
-                 <div>
-                   <h3 className={isDark ? "text-sm font-black text-slate-100" : "text-sm font-black text-slate-950"}>
-                     {criterion.name}
-                   </h3>
-                   <p className={isDark ? "text-xs font-medium text-slate-400 mt-1 leading-relaxed" : "text-xs font-medium text-slate-600 mt-1 leading-relaxed"}>
-                     {compactGuideText(criterion.description, 12)}
+               <div className="flex items-start justify-between gap-3 mb-2">
+                 <div className="min-w-0">
+                   <div className="flex items-center gap-2 flex-wrap">
+                     <h3 className={isDark ? "text-sm font-black text-slate-100" : "text-sm font-black text-slate-950"}>
+                       {criterion.name}
+                     </h3>
+                     <span className="rounded-full bg-red-50 text-red-600 px-2 py-0.5 text-[10px] font-black">
+                       {Math.round((criterion.weight || 0) * 100)}%
+                     </span>
+                   </div>
+                   <p className={isDark ? "text-xs font-medium text-slate-400 mt-1" : "text-xs font-medium text-slate-600 mt-1"}>
+                     {compactGuideText(criterion.description, 7)}
                    </p>
                  </div>
-                 <span className="shrink-0 rounded-full bg-red-50 text-red-600 px-3 py-1 text-xs font-black">
-                   {Math.round((criterion.weight || 0) * 100)}%
-                 </span>
                </div>
 
-               <div className="mb-3">
-                 <p className={isDark ? "text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1.5" : "text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1.5"}>
-                   What to look for
-                 </p>
-                 <ul className={isDark ? "list-disc pl-5 space-y-1 text-xs text-slate-300" : "list-disc pl-5 space-y-1 text-xs text-slate-600"}>
-                   {(criterion.what_to_look_for || []).slice(0, 2).map((item) => (
-                     <li key={item}>{compactGuideText(item, 8)}</li>
-                   ))}
-                 </ul>
+               <div className="flex flex-wrap gap-1.5 mb-2">
+                 {(criterion.what_to_look_for || []).slice(0, 1).map((item) => (
+                   <span
+                     key={item}
+                     className={isDark ? "rounded-full bg-slate-900 px-2 py-1 text-[11px] font-semibold text-slate-300" : "rounded-full bg-white border border-slate-200 px-2 py-1 text-[11px] font-semibold text-slate-600"}
+                   >
+                     {compactGuideText(item, 6)}
+                   </span>
+                 ))}
                </div>
 
-               <div>
-                 <p className={isDark ? "text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1.5" : "text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1.5"}>
-                   Scoring guide
-                 </p>
-                 <div className="grid gap-2 md:grid-cols-2">
-                   {Object.entries(criterion.scoring_guide || {}).map(([range, text]) => (
-                     <div
-                       key={range}
-                       className={isDark ? "rounded-xl border border-white/10 bg-slate-900/70 p-3" : "rounded-xl border border-slate-200 bg-white p-3"}
-                     >
-                       <p className="text-xs font-black text-red-500 mb-1">{range}</p>
-                       <p className={isDark ? "text-xs font-medium text-slate-300 leading-relaxed" : "text-xs font-medium text-slate-600 leading-relaxed"}>
-                         {compactGuideText(text, 10)}
-                       </p>
-                     </div>
-                   ))}
-                 </div>
+               <div className="grid grid-cols-2 md:grid-cols-4 gap-1.5">
+                 {Object.entries(criterion.scoring_guide || {}).map(([range, text]) => (
+                   <div
+                     key={range}
+                     className={isDark ? "rounded-lg border border-white/10 bg-slate-900/70 p-2" : "rounded-lg border border-slate-200 bg-white p-2"}
+                   >
+                     <p className="text-[10px] font-black text-red-500">{range}</p>
+                     <p className={isDark ? "text-[11px] font-semibold text-slate-300" : "text-[11px] font-semibold text-slate-600"}>
+                       {compactGuideText(text, 5)}
+                     </p>
+                   </div>
+                 ))}
                </div>
              </div>
            ))}
          </div>
        ) : (
-         <div className="py-8 text-center text-sm text-slate-500">
-           Click AI Scoring Guide again to generate the rubric.
+         <div className="py-6 text-center text-sm text-slate-500">
+           Click AI Scoring Guide again.
          </div>
        )}
      </div>
@@ -566,7 +560,7 @@ function TeamQueueSidebar({ teams, selectedId, submittedIds, onSelect }) {
  const { isDark } = useTheme();
 
  return (
-   <aside className={isDark ? "w-[300px] shrink-0 bg-slate-900/90 border-r border-white/10 text-slate-100 backdrop-blur flex flex-col hidden lg:flex h-[calc(100vh-72px)] sticky top-[72px] overflow-y-auto" : "w-[300px] shrink-0 bg-white/90 border-r border-slate-200 text-slate-950 backdrop-blur flex flex-col hidden lg:flex h-[calc(100vh-72px)] sticky top-[72px] overflow-y-auto"}>
+   <aside className={isDark ? "w-[300px] shrink-0 bg-slate-900/90 border-r border-white/10 text-slate-100 backdrop-blur flex flex-col hidden lg:flex min-h-[calc(100vh-72px)] self-stretch" : "w-[300px] shrink-0 bg-white/90 border-r border-slate-200 text-slate-950 backdrop-blur flex flex-col hidden lg:flex min-h-[calc(100vh-72px)] self-stretch"}>
      <div className="p-5 border-b border-slate-200/70">
        <div className="flex items-center justify-between mb-3">
          <p className={isDark ? "text-[10px] font-black uppercase tracking-[0.2em] text-slate-400" : "text-[10px] font-black uppercase tracking-[0.2em] text-slate-500"}>
