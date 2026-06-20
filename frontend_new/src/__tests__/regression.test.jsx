@@ -105,7 +105,7 @@ describe('EventOS Stage-1 Regression Tests', () => {
 
   it('1. Admin login form renders', () => {
     renderWithProviders(<AuthLogin />);
-    expect(screen.getByPlaceholderText('you@example.com (or username)')).toBeInTheDocument();
+    expect(screen.getByPlaceholderText('you@example.com or username')).toBeInTheDocument();
     expect(screen.getByPlaceholderText('••••••••')).toBeInTheDocument();
   });
 
@@ -113,7 +113,7 @@ describe('EventOS Stage-1 Regression Tests', () => {
     axios.post.mockRejectedValueOnce(new Error('Invalid credentials'));
     renderWithProviders(<AuthLogin />);
 
-    fireEvent.change(screen.getByPlaceholderText('you@example.com (or username)'), { target: { value: 'admin' } });
+    fireEvent.change(screen.getByPlaceholderText('you@example.com or username'), { target: { value: 'admin' } });
     fireEvent.change(screen.getByPlaceholderText('••••••••'), { target: { value: 'wrong' } });
     fireEvent.click(screen.getByRole('button', { name: /sign in/i }));
 
