@@ -23,7 +23,7 @@ env = Environment(loader=FileSystemLoader(TEMPLATE_DIR))
 class EmailService:
     @staticmethod
     def send_email(
-        event_id: uuid.UUID, # <-- 1. Require event_id
+        event_id: uuid.UUID | None,
         to_email: str,
         subject: str,
         html_content: str,
@@ -40,12 +40,13 @@ class EmailService:
 
         db = SessionLocal()
         try:
+            should_log = event_id is not None
+
             existing_log = None
-            if idempotency_key:
-                # 2. Scope the idempotency check
+            if should_log and idempotency_key:
                 existing_log = db.query(CommunicationLog).filter(
                     CommunicationLog.idempotency_key == idempotency_key,
-                    CommunicationLog.event_id == event_id 
+                    CommunicationLog.event_id == event_id
                 ).first()
                 if existing_log and existing_log.success:
                     return {
@@ -144,6 +145,11 @@ class EmailService:
                         }
 
             # 2. Log securely to Database
+                        # Auth emails like verification/password-reset are not event-scoped.
+            # Event emails are still logged normally.
+            if not should_log:
+                return result
+
             if existing_log:
                 existing_log.recipient_email = to_email
                 existing_log.recipient_name = recipient_name or to_email
@@ -155,7 +161,7 @@ class EmailService:
                 existing_log.message_id = result.get("message_id")
             else:
                 log = CommunicationLog(
-                    event_id=event_id, # <-- 3. Bind to the event
+                    event_id=event_id,
                     recipient_email=to_email,
                     recipient_name=recipient_name or to_email,
                     template=template,
@@ -283,7 +289,13 @@ class EmailService:
                 return {"success": False, "error": str(e)}
 
     @staticmethod
-    def send_email_verification(event_id: uuid.UUID, to_email: str, recipient_name: str, verification_link: str, idempotency_key: str = None) -> dict:
+    def send_email_verification(
+        to_email: str,
+        recipient_name: str,
+        verification_link: str,
+        idempotency_key: str = None,
+        event_id: uuid.UUID | None = None,
+    ) -> dict:
         """Sends an email verification link."""
         html_content = f"""
         <p>Hi {recipient_name},</p>
@@ -299,7 +311,13 @@ class EmailService:
         )
 
     @staticmethod
-    def send_password_reset(event_id: uuid.UUID, to_email: str, recipient_name: str, reset_link: str, idempotency_key: str = None) -> dict:
+    def send_password_reset(
+        to_email: str,
+        recipient_name: str,
+        reset_link: str,
+        idempotency_key: str = None,
+        event_id: uuid.UUID | None = None,
+    ) -> dict:
         """Sends a password reset link."""
         html_content = f"""
         <p>Hi {recipient_name},</p>
