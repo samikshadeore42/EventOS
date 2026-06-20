@@ -47,10 +47,10 @@ export default function AuthResetPasswordConfirm() {
   if (status === 'invalid') {
     return (
       <PageWrapper>
-        <XCircle className="h-12 w-12 text-amber-500 mx-auto mb-4" />
+        <XCircle className="h-12 w-12 text-warning mx-auto mb-4" />
         <h3 className="text-lg font-medium text-foreground mb-2">Invalid Reset Link</h3>
         <p className="text-sm text-muted mb-6">This password reset link is invalid or has already been used.</p>
-        <Link to="/auth/forgot-password" className="font-medium text-amber-600 dark:text-amber-400 hover:text-amber-500">Request a new link</Link>
+        <Link to="/auth/forgot-password" className="font-medium shrink-0 hover:text-warning">Request a new link</Link>
       </PageWrapper>
     );
   }
@@ -58,10 +58,10 @@ export default function AuthResetPasswordConfirm() {
   if (status === 'expired') {
     return (
       <PageWrapper>
-        <AlertTriangle className="h-12 w-12 text-amber-500 mx-auto mb-4" />
+        <AlertTriangle className="h-12 w-12 text-warning mx-auto mb-4" />
         <h3 className="text-lg font-medium text-foreground mb-2">Link Expired</h3>
         <p className="text-sm text-muted mb-6">This password reset link has expired.</p>
-        <Link to="/auth/forgot-password" className="font-medium text-amber-600 dark:text-amber-400 hover:text-amber-500">Request a new link</Link>
+        <Link to="/auth/forgot-password" className="font-medium shrink-0 hover:text-warning">Request a new link</Link>
       </PageWrapper>
     );
   }
@@ -72,7 +72,7 @@ export default function AuthResetPasswordConfirm() {
         <CheckCircle className="h-12 w-12 text-green-500 mx-auto mb-4" />
         <h3 className="text-lg font-medium text-foreground mb-2">Password Reset!</h3>
         <p className="text-sm text-muted mb-6">Your password has been updated. You can now sign in with your new password.</p>
-        <Link to="/auth/login" className="inline-flex items-center px-4 py-2 rounded-lg text-sm font-medium text-white bg-amber-600 hover:bg-amber-500">
+        <Link to="/auth/login" className="inline-flex items-center px-4 py-2 rounded-lg text-sm font-medium text-white app-btn-primary">
           Sign in
         </Link>
       </PageWrapper>
@@ -80,21 +80,21 @@ export default function AuthResetPasswordConfirm() {
   }
 
   return (
-    <div className="min-h-screen bg-surface flex flex-col justify-center py-12 sm:px-6 lg:px-8 relative overflow-hidden text-foreground">
+    <div className="min-h-screen flex flex-col justify-center py-12 sm:px-6 lg:px-8 relative overflow-hidden text-foreground">
       <div className="sm:mx-auto sm:w-full sm:max-w-md z-10">
-        <div className="flex justify-center text-amber-600 dark:text-amber-400">
+        <div className="flex justify-center shrink-0">
           <EventOSLogo size={64} />
         </div>
-        <h2 className="mt-4 text-center text-3xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-amber-600 to-orange-500">
+        <h2 className="mt-4 text-center text-3xl font-extrabold text-foreground">
           Set New Password
         </h2>
       </div>
 
       <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md z-10">
-        <div className="bg-white/80 dark:bg-slate-900/80 py-8 px-4 shadow-sm backdrop-blur-xl border border-slate-200/50 dark:border-slate-700/50 sm:rounded-2xl sm:px-10">
+        <div className="app-card py-8 px-4 sm:rounded-2xl sm:px-10">
           <form className="space-y-6" onSubmit={handleSubmit}>
             {error && (
-              <div className="bg-amber-50 dark:bg-amber-900/30 border border-teal-200 dark:border-teal-800 text-amber-600 dark:text-amber-400 p-3 rounded-lg text-sm text-center">
+              <div className="bg-cardSoft border border-border shrink-0 p-3 rounded-lg text-sm text-center">
                 {error}
               </div>
             )}
@@ -110,7 +110,7 @@ export default function AuthResetPasswordConfirm() {
                   minLength={8}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="block w-full pl-10 bg-surface text-foreground placeholder-slate-400 border border-border rounded-lg focus:ring-amber-500 focus:border-amber-500 sm:text-sm p-2.5"
+                  className="block w-full pl-10 bg-surface text-foreground placeholder-muted border border-border rounded-lg focus:ring-1 focus:ring-primary focus:border-primary sm:text-sm p-2.5"
                   placeholder="••••••••"
                 />
               </div>
@@ -127,7 +127,7 @@ export default function AuthResetPasswordConfirm() {
                   minLength={8}
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
-                  className="block w-full pl-10 bg-surface text-foreground placeholder-slate-400 border border-border rounded-lg focus:ring-amber-500 focus:border-amber-500 sm:text-sm p-2.5"
+                  className="block w-full pl-10 bg-surface text-foreground placeholder-muted border border-border rounded-lg focus:ring-1 focus:ring-primary focus:border-primary sm:text-sm p-2.5"
                   placeholder="••••••••"
                 />
               </div>
@@ -135,7 +135,7 @@ export default function AuthResetPasswordConfirm() {
             <button
               type="submit"
               disabled={loading}
-              className="w-full flex justify-center py-2.5 px-4 border border-amber-400/20 rounded-lg shadow-lg shadow-amber-500/25 text-sm font-medium text-white bg-amber-600 hover:bg-amber-500 focus:outline-none transition-all disabled:opacity-100 disabled:bg-amber-100 dark:disabled:bg-amber-900/50 disabled:text-amber-400 dark:disabled:text-amber-600 disabled:border-transparent disabled:shadow-none disabled:cursor-not-allowed"
+              className="w-full flex justify-center py-2.5 px-4 app-btn-primary w-full !py-2.5"
             >
               {loading ? <Loader2 className="animate-spin h-5 w-5" /> : 'Reset Password'}
             </button>
@@ -153,9 +153,9 @@ export default function AuthResetPasswordConfirm() {
 
 function PageWrapper({ children }) {
   return (
-    <div className="min-h-screen bg-surface flex flex-col justify-center py-12 sm:px-6 lg:px-8 relative overflow-hidden text-foreground">
+    <div className="min-h-screen flex flex-col justify-center py-12 sm:px-6 lg:px-8 relative overflow-hidden text-foreground">
       <div className="sm:mx-auto sm:w-full sm:max-w-md z-10">
-        <div className="bg-white/80 dark:bg-slate-900/80 py-8 px-4 shadow-sm backdrop-blur-xl border border-slate-200/50 dark:border-slate-700/50 sm:rounded-2xl sm:px-10 text-center">
+        <div className="app-card py-8 px-4 sm:rounded-2xl sm:px-10 text-center">
           {children}
         </div>
       </div>

@@ -5,7 +5,7 @@ import ReactDOM from 'react-dom/client'
 import './index.css'
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
 import { AuthProvider, useAuth } from './context/AuthContext'
-import AdminDashboard from './views/AdminDashboard' 
+import AdminDashboard from './views/AdminDashboard'
 import JudgePortal from './views/JudgePortal'
 import ParticipantPortal from './views/ParticipantPortal'
 import MentorPortal from './views/MentorPortal'
@@ -47,7 +47,7 @@ function App() {
             <Route path="/events/:eventId/portal/judge" element={<JudgePortal />} />
             <Route path="/events/:eventId/portal/participant" element={<ParticipantPortal />} />
             <Route path="/events/:eventId/portal/mentor" element={<MentorPortal />} />
-            
+
             <Route path="/admin" element={
                 <ProtectedAdminRoute>
                     <AdminDashboard />
@@ -55,7 +55,7 @@ function App() {
             } />
             <Route path="/admin/login" element={<Navigate to="/auth/login" replace />} />
             <Route path="/admin/signup" element={<Navigate to="/auth/register" replace />} />
-            
+
             <Route path="/configure" element={
             <ProtectedAdminRoute>
                 <ConfigureEvent />
@@ -77,7 +77,7 @@ function App() {
   )
 }
 
-// 2. THIS WAS THE MISSING PIECE! 
+// 2. THIS WAS THE MISSING PIECE!
 // This tells React to actually take the App and paint it onto the webpage.
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>

@@ -1,45 +1,23 @@
-import { useEffect, useState } from 'react';
-import { Moon, Sun } from 'lucide-react';
+import { Moon, Sun } from 'lucide-react'
+import { useTheme } from '../hooks/useTheme'
 
 export default function ThemeToggle() {
-  const [theme, setTheme] = useState(() => {
-    if (typeof localStorage !== 'undefined') {
-      const saved = localStorage.getItem('theme');
-      if (saved) return saved;
-      return window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
-    }
-    return 'light';
-  });
-
-  useEffect(() => {
-    const root = document.documentElement;
-    root.classList.remove('dark', 'theme-eventos');
-    
-    if (theme === 'dark') {
-      root.classList.add('dark');
-    } else if (theme === 'eventos') {
-      root.classList.add('theme-eventos');
-    }
-    
-    localStorage.setItem('theme', theme);
-  }, [theme]);
-
-  const cycleTheme = () => {
-    setTheme(current => current === 'light' ? 'dark' : 'light');
-  };
+  const { theme, isDark, toggleTheme } = useTheme()
 
   return (
     <button
-      onClick={cycleTheme}
-      className="p-2 rounded-xl text-muted hover:text-[var(--color-primary)] hover:bg-[var(--color-bg-soft)] transition-colors border border-transparent hover:border-[var(--color-border)]"
-      aria-label="Toggle Theme"
-      title={`Current Theme: ${theme}`}
+      type="button"
+      onClick={toggleTheme}
+      className="p-2 rounded-xl transition-colors border border-transparent hover:border-[var(--color-border)] hover:bg-[var(--bg-card-soft)]"
+      aria-label="Toggle theme"
+      title={`Current: ${theme}`}
+      style={{ color: 'var(--text-muted)' }}
     >
-      {theme === 'light' ? (
-        <Moon size={20} />
+      {isDark ? (
+        <Sun size={20} style={{ color: 'var(--color-primary-light)' }} />
       ) : (
-        <Sun size={20} className="text-teal-400" />
+        <Moon size={20} />
       )}
     </button>
-  );
+  )
 }

@@ -9,8 +9,7 @@ import {
 import { stagesApi, eventLifecycleApi, eventsApi, eventStorage } from '../services/api'
 
 const DEFAULT_TZ = 'Asia/Kolkata'
-const INPUT_CLASS = 'w-full border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 bg-background text-foreground'
-const ICON_BUTTON_CLASS = 'p-1.5 rounded border border-border text-muted hover:bg-surface disabled:opacity-40 disabled:cursor-not-allowed'
+const INPUT_CLASS = 'app-input bg-white dark:bg-[#111827] border border-slate-200 dark:border-white/10 text-slate-950 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500'
 const CAPABILITY_OPTIONS = [
   { key: 'teams', label: 'Teams' },
   { key: 'mentors', label: 'Mentors' },
@@ -249,7 +248,7 @@ export default function StageTimelinePanel({ eventStatus }) {
   const reorder = useMutation({
     mutationFn: (orderedIds) => stagesApi.reorder(orderedIds),
     onSuccess: invalidate,
-  })  
+  })
 
   // stage_definition_id -> run.status
   const runByStage = useMemo(() => {
@@ -291,28 +290,35 @@ export default function StageTimelinePanel({ eventStatus }) {
 
 
   return (
-    <div className="space-y-6">
+    <div className="w-full">
       {/* Validation banner */}
-      <div className={`rounded-xl border p-4 flex items-start gap-3 ${
-        isValid ? 'border-emerald-200 bg-emerald-50' : 'border-amber-200 bg-amber-50'
+      <div className={`flex items-center justify-between px-6 py-4 rounded-[16px] border ${
+        isValid
+          ? 'bg-emerald-50 border-emerald-200 dark:bg-emerald-500/10 dark:border-emerald-500/25'
+          : 'bg-amber-50 border-amber-200 dark:bg-amber-500/10 dark:border-amber-500/25'
       }`}>
-        {isValid
-          ? <ShieldCheck className="w-5 h-5 text-emerald-600 dark:text-emerald-400 mt-0.5" />
-          : <AlertTriangle className="w-5 h-5 text-amber-600 dark:text-amber-400 mt-0.5" />}
-        <div className="flex-1">
-          <p className="font-medium text-sm text-slate-800 dark:text-slate-100">{isValid ? 'Schedule is valid and ready to publish.' : 'Schedule has issues to fix before publishing.'}{isValid ? 'Schedule is valid — ready to publish.' : 'Schedule has issues to fix before publishing.'}
-          </p>
-          {!isValid && violations.length > 0 && (
-            <ul className="mt-2 space-y-1 text-xs text-amber-800 dark:text-amber-200 list-disc list-inside">
-              {violations.map((v, i) => <li key={i}>{v.message}</li>)}
-            </ul>
-          )}
+        <div className="flex items-center gap-4">
+          <div className={`flex items-center justify-center w-10 h-10 rounded-full ${
+            isValid ? 'bg-emerald-100 text-emerald-600 dark:bg-emerald-500/15 dark:text-emerald-400' : 'bg-amber-100 text-amber-600 dark:bg-amber-500/15 dark:text-amber-400'
+          }`}>
+            {isValid ? <ShieldCheck className="w-5 h-5" /> : <AlertTriangle className="w-5 h-5" />}
+          </div>
+          <div>
+            <p className="font-extrabold text-sm text-slate-950 dark:text-slate-100">
+              {isValid ? 'Schedule is valid — ready to publish.' : 'Schedule has issues to fix before publishing.'}
+            </p>
+            {!isValid && violations.length > 0 && (
+              <ul className="mt-1 space-y-1 text-xs font-semibold text-amber-700 dark:text-amber-300 list-disc list-inside">
+                {violations.map((v, i) => <li key={i}>{v.message}</li>)}
+              </ul>
+            )}
+          </div>
         </div>
-        <div className="flex gap-2">
+        <div className="flex gap-3">
           <button
             onClick={() => generateRuns.mutate()}
             disabled={generateRuns.isPending || sortedStages.length === 0}
-            className="inline-flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium border border-border bg-background text-foreground hover:bg-surface disabled:opacity-40"
+            className="inline-flex h-11 items-center gap-2 rounded-xl bg-white text-blue-600 border border-slate-200 dark:bg-[#1e293b] dark:text-blue-400 dark:border-white/10 hover:bg-slate-50 dark:hover:bg-blue-500/10 px-5 text-sm font-extrabold shadow-sm transition disabled:opacity-50"
           >
             {generateRuns.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Play className="w-4 h-4" />}
             Generate runs
@@ -321,7 +327,7 @@ export default function StageTimelinePanel({ eventStatus }) {
             <button
               onClick={() => publish.mutate()}
               disabled={!isValid || publish.isPending}
-              className="inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium text-white bg-teal-600 hover:bg-teal-700 disabled:opacity-40"
+              className="inline-flex h-11 items-center gap-2 rounded-xl bg-emerald-600 px-5 text-sm font-extrabold text-white shadow-sm transition hover:bg-emerald-700 disabled:opacity-50"
             >
               {publish.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Rocket className="w-4 h-4" />}
               Publish event
@@ -331,50 +337,50 @@ export default function StageTimelinePanel({ eventStatus }) {
       </div>
 
       {publish.isError && (
-        <div className="rounded-lg border border-teal-200 dark:border-teal-800 bg-teal-50 dark:bg-teal-900/30 p-3 text-sm text-teal-700 dark:text-teal-300">
+        <div className="p-3 text-sm rounded-xl bg-red-50 text-red-600 border border-red-100 dark:bg-red-500/10 dark:text-red-300 dark:border-red-500/25">
           {publishErr || 'Publish failed.'}
         </div>
       )}
 
       {awaiting.length > 0 && (
-        <div className="rounded-xl border border-border p-4">
-          <h3 className="flex items-center gap-2 font-semibold text-sm text-slate-800 dark:text-slate-100 mb-3">
-            <Clock className="w-4 h-4 text-teal-600 dark:text-teal-400" /> Stages awaiting approval
+        <div className="mt-8 rounded-[20px] bg-white dark:bg-[#111827] border border-slate-200 dark:border-white/10 shadow-[0_12px_32px_rgba(15,23,42,0.06)] dark:shadow-none px-6 py-6">
+          <h3 className="flex items-center gap-2 font-extrabold text-sm mb-4 text-slate-950 dark:text-slate-100">
+            <Clock className="w-5 h-5 text-orange-500" /> Stages awaiting approval
           </h3>
-          <ul className="space-y-2">
+          <div className="space-y-3">
             {awaiting.map((s) => (
-              <li key={s.id} className="flex items-center justify-between bg-slate-50 dark:bg-slate-800/50 rounded-lg px-3 py-2">
-                <span className="text-sm text-slate-700 dark:text-slate-200">{s.name}</span>
+              <div key={s.id} className="flex items-center justify-between rounded-xl px-5 py-3 bg-orange-50/50 border border-orange-200 dark:bg-orange-500/10 dark:border-orange-500/25">
+                <span className="text-sm font-extrabold text-slate-950 dark:text-slate-100">{s.name}</span>
                 <button
                   onClick={() => approve.mutate(s.id)}
                   disabled={approve.isPending}
-                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium text-white bg-emerald-600 hover:bg-emerald-700 disabled:opacity-100 disabled:bg-teal-100 dark:disabled:bg-teal-900/50 disabled:text-teal-400 dark:disabled:text-teal-600 disabled:border-transparent disabled:shadow-none disabled:cursor-not-allowed"
+                  className="inline-flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-extrabold text-white bg-amber-500 hover:bg-amber-600 transition shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  <CheckCircle2 className="w-3.5 h-3.5" /> Approve & start
+                  <CheckCircle2 className="w-4 h-4" /> Approve & start
                 </button>
-              </li>
+              </div>
             ))}
-          </ul>
+          </div>
         </div>
       )}
 
       {/* Timeline */}
-      <div className="rounded-xl border border-border bg-background overflow-hidden">
-        <div className="px-4 py-3 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
+      <div className="mt-8 overflow-hidden rounded-[20px] border border-slate-200 bg-white shadow-[0_12px_32px_rgba(15,23,42,0.06)] dark:border-white/10 dark:bg-[#111827] dark:shadow-none">
+        <div className="px-6 py-5 flex items-center justify-between border-b border-slate-200 dark:border-white/10">
           <div>
-            <h3 className="text-sm font-semibold text-slate-800 dark:text-slate-100">Stage Definitions</h3>
-            <p className="text-xs text-slate-400 dark:text-slate-500">Create, edit, delete, and reorder creator-defined stages.</p>
+            <h3 className="text-lg font-extrabold text-slate-950 dark:text-slate-100">Stage Definitions</h3>
+            <p className="text-sm font-semibold text-slate-600 dark:text-slate-400 mt-1">Create, edit, delete, and reorder creator-defined stages.</p>
           </div>
           <button
             onClick={startCreate}
-            className="inline-flex items-center gap-1.5 text-sm px-3 py-2 rounded-lg bg-teal-600 text-white hover:bg-teal-700"
+            className="inline-flex h-10 items-center gap-2 rounded-xl bg-blue-600 px-4 text-sm font-extrabold text-white shadow-sm transition hover:bg-blue-700"
           >
             <Plus className="w-4 h-4" /> Add stage
           </button>
         </div>
 
         {formOpen && (
-          <div className="border-b border-slate-100 dark:border-slate-800 p-4 bg-surface">
+          <div className="p-4 bg-slate-50 dark:bg-[#1e293b] border-b border-slate-200 dark:border-white/10">
             <div className="grid md:grid-cols-2 gap-3">
               <Field label="Key">
                 <input
@@ -443,12 +449,12 @@ export default function StageTimelinePanel({ eventStatus }) {
               </Field>
 
               <Field label="Required capabilities">
-                <div className="rounded-lg border border-border bg-background p-3">
+                <div className="bg-slate-50 dark:bg-[#1e293b] border border-slate-200 dark:border-white/10 rounded-xl p-3">
                   <div className="grid sm:grid-cols-2 gap-2">
                     {CAPABILITY_OPTIONS.map((capability) => {
                       const checked = selectedCapabilities(form.required_capabilities).has(capability.key)
                       return (
-                        <label key={capability.key} className="flex items-center gap-2 text-xs text-foreground">
+                        <label key={capability.key} className="flex items-center gap-2 text-xs text-slate-950 dark:text-slate-100">
                           <input
                             type="checkbox"
                             checked={checked}
@@ -458,12 +464,12 @@ export default function StageTimelinePanel({ eventStatus }) {
                             }))}
                           />
                           <span>{capability.label}</span>
-                          <span className="text-muted">({capability.key})</span>
+                          <span className="text-slate-600 dark:text-slate-400">({capability.key})</span>
                         </label>
                       )
                     })}
                   </div>
-                  <p className="mt-2 text-[11px] text-muted">
+                  <p className="mt-2 text-[11px] text-slate-600 dark:text-slate-400">
                     Select only the capabilities this stage actually needs. The saved payload still uses system keys.
                   </p>
                 </div>
@@ -491,7 +497,7 @@ export default function StageTimelinePanel({ eventStatus }) {
                     type="button"
                     onClick={generateReminderJson}
                     disabled={!reminderPrompt.trim()}
-                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-teal-200 dark:border-teal-800 text-xs font-medium text-teal-700 dark:text-teal-300 bg-teal-50 dark:bg-teal-900/30 hover:bg-teal-100 disabled:opacity-40"
+                    className="app-btn-secondary !text-xs !px-3 !py-1.5"
                   >
                     Generate editable JSON
                   </button>
@@ -501,14 +507,14 @@ export default function StageTimelinePanel({ eventStatus }) {
                     rows={4}
                     className={`${INPUT_CLASS} font-mono text-xs resize-none`}
                   />
-                  <p className="text-[11px] text-muted">
+                  <p className="text-[11px] text-slate-600 dark:text-slate-400">
                     You can edit this JSON before saving. Use {} if no reminders are needed.
                   </p>
                 </div>
               </Field>
             </div>
 
-            <label className="mt-3 inline-flex items-center gap-2 text-sm text-foreground">
+            <label className="mt-3 inline-flex items-center gap-2 text-sm text-slate-950 dark:text-slate-100">
               <input
                 type="checkbox"
                 checked={form.is_active}
@@ -518,13 +524,13 @@ export default function StageTimelinePanel({ eventStatus }) {
             </label>
 
             {formError && (
-              <p className="text-xs text-teal-600 dark:text-teal-400 mt-3">{formError}</p>
+              <p className="text-xs mt-3 text-red-500 dark:text-red-400">{formError}</p>
             )}
 
             <div className="flex justify-end gap-2 mt-4">
               <button
                 onClick={() => setFormOpen(false)}
-                className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg border border-border text-sm text-muted bg-background"
+                className="app-btn-secondary !text-sm !px-3 !py-2"
               >
                 <X className="w-4 h-4" />
                 Cancel
@@ -533,7 +539,7 @@ export default function StageTimelinePanel({ eventStatus }) {
               <button
                 onClick={() => saveStage.mutate()}
                 disabled={saveStage.isPending}
-                className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg bg-teal-600 text-white text-sm disabled:opacity-100 disabled:bg-teal-100 dark:disabled:bg-teal-900/50 disabled:text-teal-400 dark:disabled:text-teal-600 disabled:border-transparent disabled:shadow-none disabled:cursor-not-allowed"
+                className="app-btn-primary !text-sm !px-3 !py-2"
               >
                 {saveStage.isPending ? (
                   <Loader2 className="w-4 h-4 animate-spin" />
@@ -545,47 +551,61 @@ export default function StageTimelinePanel({ eventStatus }) {
             </div>
           </div>
         )}
-        <div className="divide-y divide-gray-100">
+        <div>
           {isLoading ? (
-            <p className="px-4 py-8 text-center text-sm text-slate-400 dark:text-slate-500">Loading stages...</p>
+            <p className="px-4 py-8 text-center text-sm text-slate-600 dark:text-slate-400">Loading stages...</p>
           ) : sortedStages.length === 0 ? (
-            <p className="px-4 py-8 text-center text-sm text-slate-400 dark:text-slate-500">No stages defined yet.</p>
+            <p className="px-4 py-8 text-center text-sm text-slate-600 dark:text-slate-400">No stages defined yet.</p>
           ) : sortedStages.map((s, index) => {
             const runStatus = runByStage[s.id]?.status ?? (status === 'draft' ? 'not started' : 'pending')
+
+            // Badge & Pill colors based on runStatus
+            let badgeBg = 'bg-blue-50 dark:bg-blue-500/10'
+            let badgeText = 'text-blue-600 dark:text-blue-400'
+            if (runStatus === 'completed') {
+              badgeBg = 'bg-emerald-50 dark:bg-emerald-500/10'
+              badgeText = 'text-emerald-600 dark:text-emerald-400'
+            } else if (runStatus === 'awaiting_approval' || runStatus === 'active') {
+              badgeBg = 'bg-orange-50 dark:bg-orange-500/10'
+              badgeText = 'text-orange-600 dark:text-orange-400'
+            }
+
             return (
-              <div key={s.id} className="flex items-center justify-between px-4 py-3">
-                <div className="flex items-center gap-3 min-w-0">
-                  <span className="w-6 h-6 flex items-center justify-center rounded-full bg-slate-100 dark:bg-slate-800 text-xs font-semibold text-muted">
+              <div key={s.id} className={`flex items-center justify-between px-6 py-4 bg-white dark:bg-[#111827] ${index < sortedStages.length - 1 ? 'border-b border-slate-200 dark:border-white/10' : ''}`}>
+                <div className="flex items-center gap-4 min-w-0">
+                  <span className={`w-10 h-10 flex items-center justify-center rounded-full text-sm font-extrabold ${badgeBg} ${badgeText}`}>
                     {s.position}
                   </span>
                   <div className="min-w-0">
-                    <p className="text-sm font-medium text-slate-800 dark:text-slate-100 truncate">{s.name}</p>
-                    <p className="text-xs text-slate-400 dark:text-slate-500 truncate">
-                      {new Date(s.start_at).toLocaleString()}{' -> '}{new Date(s.end_at).toLocaleString()}
-                      {' · '}{s.timezone}{' · '}{s.transition_policy}
+                    <p className="text-base font-extrabold text-slate-950 dark:text-slate-100 truncate">{s.name}</p>
+                    <p className="text-sm font-semibold text-slate-600 dark:text-slate-400 truncate mt-0.5">
+                      {new Date(s.start_at).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' })}
+                      {' → '}
+                      {new Date(s.end_at).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' })}
+                      {' • '}{s.timezone}
                     </p>
                   </div>
                 </div>
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-3">
                   <StatusPill status={runStatus} />
-                  <button onClick={() => moveStage(index, -1)} disabled={index === 0 || reorder.isPending} className={ICON_BUTTON_CLASS} title="Move up">
-                    <ArrowUp className="w-4 h-4" />
+                  <button onClick={() => moveStage(index, -1)} disabled={index === 0 || reorder.isPending} className="inline-flex w-10 h-10 items-center justify-center rounded-xl border shadow-sm transition disabled:opacity-50 bg-white border-slate-200 hover:bg-slate-50 dark:bg-[#1e293b] dark:border-white/10 dark:hover:bg-[#2A2F38] dark:shadow-none text-emerald-600 dark:text-emerald-400" title="Move up">
+                    <ArrowUp className="w-5 h-5" />
                   </button>
-                  <button onClick={() => moveStage(index, 1)} disabled={index === sortedStages.length - 1 || reorder.isPending} className={ICON_BUTTON_CLASS} title="Move down">
-                    <ArrowDown className="w-4 h-4" />
+                  <button onClick={() => moveStage(index, 1)} disabled={index === sortedStages.length - 1 || reorder.isPending} className="inline-flex w-10 h-10 items-center justify-center rounded-xl border shadow-sm transition disabled:opacity-50 bg-white border-slate-200 hover:bg-slate-50 dark:bg-[#1e293b] dark:border-white/10 dark:hover:bg-[#2A2F38] dark:shadow-none text-blue-600 dark:text-blue-400" title="Move down">
+                    <ArrowDown className="w-5 h-5" />
                   </button>
-                  <button onClick={() => startEdit(s)} className="text-xs px-2 py-1 rounded border border-border text-muted hover:bg-surface">
-                    Edit
+                  <button onClick={() => startEdit(s)} className="inline-flex w-10 h-10 items-center justify-center rounded-xl border shadow-sm transition disabled:opacity-50 bg-white border-slate-200 hover:bg-slate-50 dark:bg-[#1e293b] dark:border-white/10 dark:hover:bg-[#2A2F38] dark:shadow-none text-amber-500 dark:text-amber-400" title="Edit">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"></path></svg>
                   </button>
                   <button
                     onClick={() => {
                       if (window.confirm(`Delete stage "${s.name}"?`)) deleteStage.mutate(s.id)
                     }}
                     disabled={deleteStage.isPending}
-                    className={`${ICON_BUTTON_CLASS} text-teal-600 dark:text-teal-400`}
+                    className="inline-flex w-10 h-10 items-center justify-center rounded-xl border shadow-sm transition disabled:opacity-50 bg-white border-slate-200 hover:bg-slate-50 dark:bg-[#1e293b] dark:border-white/10 dark:hover:bg-[#2A2F38] dark:shadow-none text-red-500 dark:text-red-400"
                     title="Delete"
                   >
-                    <Trash2 className="w-4 h-4" />
+                    <Trash2 className="w-5 h-5" />
                   </button>
                 </div>
               </div>
@@ -600,23 +620,18 @@ export default function StageTimelinePanel({ eventStatus }) {
 function Field({ label, children }) {
   return (
     <label className="block">
-      <span className="block text-xs font-medium text-muted mb-1">{label}</span>
+      <span className="block text-xs font-medium mb-1 text-slate-600 dark:text-slate-400">{label}</span>
       {children}
     </label>
   )
 }
 
 function StatusPill({ status }) {
-  const map = {
-    active: 'bg-teal-100 text-teal-700',
-    completed: 'bg-emerald-100 text-emerald-700',
-    awaiting_approval: 'bg-amber-100 text-amber-700',
-    pending: 'bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400',
-    skipped: 'bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-500',
+  if (status === 'completed') {
+    return <span className="inline-flex items-center justify-center px-3 py-1 rounded-[10px] bg-emerald-50 text-emerald-600 border border-emerald-100 dark:bg-emerald-500/10 dark:text-emerald-400 dark:border-emerald-500/25 text-xs font-extrabold capitalize">Completed</span>
+  } else if (status === 'awaiting_approval' || status === 'active') {
+    return <span className="inline-flex items-center justify-center px-3 py-1 rounded-[10px] bg-orange-50 text-orange-500 border border-orange-100 dark:bg-orange-500/10 dark:text-orange-400 dark:border-orange-500/25 text-xs font-extrabold capitalize">Awaiting approval</span>
+  } else {
+    return <span className="inline-flex items-center justify-center px-3 py-1 rounded-[10px] bg-blue-50 text-blue-600 border border-blue-100 dark:bg-blue-500/10 dark:text-blue-400 dark:border-blue-500/25 text-xs font-extrabold capitalize">Pending</span>
   }
-  return (
-    <span className={`px-2.5 py-1 rounded-full text-xs font-medium ${map[status] || 'bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400'}`}>
-      {String(status).replace('_', ' ')}
-    </span>
-  )
 }

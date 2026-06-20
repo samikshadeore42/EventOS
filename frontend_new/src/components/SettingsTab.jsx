@@ -1,32 +1,13 @@
-import { useState} from 'react'
+import { useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { organizationsApi } from '../services/api'
 import { useAuth } from '../context/AuthContext'
 import { Building, Users, Mail, Save, Plus, X, Loader2 } from 'lucide-react'
 
-function Badge({ children, colour = 'gray' }) {
-  const cls = {
-    green:  'bg-green-50 border border-green-200 text-green-700',
-    red:    'bg-rose-50 border border-rose-200 text-rose-700',
-    amber:  'bg-amber-50 border border-amber-200 text-amber-700',
-    teal:   'bg-teal-50 border border-teal-200 text-teal-700',
-    gray:   'bg-surface border border-border text-foreground',
-  }[colour] ?? 'bg-surface border border-border text-foreground'
-  return (
-    <span className={`inline-flex items-center gap-1 text-[11px] font-bold px-2 py-0.5 rounded-full ${cls}`}>
-      {children}
-    </span>
-  )
-}
-
-function SectionTitle({ children }) {
-  return <h2 className="text-lg font-bold text-transparent bg-clip-text bg-gradient-to-r from-teal-600 to-teal-600 font-black mb-4">{children}</h2>
-}
-
 export default function SettingsTab() {
   const qc = useQueryClient()
   const { activeOrganization } = useAuth()
-  
+
   const orgId = activeOrganization?.id
 
   // Data Queries
@@ -47,7 +28,7 @@ export default function SettingsTab() {
     mutationFn: (data) => organizationsApi.update(orgId, data),
     onSuccess: () => {
       alert("Organization updated successfully")
-      qc.invalidateQueries({ queryKey: ['my-organizations'] }) // Will update context implicitly on reload, but better to refresh
+      qc.invalidateQueries({ queryKey: ['my-organizations'] })
       window.location.reload()
     },
     onError: (err) => alert("Error: " + err.message)
@@ -73,10 +54,10 @@ export default function SettingsTab() {
   })
 
   const setMemberStatusMutation = useMutation({
-  mutationFn: ({ memberId, status }) => organizationsApi.setMemberStatus(orgId, memberId, status),
-  onSuccess: () => qc.invalidateQueries({ queryKey: ['org-members', orgId] }),
-  onError: (err) => alert("Error: " + err.message)
-})
+    mutationFn: ({ memberId, status }) => organizationsApi.setMemberStatus(orgId, memberId, status),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['org-members', orgId] }),
+    onError: (err) => alert("Error: " + err.message)
+  })
 
   const updateRoleMutation = useMutation({
     mutationFn: ({ memberId, role }) => organizationsApi.updateMemberRole(orgId, memberId, role),
@@ -88,8 +69,6 @@ export default function SettingsTab() {
   const [orgDesc, setOrgDesc] = useState(activeOrganization?.description || '')
   const [syncedOrgId, setSyncedOrgId] = useState(activeOrganization?.id)
 
-  // Re-sync form fields whenever the active organization changes.
-  // Done during render (not in an effect) to avoid an extra render pass.
   if (activeOrganization?.id !== syncedOrgId) {
     setSyncedOrgId(activeOrganization?.id)
     setOrgName(activeOrganization?.name || '')
@@ -100,225 +79,245 @@ export default function SettingsTab() {
   const [inviteEmail, setInviteEmail] = useState('')
   const [inviteRole, setInviteRole] = useState('admin')
 
-  if (!orgId) return <div className="text-sm text-muted">No active organization.</div>
+  if (!orgId) return <div className="text-sm font-medium text-muted">No active organization.</div>
 
   return (
-    <div className="space-y-6">
-      {/* Organization Info */}
-      <div className="glass-card rounded-xl border border-border p-5">
-        <SectionTitle><Building size={18} className="inline mr-2" /> Organization Settings</SectionTitle>
-        <div className="max-w-xl space-y-4">
-          <div>
-            <label className="block text-xs font-medium text-muted mb-1">Organization Name</label>
-            <input 
-              value={orgName} 
-              onChange={e => setOrgName(e.target.value)}
-              className="w-full border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500" 
-            />
+    <div>
+
+      <div className="space-y-6">
+        {/* Organization Settings */}
+        <div className="app-card rounded-[22px] p-6 lg:p-8">
+          <div className="flex items-center gap-2 mb-6 text-foreground">
+            <Building size={20} />
+            <h2 className="text-lg font-extrabold">Organization Settings</h2>
           </div>
-          <div>
-            <label className="block text-xs font-medium text-muted mb-1">Description</label>
-            <textarea 
-              value={orgDesc} 
-              onChange={e => setOrgDesc(e.target.value)}
-              className="w-full border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 min-h-[80px]" 
-            />
+          <div className="max-w-xl space-y-4 md:w-[45%]">
+            <div>
+              <label className="block text-xs font-bold text-muted mb-2">Organization Name</label>
+              <input
+                value={orgName}
+                onChange={e => setOrgName(e.target.value)}
+                className="w-full app-input h-11 px-4 text-sm font-medium text-muted placeholder:text-slate-400 focus:outline-none focus:border-blue-300 focus:ring-2 focus:ring-blue-100 transition-all"
+              />
+            </div>
+            <div>
+              <label className="block text-xs font-bold text-muted mb-2">Description</label>
+              <textarea
+                value={orgDesc}
+                onChange={e => setOrgDesc(e.target.value)}
+                className="w-full app-input px-4 py-3 text-sm font-medium text-muted placeholder:text-slate-400 focus:outline-none focus:border-blue-300 focus:ring-2 focus:ring-blue-100 transition-all min-h-[100px]"
+              />
+            </div>
+            <button
+              onClick={() => updateOrgMutation.mutate({ name: orgName, description: orgDesc })}
+              disabled={updateOrgMutation.isPending || (orgName === activeOrganization?.name && orgDesc === (activeOrganization?.description || ''))}
+              className="mt-2 px-6 h-11 bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white text-sm font-extrabold rounded-xl shadow-sm transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+            >
+              {updateOrgMutation.isPending ? <Loader2 size={16} className="animate-spin"/> : <Save size={16} />}
+              Save Changes
+            </button>
           </div>
-          <button 
-            onClick={() => updateOrgMutation.mutate({ name: orgName, description: orgDesc })}
-            disabled={updateOrgMutation.isPending || (orgName === activeOrganization?.name && orgDesc === (activeOrganization?.description || ''))}
-            className="flex items-center gap-1.5 text-sm px-4 py-2 rounded-lg btn-primary text-white hover:bg-teal-700 disabled:opacity-100 disabled:bg-teal-100 dark:disabled:bg-teal-900/50 disabled:text-teal-400 dark:disabled:text-teal-600 disabled:border-transparent disabled:shadow-none disabled:cursor-not-allowed"
-          >
-            {updateOrgMutation.isPending ? <Loader2 size={14} className="animate-spin"/> : <Save size={14} />}
-            Save Changes
-          </button>
         </div>
-      </div>
 
-      {/* Members */}
-      <div className="glass-card rounded-xl border border-border p-5">
-        <SectionTitle><Users size={18} className="inline mr-2" /> Members</SectionTitle>
-        <div className="overflow-hidden border border-border rounded-xl">
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="bg-surface border-b border-border text-left">
-                <th className="px-4 py-3 text-xs font-medium text-muted uppercase tracking-wide">User</th>
-                <th className="px-4 py-3 text-xs font-medium text-muted uppercase tracking-wide">Role</th>
-                <th className="px-4 py-3 text-xs font-medium text-muted uppercase tracking-wide">Joined</th>
-                <th className="px-4 py-3 text-xs font-medium text-muted uppercase tracking-wide">Status</th>
-                <th className="px-4 py-3 text-right"></th>
-              </tr>
-            </thead>
-
-            <tbody>
-              {loadingMembers ? (
+        {/* Members */}
+        <div className="app-card rounded-[22px] p-6 lg:p-8">
+          <div className="flex items-center gap-2 mb-6 text-foreground">
+            <Users size={20} />
+            <h2 className="text-lg font-extrabold">Members</h2>
+          </div>
+          
+          <div className="border border-border rounded-[16px] overflow-hidden bg-card">
+            <table className="w-full text-left">
+              <thead className="bg-cardSoft/60 border-b border-border/70">
                 <tr>
-                  <td colSpan="5" className="p-4 text-center text-muted">
-                    <Loader2 size={16} className="animate-spin inline" />
-                  </td>
+                  <th className="px-5 py-3 text-xs font-semibold text-muted uppercase tracking-wider">USER</th>
+                  <th className="px-5 py-3 text-xs font-semibold text-muted uppercase tracking-wider">ROLE</th>
+                  <th className="px-5 py-3 text-xs font-semibold text-muted uppercase tracking-wider">JOINED</th>
+                  <th className="px-5 py-3 text-xs font-semibold text-muted uppercase tracking-wider">STATUS</th>
+                  <th className="px-5 py-3 text-xs font-semibold text-muted uppercase tracking-wider text-right"></th>
                 </tr>
-              ) : members?.map(m => (
-                <tr key={m.membership_id} className="border-b border-border last:border-0 hover:bg-surface">
-                  <td className="px-4 py-3">
-                    <p className="font-medium text-foreground">{m.first_name} {m.last_name}</p>
-                    <p className="text-xs text-muted">{m.email}</p>
-                  </td>
-
-                  <td className="px-4 py-3">
-                    <select
-                      value={m.role}
-                      onChange={e => {
-                        if (window.confirm(`Change role to ${e.target.value}?`)) {
-                          updateRoleMutation.mutate({ memberId: m.membership_id, role: e.target.value })
-                        }
-                      }}
-                      className="text-xs border border-border rounded px-2 py-1 bg-background focus:outline-none"
-                      disabled={m.role === 'owner'}
-                    >
-                      <option value="owner" disabled>Owner</option>
-                      <option value="admin">Admin</option>
-                      <option value="member">Member</option>
-                    </select>
-                  </td>
-
-                  <td className="px-4 py-3 text-xs text-muted">
-                    {m.joined_at ? new Date(m.joined_at).toLocaleDateString() : '—'}
-                  </td>
-
-                  <td className="px-4 py-3">
-                    <Badge colour={m.status === 'active' ? 'green' : m.status === 'suspended' ? 'amber' : 'red'}>
-                      {m.status}
-                    </Badge>
-                  </td>
-
-                  <td className="px-4 py-3 text-right space-x-2">
-                    {m.role !== 'owner' && m.status === 'active' && (
-                      <button
-                        onClick={() => {
-                          if (window.confirm('Suspend this member?')) {
-                            setMemberStatusMutation.mutate({ memberId: m.membership_id, status: 'suspended' })
+              </thead>
+              <tbody className="divide-y divide-slate-200/70">
+                {loadingMembers ? (
+                  <tr>
+                    <td colSpan="5" className="px-5 py-8 text-center text-muted">
+                      <Loader2 size={24} className="animate-spin mx-auto" />
+                    </td>
+                  </tr>
+                ) : members?.map(m => (
+                  <tr key={m.membership_id} className="hover:bg-cardSoft/40 transition-colors">
+                    <td className="px-5 py-4">
+                      <p className="font-bold text-foreground">{m.first_name} {m.last_name}</p>
+                      <p className="text-sm font-medium text-muted">{m.email}</p>
+                    </td>
+                    <td className="px-5 py-4">
+                      <select
+                        value={m.role}
+                        onChange={e => {
+                          if (window.confirm(`Change role to ${e.target.value}?`)) {
+                            updateRoleMutation.mutate({ memberId: m.membership_id, role: e.target.value })
                           }
                         }}
-                        className="text-xs text-amber-600 dark:text-amber-400 hover:text-amber-800"
+                        className="app-input h-9 px-3 pr-8 text-sm font-medium text-muted focus:outline-none focus:border-blue-300 focus:ring-2 focus:ring-blue-100 appearance-none"
+                        disabled={m.role === 'owner'}
                       >
-                        Suspend
-                      </button>
-                    )}
+                        <option value="owner" disabled>Owner</option>
+                        <option value="admin">Admin</option>
+                        <option value="member">Member</option>
+                      </select>
+                    </td>
+                    <td className="px-5 py-4 text-sm font-medium text-muted">
+                      {m.joined_at ? new Date(m.joined_at).toLocaleDateString() : '—'}
+                    </td>
+                    <td className="px-5 py-4">
+                      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold border ${m.status === 'active' ? 'bg-emerald-50 text-emerald-600 border-emerald-200' : m.status === 'suspended' ? 'bg-orange-50 text-orange-600 border-orange-200' : 'bg-red-50 text-red-600 border-red-200'}`}>
+                        {m.status}
+                      </span>
+                    </td>
+                    <td className="px-5 py-4 text-right space-x-3">
+                      {m.role !== 'owner' && m.status === 'active' && (
+                        <button
+                          onClick={() => {
+                            if (window.confirm('Suspend this member?')) {
+                              setMemberStatusMutation.mutate({ memberId: m.membership_id, status: 'suspended' })
+                            }
+                          }}
+                          className="text-sm font-extrabold text-orange-600 hover:text-orange-700 transition-colors"
+                        >
+                          Suspend
+                        </button>
+                      )}
+                      {m.role !== 'owner' && m.status === 'suspended' && (
+                        <button
+                          onClick={() => {
+                            setMemberStatusMutation.mutate({ memberId: m.membership_id, status: 'active' })
+                          }}
+                          className="text-sm font-extrabold text-emerald-600 hover:text-emerald-700 transition-colors"
+                        >
+                          Reactivate
+                        </button>
+                      )}
+                      {m.role !== 'owner' && m.status !== 'revoked' && (
+                        <button
+                          onClick={() => {
+                            if (window.confirm('Revoke this member? They will lose access to this organization.')) {
+                              setMemberStatusMutation.mutate({ memberId: m.membership_id, status: 'revoked' })
+                            }
+                          }}
+                          className="text-sm font-extrabold text-red-600 hover:text-red-700 transition-colors"
+                        >
+                          Revoke
+                        </button>
+                      )}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
 
-                    {m.role !== 'owner' && m.status === 'suspended' && (
+        {/* Pending Invitations */}
+        <div className="app-card rounded-[22px] p-6 lg:p-8">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+            <div className="flex items-center gap-2 text-foreground">
+              <Mail size={20} />
+              <h2 className="text-lg font-extrabold">Pending Invitations</h2>
+            </div>
+            <button
+              onClick={() => setShowInviteForm(!showInviteForm)}
+              className="bg-card border border-border text-foreground hover:bg-cardSoft h-10 px-4 rounded-xl text-sm font-extrabold transition-colors flex items-center justify-center gap-2"
+            >
+              {showInviteForm ? <X size={16} /> : <Plus size={16} />}
+              {showInviteForm ? "Cancel" : "Invite Member"}
+            </button>
+          </div>
+
+          {showInviteForm && (
+            <div className="mb-6 p-5 bg-cardSoft border border-border rounded-[16px] flex flex-col md:flex-row items-end gap-4">
+              <div className="flex-1 w-full">
+                <label className="block text-xs font-bold text-muted mb-2">Email Address</label>
+                <input
+                  type="email"
+                  value={inviteEmail}
+                  onChange={e => setInviteEmail(e.target.value)}
+                  placeholder="colleague@example.com"
+                  className="w-full app-input h-11 px-4 text-sm font-medium text-muted placeholder:text-slate-400 focus:outline-none focus:border-blue-300 focus:ring-2 focus:ring-blue-100 transition-all"
+                />
+              </div>
+              <div className="w-full md:w-48">
+                <label className="block text-xs font-bold text-muted mb-2">Role</label>
+                <select
+                  value={inviteRole}
+                  onChange={e => setInviteRole(e.target.value)}
+                  className="w-full app-input h-11 px-4 text-sm font-medium text-muted focus:outline-none focus:border-blue-300 focus:ring-2 focus:ring-blue-100 transition-all appearance-none"
+                >
+                  <option value="admin">Admin</option>
+                  <option value="member">Member</option>
+                </select>
+              </div>
+              <button
+                onClick={() => inviteMutation.mutate({ email: inviteEmail, role: inviteRole })}
+                disabled={inviteMutation.isPending || !inviteEmail}
+                className="w-full md:w-auto h-11 px-6 bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white text-sm font-extrabold rounded-xl shadow-sm transition-all disabled:opacity-50 flex items-center justify-center gap-2 shrink-0"
+              >
+                {inviteMutation.isPending ? <Loader2 size={16} className="animate-spin" /> : <Mail size={16} />}
+                Send Invite
+              </button>
+            </div>
+          )}
+
+          <div className="border border-border rounded-[16px] overflow-hidden bg-card">
+            <table className="w-full text-left">
+              <thead className="bg-cardSoft/60 border-b border-border/70">
+                <tr>
+                  <th className="px-5 py-3 text-xs font-semibold text-muted uppercase tracking-wider">EMAIL</th>
+                  <th className="px-5 py-3 text-xs font-semibold text-muted uppercase tracking-wider">ROLE</th>
+                  <th className="px-5 py-3 text-xs font-semibold text-muted uppercase tracking-wider">STATUS</th>
+                  <th className="px-5 py-3 text-xs font-semibold text-muted uppercase tracking-wider text-right"></th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-200/70">
+                {loadingInvites ? (
+                  <tr>
+                    <td colSpan="4" className="px-5 py-8 text-center text-muted">
+                      <Loader2 size={24} className="animate-spin mx-auto" />
+                    </td>
+                  </tr>
+                ) : invitations?.length === 0 ? (
+                  <tr>
+                    <td colSpan="4" className="px-5 py-12 text-center">
+                      <div className="w-12 h-12 rounded-full bg-cardSoft border border-border flex items-center justify-center mx-auto mb-3">
+                        <Mail size={20} className="text-slate-400" />
+                      </div>
+                      <p className="text-sm font-bold text-foreground mb-1">No pending invitations.</p>
+                      <p className="text-sm font-medium text-muted">Invited members will appear here.</p>
+                    </td>
+                  </tr>
+                ) : invitations?.map(inv => (
+                  <tr key={inv.id} className="hover:bg-cardSoft/40 transition-colors">
+                    <td className="px-5 py-4 font-medium text-foreground">{inv.email}</td>
+                    <td className="px-5 py-4 text-sm font-medium text-muted capitalize">{inv.role}</td>
+                    <td className="px-5 py-4">
+                      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold border ${inv.status === 'pending' ? 'bg-amber-50 text-amber-600 border-amber-200' : 'bg-cardSoft text-muted border-border'}`}>
+                        {inv.status}
+                      </span>
+                    </td>
+                    <td className="px-5 py-4 text-right">
                       <button
                         onClick={() => {
-                          setMemberStatusMutation.mutate({ memberId: m.membership_id, status: 'active' })
+                          if(window.confirm('Revoke invitation?')) revokeMutation.mutate(inv.id)
                         }}
-                        className="text-xs text-green-600 hover:text-green-800"
-                      >
-                        Reactivate
-                      </button>
-                    )}
-
-                    {m.role !== 'owner' && m.status !== 'revoked' && (
-                      <button
-                        onClick={() => {
-                          if (window.confirm('Revoke this member? They will lose access to this organization.')) {
-                            setMemberStatusMutation.mutate({ memberId: m.membership_id, status: 'revoked' })
-                          }
-                        }}
-                        className="text-xs text-teal-500 hover:text-teal-700"
+                        className="text-sm font-extrabold text-red-600 hover:text-red-700 transition-colors"
                       >
                         Revoke
                       </button>
-                    )}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </div>
-
-      {/* Invitations */}
-      <div className="glass-card rounded-xl border border-border p-5">
-        <div className="flex items-center justify-between mb-4">
-          <SectionTitle><Mail size={18} className="inline mr-2" /> Pending Invitations</SectionTitle>
-          <button 
-            onClick={() => setShowInviteForm(!showInviteForm)}
-            className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg border border-teal-200 dark:border-teal-800 text-teal-700 dark:text-teal-300 bg-teal-50 dark:bg-teal-900/30 hover:bg-teal-100 font-medium"
-          >
-            {showInviteForm ? <X size={14} /> : <Plus size={14} />}
-            {showInviteForm ? "Cancel" : "Invite Member"}
-          </button>
-        </div>
-
-        {showInviteForm && (
-          <div className="mb-4 p-4 bg-surface border border-border rounded-lg flex items-end gap-4">
-            <div className="flex-1">
-              <label className="block text-xs font-medium text-muted mb-1">Email Address</label>
-              <input 
-                type="email" 
-                value={inviteEmail} 
-                onChange={e => setInviteEmail(e.target.value)}
-                placeholder="colleague@example.com"
-                className="w-full border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500" 
-              />
-            </div>
-            <div className="w-48">
-              <label className="block text-xs font-medium text-muted mb-1">Role</label>
-              <select 
-                value={inviteRole} 
-                onChange={e => setInviteRole(e.target.value)}
-                className="w-full border border-border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 bg-background"
-              >
-                <option value="admin">Admin</option>
-                <option value="member">Member</option>
-              </select>
-            </div>
-            <button 
-              onClick={() => inviteMutation.mutate({ email: inviteEmail, role: inviteRole })}
-              disabled={inviteMutation.isPending || !inviteEmail}
-              className="flex items-center gap-1.5 text-sm px-4 py-2 rounded-lg bg-teal-600 text-white hover:bg-teal-700 disabled:opacity-100 disabled:bg-teal-100 dark:disabled:bg-teal-900/50 disabled:text-teal-400 dark:disabled:text-teal-600 disabled:border-transparent disabled:shadow-none disabled:cursor-not-allowed h-[38px]"
-            >
-              {inviteMutation.isPending ? <Loader2 size={14} className="animate-spin" /> : <Mail size={14} />}
-              Send Invite
-            </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
-        )}
-
-        <div className="overflow-hidden border border-border rounded-xl">
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="bg-surface border-b border-border text-left">
-                <th className="px-4 py-3 text-xs font-medium text-muted uppercase tracking-wide">Email</th>
-                <th className="px-4 py-3 text-xs font-medium text-muted uppercase tracking-wide">Role</th>
-                <th className="px-4 py-3 text-xs font-medium text-muted uppercase tracking-wide">Status</th>
-                <th className="px-4 py-3 text-right"></th>
-              </tr>
-            </thead>
-            <tbody>
-              {loadingInvites ? (
-                <tr><td colSpan="4" className="p-4 text-center text-muted"><Loader2 size={16} className="animate-spin inline" /></td></tr>
-              ) : invitations?.length === 0 ? (
-                <tr><td colSpan="4" className="p-4 text-center text-xs text-muted">No pending invitations.</td></tr>
-              ) : invitations?.map(inv => (
-                <tr key={inv.id} className="border-b border-border last:border-0 hover:bg-surface">
-                  <td className="px-4 py-3 text-foreground">{inv.email}</td>
-                  <td className="px-4 py-3 text-muted capitalize">{inv.role}</td>
-                  <td className="px-4 py-3">
-                    <Badge colour={inv.status === 'pending' ? 'amber' : 'gray'}>{inv.status}</Badge>
-                  </td>
-                  <td className="px-4 py-3 text-right">
-                    <button 
-                      onClick={() => {
-                        if(window.confirm('Revoke invitation?')) revokeMutation.mutate(inv.id)
-                      }}
-                      className="text-xs text-teal-500 hover:text-teal-700"
-                    >
-                      Revoke
-                    </button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
         </div>
       </div>
     </div>

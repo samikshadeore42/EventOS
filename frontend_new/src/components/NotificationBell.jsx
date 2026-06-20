@@ -55,27 +55,32 @@ export default function NotificationBell() {
       <button
         onClick={() => setOpen((v) => !v)}
         disabled={!activeEvent?.id}
-        className="relative p-2 rounded-full hover:bg-surface transition"
+        className="relative p-2 rounded-lg transition-all"
+        style={{ color: 'var(--text-muted)' }}
+        onMouseEnter={e => { e.currentTarget.style.backgroundColor = 'var(--bg-card-soft)'; e.currentTarget.style.color = 'var(--text-main)' }}
+        onMouseLeave={e => { e.currentTarget.style.backgroundColor = 'transparent'; e.currentTarget.style.color = 'var(--text-muted)' }}
         aria-label="Notifications"
       >
-        <Bell className="w-5 h-5 text-muted hover:text-foreground transition-colors" />
+        <Bell className="w-5 h-5" />
         {unread > 0 && (
-          <span className="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] px-1 flex items-center justify-center
-                           text-[11px] font-semibold text-white bg-teal-500 rounded-full">
+          <span
+            className="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] px-1 flex items-center justify-center text-[11px] font-semibold text-white rounded-full"
+            style={{ backgroundColor: 'var(--color-danger)' }}
+          >
             {unread > 99 ? '99+' : unread}
           </span>
         )}
       </button>
 
       {open && (
-        <div className="absolute right-0 mt-2 w-80 max-h-96 overflow-y-auto glass-card rounded-xl shadow-lg
-                        border border-border z-50">
-          <div className="flex items-center justify-between px-4 py-3 border-b border-border">
-            <span className="font-semibold text-sm text-foreground">Notifications</span>
+        <div className="absolute right-0 mt-2 w-80 max-h-96 overflow-y-auto app-card rounded-xl shadow-lg z-50">
+          <div className="flex items-center justify-between px-4 py-3" style={{ borderBottom: '1px solid var(--border-soft)' }}>
+            <span className="font-semibold text-sm" style={{ color: 'var(--text-main)' }}>Notifications</span>
             {unread > 0 && (
               <button
                 onClick={() => markAll.mutate()}
-                className="text-xs text-teal-600 dark:text-teal-400 hover:underline disabled:opacity-50"
+                className="text-xs hover:underline disabled:opacity-50"
+                style={{ color: 'var(--color-primary)' }}
                 disabled={markAll.isPending}
               >
                 Mark all read
@@ -84,29 +89,37 @@ export default function NotificationBell() {
           </div>
 
           {isLoading ? (
-            <div className="flex items-center justify-center py-8 text-muted">
+            <div className="flex items-center justify-center py-8" style={{ color: 'var(--text-muted)' }}>
               <Loader2 className="w-5 h-5 animate-spin" />
             </div>
           ) : items.length === 0 ? (
-            <p className="px-4 py-8 text-center text-sm text-muted">You're all caught up.</p>
+            <p className="px-4 py-8 text-center text-sm" style={{ color: 'var(--text-muted)' }}>You're all caught up.</p>
           ) : (
-            <ul className="divide-y divide-border">
+            <ul>
               {items.map((n) => (
                 <li
                   key={n.id}
-                  className={`px-4 py-3 flex gap-3 ${n.read ? 'opacity-60' : 'bg-teal-500/10'}`}
+                  className="px-4 py-3 flex gap-3"
+                  style={{
+                    borderBottom: '1px solid color-mix(in srgb, var(--color-border) 30%, transparent)',
+                    opacity: n.read ? 0.6 : 1,
+                    backgroundColor: n.read ? 'transparent' : 'color-mix(in srgb, var(--color-primary) 4%, var(--bg-card))',
+                  }}
                 >
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-foreground truncate">{n.title}</p>
-                    <p className="text-xs text-muted line-clamp-2">{n.message}</p>
+                    <p className="text-sm font-medium truncate" style={{ color: 'var(--text-main)' }}>{n.title}</p>
+                    <p className="text-xs line-clamp-2" style={{ color: 'var(--text-muted)' }}>{n.message}</p>
                   </div>
                   {!n.read && (
                     <button
                       onClick={() => markRead.mutate(n.id)}
-                      className="self-start p-1 rounded hover:bg-surface"
+                      className="self-start p-1 rounded transition-colors"
                       title="Mark read"
+                      style={{ color: 'var(--text-muted)' }}
+                      onMouseEnter={e => { e.currentTarget.style.backgroundColor = 'var(--bg-card-soft)' }}
+                      onMouseLeave={e => { e.currentTarget.style.backgroundColor = 'transparent' }}
                     >
-                      <Check className="w-4 h-4 text-muted" />
+                      <Check className="w-4 h-4" />
                     </button>
                   )}
                 </li>
