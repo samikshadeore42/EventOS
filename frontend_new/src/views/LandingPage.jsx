@@ -204,6 +204,21 @@ function Hero() {
     return () => window.clearInterval(timer)
   }, []);
 
+  const handleCaseStudiesClick = (event) => {
+    event.preventDefault()
+
+    const aboutSection = document.getElementById('about')
+    if (!aboutSection) return
+
+    const navbarOffset = 88
+    const targetTop = aboutSection.getBoundingClientRect().top + window.scrollY - navbarOffset
+
+    window.scrollTo({
+      top: Math.max(targetTop, 0),
+      behavior: 'smooth',
+    })
+  }
+
   return (
     <section className="relative w-full pt-20 pb-16 px-6 overflow-hidden flex flex-col items-center border-b border-slate-200 min-h-[700px]">
       {/* Subtle Background Patterns */}
@@ -247,6 +262,7 @@ function Hero() {
 
             <a
               href="#about"
+              onClick={handleCaseStudiesClick}
               className="flex items-center justify-center gap-2 px-8 py-3.5 bg-white border border-slate-200 text-slate-700 text-sm font-bold rounded-xl shadow-sm hover:bg-slate-50 transition-all"
             >
               View Case Studies
