@@ -250,7 +250,7 @@ function OverviewTab({ onTileClick }) {
 
         {/* Approval Status */}
         <motion.div onClick={() => onTileClick?.('approvals')} whileHover={{ y: -2, scale: 1.01 }} className="cursor-pointer app-card rounded-2xl p-6 relative overflow-hidden group flex flex-col justify-between h-full">
-          <div className="absolute -right-8 -top-8 w-32 h-32 bg-gradient-to-br from-green-500/10 to-transparent rounded-full blur-2xl group-hover:scale-110 transition-transform duration-700" />
+          <div className="absolute -right-8 -top-8 w-32 h-32 bg-gradient-to-br from-green-500/10 to-transparent rounded-full blur-2xl group-hover:scale-110 transition-transform duration-700 pointer-events-none" />
           <div className="flex items-center gap-3 mb-4 relative z-10">
             <div className="w-10 h-10 rounded-xl flex items-center justify-center shadow-sm bg-green-100 text-green-600 dark:bg-green-500/15 dark:text-green-300 border border-green-200 dark:border-green-500/20">
               <CheckSquare size={20} />
@@ -272,7 +272,7 @@ function OverviewTab({ onTileClick }) {
 
         {/* Evaluation Progress */}
         <motion.div onClick={() => onTileClick?.('evaluators')} whileHover={{ y: -2, scale: 1.01 }} className="cursor-pointer app-card rounded-2xl p-6 relative overflow-hidden group flex flex-col justify-between h-full">
-          <div className="absolute -right-8 -top-8 w-32 h-32 bg-gradient-to-br from-orange-500/10 to-transparent rounded-full blur-2xl group-hover:scale-110 transition-transform duration-700" />
+          <div className="absolute -right-8 -top-8 w-32 h-32 bg-gradient-to-br from-orange-500/10 to-transparent rounded-full blur-2xl group-hover:scale-110 transition-transform duration-700 pointer-events-none" />
           <div className="flex items-center gap-3 mb-4 relative z-10">
             <div className="w-10 h-10 rounded-xl flex items-center justify-center shadow-sm bg-orange-100 text-orange-600 dark:bg-orange-500/15 dark:text-orange-300 border border-orange-200 dark:border-orange-500/20">
               <BarChart2 size={20} />
@@ -1275,7 +1275,7 @@ function ApprovalsTab() {
         {!isLoading && pending?.total_pending === 0 && !hasPublished && !hasRejected && (
           <div className="flex min-h-[390px] flex-col items-center justify-center text-center">
             <div className="relative mb-8 h-36 w-44">
-              <div className="absolute left-1/2 top-[96px] h-5 w-28 -translate-x-1/2 rounded-full bg-slate-200/80 blur-sm" />
+              <div className="absolute left-1/2 top-[96px] h-5 w-28 -translate-x-1/2 rounded-full bg-slate-200/80 blur-sm pointer-events-none" />
               <svg
                 viewBox="0 0 160 130"
                 className="absolute left-1/2 top-0 h-32 w-40 -translate-x-1/2"
@@ -2427,6 +2427,55 @@ function CommunicationsTab() {
 }
 
 // ── TAB 8: MENTOR OPS ──────────────────────────────────────────────────────
+
+function MentorOpsPointerSafetyStyle() {
+  return (
+    <style>{`
+      [data-mentor-ops-safe-zone] {
+        position: relative;
+        isolation: isolate;
+        pointer-events: auto;
+      }
+
+      [data-mentor-ops-safe-zone] [aria-hidden="true"],
+      [data-mentor-ops-safe-zone] .pointer-events-none,
+      [data-mentor-ops-safe-zone] .absolute.inset-0,
+      [data-mentor-ops-safe-zone] .fixed.inset-0,
+      [data-mentor-ops-safe-zone] [class*="blur-"],
+      [data-mentor-ops-safe-zone] [class*="bg-gradient"],
+      [data-mentor-ops-safe-zone] [class*="radial"],
+      [data-mentor-ops-safe-zone] [class*="decor"],
+      [data-mentor-ops-safe-zone] [class*="pattern"] {
+        pointer-events: none !important;
+      }
+
+      [data-mentor-ops-safe-zone] button,
+      [data-mentor-ops-safe-zone] a,
+      [data-mentor-ops-safe-zone] input,
+      [data-mentor-ops-safe-zone] select,
+      [data-mentor-ops-safe-zone] textarea,
+      [data-mentor-ops-safe-zone] summary,
+      [data-mentor-ops-safe-zone] [role="button"],
+      [data-mentor-ops-safe-zone] [role="menuitem"],
+      [data-mentor-ops-safe-zone] [data-clickable="true"] {
+        pointer-events: auto !important;
+        position: relative;
+        z-index: 20;
+      }
+
+      [data-mentor-ops-safe-zone] table button,
+      [data-mentor-ops-safe-zone] table a,
+      [data-mentor-ops-safe-zone] .soft-table button,
+      [data-mentor-ops-safe-zone] .soft-table a {
+        pointer-events: auto !important;
+        position: relative;
+        z-index: 30;
+      }
+    `}</style>
+  )
+}
+
+
 function MentorOpsTab() {
   const qc = useQueryClient()
   const [showForm, setShowForm] = useState(false)
@@ -2561,7 +2610,7 @@ function MentorOpsTab() {
           <div className="flex items-center gap-3 flex-wrap flex-1">
             <button className="flex items-center gap-2 app-btn-secondary">
                <UploadCloud size={16} /> Choose File
-               <input type="file" accept=".csv" onChange={(e) => setImportFile(e.target.files[0])} className="absolute inset-0 w-full h-full opacity-0 cursor-pointer" />
+               <input type="file" accept=".csv" onChange={(e) => setImportFile(e.target.files[0])} className="absolute inset-0 w-full h-full opacity-0 cursor-pointer pointer-events-none" />
             </button>
             <span className="text-sm font-semibold text-muted truncate max-w-[200px]">
               {importFile ? importFile.name : 'No file chosen'}
@@ -2826,7 +2875,8 @@ function MentorOpsTab() {
 
         {/* Suggestions */}
         {suggestions.length > 0 && (
-          <div className="mb-8">
+          <div className="mb-8" data-mentor-ops-safe-zone>
+      <MentorOpsPointerSafetyStyle />
             <h2 className="text-base font-semibold text-foreground mb-4 flex items-center gap-2"><Wand2 size={16} className="text-primary" /> Skill-Gap Mentor Suggestions</h2>
             <div className="space-y-3">
               {suggestions.map(s => (
