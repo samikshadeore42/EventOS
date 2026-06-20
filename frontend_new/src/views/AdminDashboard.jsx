@@ -2975,7 +2975,7 @@ function MentorOpsTab() {
 
 // ── TAB: TEAM HEALTH DASHBOARD (Phase 12) ──────────────────────────────────
 function HealthTab() {
-  const { activeEvent } = useAuth()
+
   const { data: teams, isLoading, refetch, isRefetching } = useQuery({
     queryKey: ['health-teams'],
     queryFn: healthDashboardApi.teams,
@@ -3008,11 +3008,6 @@ function HealthTab() {
 
   return (
     <div>
-      {/* Page Header */}
-      <div className="mb-8">
-        <h1 className="text-[24px] font-extrabold text-slate-950">Team Health</h1>
-        <p className="text-sm font-medium text-slate-500 mt-1">{activeEvent?.name || 'Loading...'}</p>
-      </div>
 
       {/* Main Dashboard Card */}
       <div className="bg-white border border-slate-200/80 rounded-[22px] shadow-[0_18px_45px_rgba(15,23,42,0.06)] p-6 lg:p-8 mb-6">
@@ -3133,7 +3128,7 @@ function HealthTab() {
 // ── TAB 9: ANOMALY SCANNER ──────────────────────────────────────────────────
 function AnomalyTab() {
   const qc = useQueryClient()
-  const { activeEvent } = useAuth()
+
 
   const [explanations, setExplanations] = useState({})
 
@@ -3206,11 +3201,6 @@ function AnomalyTab() {
 
   return (
     <div>
-      {/* Page Header */}
-      <div className="mb-8">
-        <h1 className="text-[24px] font-extrabold text-slate-950">Anomaly Scanner</h1>
-        <p className="text-sm font-medium text-slate-500 mt-1">{activeEvent?.name || 'Loading...'}</p>
-      </div>
 
       {/* Section Intro */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-6 gap-4">
@@ -3374,7 +3364,7 @@ function AnomalyTab() {
 
 // ── TAB: RISK INTELLIGENCE ───────────────────────────────────────────────
 function RiskTab() {
-  const { activeEvent } = useAuth()
+
   const {
     data: summary,
     error: summaryError,
@@ -3441,11 +3431,6 @@ function RiskTab() {
 
   return (
     <div>
-      {/* Page Header */}
-      <div className="mb-8">
-        <h1 className="text-[24px] font-extrabold text-slate-950">Risk</h1>
-        <p className="text-sm font-medium text-slate-500 mt-1">{activeEvent?.name || 'Loading...'}</p>
-      </div>
 
       {/* Main AI Risk Intelligence Card */}
       <div className="bg-white border border-slate-200/80 rounded-[22px] shadow-[0_18px_45px_rgba(15,23,42,0.06)] p-6 lg:p-8 mb-8">
@@ -3672,11 +3657,6 @@ function DemoControlsTab() {
 
   return (
     <div>
-      {/* Page Header */}
-      <div className="mb-8">
-        <h1 className="text-[24px] font-extrabold text-slate-950">Demo Controls</h1>
-        <p className="text-sm font-medium text-slate-500 mt-1">{activeEvent?.name || 'Loading...'}</p>
-      </div>
 
       <h2 className="text-[20px] font-extrabold text-slate-950 mb-6">Demo Controls</h2>
 

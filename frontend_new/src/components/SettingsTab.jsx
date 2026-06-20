@@ -6,7 +6,7 @@ import { Building, Users, Mail, Save, Plus, X, Loader2 } from 'lucide-react'
 
 export default function SettingsTab() {
   const qc = useQueryClient()
-  const { activeOrganization, activeEvent } = useAuth()
+  const { activeOrganization } = useAuth()
 
   const orgId = activeOrganization?.id
 
@@ -83,11 +83,6 @@ export default function SettingsTab() {
 
   return (
     <div>
-      {/* Page Header */}
-      <div className="mb-8">
-        <h1 className="text-[24px] font-extrabold text-slate-950">Settings</h1>
-        <p className="text-sm font-medium text-slate-500 mt-1">{activeEvent?.name || 'Loading...'}</p>
-      </div>
 
       <div className="space-y-6">
         {/* Organization Settings */}
