@@ -18,7 +18,7 @@ import {
   Send, Copy, Trash2, Plus, Shield, ShieldAlert, ShieldCheck, FileText, Settings,
   Sparkles, Link, LayoutTemplate, ClipboardList, Lightbulb, ClipboardCheck,
   User, UserPlus, Building2, Info, UploadCloud, Search, CheckCircle2,
-  Key, Globe, Database, Flag
+  Key, Globe, Database, Flag, RefreshCw
 } from 'lucide-react'
 import PipelineStepper from '../components/PipelineStepper'
 import OrgSwitcher from '../components/OrgSwitcher'
@@ -2975,6 +2975,7 @@ function MentorOpsTab() {
 
 // ── TAB: TEAM HEALTH DASHBOARD (Phase 12) ──────────────────────────────────
 function HealthTab() {
+  const { activeEvent } = useAuth()
   const { data: teams, isLoading, refetch, isRefetching } = useQuery({
     queryKey: ['health-teams'],
     queryFn: healthDashboardApi.teams,
@@ -2982,10 +2983,10 @@ function HealthTab() {
   })
 
   const riskColour = {
-    critical: { section: 'section-red', badge: 'soft-danger', dot: 'bg-[var(--color-danger)]', scoreColor: 'var(--color-danger)' },
-    high: { section: 'section-yellow', badge: 'soft-warning', dot: 'bg-[var(--color-primary)]', scoreColor: 'var(--color-primary)' },
-    medium: { section: 'section-blue', badge: 'soft-info', dot: 'bg-[var(--color-info)]', scoreColor: 'var(--color-info)' },
-    low: { section: 'section-green', badge: 'soft-success', dot: 'bg-[var(--color-success)]', scoreColor: 'var(--color-success)' },
+    critical: { cardBorder: 'border-l-[3px] border-l-red-500', pill: 'bg-red-50 text-red-600 border border-red-200', dot: 'bg-red-500', score: 'text-red-600' },
+    high: { cardBorder: 'border-l-[3px] border-l-orange-500', pill: 'bg-orange-50 text-orange-600 border border-orange-200', dot: 'bg-orange-500', score: 'text-orange-600' },
+    medium: { cardBorder: 'border-l-[3px] border-l-blue-500', pill: 'bg-blue-50 text-blue-600 border border-blue-200', dot: 'bg-blue-500', score: 'text-blue-600' },
+    low: { cardBorder: 'border-l-[3px] border-l-emerald-500', pill: 'bg-emerald-50 text-emerald-600 border border-emerald-200', dot: 'bg-emerald-500', score: 'text-emerald-600' },
   }
 
   async function handleRefresh() {
@@ -2994,91 +2995,130 @@ function HealthTab() {
   }
 
   if (isLoading) return (
-    <div className="flex items-center gap-2 text-muted py-10 justify-center">
-      <Loader2 size={18} className="animate-spin" /> Loading health data...
+    <div className="flex flex-col items-center justify-center py-20 text-slate-500">
+      <Loader2 size={32} className="animate-spin mb-4 text-blue-500" />
+      <p className="font-medium text-sm">Loading health data...</p>
     </div>
   )
 
+  const criticalCount = teams?.filter(t => t.risk_level === 'critical').length || 0
+  const highCount = teams?.filter(t => t.risk_level === 'high').length || 0
+  const mediumCount = teams?.filter(t => t.risk_level === 'medium').length || 0
+  const lowCount = teams?.filter(t => t.risk_level === 'low').length || 0
+
   return (
-    <div className="space-y-5">
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-xl font-bold text-foreground">Team Health Dashboard</h2>
-          <p className="text-sm text-muted mt-0.5">
-            Risk scores based on evaluation status, daily updates, and member activity.
-          </p>
-        </div>
-        <button
-          onClick={handleRefresh}
-          disabled={isRefetching}
-          className="flex items-center gap-2 bg-[var(--bg-card-soft)] hover:bg-[var(--bg-card-soft)] text-foreground px-3 py-1.5 rounded-lg text-sm font-medium transition-colors"
-        >
-          {isRefetching ? <Loader2 size={14} className="animate-spin" /> : <Activity size={14} />}
-          Refresh
-        </button>
+    <div>
+      {/* Page Header */}
+      <div className="mb-8">
+        <h1 className="text-[24px] font-extrabold text-slate-950">Team Health</h1>
+        <p className="text-sm font-medium text-slate-500 mt-1">{activeEvent?.name || 'Loading...'}</p>
       </div>
 
-      {teams && teams.length > 0 && (
-        <div className="grid grid-cols-4 gap-3">
-          {['critical', 'high', 'medium', 'low'].map(level => {
-            const c = riskColour[level]
-            const count = teams.filter(t => t.risk_level === level).length
-            return (
-              <div key={level} className={`${c.section} p-4`}>
-                <div className={`inline-flex items-center gap-1.5 ${c.badge} px-2.5 py-1 rounded-full text-xs font-semibold uppercase tracking-wide mb-2`}>
-                  <span className={`w-1.5 h-1.5 rounded-full ${c.dot}`} />
-                  {level}
-                </div>
-                <p className="text-2xl font-bold text-foreground">{count}</p>
-                <p className="text-xs text-muted">team{count !== 1 ? 's' : ''}</p>
-              </div>
-            )
-          })}
+      {/* Main Dashboard Card */}
+      <div className="bg-white border border-slate-200/80 rounded-[22px] shadow-[0_18px_45px_rgba(15,23,42,0.06)] p-6 lg:p-8 mb-6">
+        <div className="flex flex-col md:flex-row items-start md:items-center justify-between mb-8 gap-4">
+          <div>
+            <h2 className="text-lg font-extrabold text-slate-950">Team Health Dashboard</h2>
+            <p className="text-sm font-medium text-slate-500 mt-1">
+              Risk scores based on evaluation status, daily updates, and member activity.
+            </p>
+          </div>
+          <button
+            onClick={handleRefresh}
+            disabled={isRefetching}
+            className="flex items-center gap-2 bg-white border border-slate-200 hover:bg-blue-50 text-blue-600 px-4 py-2 rounded-xl text-sm font-extrabold transition-colors shadow-sm disabled:opacity-50"
+          >
+            {isRefetching ? <Loader2 size={16} className="animate-spin" /> : <RefreshCw size={16} />}
+            Refresh
+          </button>
         </div>
-      )}
 
+        {/* Summary Cards */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          {/* Critical */}
+          <div className="bg-white border border-slate-200/80 rounded-[18px] shadow-[0_12px_30px_rgba(15,23,42,0.04)] p-5">
+            <div className="flex items-center gap-2 mb-3">
+              <span className="w-2 h-2 rounded-full bg-red-500"></span>
+              <p className="text-xs font-extrabold text-slate-950 uppercase tracking-wide">CRITICAL</p>
+            </div>
+            <p className="text-3xl font-extrabold text-slate-950">{criticalCount}</p>
+            <p className="text-sm font-medium text-slate-500 mt-1">{criticalCount === 1 ? 'team' : 'teams'}</p>
+          </div>
+          {/* High */}
+          <div className="bg-white border border-slate-200/80 rounded-[18px] shadow-[0_12px_30px_rgba(15,23,42,0.04)] p-5">
+            <div className="flex items-center gap-2 mb-3">
+              <span className="w-2 h-2 rounded-full bg-orange-500"></span>
+              <p className="text-xs font-extrabold text-slate-950 uppercase tracking-wide">HIGH</p>
+            </div>
+            <p className="text-3xl font-extrabold text-slate-950">{highCount}</p>
+            <p className="text-sm font-medium text-slate-500 mt-1">{highCount === 1 ? 'team' : 'teams'}</p>
+          </div>
+          {/* Medium */}
+          <div className="bg-white border border-slate-200/80 rounded-[18px] shadow-[0_12px_30px_rgba(15,23,42,0.04)] p-5">
+            <div className="flex items-center gap-2 mb-3">
+              <span className="w-2 h-2 rounded-full bg-blue-500"></span>
+              <p className="text-xs font-extrabold text-slate-950 uppercase tracking-wide">MEDIUM</p>
+            </div>
+            <p className="text-3xl font-extrabold text-slate-950">{mediumCount}</p>
+            <p className="text-sm font-medium text-slate-500 mt-1">{mediumCount === 1 ? 'team' : 'teams'}</p>
+          </div>
+          {/* Low */}
+          <div className="bg-white border border-slate-200/80 rounded-[18px] shadow-[0_12px_30px_rgba(15,23,42,0.04)] p-5">
+            <div className="flex items-center gap-2 mb-3">
+              <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
+              <p className="text-xs font-extrabold text-slate-950 uppercase tracking-wide">LOW</p>
+            </div>
+            <p className="text-3xl font-extrabold text-slate-950">{lowCount}</p>
+            <p className="text-sm font-medium text-slate-500 mt-1">{lowCount === 1 ? 'team' : 'teams'}</p>
+          </div>
+        </div>
+      </div>
+
+      {/* Empty State */}
       {(!teams || teams.length === 0) && (
-        <div className="text-center py-16 text-muted">
-          <Activity size={40} className="mx-auto mb-3 opacity-30" />
-          <p className="font-medium">No approved teams yet.</p>
-          <p className="text-sm mt-1">Health scores appear once teams are approved.</p>
+        <div className="bg-white border border-slate-200/80 rounded-[22px] shadow-[0_18px_45px_rgba(15,23,42,0.06)] py-16 text-center">
+          <p className="text-[20px] font-extrabold text-slate-950 mb-2">No team health risks detected</p>
+          <p className="text-sm font-medium text-slate-500">All teams are currently within expected health thresholds.</p>
         </div>
       )}
 
-      <div className="space-y-3">
+      {/* Team Risk Cards */}
+      <div className="space-y-4">
         {teams?.map(team => {
           const c = riskColour[team.risk_level] ?? riskColour.low
           return (
-            <div key={team.team_id} className={`app-card p-4`} style={{ borderLeft: `3px solid ${c.scoreColor}` }}>
-              <div className="flex items-start justify-between gap-3">
+            <div key={team.team_id} className={`bg-white border border-slate-200/80 rounded-[22px] shadow-[0_18px_45px_rgba(15,23,42,0.06)] p-6 ${c.cardBorder}`}>
+              <div className="flex flex-col md:flex-row items-start justify-between gap-4">
                 <div className="flex-1">
-                  <div className="flex items-center gap-3 mb-2">
-                    <span className="font-semibold text-foreground">{team.team_name}</span>
-                    <span className={`${c.badge} px-2 py-0.5 rounded-full text-xs font-semibold uppercase`}>
-                      {team.risk_level}
+                  <div className="flex items-center gap-3 mb-4">
+                    <span className="text-lg font-extrabold text-slate-950">{team.team_name || 'Team'}</span>
+                    <span className={`px-2.5 py-1 rounded-full text-[10px] font-extrabold uppercase tracking-wide ${c.pill}`}>
+                      {team.risk_level || 'LOW'}
                     </span>
-                    <span className="text-xs text-muted">{team.member_count} member{team.member_count !== 1 ? 's' : ''}</span>
+                    <span className="text-sm font-medium text-slate-500">{team.member_count || 0} members</span>
                   </div>
-                  <div className="space-y-1">
-                    {team.signals.map((s, i) => (
-                      <div key={i} className="flex items-start gap-2 text-sm">
-                        <span className={`mt-1 w-1.5 h-1.5 rounded-full flex-shrink-0 ${s.severity === 'high' ? 'bg-primary' : 'bg-yellow-500'}`} />
+                  <div className="space-y-2">
+                    {team.signals?.map((s, i) => (
+                      <div key={i} className="flex items-start gap-2.5 text-sm font-medium">
+                        <span className={`mt-1.5 w-1.5 h-1.5 rounded-full flex-shrink-0 ${s.severity === 'high' || s.severity === 'critical' ? 'bg-red-500' : 'bg-orange-500'}`} />
                         <span>
-                          <span className="font-medium text-foreground">{s.label}</span>
-                          {s.detail && <span className="text-muted"> — {s.detail}</span>}
+                          <span className="text-slate-950 font-bold">{s.label}</span>
+                          {s.detail && <span className="text-slate-500"> — {s.detail}</span>}
                         </span>
                       </div>
                     ))}
-                    {team.signals.length === 0 && (
-                      <p className="text-sm text-green-600">No risk signals detected.</p>
+                    {(!team.signals || team.signals.length === 0) && (
+                      <p className="text-sm font-medium text-emerald-600">No risk signals detected.</p>
                     )}
                   </div>
                 </div>
-                <div className="text-right flex-shrink-0">
-                  <p className="text-2xl font-bold" style={{ color: c.scoreColor }}>{team.risk_score}</p>
-                  <p className="text-xs text-muted">risk score</p>
+                <div className="flex flex-col items-end justify-between min-w-[120px] self-stretch">
+                  <div className="text-right">
+                    <p className={`text-[32px] leading-none font-extrabold ${c.score}`}>{team.risk_score || 0}</p>
+                    <p className="text-xs font-medium text-slate-500 mt-1">risk score</p>
+                  </div>
                   {team.last_update && (
-                    <p className="text-xs text-muted mt-1">Last update: {team.last_update}</p>
+                    <p className="text-xs font-medium text-slate-400 mt-auto pt-4">Last update: {team.last_update}</p>
                   )}
                 </div>
               </div>
