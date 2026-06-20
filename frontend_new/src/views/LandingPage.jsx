@@ -204,6 +204,21 @@ function Hero() {
     return () => window.clearInterval(timer)
   }, []);
 
+  const handleCaseStudiesClick = (event) => {
+    event.preventDefault()
+
+    const aboutSection = document.getElementById('about')
+    if (!aboutSection) return
+
+    const navbarOffset = 88
+    const targetTop = aboutSection.getBoundingClientRect().top + window.scrollY - navbarOffset
+
+    window.scrollTo({
+      top: Math.max(targetTop, 0),
+      behavior: 'smooth',
+    })
+  }
+
   return (
     <section className="relative w-full pt-20 pb-16 px-6 overflow-hidden flex flex-col items-center border-b border-slate-200 min-h-[700px]">
       {/* Subtle Background Patterns */}
@@ -214,35 +229,45 @@ function Hero() {
       <div className="max-w-7xl mx-auto w-full relative z-10 flex flex-col lg:flex-row items-center gap-16 mb-16">
         
         {/* Left Content */}
-        <div className="w-full lg:w-[45%] flex flex-col relative h-[450px] justify-center">
-          {heroSlides.map((slide, index) => (
-            <div 
-              key={index} 
-              className={`absolute inset-0 flex flex-col justify-center transition-opacity duration-700 ease-out ${activeHeroSlide === index ? 'opacity-100 z-10' : 'opacity-0 z-0 pointer-events-none'}`}
-            >
-              <div className="inline-flex items-center self-start gap-2 px-3 py-1.5 rounded-full border border-blue-200 bg-blue-50 text-blue-700 text-[10px] font-bold uppercase tracking-widest mb-6">
-                <Sparkles size={12} /> {slide.eyebrow}
-              </div>
-              
-              <h1 className="text-5xl lg:text-6xl font-black text-slate-950 tracking-tight leading-[1.1] mb-6">
-                {slide.title}<br />
-                <span className="text-red-500">{slide.highlight}</span>
-              </h1>
-              
-              <p className="text-lg text-slate-600 font-medium leading-relaxed max-w-lg">
-                {slide.description}
-              </p>
+        <div className="w-full lg:w-[45%] flex flex-col justify-center min-h-[600px] sm:min-h-[560px] lg:min-h-[530px]">
+          <div className="relative w-full h-[470px] sm:h-[430px] lg:h-[430px]">
+            {heroSlides.map((slide, index) => (
+              <div
+                key={index}
+                className={`absolute inset-0 flex flex-col justify-center transition-opacity duration-700 ease-out ${activeHeroSlide === index ? 'opacity-100 z-10' : 'opacity-0 z-0 pointer-events-none'}`}
+              >
+                <div className="inline-flex items-center self-start gap-2 px-3 py-1.5 rounded-full border border-blue-200 bg-blue-50 text-blue-700 text-[10px] font-bold uppercase tracking-widest mb-6">
+                  <Sparkles size={12} /> {slide.eyebrow}
+                </div>
 
-              <div className="flex flex-col sm:flex-row gap-4 mt-8">
-                <Link to="/participant" className="flex items-center justify-center gap-2 px-8 py-3.5 bg-gradient-to-r from-red-500 to-red-600 text-white text-sm font-bold rounded-xl shadow-lg shadow-red-500/20 hover:from-red-600 hover:to-red-700 transition-all">
-                  Explore Competitions <ArrowRight size={16} />
-                </Link>
-                <a href="#about" className="flex items-center justify-center gap-2 px-8 py-3.5 bg-white border border-slate-200 text-slate-700 text-sm font-bold rounded-xl shadow-sm hover:bg-slate-50 transition-all">
-                  View Case Studies
-                </a>
+                <h1 className="text-5xl lg:text-6xl font-black text-slate-950 tracking-tight leading-[1.1] mb-6">
+                  {slide.title}<br />
+                  <span className="text-red-500">{slide.highlight}</span>
+                </h1>
+
+                <p className="text-lg text-slate-600 font-medium leading-relaxed max-w-lg">
+                  {slide.description}
+                </p>
               </div>
-            </div>
-          ))}
+            ))}
+          </div>
+
+          <div className="flex flex-col sm:flex-row gap-4 mt-8 shrink-0">
+            <Link
+              to="/participant"
+              className="flex items-center justify-center gap-2 px-8 py-3.5 bg-gradient-to-r from-red-500 to-red-600 text-white text-sm font-bold rounded-xl shadow-lg shadow-red-500/20 hover:from-red-600 hover:to-red-700 transition-all"
+            >
+              Explore Competitions <ArrowRight size={16} />
+            </Link>
+
+            <a
+              href="#about"
+              onClick={handleCaseStudiesClick}
+              className="flex items-center justify-center gap-2 px-8 py-3.5 bg-white border border-slate-200 text-slate-700 text-sm font-bold rounded-xl shadow-sm hover:bg-slate-50 transition-all"
+            >
+              View Case Studies
+            </a>
+          </div>
         </div>
 
         {/* Right Visual */}
