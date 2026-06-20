@@ -56,7 +56,7 @@ function PortalNavbar({ evaluatorName }) {
   const initial = evaluatorName ? evaluatorName.charAt(0).toUpperCase() : 'A'
   
   return (
-    <nav className="bg-white/90 border-b border-slate-200/80 backdrop-blur sticky top-0 z-50 h-[72px] flex items-center shrink-0">
+    <nav className="bg-white/95 border-b border-slate-200/80 backdrop-blur sticky top-0 z-50 h-[72px] flex items-center shrink-0">
       <div className="w-full flex items-center justify-between px-6">
         <div className="flex items-center gap-4">
           <button className="text-slate-600 hover:text-slate-900 transition-colors hidden sm:block">
@@ -100,7 +100,7 @@ function CriterionSlider({ criterion, value, onChange }) {
   const Icon = criterion.icon
 
   return (
-    <div className="bg-white/90 border border-slate-200/80 rounded-[18px] p-6 shadow-[0_14px_35px_rgba(15,23,42,0.05)] flex flex-col md:flex-row md:items-center gap-6">
+    <div className="bg-white border border-slate-200/80 rounded-[18px] p-6 shadow-[0_12px_30px_rgba(15,23,42,0.04)] flex flex-col md:flex-row md:items-center gap-6">
       
       <div className="flex-1 flex items-start gap-4">
          <div className={`w-12 h-12 rounded-xl flex items-center justify-center shrink-0 ${colors.bg} ${colors.text}`}>
@@ -218,7 +218,7 @@ function ScoringForm({ team, onSubmitted, alreadySubmitted, token }) {
       </div>
 
       {/* Weighted total display */}
-      <div className="bg-red-50/50 rounded-[18px] border border-red-100 p-6 flex items-center justify-between mt-2">
+      <div className="bg-red-50/70 rounded-[18px] border border-red-100 p-6 flex items-center justify-between mt-2">
         <div className="flex items-center gap-4">
            <div className="w-12 h-12 rounded-full bg-white flex items-center justify-center text-red-500 shadow-sm shrink-0">
              <TrendingUp size={20} />
@@ -242,7 +242,7 @@ function ScoringForm({ team, onSubmitted, alreadySubmitted, token }) {
 
       {/* Submit / confirm */}
       {!confirming ? (
-        <div className="bg-white/90 border border-slate-200/80 rounded-[22px] p-8 shadow-[0_18px_45px_rgba(15,23,42,0.06)] mt-2">
+        <div className="bg-white border border-slate-200/80 rounded-[18px] p-8 shadow-[0_12px_30px_rgba(15,23,42,0.04)] mt-2">
            <h3 className="text-lg font-black text-slate-950 mb-6">Review & Submit</h3>
            
            <div className="flex flex-col md:flex-row items-center justify-between gap-6 mb-8">
@@ -283,7 +283,7 @@ function ScoringForm({ team, onSubmitted, alreadySubmitted, token }) {
            </div>
         </div>
       ) : (
-        <div className="bg-white/90 border border-slate-200/80 rounded-[22px] p-8 shadow-[0_18px_45px_rgba(15,23,42,0.06)] mt-2">
+        <div className="bg-white border border-slate-200/80 rounded-[18px] p-8 shadow-[0_12px_30px_rgba(15,23,42,0.04)] mt-2">
           <h3 className="text-lg font-black text-slate-950 mb-6">Confirm submission</h3>
           
           <div className="space-y-4 max-w-sm mb-6">
@@ -365,7 +365,7 @@ function TeamSubmissionSection({ teamId, token }) {
   const sub = data?.submission
 
   return (
-    <div className="bg-white/90 border border-slate-200/80 rounded-[18px] p-4 shadow-[0_14px_35px_rgba(15,23,42,0.05)] flex items-center justify-between cursor-pointer hover:border-slate-300 transition-colors">
+    <div className="bg-white/95 border border-slate-200/80 rounded-[16px] p-4 shadow-[0_12px_30px_rgba(15,23,42,0.04)] flex items-center justify-between cursor-pointer hover:border-slate-300 transition-colors">
       <div className="flex items-center gap-4">
          <div className="w-10 h-10 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center shrink-0">
            <FileText size={20} />
@@ -402,7 +402,7 @@ function TeamSubmissionSection({ teamId, token }) {
 
 function ScoringGuideCard({ rubricLoading }) {
    return (
-      <div className="bg-white/90 border border-slate-200/80 rounded-[18px] p-4 shadow-[0_14px_35px_rgba(15,23,42,0.05)] flex items-center justify-between cursor-pointer hover:border-slate-300 transition-colors">
+      <div className="bg-white/95 border border-slate-200/80 rounded-[16px] p-4 shadow-[0_12px_30px_rgba(15,23,42,0.04)] flex items-center justify-between cursor-pointer hover:border-slate-300 transition-colors">
          <div className="flex items-center gap-4">
             <div className="w-10 h-10 rounded-lg bg-red-50 text-red-500 flex items-center justify-center shrink-0">
                <Sparkles size={20} />
@@ -428,7 +428,7 @@ function TeamQueueSidebar({ teams, selectedId, submittedIds, onSelect }) {
   const progressPct = total > 0 ? (submitted / total) * 100 : 0
 
   return (
-    <aside className="w-[300px] shrink-0 bg-white/80 border-r border-slate-200/80 backdrop-blur flex flex-col hidden lg:flex h-[calc(100vh-72px)] sticky top-[72px] overflow-y-auto">
+    <aside className="w-[300px] shrink-0 bg-white/90 border-r border-slate-200/80 text-slate-950 backdrop-blur flex flex-col hidden lg:flex h-[calc(100vh-72px)] sticky top-[72px] overflow-y-auto">
       
       <div className="p-6 border-b border-slate-100">
          <div className="flex justify-between items-center mb-2">
@@ -458,8 +458,8 @@ function TeamQueueSidebar({ teams, selectedId, submittedIds, onSelect }) {
                   onClick={() => onSelect(team)}
                   className={`w-full flex items-center justify-between p-3 rounded-xl transition-all border ${
                     isActive
-                      ? 'bg-red-50 border-red-200'
-                      : 'bg-white border-transparent hover:border-slate-200'
+                      ? 'bg-red-50/60 border-red-200'
+                      : 'bg-white border-slate-200 hover:border-slate-300'
                   }`}
                 >
                    <div className="flex items-start gap-3 text-left">
@@ -623,15 +623,11 @@ export default function JudgePortal() {
   // ── Main layout ──────────────────────────────────────────────────────────
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-white text-slate-950 font-sans relative overflow-x-hidden">
+    <div className="min-h-screen bg-[#f8fbff] text-slate-950 font-sans relative overflow-x-hidden">
       
       {/* Background Dots */}
-      <div className="absolute top-40 left-[350px] opacity-40 hidden xl:grid grid-cols-4 gap-3 pointer-events-none">
-        {Array.from({ length: 24 }).map((_, i) => <div key={i} className={`w-1 h-1 rounded-full ${i%3===0 ? 'bg-red-300' : 'bg-slate-300'}`} />)}
-      </div>
-      <div className="absolute bottom-40 right-10 opacity-40 hidden xl:grid grid-cols-4 gap-3 pointer-events-none">
-        {Array.from({ length: 24 }).map((_, i) => <div key={i} className={`w-1 h-1 rounded-full ${i%4===0 ? 'bg-blue-300' : 'bg-slate-300'}`} />)}
-      </div>
+      <div className="pointer-events-none absolute left-24 top-24 h-36 w-28 opacity-25 [background-image:radial-gradient(#bfdbfe_1.5px,transparent_1.5px)] [background-size:16px_16px]" />
+      <div className="pointer-events-none absolute right-20 bottom-28 h-36 w-28 opacity-25 [background-image:radial-gradient(#bbf7d0_1.5px,transparent_1.5px)] [background-size:16px_16px]" />
 
       <PortalNavbar evaluatorName={evaluatorName} />
 
@@ -657,7 +653,7 @@ export default function JudgePortal() {
                 <h2 className="text-2xl font-black text-slate-950 mb-3">Select a team to evaluate</h2>
                 <p className="text-sm font-medium text-slate-500 mb-12 max-w-sm text-center">Choose a team from the queue on the left to begin your evaluation.</p>
 
-                <div className="bg-white/90 border border-slate-200/80 rounded-[22px] p-8 shadow-[0_18px_45px_rgba(15,23,42,0.06)] w-full max-w-2xl">
+                <div className="bg-white/95 border border-slate-200/80 rounded-[22px] p-8 shadow-[0_18px_45px_rgba(15,23,42,0.06)] w-full max-w-2xl">
                    <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-6">GRADING CRITERIA & WEIGHTS</p>
                    
                    <div className="space-y-5">
