@@ -1,0 +1,13 @@
+.env
+.venv/
+.venv-*/
+__pycache__/
+.pytest_cache/
+htmlcov/
+.coverage
+coverage.xml
+*.db
+test*.db
+celerybeat-schedule
+uploads/
+tests/
