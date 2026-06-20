@@ -323,12 +323,12 @@ function ParticipantMetricCard({ title, value, sub, icon: Icon, tone }) {
           <Icon className="h-6 w-6" />
         </div>
         <div>
-          <p className="text-sm font-extrabold text-slate-900">{title}</p>
+          <p className="text-sm font-extrabold text-foreground">{title}</p>
         </div>
       </div>
       <div className="mt-4">
-        <p className="text-[34px] leading-none font-extrabold text-slate-950">{value}</p>
-        {sub && <p className="mt-1 text-sm font-medium text-slate-500">{sub}</p>}
+        <p className="text-[34px] leading-none font-extrabold text-foreground">{value}</p>
+        {sub && <p className="mt-1 text-sm font-medium text-muted">{sub}</p>}
       </div>
       <ParticipantMiniSparkline tone={tone} />
     </div>
@@ -508,15 +508,15 @@ function ParticipantsTab() {
           {uploadMutation.isPending ? (
             <div className="flex flex-col items-center gap-2">
               <Loader2 className="h-8 w-8 text-red-600 animate-spin" />
-              <p className="text-sm font-semibold text-slate-700">Uploading roster…</p>
+              <p className="text-sm font-semibold text-muted">Uploading roster…</p>
             </div>
           ) : (
             <div className="flex flex-col items-center">
               <UploadCloud size={38} className="text-red-600" />
-              <p className="mt-4 text-sm font-extrabold text-slate-950">
+              <p className="mt-4 text-sm font-extrabold text-foreground">
                 Drop a CSV here or click to browse
               </p>
-              <p className="mt-2 text-sm font-semibold text-slate-500">
+              <p className="mt-2 text-sm font-semibold text-muted">
                 Required columns: name, email, institution, skills, team_preference (optional)
               </p>
             </div>
@@ -527,8 +527,8 @@ function ParticipantsTab() {
         {uploadResult && (
           <div className="mt-4 p-4 rounded-xl bg-white ring-1 ring-slate-200 shadow-sm">
             <div className="flex justify-between mb-2">
-              <p className="text-sm font-semibold text-slate-900">{uploadResult.message}</p>
-              <button onClick={() => setUploadResult(null)} className="text-slate-400 hover:text-slate-600">
+              <p className="text-sm font-semibold text-foreground">{uploadResult.message}</p>
+              <button onClick={() => setUploadResult(null)} className="text-slate-400 hover:text-muted">
                 <X className="h-4 w-4" />
               </button>
             </div>
@@ -556,7 +556,7 @@ function ParticipantsTab() {
               value={search}
               onChange={(e) => { setSearch(e.target.value); setPage(1) }}
               placeholder="Search by name or email..."
-              className="h-11 w-full rounded-xl bg-white pl-11 pr-4 text-sm font-semibold text-slate-900 shadow-sm ring-1 ring-slate-200 placeholder:text-slate-400 outline-none transition focus:ring-2 focus:ring-red-500/35"
+              className="h-11 w-full rounded-xl bg-white pl-11 pr-4 text-sm font-semibold text-foreground shadow-sm ring-1 ring-slate-200 placeholder:text-slate-400 outline-none transition focus:ring-2 focus:ring-red-500/35"
             />
           </div>
           <div className="relative h-11 w-[330px]">
@@ -565,13 +565,13 @@ function ParticipantsTab() {
               value={collegeFilter}
               onChange={(e) => { setCollegeFilter(e.target.value); setPage(1) }}
               placeholder="Search by college..."
-              className="h-11 w-full rounded-xl bg-white pl-11 pr-4 text-sm font-semibold text-slate-900 shadow-sm ring-1 ring-slate-200 placeholder:text-slate-400 outline-none transition focus:ring-2 focus:ring-red-500/35"
+              className="h-11 w-full rounded-xl bg-white pl-11 pr-4 text-sm font-semibold text-foreground shadow-sm ring-1 ring-slate-200 placeholder:text-slate-400 outline-none transition focus:ring-2 focus:ring-red-500/35"
             />
           </div>
           <select
             value={teamFilter}
             onChange={(e) => { setTeamFilter(e.target.value); setPage(1) }}
-            className="h-11 w-[110px] rounded-xl bg-white px-4 text-sm font-extrabold text-slate-900 shadow-sm ring-1 ring-slate-200 outline-none transition focus:ring-2 focus:ring-red-500/35 appearance-none"
+            className="h-11 w-[110px] rounded-xl bg-white px-4 text-sm font-extrabold text-foreground shadow-sm ring-1 ring-slate-200 outline-none transition focus:ring-2 focus:ring-red-500/35 appearance-none"
           >
             <option value="">All</option>
             <option value="false">Unassigned</option>
@@ -599,16 +599,16 @@ function ParticipantsTab() {
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
-              <tr className="bg-white text-left border-b border-slate-200/80">
+              <tr className="bg-white text-left border-b border-border">
                 {['Name', 'Institution', 'Skills (avg)', 'Team', 'Team Link Status', ''].map((h) => (
-                  <th key={h} className="px-6 py-4 text-xs font-extrabold uppercase tracking-wide text-slate-800">{h}</th>
+                  <th key={h} className="px-6 py-4 text-xs font-extrabold uppercase tracking-wide text-foreground">{h}</th>
                 ))}
               </tr>
             </thead>
             <tbody>
               {isLoading
                 ? Array.from({ length: 6 }).map((_, i) => (
-                  <tr key={i} className="border-b border-slate-100 last:border-b-0">
+                  <tr key={i} className="border-b border-border last:border-b-0">
                     {[1, 2, 3, 4, 5, 6].map((j) => (
                       <td key={j} className="px-6 py-4">
                         <div className="h-4 bg-slate-100 rounded animate-pulse w-24" />
@@ -625,26 +625,26 @@ function ParticipantsTab() {
                   const colors = getRowColors(index)
 
                   return (
-                    <tr key={p.id} className="border-b border-slate-100 last:border-b-0 hover:bg-slate-50/80 transition-colors">
-                      <td className="px-6 py-4 text-slate-800">
+                    <tr key={p.id} className="border-b border-border last:border-b-0 hover:bg-cardSoft/80 transition-colors">
+                      <td className="px-6 py-4 text-foreground">
                         <div className="flex items-center gap-4">
                           <div className={`h-12 w-12 rounded-full flex items-center justify-center font-bold text-lg shrink-0 ${colors.avatar}`}>
                             {p.first_name?.[0] || '?'}
                           </div>
                           <div>
-                            <p className="text-sm font-extrabold text-slate-950">{p.first_name} {p.last_name}</p>
-                            <p className="text-xs font-medium text-slate-500">{p.email}</p>
+                            <p className="text-sm font-extrabold text-foreground">{p.first_name} {p.last_name}</p>
+                            <p className="text-xs font-medium text-muted">{p.email}</p>
                           </div>
                         </div>
                       </td>
-                      <td className="px-6 py-4 text-sm font-semibold text-slate-800">{p.institution}</td>
-                      <td className="px-6 py-4 text-slate-800">
+                      <td className="px-6 py-4 text-sm font-semibold text-foreground">{p.institution}</td>
+                      <td className="px-6 py-4 text-foreground">
                         {avg
                           ? <span className={`rounded-lg border px-3 py-1 text-sm font-extrabold ${colors.pill}`}>{avg}/10</span>
                           : <span className="text-slate-400 text-sm font-bold">—</span>
                         }
                       </td>
-                      <td className="px-6 py-4 text-slate-800">
+                      <td className="px-6 py-4 text-foreground">
                         {p.team_name
                           ? <span className={`rounded-lg border px-3 py-1 text-sm font-extrabold ${colors.pill}`}>{p.team_name}</span>
                           : p.team_status === "pending_approval"
@@ -675,7 +675,7 @@ function ParticipantsTab() {
                   )
                 }) : (
                   <tr>
-                    <td colSpan="6" className="px-6 py-12 text-center text-slate-500 font-medium">
+                    <td colSpan="6" className="px-6 py-12 text-center text-muted font-medium">
                       {search || teamFilter !== '' ? "No participants found matching the current filters." : "No participants registered yet."}
                     </td>
                   </tr>
@@ -686,13 +686,13 @@ function ParticipantsTab() {
 
         {/* Pagination */}
         {data && data.total_pages > 1 && (
-          <div className="flex justify-between items-center px-6 py-4 border-t border-slate-200/80 text-sm font-semibold text-slate-500 bg-slate-50/50">
+          <div className="flex justify-between items-center px-6 py-4 border-t border-border text-sm font-semibold text-muted bg-cardSoft/50">
             <span>Page {data.page} of {data.total_pages} ({data.total} total)</span>
             <div className="flex gap-2">
               <button disabled={page === 1} onClick={() => setPage(p => p - 1)}
-                className="px-4 py-2 rounded-lg bg-white ring-1 ring-slate-200 text-slate-700 hover:bg-slate-50 disabled:opacity-40 transition">Prev</button>
+                className="px-4 py-2 rounded-lg bg-white ring-1 ring-slate-200 text-muted hover:bg-cardSoft disabled:opacity-40 transition">Prev</button>
               <button disabled={page >= data.total_pages} onClick={() => setPage(p => p + 1)}
-                className="px-4 py-2 rounded-lg bg-white ring-1 ring-slate-200 text-slate-700 hover:bg-slate-50 disabled:opacity-40 transition">Next</button>
+                className="px-4 py-2 rounded-lg bg-white ring-1 ring-slate-200 text-muted hover:bg-cardSoft disabled:opacity-40 transition">Next</button>
             </div>
           </div>
         )}
@@ -808,21 +808,21 @@ function TeamsTab() {
 
         <div className="mt-8 grid grid-cols-1 gap-8 lg:grid-cols-3">
           {/* Column 1 */}
-          <div className="space-y-10 lg:border-r lg:border-slate-200/80 lg:pr-10">
+          <div className="space-y-10 lg:border-r lg:border-border lg:pr-10">
             {/* Number of teams */}
             <div className="flex items-start gap-5">
               <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-blue-100 text-blue-600">
                 <Users className="h-6 w-6" />
               </div>
               <div>
-                <label className="block text-sm font-semibold text-slate-700">
+                <label className="block text-sm font-semibold text-muted">
                   Number of teams
                 </label>
                 <input
                   type="number" min={1} max={50}
                   value={config.num_teams}
                   onChange={(e) => setConfig((c) => ({ ...c, num_teams: +e.target.value }))}
-                  className="mt-2 w-24 bg-transparent text-2xl font-extrabold text-slate-950 outline-none placeholder:text-slate-400"
+                  className="mt-2 w-24 bg-transparent text-2xl font-extrabold text-foreground outline-none placeholder:text-slate-400"
                 />
               </div>
             </div>
@@ -833,35 +833,35 @@ function TeamsTab() {
                 <UserPlus className="h-6 w-6" />
               </div>
               <div>
-                <label className="block text-sm font-semibold text-slate-700">
+                <label className="block text-sm font-semibold text-muted">
                   Max size
                 </label>
                 <input
                   type="number" min={2} max={10}
                   value={config.k_max}
                   onChange={(e) => setConfig((c) => ({ ...c, k_max: +e.target.value }))}
-                  className="mt-2 w-24 bg-transparent text-2xl font-extrabold text-slate-950 outline-none placeholder:text-slate-400"
+                  className="mt-2 w-24 bg-transparent text-2xl font-extrabold text-foreground outline-none placeholder:text-slate-400"
                 />
               </div>
             </div>
           </div>
 
           {/* Column 2 */}
-          <div className="space-y-10 lg:border-r lg:border-slate-200/80 lg:pr-10">
+          <div className="space-y-10 lg:border-r lg:border-border lg:pr-10">
             {/* Target team size */}
             <div className="flex items-start gap-5">
               <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-green-100 text-green-600">
                 <Target className="h-6 w-6" />
               </div>
               <div>
-                <label className="block text-sm font-semibold text-slate-700">
+                <label className="block text-sm font-semibold text-muted">
                   Target team size
                 </label>
                 <input
                   type="number" min={2} max={10}
                   value={config.target_size}
                   onChange={(e) => setConfig((c) => ({ ...c, target_size: +e.target.value }))}
-                  className="mt-2 w-24 bg-transparent text-2xl font-extrabold text-slate-950 outline-none placeholder:text-slate-400"
+                  className="mt-2 w-24 bg-transparent text-2xl font-extrabold text-foreground outline-none placeholder:text-slate-400"
                 />
               </div>
             </div>
@@ -872,14 +872,14 @@ function TeamsTab() {
                 <Building2 className="h-6 w-6" />
               </div>
               <div>
-                <label className="block text-sm font-semibold text-slate-700">
+                <label className="block text-sm font-semibold text-muted">
                   Max / institution
                 </label>
                 <input
                   type="number" min={1} max={5}
                   value={config.max_per_institution}
                   onChange={(e) => setConfig((c) => ({ ...c, max_per_institution: +e.target.value }))}
-                  className="mt-2 w-24 bg-transparent text-2xl font-extrabold text-slate-950 outline-none placeholder:text-slate-400"
+                  className="mt-2 w-24 bg-transparent text-2xl font-extrabold text-foreground outline-none placeholder:text-slate-400"
                 />
               </div>
             </div>
@@ -893,21 +893,21 @@ function TeamsTab() {
                 <User className="h-6 w-6" />
               </div>
               <div>
-                <label className="block text-sm font-semibold text-slate-700">
+                <label className="block text-sm font-semibold text-muted">
                   Min size
                 </label>
                 <input
                   type="number" min={1} max={10}
                   value={config.k_min}
                   onChange={(e) => setConfig((c) => ({ ...c, k_min: +e.target.value }))}
-                  className="mt-2 w-24 bg-transparent text-2xl font-extrabold text-slate-950 outline-none placeholder:text-slate-400"
+                  className="mt-2 w-24 bg-transparent text-2xl font-extrabold text-foreground outline-none placeholder:text-slate-400"
                 />
               </div>
             </div>
 
             {/* Use mock data */}
             <div className="flex items-start gap-5 pt-2">
-              <label className="flex items-center gap-3 text-sm font-semibold text-slate-700 cursor-pointer">
+              <label className="flex items-center gap-3 text-sm font-semibold text-muted cursor-pointer">
                 <input
                   type="checkbox"
                   checked={config.use_mock_data}
@@ -1163,14 +1163,14 @@ function ApprovalsTab() {
         {/* Pending Approvals heading area */}
         <div className="flex flex-col">
           <div className="flex items-center gap-2">
-            <h2 className="text-[22px] font-extrabold text-slate-950">
+            <h2 className="text-[22px] font-extrabold text-foreground">
               Pending Approvals
             </h2>
             <span className="inline-flex h-6 min-w-6 items-center justify-center rounded-full bg-red-100 px-2 text-xs font-extrabold text-red-600">
               {pending?.total_pending ?? 0}
             </span>
           </div>
-          <p className="mt-2 text-base font-semibold text-slate-500">
+          <p className="mt-2 text-base font-semibold text-muted">
             {pending?.total_pending ?? 0} team(s) awaiting review
           </p>
         </div>
@@ -1182,8 +1182,8 @@ function ApprovalsTab() {
               <div className="flex items-start gap-3">
                 <AlertTriangle className="text-red-600 shrink-0 mt-0.5" size={20} />
                 <div>
-                  <h3 className="text-sm font-extrabold text-slate-950">Formation Rejected</h3>
-                  <p className="text-xs font-medium text-slate-600 mt-1">One or more teams in this formation have been rejected. You cannot publish this formation. Please go to the <strong>Teams</strong> tab and rerun the solver to generate a new valid lineup.</p>
+                  <h3 className="text-sm font-extrabold text-foreground">Formation Rejected</h3>
+                  <p className="text-xs font-medium text-muted mt-1">One or more teams in this formation have been rejected. You cannot publish this formation. Please go to the <strong>Teams</strong> tab and rerun the solver to generate a new valid lineup.</p>
                 </div>
               </div>
             )}
@@ -1192,8 +1192,8 @@ function ApprovalsTab() {
                 <div className="flex items-center gap-3">
                   <CheckSquare className="text-emerald-600 shrink-0" size={20} />
                   <div>
-                    <h3 className="text-sm font-extrabold text-slate-950">All Teams Approved</h3>
-                    <p className="text-xs font-medium text-slate-600 mt-1">The formation is fully approved. Publish now to make teams visible and dispatch assignment emails.</p>
+                    <h3 className="text-sm font-extrabold text-foreground">All Teams Approved</h3>
+                    <p className="text-xs font-medium text-muted mt-1">The formation is fully approved. Publish now to make teams visible and dispatch assignment emails.</p>
                   </div>
                 </div>
                 <button
@@ -1215,8 +1215,8 @@ function ApprovalsTab() {
                 <div className="flex items-start gap-3">
                   <Loader2 className="text-amber-500 shrink-0 mt-0.5 animate-spin" size={20} />
                   <div>
-                    <h3 className="text-sm font-extrabold text-slate-950">Formation in Review</h3>
-                    <p className="text-xs font-medium text-slate-600 mt-1">Review all pending teams. All teams must be approved before the formation can be published to participants.</p>
+                    <h3 className="text-sm font-extrabold text-foreground">Formation in Review</h3>
+                    <p className="text-xs font-medium text-muted mt-1">Review all pending teams. All teams must be approved before the formation can be published to participants.</p>
                   </div>
                 </div>
                 {(pending?.total_pending ?? 0) > 0 && (
@@ -1224,7 +1224,7 @@ function ApprovalsTab() {
                     <button
                       onClick={() => bulkMutation.mutate('reject')}
                       disabled={bulkMutation.isPending}
-                      className="inline-flex h-10 items-center justify-center gap-2 rounded-xl bg-white border border-slate-200 px-4 text-sm font-bold text-slate-700 transition hover:bg-slate-50 hover:text-red-600"
+                      className="inline-flex h-10 items-center justify-center gap-2 rounded-xl app-btn-secondary hover:text-red-600 dark:hover:text-red-400"
                     >
                       <X size={14} /> Reject all
                     </button>
@@ -1252,10 +1252,10 @@ function ApprovalsTab() {
               <CheckCircle2 size={22} />
             </div>
             <div>
-              <p className="text-base font-extrabold text-slate-950">
+              <p className="text-base font-extrabold text-foreground">
                 Formation Published
               </p>
-              <p className="mt-1 text-sm font-semibold text-slate-500">
+              <p className="mt-1 text-sm font-semibold text-muted">
                 This formation has been finalized and participants have been notified and can view their teams.
               </p>
             </div>
@@ -1300,10 +1300,10 @@ function ApprovalsTab() {
                 <path d="M142 80L145 86L151 89L145 92L142 98L139 92L133 89L139 86Z" fill="#60a5fa" />
               </svg>
             </div>
-            <p className="text-lg font-extrabold text-slate-950">
+            <p className="text-lg font-extrabold text-foreground">
               All teams reviewed
             </p>
-            <p className="mt-3 text-sm font-semibold text-slate-500">
+            <p className="mt-3 text-sm font-semibold text-muted">
               Run the solver and review lockup to populate this queue.
             </p>
           </div>
@@ -1319,12 +1319,12 @@ function ApprovalsTab() {
                   className="flex items-center gap-4 cursor-pointer"
                   onClick={() => setExpanded(expanded === team.team_id ? null : team.team_id)}
                 >
-                  <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-slate-100 text-lg font-extrabold text-slate-700">
+                  <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-slate-100 text-lg font-extrabold text-muted">
                     {team.team_name[0]}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-base font-extrabold text-slate-950">{team.team_name}</p>
-                    <p className="mt-1 text-sm font-semibold text-slate-500">{team.member_count} members</p>
+                    <p className="text-base font-extrabold text-foreground">{team.team_name}</p>
+                    <p className="mt-1 text-sm font-semibold text-muted">{team.member_count} members</p>
                   </div>
                   <span className="rounded-lg border border-amber-400 bg-amber-50 px-3 py-1 text-sm font-extrabold text-amber-600">Pending</span>
                   {expanded === team.team_id
@@ -1335,17 +1335,17 @@ function ApprovalsTab() {
 
                 {/* Expanded detail */}
                 {expanded === team.team_id && detail && (
-                  <div className="mt-4 border-t border-slate-100 pt-4">
+                  <div className="mt-4 border-t border-border pt-4">
                     {/* Members grid */}
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-5">
                       {detail.members?.map((m) => (
                         <div key={m.id} className="flex items-center gap-3">
-                          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-slate-100 text-sm font-extrabold text-slate-600">
+                          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-slate-100 text-sm font-extrabold text-muted">
                             {m.name[0]}
                           </div>
                           <div className="min-w-0">
-                            <p className="text-sm font-bold text-slate-950 truncate">{m.name}</p>
-                            <p className="text-xs font-semibold text-slate-500 truncate">{m.institution}</p>
+                            <p className="text-sm font-bold text-foreground truncate">{m.name}</p>
+                            <p className="text-xs font-semibold text-muted truncate">{m.institution}</p>
                           </div>
                         </div>
                       ))}
@@ -1353,11 +1353,11 @@ function ApprovalsTab() {
 
                     {/* AI rationale */}
                     {detail.rationale && (
-                      <div className="rounded-xl bg-slate-50 p-4 mb-5">
-                        <p className="flex items-center gap-1.5 text-xs font-extrabold text-slate-700 mb-2">
+                      <div className="rounded-xl bg-cardSoft p-4 mb-5">
+                        <p className="flex items-center gap-1.5 text-xs font-extrabold text-muted mb-2">
                           <Wand2 size={14} /> AI Rationale
                         </p>
-                        <p className="text-sm font-medium text-slate-600 leading-relaxed">{detail.rationale}</p>
+                        <p className="text-sm font-medium text-muted leading-relaxed">{detail.rationale}</p>
                       </div>
                     )}
 
@@ -1367,7 +1367,7 @@ function ApprovalsTab() {
                       onChange={(e) => setNotes(e.target.value)}
                       placeholder="Notes (required when rejecting)…"
                       rows={2}
-                      className="w-full rounded-xl border border-slate-200 bg-white p-3 text-sm font-medium text-slate-900 shadow-sm placeholder:text-slate-400 focus:border-red-500 focus:outline-none focus:ring-1 focus:ring-red-500 mb-4 resize-none"
+                      className="w-full rounded-xl border border-border bg-white p-3 text-sm font-medium text-foreground shadow-sm placeholder:text-slate-400 focus:border-red-500 focus:outline-none focus:ring-1 focus:ring-red-500 mb-4 resize-none"
                     />
                     <div className="flex justify-end gap-3">
                       <button
@@ -1480,13 +1480,13 @@ function EvaluatorsTab() {
 
   const fieldFor = (key, label, type = 'text', placeholder = '') => (
     <div>
-      <label className="block text-sm font-semibold text-slate-950 mb-2">{label}</label>
+      <label className="block text-sm font-semibold text-foreground mb-2">{label}</label>
       <input
         type={type}
         value={form[key]}
         onChange={(e) => setForm((f) => ({ ...f, [key]: e.target.value }))}
         placeholder={placeholder}
-        className="h-11 w-full rounded-xl bg-white px-4 text-sm font-medium text-slate-900 shadow-sm ring-1 ring-slate-200 placeholder:text-slate-400 outline-none transition focus:ring-2 focus:ring-blue-500/35"
+        className="h-11 w-full rounded-xl bg-white px-4 text-sm font-medium text-foreground shadow-sm ring-1 ring-slate-200 placeholder:text-slate-400 outline-none transition focus:ring-2 focus:ring-blue-500/35"
       />
     </div>
   )
@@ -1503,7 +1503,7 @@ function EvaluatorsTab() {
     <>
       <div className="space-y-8">
         <div className="flex items-center justify-end gap-4">
-          <button onClick={() => evaluatorsApi.downloadTemplate()} className="inline-flex h-11 items-center gap-2 rounded-xl bg-white px-4 text-sm font-extrabold text-slate-800 shadow-sm ring-1 ring-slate-200 transition hover:bg-slate-50">
+          <button onClick={() => evaluatorsApi.downloadTemplate()} className="inline-flex h-11 items-center gap-2 rounded-xl bg-white px-4 text-sm font-extrabold text-foreground shadow-sm ring-1 ring-slate-200 transition hover:bg-cardSoft">
             <FileText className="h-5 w-5 text-emerald-600" />
             CSV Template
           </button>
@@ -1525,11 +1525,11 @@ function EvaluatorsTab() {
               <ShieldCheck size={28} />
             </div>
             <div>
-              <p className="text-base font-extrabold text-slate-950">Evaluation audit settings</p>
-              <p className="mt-1 text-sm font-semibold text-slate-600">Check event-scoped scorecard integrity, evaluator assignments, and suspicion scoring state.</p>
+              <p className="text-base font-extrabold text-foreground">Evaluation audit settings</p>
+              <p className="mt-1 text-sm font-semibold text-muted">Check event-scoped scorecard integrity, evaluator assignments, and suspicion scoring state.</p>
             </div>
           </div>
-          <button onClick={() => auditMutation.mutate()} disabled={auditMutation.isPending} className="inline-flex h-11 shrink-0 items-center gap-2 rounded-xl bg-white px-5 text-sm font-extrabold text-slate-900 shadow-sm ring-1 ring-slate-200 transition hover:bg-emerald-50">
+          <button onClick={() => auditMutation.mutate()} disabled={auditMutation.isPending} className="inline-flex h-11 shrink-0 items-center gap-2 rounded-xl bg-white px-5 text-sm font-extrabold text-foreground shadow-sm ring-1 ring-slate-200 transition hover:bg-emerald-50">
             {auditMutation.isPending ? <Loader2 className="h-5 w-5 animate-spin text-emerald-600" /> : <ShieldCheck className="h-5 w-5 text-emerald-600" />}
             Run audit
           </button>
@@ -1549,10 +1549,10 @@ function EvaluatorsTab() {
         <section className="rounded-[20px] bg-white p-7 shadow-[0_14px_38px_rgba(15,23,42,0.06)] ring-1 ring-slate-200/80">
           <div className="flex flex-wrap items-center gap-6">
             <div className="flex items-center gap-3">
-              <p className="text-lg font-extrabold text-slate-950">Choose File</p>
-              <p className="text-sm font-semibold text-slate-500">{importFile ? importFile.name : 'No file chosen'}</p>
+              <p className="text-lg font-extrabold text-foreground">Choose File</p>
+              <p className="text-sm font-semibold text-muted">{importFile ? importFile.name : 'No file chosen'}</p>
             </div>
-            <label className="inline-flex items-center gap-2 text-sm font-semibold text-slate-600">
+            <label className="inline-flex items-center gap-2 text-sm font-semibold text-muted">
               <input type="checkbox" checked={importUpsert} onChange={e => setImportUpsert(e.target.checked)} className="h-5 w-5 rounded border-slate-300 text-blue-600 focus:ring-blue-500" />
               Update existing (upsert)
               <Info size={16} className="text-slate-400" />
@@ -1562,25 +1562,25 @@ function EvaluatorsTab() {
               Import CSV
             </button>
           </div>
-          <p className="mt-6 text-sm font-semibold text-slate-600">
+          <p className="mt-6 text-sm font-semibold text-muted">
             Evaluators receive secure magic links and score approved teams on the Judge Portal. Submitted scorecards update the leaderboard and anomaly scanner.
           </p>
 
           <label className="mt-6 flex min-h-[160px] cursor-pointer flex-col items-center justify-center rounded-[18px] border-2 border-dashed border-blue-500 bg-white px-8 py-10 text-center transition hover:bg-blue-50/30 relative">
             <input type="file" accept=".csv" onChange={(e) => setImportFile(e.target.files[0])} className="hidden" />
             <UploadCloud size={42} className="text-blue-600" />
-            <p className="mt-4 text-sm font-extrabold text-slate-950">
+            <p className="mt-4 text-sm font-extrabold text-foreground">
               Drag and drop CSV file here, or click to browse
             </p>
-            <p className="mt-2 text-sm font-semibold text-slate-500">
+            <p className="mt-2 text-sm font-semibold text-muted">
               CSV should include: name, email, role (evaluator/judge), expertise (optional)
             </p>
           </label>
 
           {importSummary && (
-            <div className="mt-6 bg-slate-50 border border-slate-200 p-5 rounded-xl text-sm shadow-sm">
-              <p className="font-extrabold text-slate-950">Import Summary</p>
-              <div className="flex gap-4 mt-2 mb-3 font-semibold text-slate-600">
+            <div className="mt-6 bg-cardSoft border border-border p-5 rounded-xl text-sm shadow-sm">
+              <p className="font-extrabold text-foreground">Import Summary</p>
+              <div className="flex gap-4 mt-2 mb-3 font-semibold text-muted">
                 <span>Total: {importSummary.total_rows}</span>
                 <span className="text-emerald-600">Created: {importSummary.created}</span>
                 <span className="text-blue-600">Updated: {importSummary.updated}</span>
@@ -1600,7 +1600,7 @@ function EvaluatorsTab() {
         {/* Add form */}
         {showForm && (
           <section className="rounded-[20px] bg-white p-7 shadow-[0_14px_38px_rgba(15,23,42,0.06)] ring-1 ring-slate-200/80">
-            <p className="text-lg font-extrabold text-slate-950 mb-5">New Evaluator</p>
+            <p className="text-lg font-extrabold text-foreground mb-5">New Evaluator</p>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-5">
               {fieldFor('first_name', 'First name', 'text', 'Dr. Meena')}
               {fieldFor('last_name', 'Last name', 'text', 'Sharma')}
@@ -1609,7 +1609,7 @@ function EvaluatorsTab() {
               {fieldFor('passed_out_institution', 'Passed-out college / institution (optional)', 'text', 'IIT Madras')}
             </div>
             <div className="flex items-center gap-3 justify-end mt-6">
-              <button onClick={() => setShowForm(false)} className="inline-flex h-11 items-center justify-center rounded-xl bg-white px-5 text-sm font-bold text-slate-600 ring-1 ring-slate-200 hover:bg-slate-50 transition">Cancel</button>
+              <button onClick={() => setShowForm(false)} className="inline-flex h-11 items-center justify-center rounded-xl bg-white px-5 text-sm font-bold text-muted ring-1 ring-slate-200 hover:bg-cardSoft transition">Cancel</button>
               <button
                 onClick={() => createMutation.mutate()}
                 disabled={createMutation.isPending || !form.email}
@@ -1638,10 +1638,10 @@ function EvaluatorsTab() {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
               </svg>
             </div>
-            <p className="mt-5 text-lg font-extrabold text-slate-950">
+            <p className="mt-5 text-lg font-extrabold text-foreground">
               No evaluators registered yet.
             </p>
-            <p className="mt-2 text-sm font-semibold text-slate-500">
+            <p className="mt-2 text-sm font-semibold text-muted">
               Add evaluators manually or import from CSV to get started.
             </p>
           </section>
@@ -1657,27 +1657,27 @@ function EvaluatorsTab() {
         {!isLoading && data?.evaluators?.length > 0 && (
           <section className="overflow-hidden rounded-[20px] bg-white shadow-[0_14px_38px_rgba(15,23,42,0.06)] ring-1 ring-slate-200/80">
             {data.evaluators.map((ev) => (
-              <div key={ev.id} className="border-b border-slate-100 last:border-b-0 hover:bg-slate-50/80 transition">
+              <div key={ev.id} className="border-b border-border last:border-b-0 hover:bg-cardSoft/80 transition">
                 <div className="flex flex-wrap items-center gap-4 px-6 py-5">
-                  <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-slate-100 text-lg font-extrabold text-slate-700">
+                  <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-slate-100 text-lg font-extrabold text-muted">
                     {ev.first_name[0]}
                   </div>
                   <div className="flex-1 min-w-[200px]">
-                    <p className="text-base font-extrabold text-slate-950 break-words">{ev.first_name} {ev.last_name}</p>
-                    <p className="mt-1 text-sm font-semibold text-slate-500 break-words">{ev.email}</p>
+                    <p className="text-base font-extrabold text-foreground break-words">{ev.first_name} {ev.last_name}</p>
+                    <p className="mt-1 text-sm font-semibold text-muted break-words">{ev.email}</p>
                     {ev.passed_out_institution && (
-                      <p className="mt-1 text-xs font-semibold text-slate-500 break-words">🏛️ {ev.passed_out_institution}</p>
+                      <p className="mt-1 text-xs font-semibold text-muted break-words">🏛️ {ev.passed_out_institution}</p>
                     )}
                     {ev.expertise_areas?.length > 0 && (
                       <div className="flex gap-2 mt-2 flex-wrap">
                         {ev.expertise_areas.map((a) => (
-                          <span key={a} className="inline-flex items-center rounded-lg bg-slate-100 px-2 py-1 text-xs font-bold text-slate-600">{a}</span>
+                          <span key={a} className="inline-flex items-center rounded-lg bg-slate-100 px-2 py-1 text-xs font-bold text-muted">{a}</span>
                         ))}
                       </div>
                     )}
                   </div>
                   <div className="flex flex-wrap items-center gap-3 shrink-0 ml-auto">
-                    <span className={`inline-flex items-center rounded-lg px-3 py-1 text-xs font-extrabold ${ev.is_active ? 'bg-emerald-50 text-emerald-600 border border-emerald-200' : 'bg-slate-100 text-slate-600 border border-slate-200'}`}>
+                    <span className={`inline-flex items-center rounded-lg px-3 py-1 text-xs font-extrabold ${ev.is_active ? 'bg-emerald-50 text-emerald-600 border border-emerald-200' : 'bg-slate-100 text-muted border border-border'}`}>
                       {ev.is_active ? 'Active' : 'Inactive'}
                     </span>
                     {ev.access_link_sent && (
@@ -1689,7 +1689,7 @@ function EvaluatorsTab() {
                   <div className="flex items-center gap-3 shrink-0">
                     <button
                       onClick={() => setExpandedEval(expandedEval === ev.id ? null : ev.id)}
-                      className="inline-flex h-9 items-center gap-1.5 rounded-lg bg-white px-3 text-xs font-bold text-slate-700 shadow-sm ring-1 ring-slate-200 hover:bg-slate-50 transition"
+                      className="inline-flex h-9 items-center gap-1.5 rounded-lg bg-white px-3 text-xs font-bold text-muted shadow-sm ring-1 ring-slate-200 hover:bg-cardSoft transition"
                     >
                       <UserCheck size={14} />
                       Assignments
@@ -1714,8 +1714,8 @@ function EvaluatorsTab() {
 
                 {/* Expanded: team assignments */}
                 {expandedEval === ev.id && (
-                  <div className="bg-slate-50/50 px-6 py-5 border-t border-slate-100">
-                    <p className="mb-3 text-xs font-extrabold uppercase tracking-wider text-slate-500">Current Assignments</p>
+                  <div className="bg-cardSoft/50 px-6 py-5 border-t border-border">
+                    <p className="mb-3 text-xs font-extrabold uppercase tracking-wider text-muted">Current Assignments</p>
                     {assignData?.teams?.length > 0 ? (
                       <div className="mb-5 flex gap-2 flex-wrap">
                         {assignData.teams.map(t => (
@@ -1725,13 +1725,13 @@ function EvaluatorsTab() {
                         ))}
                       </div>
                     ) : (
-                      <p className="mb-5 text-sm font-semibold text-slate-500">No teams assigned yet.</p>
+                      <p className="mb-5 text-sm font-semibold text-muted">No teams assigned yet.</p>
                     )}
 
-                    <p className="mb-3 text-xs font-extrabold uppercase tracking-wider text-slate-500">Assign to teams</p>
+                    <p className="mb-3 text-xs font-extrabold uppercase tracking-wider text-muted">Assign to teams</p>
                     <div className="mb-5 flex flex-wrap gap-2">
                       {approvedTeams.length === 0 ? (
-                        <p className="text-sm font-semibold text-slate-500">No approved teams available.</p>
+                        <p className="text-sm font-semibold text-muted">No approved teams available.</p>
                       ) : approvedTeams.map(t => {
                         const selected = assignTeamIds.includes(t.team_id)
                         return (
@@ -1740,7 +1740,7 @@ function EvaluatorsTab() {
                             onClick={() => toggleTeamId(t.team_id)}
                             className={`inline-flex items-center rounded-lg px-3 py-1.5 text-sm font-bold border transition ${selected
                               ? 'bg-blue-50 border-blue-300 text-blue-700'
-                              : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50'
+                              : 'app-input text-muted hover:bg-cardSoft'
                               }`}
                           >
                             {t.team_name}
@@ -2077,8 +2077,8 @@ function CommunicationsTab() {
               <Mail className="w-6 h-6" />
             </div>
             <div>
-              <h2 className="text-[20px] font-extrabold text-slate-950">Email Diagnostics</h2>
-              <p className="text-sm font-semibold text-slate-500 mt-1 max-w-2xl">
+              <h2 className="text-[20px] font-extrabold text-foreground">Email Diagnostics</h2>
+              <p className="text-sm font-semibold text-muted mt-1 max-w-2xl">
                 Verify event-scoped email delivery configuration before sending participant, mentor, or evaluator links.
               </p>
             </div>
@@ -2097,7 +2097,7 @@ function CommunicationsTab() {
         </div>
 
         {diagnosticsLoading ? (
-          <div className="h-20 bg-slate-50 rounded-xl animate-pulse mb-6" />
+          <div className="h-20 bg-cardSoft rounded-xl animate-pulse mb-6" />
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
             <div className="flex gap-3 relative lg:after:absolute lg:after:right-0 lg:after:top-1/2 lg:after:-translate-y-1/2 lg:after:h-10 lg:after:w-px lg:after:bg-slate-100 pr-6">
@@ -2105,8 +2105,8 @@ function CommunicationsTab() {
                 <Mail className="w-4 h-4" />
               </div>
               <div className="min-w-0">
-                <p className="text-xs font-semibold text-slate-500 mb-0.5">From email</p>
-                <p className="text-sm font-extrabold text-slate-950 truncate">{diagnostics?.from_email || 'missing'}</p>
+                <p className="text-xs font-semibold text-muted mb-0.5">From email</p>
+                <p className="text-sm font-extrabold text-foreground truncate">{diagnostics?.from_email || 'missing'}</p>
               </div>
             </div>
             <div className="flex gap-3 relative lg:after:absolute lg:after:right-0 lg:after:top-1/2 lg:after:-translate-y-1/2 lg:after:h-10 lg:after:w-px lg:after:bg-slate-100 pr-6">
@@ -2114,8 +2114,8 @@ function CommunicationsTab() {
                 <Key className="w-4 h-4" />
               </div>
               <div className="min-w-0">
-                <p className="text-xs font-semibold text-slate-500 mb-0.5">SendGrid key</p>
-                <p className="text-sm font-extrabold text-slate-950 truncate">
+                <p className="text-xs font-semibold text-muted mb-0.5">SendGrid key</p>
+                <p className="text-sm font-extrabold text-foreground truncate">
                   {diagnostics?.sendgrid_api_key_present ? diagnostics?.sendgrid_key_prefix : 'missing'}
                 </p>
               </div>
@@ -2125,8 +2125,8 @@ function CommunicationsTab() {
                 <Globe className="w-4 h-4" />
               </div>
               <div className="min-w-0">
-                <p className="text-xs font-semibold text-slate-500 mb-0.5">Frontend base</p>
-                <p className="text-sm font-extrabold text-slate-950 truncate">{diagnostics?.frontend_base_url}</p>
+                <p className="text-xs font-semibold text-muted mb-0.5">Frontend base</p>
+                <p className="text-sm font-extrabold text-foreground truncate">{diagnostics?.frontend_base_url}</p>
               </div>
             </div>
             <div className="flex gap-3">
@@ -2134,7 +2134,7 @@ function CommunicationsTab() {
                 <Database className="w-4 h-4" />
               </div>
               <div className="min-w-0">
-                <p className="text-xs font-semibold text-slate-500 mb-0.5">Redis</p>
+                <p className="text-xs font-semibold text-muted mb-0.5">Redis</p>
                 <p className="text-sm font-extrabold text-emerald-600">{diagnostics?.redis_url_present ? 'Configured' : 'Missing'}</p>
               </div>
             </div>
@@ -2154,27 +2154,27 @@ function CommunicationsTab() {
           </ul>
         )}
 
-        <div className="pt-6 border-t border-slate-100 grid md:grid-cols-[1fr_1fr_auto] gap-4 items-end">
+        <div className="pt-6 border-t border-border grid md:grid-cols-[1fr_1fr_auto] gap-4 items-end">
           <div className="relative">
-            <label className="block text-xs font-bold text-slate-500 mb-1.5">Preflight recipient email</label>
+            <label className="block text-xs font-bold text-muted mb-1.5">Preflight recipient email</label>
             <div className="relative">
               <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-blue-500" />
               <input
                 value={preflightEmail}
                 onChange={(e) => setPreflightEmail(e.target.value)}
                 placeholder="test.user@example.com"
-                className="w-full pl-9 pr-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm font-bold text-slate-900 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none transition-shadow"
+                className="w-full pl-9 pr-4 py-2.5 app-input text-sm font-bold text-foreground focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none transition-shadow"
               />
             </div>
           </div>
           <div className="relative">
-            <label className="block text-xs font-bold text-slate-500 mb-1.5">Recipient name</label>
+            <label className="block text-xs font-bold text-muted mb-1.5">Recipient name</label>
             <div className="relative">
               <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-blue-500" />
               <input
                 value={preflightName}
                 onChange={(e) => setPreflightName(e.target.value)}
-                className="w-full pl-9 pr-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm font-bold text-slate-900 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none transition-shadow"
+                className="w-full pl-9 pr-4 py-2.5 app-input text-sm font-bold text-foreground focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none transition-shadow"
               />
             </div>
           </div>
@@ -2202,10 +2202,10 @@ function CommunicationsTab() {
       </div>
       {/* Communication log */}
       <div className="bg-white rounded-[20px] shadow-[0_18px_45px_rgba(15,23,42,0.06)] ring-1 ring-slate-200/80 overflow-hidden mb-8">
-        <div className="flex flex-col md:flex-row md:items-center justify-between px-6 py-5 border-b border-slate-100 gap-4">
+        <div className="flex flex-col md:flex-row md:items-center justify-between px-6 py-5 border-b border-border gap-4">
           <div>
-            <h3 className="text-lg font-extrabold text-slate-950">Communication Log</h3>
-            <p className="text-xs font-semibold text-slate-500 mt-1">
+            <h3 className="text-lg font-extrabold text-foreground">Communication Log</h3>
+            <p className="text-xs font-semibold text-muted mt-1">
               Note: Queued means the background worker accepted the job. Sent/Failed is recorded after provider response.
             </p>
           </div>
@@ -2216,13 +2216,13 @@ function CommunicationsTab() {
                 value={templateFilter}
                 onChange={(e) => setTemplateFilter(e.target.value)}
                 placeholder="Filter by recipient..."
-                className="w-48 pl-9 pr-4 py-2 bg-white border border-slate-200 rounded-xl text-sm font-semibold text-slate-900 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none transition-shadow"
+                className="w-48 pl-9 pr-4 py-2 app-input text-sm font-semibold text-foreground focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none transition-shadow"
               />
             </div>
             <select
               value={successFilter}
               onChange={(e) => setSuccessFilter(e.target.value)}
-              className="px-4 py-2 bg-white border border-slate-200 rounded-xl text-sm font-semibold text-slate-900 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none transition-shadow appearance-none pr-10 relative"
+              className="px-4 py-2 app-input text-sm font-semibold text-foreground focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none transition-shadow appearance-none pr-10 relative"
               style={{ backgroundImage: 'url("data:image/svg+xml,%3csvg xmlns=\'http://www.w3.org/2000/svg\' fill=\'none\' viewBox=\'0 0 20 20\'%3e%3cpath stroke=\'%236b7280\' stroke-linecap=\'round\' stroke-linejoin=\'round\' stroke-width=\'1.5\' d=\'M6 8l4 4 4-4\'/%3e%3c/svg%3e")', backgroundPosition: 'right 0.5rem center', backgroundRepeat: 'no-repeat', backgroundSize: '1.5em 1.5em' }}
             >
               <option value="">All statuses</option>
@@ -2235,25 +2235,25 @@ function CommunicationsTab() {
         {isLoading ? (
           <div className="p-6 space-y-3">
             {Array.from({ length: 5 }).map((_, i) => (
-              <div key={i} className="h-10 bg-slate-50 rounded-xl animate-pulse" />
+              <div key={i} className="h-10 bg-cardSoft rounded-xl animate-pulse" />
             ))}
           </div>
         ) : !commsData?.logs?.length ? (
-          <div className="text-center py-12 text-sm font-semibold text-slate-500">No emails dispatched yet.</div>
+          <div className="text-center py-12 text-sm font-semibold text-muted">No emails dispatched yet.</div>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-left border-collapse">
               <thead>
-                <tr className="bg-slate-50 border-b border-slate-100">
+                <tr className="bg-cardSoft border-b border-border">
                   {['Recipient', 'Template', 'Stage', 'Status', 'Sent at'].map(h => (
-                    <th key={h} className="px-6 py-4 text-xs font-bold uppercase tracking-wider text-slate-500">{h}</th>
+                    <th key={h} className="px-6 py-4 text-xs font-bold uppercase tracking-wider text-muted">{h}</th>
                   ))}
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
                 {commsData.logs.map((log) => {
                   let templateBg = 'bg-slate-100'
-                  let templateText = 'text-slate-600'
+                  let templateText = 'text-muted'
                   if (log.template === 'notification') {
                     templateBg = 'bg-blue-50'
                     templateText = 'text-blue-600'
@@ -2266,16 +2266,16 @@ function CommunicationsTab() {
                   }
 
                   return (
-                    <tr key={log.id} className="bg-white hover:bg-slate-50/50 transition-colors">
+                    <tr key={log.id} className="bg-white hover:bg-cardSoft/50 transition-colors">
                       <td className="px-6 py-4">
-                        <p className="text-sm font-extrabold text-slate-950 truncate max-w-[200px]">{log.recipient_email}</p>
+                        <p className="text-sm font-extrabold text-foreground truncate max-w-[200px]">{log.recipient_email}</p>
                       </td>
                       <td className="px-6 py-4">
                         <span className={`inline-flex items-center px-2.5 py-1 rounded-md text-xs font-bold ${templateBg} ${templateText}`}>
                           {log.template}
                         </span>
                       </td>
-                      <td className="px-6 py-4 text-sm font-semibold text-slate-500 capitalize">{log.stage}</td>
+                      <td className="px-6 py-4 text-sm font-semibold text-muted capitalize">{log.stage}</td>
                       <td className="px-6 py-4">
                         <div className="flex flex-col gap-1">
                           <div>
@@ -2296,7 +2296,7 @@ function CommunicationsTab() {
                           )}
                         </div>
                       </td>
-                      <td className="px-6 py-4 text-sm font-semibold text-slate-500">
+                      <td className="px-6 py-4 text-sm font-semibold text-muted">
                         {new Date(log.sent_at).toLocaleString([], { dateStyle: 'short', timeStyle: 'medium' })}
                       </td>
                     </tr>
@@ -2319,7 +2319,7 @@ function CommunicationsTab() {
           {/* Config */}
           <div className="space-y-6 w-full min-w-0">
             <div>
-              <label className="block text-sm font-bold text-slate-700 mb-2">Draft type</label>
+              <label className="block text-sm font-bold text-muted mb-2">Draft type</label>
               <div className="flex flex-wrap gap-2">
                 {DRAFT_TYPES.map((t) => {
                   const isSelected = draftType === t.value;
@@ -2335,7 +2335,7 @@ function CommunicationsTab() {
                       className={`inline-flex items-center gap-2 text-sm font-extrabold px-4 py-2.5 rounded-xl transition-all ${
                         isSelected
                           ? 'bg-gradient-to-r from-orange-500 to-orange-600 text-white shadow-[0_10px_22px_rgba(249,115,22,0.22)]'
-                          : 'bg-white text-slate-700 border border-slate-200 hover:bg-slate-50'
+                          : 'bg-white text-muted border border-border hover:bg-cardSoft'
                       }`}
                     >
                       <Icon className="w-4 h-4" />
@@ -2347,11 +2347,11 @@ function CommunicationsTab() {
             </div>
 
             <div>
-              <label className="block text-sm font-bold text-slate-700 mb-2">Tone</label>
+              <label className="block text-sm font-bold text-muted mb-2">Tone</label>
               <select
                 value={draftTone}
                 onChange={(e) => setDraftTone(e.target.value)}
-                className="w-48 px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm font-bold text-slate-900 focus:border-orange-500 focus:ring-1 focus:ring-orange-500 focus:outline-none transition-shadow appearance-none pr-10 relative"
+                className="w-48 px-4 py-2.5 app-input text-sm font-bold text-foreground focus:border-orange-500 focus:ring-1 focus:ring-orange-500 focus:outline-none transition-shadow appearance-none pr-10 relative"
                 style={{ backgroundImage: 'url("data:image/svg+xml,%3csvg xmlns=\'http://www.w3.org/2000/svg\' fill=\'none\' viewBox=\'0 0 20 20\'%3e%3cpath stroke=\'%236b7280\' stroke-linecap=\'round\' stroke-linejoin=\'round\' stroke-width=\'1.5\' d=\'M6 8l4 4 4-4\'/%3e%3c/svg%3e")', backgroundPosition: 'right 0.5rem center', backgroundRepeat: 'no-repeat', backgroundSize: '1.5em 1.5em' }}
               >
                 {['professional', 'encouraging', 'formal'].map(t => <option key={t} value={t} className="capitalize">{t}</option>)}
@@ -2359,7 +2359,7 @@ function CommunicationsTab() {
             </div>
 
             <div>
-              <label className="flex items-center gap-1.5 text-sm font-bold text-slate-700 mb-2">
+              <label className="flex items-center gap-1.5 text-sm font-bold text-muted mb-2">
                 Context (JSON) <Info className="w-4 h-4 text-slate-400" />
               </label>
               <div className="relative">
@@ -2367,7 +2367,7 @@ function CommunicationsTab() {
                 <textarea
                   value={draftContext}
                   onChange={(e) => setDraftContext(e.target.value)}
-                  className="block w-full min-h-[220px] bg-slate-50/50 border border-slate-200 rounded-xl pl-6 pr-4 py-4 text-[13px] font-mono text-slate-800 focus:border-orange-500 focus:ring-1 focus:ring-orange-500 focus:outline-none transition-shadow resize-y"
+                  className="block w-full min-h-[220px] bg-cardSoft/50 border border-border rounded-xl pl-6 pr-4 py-4 text-[13px] font-mono text-foreground focus:border-orange-500 focus:ring-1 focus:ring-orange-500 focus:outline-none transition-shadow resize-y"
                 />
               </div>
             </div>
@@ -2387,7 +2387,7 @@ function CommunicationsTab() {
           <div className="flex flex-col bg-orange-50/30 border-2 border-dashed border-orange-300 rounded-2xl p-6 min-h-[300px]">
             {draft ? (
               <div className="flex flex-col h-full bg-white rounded-xl shadow-sm border border-orange-100 p-6 relative">
-                <div className="flex items-center justify-between mb-6 pb-4 border-b border-slate-100">
+                <div className="flex items-center justify-between mb-6 pb-4 border-b border-border">
                   <p className="text-xs font-extrabold text-orange-500 uppercase tracking-wider">Draft Preview</p>
                   <button
                     onClick={() => {
@@ -2395,20 +2395,20 @@ function CommunicationsTab() {
                       setCopied(true)
                       setTimeout(() => setCopied(false), 2000)
                     }}
-                    className="flex items-center gap-1.5 text-xs font-bold text-slate-500 hover:text-slate-800 px-3 py-1.5 rounded-lg border border-slate-200 bg-white shadow-sm transition-colors"
+                    className="flex items-center gap-1.5 text-xs font-bold text-muted hover:text-foreground px-3 py-1.5 rounded-lg border border-border bg-white shadow-sm transition-colors"
                   >
                     <Copy className="w-3.5 h-3.5" /> {copied ? 'Copied!' : 'Copy'}
                   </button>
                 </div>
                 <div className="mb-4">
-                  <p className="text-xs font-bold text-slate-500 mb-1">Subject</p>
-                  <p className="text-base font-extrabold text-slate-950">{draft.subject}</p>
+                  <p className="text-xs font-bold text-muted mb-1">Subject</p>
+                  <p className="text-base font-extrabold text-foreground">{draft.subject}</p>
                 </div>
                 <div className="flex-1 overflow-auto">
-                  <p className="text-xs font-bold text-slate-500 mb-2">Body</p>
-                  <p className="text-sm font-medium text-slate-800 whitespace-pre-wrap leading-relaxed">{draft.body_text}</p>
+                  <p className="text-xs font-bold text-muted mb-2">Body</p>
+                  <p className="text-sm font-medium text-foreground whitespace-pre-wrap leading-relaxed">{draft.body_text}</p>
                 </div>
-                <p className="mt-6 pt-4 border-t border-slate-100 text-[11px] font-bold text-amber-600 flex items-center gap-1.5">
+                <p className="mt-6 pt-4 border-t border-border text-[11px] font-bold text-amber-600 flex items-center gap-1.5">
                   <AlertTriangle className="w-3.5 h-3.5" /> Review carefully before dispatching. This draft has not been sent.
                 </p>
               </div>
@@ -2519,13 +2519,13 @@ function MentorOpsTab() {
           { label: 'Missing Daily Update', value: ops.teams_missing_daily_update, subtitle: 'Needs daily progress update', icon: Clock, iconColor: 'text-amber-500', iconBg: 'bg-amber-50' },
           { label: 'Low Progress Teams', value: ops.low_progress_teams, subtitle: ops.low_progress_teams === 0 ? 'All teams are on track' : 'Some teams falling behind', icon: BarChart2, iconColor: 'text-purple-500', iconBg: 'bg-purple-50' },
         ].map(({ label, value, subtitle, icon: Icon, iconColor, iconBg }) => (
-          <div key={label} className="bg-white border border-slate-200/80 rounded-[22px] shadow-[0_18px_45px_rgba(15,23,42,0.06)] p-6 flex items-start gap-5">
+          <div key={label} className="app-card rounded-[22px] p-6 flex items-start gap-5">
             <div className={`flex items-center justify-center w-14 h-14 rounded-full ${iconBg} shrink-0`}>
               <Icon className={`w-6 h-6 ${iconColor}`} />
             </div>
             <div>
-              <p className="text-[11px] font-extrabold text-slate-500 uppercase tracking-wider mb-1.5">{label}</p>
-              <p className="text-3xl font-extrabold text-slate-950 leading-none">{value ?? '—'}</p>
+              <p className="text-[11px] font-extrabold text-muted uppercase tracking-wider mb-1.5">{label}</p>
+              <p className="text-3xl font-extrabold text-foreground leading-none">{value ?? '—'}</p>
               <p className="text-[11px] font-semibold text-slate-400 mt-2">{subtitle}</p>
             </div>
           </div>
@@ -2550,22 +2550,22 @@ function MentorOpsTab() {
         </button>
       </div>
 
-      <div className="bg-white border border-slate-200/80 rounded-[22px] shadow-[0_18px_45px_rgba(15,23,42,0.06)] overflow-hidden mb-8">
-        <div className="px-6 py-5 border-b border-slate-100 flex items-center justify-between bg-white">
-          <h2 className="text-[20px] font-extrabold text-slate-950">Mentors</h2>
+      <div className="app-card rounded-[22px] overflow-hidden mb-8">
+        <div className="px-6 py-5 border-b border-border flex items-center justify-between bg-white">
+          <h2 className="text-[20px] font-extrabold text-foreground">Mentors</h2>
         </div>
 
         {/* Bulk Import */}
-        <div className="px-6 py-4 bg-slate-50/50 border-b border-slate-100 flex flex-col xl:flex-row xl:items-center gap-4">
+        <div className="px-6 py-4 bg-cardSoft/50 border-b border-border flex flex-col xl:flex-row xl:items-center gap-4">
           <div className="flex items-center gap-3 flex-wrap flex-1">
-            <button className="flex items-center gap-2 px-4 py-2 bg-white border border-slate-200 rounded-xl text-sm font-semibold text-slate-700 hover:bg-slate-50 transition-colors relative shadow-sm">
+            <button className="flex items-center gap-2 app-btn-secondary">
                <UploadCloud size={16} /> Choose File
                <input type="file" accept=".csv" onChange={(e) => setImportFile(e.target.files[0])} className="absolute inset-0 w-full h-full opacity-0 cursor-pointer" />
             </button>
-            <span className="text-sm font-semibold text-slate-500 truncate max-w-[200px]">
+            <span className="text-sm font-semibold text-muted truncate max-w-[200px]">
               {importFile ? importFile.name : 'No file chosen'}
             </span>
-            <label className="flex items-center gap-2 text-sm font-semibold text-slate-600 md:ml-4">
+            <label className="flex items-center gap-2 text-sm font-semibold text-muted md:ml-4">
               <input type="checkbox" checked={importUpsert} onChange={e => setImportUpsert(e.target.checked)} className="w-4 h-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500" />
               Update existing (upsert)
             </label>
@@ -2580,9 +2580,9 @@ function MentorOpsTab() {
           </button>
         </div>
         {importSummary && (
-          <div className="bg-slate-50 border-b border-slate-100 px-6 py-4 text-sm">
-            <p className="font-bold text-slate-800">Import Summary</p>
-            <div className="flex gap-4 mt-1 mb-2 text-slate-500 font-medium">
+          <div className="bg-cardSoft border-b border-border px-6 py-4 text-sm">
+            <p className="font-bold text-foreground">Import Summary</p>
+            <div className="flex gap-4 mt-1 mb-2 text-muted font-medium">
               <span>Total: {importSummary.total_rows}</span>
               <span className="text-emerald-600">Created: {importSummary.created}</span>
               <span className="text-blue-600">Updated: {importSummary.updated}</span>
@@ -2599,37 +2599,37 @@ function MentorOpsTab() {
         )}
 
         {showForm && (
-          <div className="bg-blue-50/50 border-b border-slate-100 p-6">
-            <p className="text-sm font-extrabold text-slate-900 mb-4">New Mentor</p>
+          <div className="bg-blue-50/50 border-b border-border p-6">
+            <p className="text-sm font-extrabold text-foreground mb-4">New Mentor</p>
             <div className="grid grid-cols-2 gap-4 mb-4">
               <div>
-                <label className="block text-xs font-bold text-slate-500 mb-1.5">First name</label>
+                <label className="block text-xs font-bold text-muted mb-1.5">First name</label>
                 <input type="text" value={form.first_name} onChange={e => setForm(f => ({ ...f, first_name: e.target.value }))}
-                  placeholder="Dr. Priya" className="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm font-bold text-slate-900 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none transition-shadow" />
+                  placeholder="Dr. Priya" className="w-full px-4 py-2.5 app-input text-sm font-bold text-foreground focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none transition-shadow" />
               </div>
               <div>
-                <label className="block text-xs font-bold text-slate-500 mb-1.5">Last name</label>
+                <label className="block text-xs font-bold text-muted mb-1.5">Last name</label>
                 <input type="text" value={form.last_name} onChange={e => setForm(f => ({ ...f, last_name: e.target.value }))}
-                  placeholder="Kumar" className="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm font-bold text-slate-900 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none transition-shadow" />
+                  placeholder="Kumar" className="w-full px-4 py-2.5 app-input text-sm font-bold text-foreground focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none transition-shadow" />
               </div>
               <div>
-                <label className="block text-xs font-bold text-slate-500 mb-1.5">Email</label>
+                <label className="block text-xs font-bold text-muted mb-1.5">Email</label>
                 <input type="email" value={form.email} onChange={e => setForm(f => ({ ...f, email: e.target.value }))}
-                  placeholder="priya@example.com" className="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm font-bold text-slate-900 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none transition-shadow" />
+                  placeholder="priya@example.com" className="w-full px-4 py-2.5 app-input text-sm font-bold text-foreground focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none transition-shadow" />
               </div>
               <div>
-                <label className="block text-xs font-bold text-slate-500 mb-1.5">Organization</label>
+                <label className="block text-xs font-bold text-muted mb-1.5">Organization</label>
                 <input type="text" value={form.organization} onChange={e => setForm(f => ({ ...f, organization: e.target.value }))}
-                  placeholder="Texas Instruments" className="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm font-bold text-slate-900 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none transition-shadow" />
+                  placeholder="Texas Instruments" className="w-full px-4 py-2.5 app-input text-sm font-bold text-foreground focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none transition-shadow" />
               </div>
             </div>
             <div className="mb-4">
-              <label className="block text-xs font-bold text-slate-500 mb-1.5">Expertise (comma-separated)</label>
+              <label className="block text-xs font-bold text-muted mb-1.5">Expertise (comma-separated)</label>
               <input type="text" value={form.expertise_areas} onChange={e => setForm(f => ({ ...f, expertise_areas: e.target.value }))}
-                placeholder="embedded systems, signal processing" className="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm font-bold text-slate-900 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none transition-shadow" />
+                placeholder="embedded systems, signal processing" className="w-full px-4 py-2.5 app-input text-sm font-bold text-foreground focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none transition-shadow" />
             </div>
             <div className="flex gap-3 justify-end mt-4">
-              <button onClick={() => setShowForm(false)} className="text-sm px-4 py-2 rounded-xl text-slate-600 font-bold hover:bg-slate-100 transition-colors">Cancel</button>
+              <button onClick={() => setShowForm(false)} className="text-sm px-4 py-2 rounded-xl text-muted font-bold hover:bg-slate-100 transition-colors">Cancel</button>
               <button onClick={() => createMutation.mutate()} disabled={createMutation.isPending || !form.email}
                 className="flex items-center gap-1.5 text-sm px-6 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-extrabold shadow-[0_10px_22px_rgba(37,99,235,0.18)] transition-all disabled:opacity-50">
                 {createMutation.isPending ? <Loader2 size={16} className="animate-spin" /> : <Check size={16} />} Save
@@ -2640,11 +2640,11 @@ function MentorOpsTab() {
         )}
 
         {isLoading
-          ? <div className="p-6 space-y-4">{Array.from({ length: 3 }).map((_, i) => <div key={i} className="h-16 bg-slate-50 rounded-xl animate-pulse" />)}</div>
+          ? <div className="p-6 space-y-4">{Array.from({ length: 3 }).map((_, i) => <div key={i} className="h-16 bg-cardSoft rounded-xl animate-pulse" />)}</div>
           : (
             <div>
               {(!mentors.length)
-                ? <div className="text-center py-16 text-slate-500 font-semibold text-sm">No mentors registered yet.</div>
+                ? <div className="text-center py-16 text-muted font-semibold text-sm">No mentors registered yet.</div>
                 : mentors.map((m, index) => {
                   const activeAssignmentsForMentor = assignments.filter(
                     a => a.mentor_id === m.id && a.is_active !== false
@@ -2662,13 +2662,13 @@ function MentorOpsTab() {
                   const avatarColor = palettes[index % palettes.length];
 
                   return (
-                    <div key={m.id} className="flex flex-col lg:flex-row lg:items-center gap-4 px-6 py-5 border-b border-slate-100 last:border-0 hover:bg-slate-50/50 transition-colors bg-white">
+                    <div key={m.id} className="flex flex-col lg:flex-row lg:items-center gap-4 px-6 py-5 border-b border-border last:border-0 hover:bg-cardSoft/50 transition-colors bg-white">
                       <div className={`w-10 h-10 rounded-full font-extrabold text-sm flex items-center justify-center shrink-0 ${avatarColor}`}>
                         {m.first_name[0]}
                       </div>
                       <div className="flex-1 min-w-[200px]">
-                        <p className="text-sm font-extrabold text-slate-950 break-words mb-0.5">{m.first_name} {m.last_name}</p>
-                        <p className="text-xs font-semibold text-slate-500 break-words mb-2">{m.email}{m.organization ? ` • ${m.organization}` : ''}</p>
+                        <p className="text-sm font-extrabold text-foreground break-words mb-0.5">{m.first_name} {m.last_name}</p>
+                        <p className="text-xs font-semibold text-muted break-words mb-2">{m.email}{m.organization ? ` • ${m.organization}` : ''}</p>
                         {m.expertise_areas?.length > 0 && (
                           <div className="flex gap-1.5 flex-wrap">
                             {m.expertise_areas.map((a, i) => {
@@ -2683,7 +2683,7 @@ function MentorOpsTab() {
                         )}
                       </div>
                       <div className="flex flex-wrap items-center gap-3 shrink-0 lg:ml-auto mb-2 lg:mb-0">
-                        <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-slate-50 border border-slate-200 text-xs font-extrabold text-slate-600">
+                        <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-cardSoft border border-border text-xs font-extrabold text-muted">
                           <Users size={12} /> {effectiveAssignedTeamCount} {effectiveAssignedTeamCount === 1 ? 'Team' : 'Teams'}
                         </span>
                         {m.is_active ? (
@@ -2691,7 +2691,7 @@ function MentorOpsTab() {
                             <Check size={12} /> Active
                           </span>
                         ) : (
-                          <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-slate-50 border border-slate-200 text-xs font-extrabold text-slate-500">
+                          <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-cardSoft border border-border text-xs font-extrabold text-muted">
                             Inactive
                           </span>
                         )}
@@ -2713,7 +2713,7 @@ function MentorOpsTab() {
                           </button>
                         )}
                         <button onClick={() => { if (window.confirm('Deactivate this mentor?')) deleteMutation.mutate(m.id) }}
-                          className="flex items-center justify-center w-8 h-8 rounded-xl bg-white border border-red-100 text-red-500 hover:bg-red-50 transition-colors shadow-sm">
+                          className="flex items-center justify-center app-icon-button text-red-500 hover:text-red-600 dark:border-red-500/20 dark:hover:bg-red-500/10">
                           <Trash2 size={14} />
                         </button>
                       </div>
@@ -2727,37 +2727,37 @@ function MentorOpsTab() {
       </div>
 
         {/* Assignments */}
-        <div className="bg-white border border-slate-200/80 rounded-[22px] shadow-[0_18px_45px_rgba(15,23,42,0.06)] overflow-hidden mb-8">
-          <div className="px-6 py-5 border-b border-slate-100 flex items-center justify-between">
-            <h2 className="text-[20px] font-extrabold text-slate-950 flex items-center gap-2"><Users className="text-blue-500 w-6 h-6" /> Assignments</h2>
-            <button onClick={() => setShowAssignForm(s => !s)} className="flex items-center gap-1.5 text-sm px-4 py-2 rounded-xl border border-slate-200 text-slate-700 font-bold hover:bg-slate-50 transition-colors shadow-sm">
+        <div className="app-card rounded-[22px] overflow-hidden mb-8">
+          <div className="px-6 py-5 border-b border-border flex items-center justify-between">
+            <h2 className="text-[20px] font-extrabold text-foreground flex items-center gap-2"><Users className="text-blue-500 w-6 h-6" /> Assignments</h2>
+            <button onClick={() => setShowAssignForm(s => !s)} className="flex items-center gap-1.5 text-sm px-4 py-2 rounded-xl border border-border text-muted font-bold hover:bg-cardSoft transition-colors shadow-sm">
               <Plus size={16} /> Assign
             </button>
           </div>
 
           {showAssignForm && (
-            <div className="bg-slate-50/50 p-6 border-b border-slate-100">
-              <p className="text-sm font-extrabold text-slate-900 mb-4">Assign Mentor to Team</p>
+            <div className="bg-cardSoft/50 p-6 border-b border-border">
+              <p className="text-sm font-extrabold text-foreground mb-4">Assign Mentor to Team</p>
               <div className="grid grid-cols-2 gap-4 mb-4">
                 <div>
-                  <label className="block text-xs font-bold text-slate-500 mb-1.5">Mentor</label>
+                  <label className="block text-xs font-bold text-muted mb-1.5">Mentor</label>
                   <select value={assignForm.mentor_id} onChange={e => setAssignForm(f => ({ ...f, mentor_id: e.target.value }))}
-                    className="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm font-bold text-slate-900 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none transition-shadow">
+                    className="w-full px-4 py-2.5 app-input text-sm font-bold text-foreground focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none transition-shadow">
                     <option value="">-- select mentor --</option>
                     {mentors.filter(m => m.is_active).map(m => <option key={m.id} value={m.id}>{m.first_name} {m.last_name}</option>)}
                   </select>
                 </div>
                 <div>
-                  <label className="block text-xs font-bold text-slate-500 mb-1.5">Team</label>
+                  <label className="block text-xs font-bold text-muted mb-1.5">Team</label>
                   <select value={assignForm.team_id} onChange={e => setAssignForm(f => ({ ...f, team_id: e.target.value }))}
-                    className="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm font-bold text-slate-900 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none transition-shadow">
+                    className="w-full px-4 py-2.5 app-input text-sm font-bold text-foreground focus:border-blue-500 focus:ring-1 focus:ring-blue-500 focus:outline-none transition-shadow">
                     <option value="">-- select team --</option>
                     {allTeams.filter(t => t.is_approved && getTeamId(t)).map(t => <option key={getTeamId(t)} value={getTeamId(t)}>{getTeamName(t)}</option>)}
                   </select>
                 </div>
               </div>
               <div className="flex gap-3 justify-end mt-4">
-                <button onClick={() => setShowAssignForm(false)} className="text-sm px-4 py-2 rounded-xl text-slate-600 font-bold hover:bg-slate-100 transition-colors">Cancel</button>
+                <button onClick={() => setShowAssignForm(false)} className="text-sm px-4 py-2 rounded-xl text-muted font-bold hover:bg-slate-100 transition-colors">Cancel</button>
                 <button onClick={() => assignMutation.mutate()} disabled={assignMutation.isPending || !assignForm.mentor_id || !assignForm.team_id}
                   className="flex items-center gap-1.5 text-sm px-6 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-extrabold shadow-[0_10px_22px_rgba(37,99,235,0.18)] transition-all disabled:opacity-50">
                   {assignMutation.isPending ? <Loader2 size={16} className="animate-spin" /> : <Check size={16} />} Assign
@@ -2771,7 +2771,7 @@ function MentorOpsTab() {
             <div className="overflow-x-auto">
               <table className="w-full text-left border-collapse">
                 <thead>
-                  <tr className="bg-slate-50/50 border-b border-slate-100 text-[11px] font-extrabold text-slate-500 uppercase tracking-wider">
+                  <tr className="bg-cardSoft/50 border-b border-border text-[11px] font-extrabold text-muted uppercase tracking-wider">
                     <th className="px-6 py-4 font-extrabold">Team</th>
                     <th className="px-6 py-4 font-extrabold">Team Leads</th>
                     <th className="px-6 py-4 font-extrabold">Mentor</th>
@@ -2782,32 +2782,32 @@ function MentorOpsTab() {
                 </thead>
                 <tbody className="divide-y divide-slate-100">
                   {assignments.map(a => (
-                    <tr key={a.id} className="hover:bg-slate-50/50 transition-colors bg-white">
+                    <tr key={a.id} className="hover:bg-cardSoft/50 transition-colors bg-white">
                       <td className="px-6 py-4">
                         <div className="flex items-center gap-3">
                            <div className="w-8 h-8 rounded-xl bg-blue-50 flex items-center justify-center text-blue-600 shrink-0"><Users size={14} /></div>
                            <div>
-                             <p className="text-sm font-extrabold text-slate-950">{a.team_name}</p>
-                             <p className="text-[11px] font-semibold text-slate-500">Stage: {a.stage}</p>
+                             <p className="text-sm font-extrabold text-foreground">{a.team_name}</p>
+                             <p className="text-[11px] font-semibold text-muted">Stage: {a.stage}</p>
                            </div>
                         </div>
                       </td>
-                      <td className="px-6 py-4 text-sm font-semibold text-slate-600">{a.team_leads ?? '—'}</td>
+                      <td className="px-6 py-4 text-sm font-semibold text-muted">{a.team_leads ?? '—'}</td>
                       <td className="px-6 py-4">
                         <div className="flex items-center gap-2">
                            <div className="w-6 h-6 rounded-full bg-blue-50 text-blue-600 font-extrabold text-[10px] flex items-center justify-center">{a.mentor_name?.[0]}</div>
-                           <span className="text-sm font-semibold text-slate-700">{a.mentor_name}</span>
+                           <span className="text-sm font-semibold text-muted">{a.mentor_name}</span>
                         </div>
                       </td>
-                      <td className="px-6 py-4 text-sm font-semibold text-slate-500">{a.assigned_at ? new Date(a.assigned_at).toLocaleString() : '—'}</td>
+                      <td className="px-6 py-4 text-sm font-semibold text-muted">{a.assigned_at ? new Date(a.assigned_at).toLocaleString() : '—'}</td>
                       <td className="px-6 py-4">
-                         {a.is_active ? <span className="inline-flex items-center px-3 py-1 rounded-full bg-emerald-50 text-[11px] font-extrabold text-emerald-600">Active</span> : <span className="inline-flex items-center px-3 py-1 rounded-full bg-slate-100 text-[11px] font-extrabold text-slate-500">Inactive</span>}
+                         {a.is_active ? <span className="inline-flex items-center px-3 py-1 rounded-full bg-emerald-50 text-[11px] font-extrabold text-emerald-600">Active</span> : <span className="inline-flex items-center px-3 py-1 rounded-full bg-slate-100 text-[11px] font-extrabold text-muted">Inactive</span>}
                       </td>
                       <td className="px-6 py-4 text-right">
                         {a.is_active && (
                           <div className="flex items-center justify-end gap-3">
                             <button onClick={() => { if (window.confirm('Unassign?')) unassignMutation.mutate(a.id) }} className="text-sm font-bold text-red-500 hover:text-red-700 transition-colors">Unassign</button>
-                            <button onClick={() => { if (window.confirm('Unassign?')) unassignMutation.mutate(a.id) }} className="flex items-center justify-center w-8 h-8 rounded-xl bg-white border border-red-100 text-red-500 hover:bg-red-50 transition-colors shadow-sm">
+                            <button onClick={() => { if (window.confirm('Unassign?')) unassignMutation.mutate(a.id) }} className="flex items-center justify-center app-icon-button text-red-500 hover:text-red-600 dark:border-red-500/20 dark:hover:bg-red-500/10">
                               <Trash2 size={14} />
                             </button>
                           </div>
@@ -2819,7 +2819,7 @@ function MentorOpsTab() {
               </table>
             </div>
           ) : (
-            <div className="text-center py-12 text-slate-500 font-semibold text-sm">No assignments yet.</div>
+            <div className="text-center py-12 text-muted font-semibold text-sm">No assignments yet.</div>
           )}
         </div>
 
@@ -2855,14 +2855,14 @@ function MentorOpsTab() {
 
         {/* Risk table */}
         {riskTeams.length > 0 && (
-          <div className="bg-white border border-slate-200/80 rounded-[22px] shadow-[0_18px_45px_rgba(15,23,42,0.06)] overflow-hidden mb-8">
-            <div className="px-6 py-5 border-b border-slate-100">
-              <h2 className="text-[20px] font-extrabold text-slate-950 flex items-center gap-2"><Shield className="text-blue-500 w-6 h-6" /> Risk Scores</h2>
+          <div className="app-card rounded-[22px] overflow-hidden mb-8">
+            <div className="px-6 py-5 border-b border-border">
+              <h2 className="text-[20px] font-extrabold text-foreground flex items-center gap-2"><Shield className="text-blue-500 w-6 h-6" /> Risk Scores</h2>
             </div>
             <div className="overflow-x-auto">
               <table className="w-full text-left border-collapse">
                 <thead>
-                  <tr className="bg-slate-50/50 border-b border-slate-100 text-[11px] font-extrabold text-slate-500 uppercase tracking-wider">
+                  <tr className="bg-cardSoft/50 border-b border-border text-[11px] font-extrabold text-muted uppercase tracking-wider">
                     <th className="px-6 py-4 font-extrabold">Team</th>
                     <th className="px-6 py-4 font-extrabold">Mentor</th>
                     <th className="px-6 py-4 font-extrabold">Score</th>
@@ -2873,9 +2873,9 @@ function MentorOpsTab() {
                 </thead>
                 <tbody className="divide-y divide-slate-100">
                   {riskTeams.map(t => (
-                    <tr key={String(t.team_id)} className="hover:bg-slate-50/50 transition-colors bg-white">
-                      <td className="px-6 py-4 text-sm font-extrabold text-slate-950">{t.team_name}</td>
-                      <td className="px-6 py-4 text-sm font-semibold text-slate-600">{t.mentor_name ?? '—'}</td>
+                    <tr key={String(t.team_id)} className="hover:bg-cardSoft/50 transition-colors bg-white">
+                      <td className="px-6 py-4 text-sm font-extrabold text-foreground">{t.team_name}</td>
+                      <td className="px-6 py-4 text-sm font-semibold text-muted">{t.mentor_name ?? '—'}</td>
                       <td className="px-6 py-4 text-sm font-extrabold text-orange-500">{t.risk_score}</td>
                       <td className="px-6 py-4">
                         <span className={`inline-flex items-center px-3 py-1 rounded-full text-[11px] font-extrabold ${t.risk_level === 'critical' || t.risk_level === 'high' ? 'bg-red-50 text-red-600 border border-red-200' : t.risk_level === 'medium' ? 'bg-orange-50 text-orange-600 border border-orange-200' : 'bg-emerald-50 text-emerald-600 border border-emerald-200'}`}>
@@ -2885,7 +2885,7 @@ function MentorOpsTab() {
                       <td className="px-6 py-4">
                          <div className="w-16 h-2 rounded-full bg-slate-100 overflow-hidden"><div className="h-full bg-orange-500" style={{ width: `${Math.min(100, Math.max(0, t.latest_progress_score || 0))}%` }} /></div>
                       </td>
-                      <td className="px-6 py-4 text-[11px] font-semibold text-slate-500 max-w-[200px] xl:max-w-xs truncate" title={t.reasons?.join(', ')}>{t.reasons?.join(', ') || '—'}</td>
+                      <td className="px-6 py-4 text-[11px] font-semibold text-muted max-w-[200px] xl:max-w-xs truncate" title={t.reasons?.join(', ')}>{t.reasons?.join(', ') || '—'}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -2901,7 +2901,7 @@ function MentorOpsTab() {
             {reminderMutation.isPending ? <Loader2 size={16} className="animate-spin" /> : <Mail size={16} />} Send Daily Reminders
           </button>
           {reminderMutation.isSuccess && (
-            <div className="text-xs font-bold text-slate-500 ml-4">
+            <div className="text-xs font-bold text-muted ml-4">
               {reminderMutation.data?.queued === 0 ? (
                 <p>No reminders sent. There are no assigned mentors missing today’s update.</p>
               ) : (
@@ -2919,17 +2919,17 @@ function MentorOpsTab() {
         </div>
 
         {/* AI Summary */}
-        <div className="bg-white border border-slate-200/80 rounded-[22px] shadow-[0_18px_45px_rgba(15,23,42,0.06)] overflow-hidden mb-8 p-6 lg:p-8">
+        <div className="app-card rounded-[22px] overflow-hidden mb-8 p-6 lg:p-8">
           <div className="flex items-center gap-3 mb-6">
             <div className="flex items-center justify-center w-10 h-10 rounded-full bg-purple-50 text-purple-600 shrink-0">
               <Sparkles size={18} />
             </div>
-            <h2 className="text-[20px] font-extrabold text-slate-950">AI Team Summary</h2>
+            <h2 className="text-[20px] font-extrabold text-foreground">AI Team Summary</h2>
           </div>
           <div className="flex flex-col sm:flex-row items-center gap-4 mb-6">
             <div className="flex-1 w-full">
               <select value={aiTeamId} onChange={e => setAiTeamId(e.target.value)}
-                className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-bold text-slate-700 focus:border-purple-500 focus:ring-1 focus:ring-purple-500 focus:outline-none transition-shadow">
+                className="w-full px-4 py-3 bg-cardSoft border border-border rounded-xl text-sm font-bold text-muted focus:border-purple-500 focus:ring-1 focus:ring-purple-500 focus:outline-none transition-shadow">
                 <option value="">-- select team --</option>
                 {allTeams.filter(t => t.is_approved && getTeamId(t)).map(t => <option key={getTeamId(t)} value={getTeamId(t)}>{getTeamName(t)}</option>)}
               </select>
@@ -2940,16 +2940,16 @@ function MentorOpsTab() {
             </button>
           </div>
           {aiResult && (
-            <div className="bg-slate-50/50 border border-slate-100 rounded-xl p-6 relative overflow-hidden group">
+            <div className="bg-cardSoft/50 border border-border rounded-xl p-6 relative overflow-hidden group">
               <div className="flex items-center gap-3 mb-4">
-                <p className="text-base font-extrabold text-slate-950">{aiResult.team_name}</p>
+                <p className="text-base font-extrabold text-foreground">{aiResult.team_name}</p>
                 <span className={`inline-flex items-center px-3 py-1 rounded-full text-[11px] font-extrabold ${aiResult.tone === 'urgent' ? 'bg-red-50 text-red-600 border border-red-200' : aiResult.tone === 'watchlist' ? 'bg-amber-50 text-amber-600 border border-amber-200' : 'bg-emerald-50 text-emerald-600 border border-emerald-200'}`}>
                   {aiResult.tone}
                 </span>
               </div>
-              <p className="text-sm font-semibold text-slate-700 leading-relaxed mb-4">{aiResult.summary}</p>
-              {aiResult.recommended_focus && <p className="text-xs font-bold text-slate-500 mb-2"><strong className="text-slate-700">Focus:</strong> {aiResult.recommended_focus}</p>}
-              {aiResult.committee_note && <p className="text-xs font-bold text-slate-500"><strong className="text-slate-700">Committee note:</strong> {aiResult.committee_note}</p>}
+              <p className="text-sm font-semibold text-muted leading-relaxed mb-4">{aiResult.summary}</p>
+              {aiResult.recommended_focus && <p className="text-xs font-bold text-muted mb-2"><strong className="text-muted">Focus:</strong> {aiResult.recommended_focus}</p>}
+              {aiResult.committee_note && <p className="text-xs font-bold text-muted"><strong className="text-muted">Committee note:</strong> {aiResult.committee_note}</p>}
             </div>
           )}
           {aiMutation.isError && <p className="text-xs font-bold text-red-500 mt-4">{aiMutation.error?.message}</p>}
@@ -2995,7 +2995,7 @@ function HealthTab() {
   }
 
   if (isLoading) return (
-    <div className="flex flex-col items-center justify-center py-20 text-slate-500">
+    <div className="flex flex-col items-center justify-center py-20 text-muted">
       <Loader2 size={32} className="animate-spin mb-4 text-blue-500" />
       <p className="font-medium text-sm">Loading health data...</p>
     </div>
@@ -3010,18 +3010,18 @@ function HealthTab() {
     <div>
 
       {/* Main Dashboard Card */}
-      <div className="bg-white border border-slate-200/80 rounded-[22px] shadow-[0_18px_45px_rgba(15,23,42,0.06)] p-6 lg:p-8 mb-6">
+      <div className="app-card rounded-[22px] p-6 lg:p-8 mb-6">
         <div className="flex flex-col md:flex-row items-start md:items-center justify-between mb-8 gap-4">
           <div>
-            <h2 className="text-lg font-extrabold text-slate-950">Team Health Dashboard</h2>
-            <p className="text-sm font-medium text-slate-500 mt-1">
+            <h2 className="text-lg font-extrabold text-foreground">Team Health Dashboard</h2>
+            <p className="text-sm font-medium text-muted mt-1">
               Risk scores based on evaluation status, daily updates, and member activity.
             </p>
           </div>
           <button
             onClick={handleRefresh}
             disabled={isRefetching}
-            className="flex items-center gap-2 bg-white border border-slate-200 hover:bg-blue-50 text-blue-600 px-4 py-2 rounded-xl text-sm font-extrabold transition-colors shadow-sm disabled:opacity-50"
+            className="flex items-center gap-2 app-btn-secondary text-blue-600 dark:text-blue-400"
           >
             {isRefetching ? <Loader2 size={16} className="animate-spin" /> : <RefreshCw size={16} />}
             Refresh
@@ -3031,49 +3031,49 @@ function HealthTab() {
         {/* Summary Cards */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           {/* Critical */}
-          <div className="bg-white border border-slate-200/80 rounded-[18px] shadow-[0_12px_30px_rgba(15,23,42,0.04)] p-5">
+          <div className="app-card rounded-[18px] p-5">
             <div className="flex items-center gap-2 mb-3">
               <span className="w-2 h-2 rounded-full bg-red-500"></span>
-              <p className="text-xs font-extrabold text-slate-950 uppercase tracking-wide">CRITICAL</p>
+              <p className="text-xs font-extrabold text-foreground uppercase tracking-wide">CRITICAL</p>
             </div>
-            <p className="text-3xl font-extrabold text-slate-950">{criticalCount}</p>
-            <p className="text-sm font-medium text-slate-500 mt-1">{criticalCount === 1 ? 'team' : 'teams'}</p>
+            <p className="text-3xl font-extrabold text-foreground">{criticalCount}</p>
+            <p className="text-sm font-medium text-muted mt-1">{criticalCount === 1 ? 'team' : 'teams'}</p>
           </div>
           {/* High */}
-          <div className="bg-white border border-slate-200/80 rounded-[18px] shadow-[0_12px_30px_rgba(15,23,42,0.04)] p-5">
+          <div className="app-card rounded-[18px] p-5">
             <div className="flex items-center gap-2 mb-3">
               <span className="w-2 h-2 rounded-full bg-orange-500"></span>
-              <p className="text-xs font-extrabold text-slate-950 uppercase tracking-wide">HIGH</p>
+              <p className="text-xs font-extrabold text-foreground uppercase tracking-wide">HIGH</p>
             </div>
-            <p className="text-3xl font-extrabold text-slate-950">{highCount}</p>
-            <p className="text-sm font-medium text-slate-500 mt-1">{highCount === 1 ? 'team' : 'teams'}</p>
+            <p className="text-3xl font-extrabold text-foreground">{highCount}</p>
+            <p className="text-sm font-medium text-muted mt-1">{highCount === 1 ? 'team' : 'teams'}</p>
           </div>
           {/* Medium */}
-          <div className="bg-white border border-slate-200/80 rounded-[18px] shadow-[0_12px_30px_rgba(15,23,42,0.04)] p-5">
+          <div className="app-card rounded-[18px] p-5">
             <div className="flex items-center gap-2 mb-3">
               <span className="w-2 h-2 rounded-full bg-blue-500"></span>
-              <p className="text-xs font-extrabold text-slate-950 uppercase tracking-wide">MEDIUM</p>
+              <p className="text-xs font-extrabold text-foreground uppercase tracking-wide">MEDIUM</p>
             </div>
-            <p className="text-3xl font-extrabold text-slate-950">{mediumCount}</p>
-            <p className="text-sm font-medium text-slate-500 mt-1">{mediumCount === 1 ? 'team' : 'teams'}</p>
+            <p className="text-3xl font-extrabold text-foreground">{mediumCount}</p>
+            <p className="text-sm font-medium text-muted mt-1">{mediumCount === 1 ? 'team' : 'teams'}</p>
           </div>
           {/* Low */}
-          <div className="bg-white border border-slate-200/80 rounded-[18px] shadow-[0_12px_30px_rgba(15,23,42,0.04)] p-5">
+          <div className="app-card rounded-[18px] p-5">
             <div className="flex items-center gap-2 mb-3">
               <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
-              <p className="text-xs font-extrabold text-slate-950 uppercase tracking-wide">LOW</p>
+              <p className="text-xs font-extrabold text-foreground uppercase tracking-wide">LOW</p>
             </div>
-            <p className="text-3xl font-extrabold text-slate-950">{lowCount}</p>
-            <p className="text-sm font-medium text-slate-500 mt-1">{lowCount === 1 ? 'team' : 'teams'}</p>
+            <p className="text-3xl font-extrabold text-foreground">{lowCount}</p>
+            <p className="text-sm font-medium text-muted mt-1">{lowCount === 1 ? 'team' : 'teams'}</p>
           </div>
         </div>
       </div>
 
       {/* Empty State */}
       {(!teams || teams.length === 0) && (
-        <div className="bg-white border border-slate-200/80 rounded-[22px] shadow-[0_18px_45px_rgba(15,23,42,0.06)] py-16 text-center">
-          <p className="text-[20px] font-extrabold text-slate-950 mb-2">No team health risks detected</p>
-          <p className="text-sm font-medium text-slate-500">All teams are currently within expected health thresholds.</p>
+        <div className="app-card rounded-[22px] py-16 text-center">
+          <p className="text-[20px] font-extrabold text-foreground mb-2">No team health risks detected</p>
+          <p className="text-sm font-medium text-muted">All teams are currently within expected health thresholds.</p>
         </div>
       )}
 
@@ -3082,23 +3082,23 @@ function HealthTab() {
         {teams?.map(team => {
           const c = riskColour[team.risk_level] ?? riskColour.low
           return (
-            <div key={team.team_id} className={`bg-white border border-slate-200/80 rounded-[22px] shadow-[0_18px_45px_rgba(15,23,42,0.06)] p-6 ${c.cardBorder}`}>
+            <div key={team.team_id} className={`app-card rounded-[22px] p-6 ${c.cardBorder}`}>
               <div className="flex flex-col md:flex-row items-start justify-between gap-4">
                 <div className="flex-1">
                   <div className="flex items-center gap-3 mb-4">
-                    <span className="text-lg font-extrabold text-slate-950">{team.team_name || 'Team'}</span>
+                    <span className="text-lg font-extrabold text-foreground">{team.team_name || 'Team'}</span>
                     <span className={`px-2.5 py-1 rounded-full text-[10px] font-extrabold uppercase tracking-wide ${c.pill}`}>
                       {team.risk_level || 'LOW'}
                     </span>
-                    <span className="text-sm font-medium text-slate-500">{team.member_count || 0} members</span>
+                    <span className="text-sm font-medium text-muted">{team.member_count || 0} members</span>
                   </div>
                   <div className="space-y-2">
                     {team.signals?.map((s, i) => (
                       <div key={i} className="flex items-start gap-2.5 text-sm font-medium">
                         <span className={`mt-1.5 w-1.5 h-1.5 rounded-full flex-shrink-0 ${s.severity === 'high' || s.severity === 'critical' ? 'bg-red-500' : 'bg-orange-500'}`} />
                         <span>
-                          <span className="text-slate-950 font-bold">{s.label}</span>
-                          {s.detail && <span className="text-slate-500"> — {s.detail}</span>}
+                          <span className="text-foreground font-bold">{s.label}</span>
+                          {s.detail && <span className="text-muted"> — {s.detail}</span>}
                         </span>
                       </div>
                     ))}
@@ -3110,7 +3110,7 @@ function HealthTab() {
                 <div className="flex flex-col items-end justify-between min-w-[120px] self-stretch">
                   <div className="text-right">
                     <p className={`text-[32px] leading-none font-extrabold ${c.score}`}>{team.risk_score || 0}</p>
-                    <p className="text-xs font-medium text-slate-500 mt-1">risk score</p>
+                    <p className="text-xs font-medium text-muted mt-1">risk score</p>
                   </div>
                   {team.last_update && (
                     <p className="text-xs font-medium text-slate-400 mt-auto pt-4">Last update: {team.last_update}</p>
@@ -3189,7 +3189,7 @@ function AnomalyTab() {
 
   if (isLoading) {
     return (
-      <div className="flex flex-col items-center justify-center py-20 text-slate-500">
+      <div className="flex flex-col items-center justify-center py-20 text-muted">
         <Loader2 size={32} className="animate-spin mb-4 text-orange-500" />
         <p className="font-medium text-sm">Scanning for anomalies...</p>
       </div>
@@ -3205,16 +3205,16 @@ function AnomalyTab() {
       {/* Section Intro */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-6 gap-4">
         <div>
-          <h2 className="text-lg font-extrabold text-slate-950 flex items-center gap-2">
+          <h2 className="text-lg font-extrabold text-foreground flex items-center gap-2">
             <Activity className="text-orange-500" size={20} /> Anomaly Detector Scanner
           </h2>
-          <p className="text-sm font-medium text-slate-500 mt-1">Real-time monitoring of judge evaluations and score distributions.</p>
+          <p className="text-sm font-medium text-muted mt-1">Real-time monitoring of judge evaluations and score distributions.</p>
         </div>
         {totalFlagged > 0 && (
           <button
             onClick={() => { if (window.confirm('Override all flagged scorecards?')) overrideAllMutation.mutate() }}
             disabled={overrideAllMutation.isPending}
-            className="flex items-center justify-center gap-2 text-sm px-5 py-2.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 font-extrabold shadow-sm transition-colors disabled:opacity-50"
+            className="flex items-center justify-center gap-2 text-sm px-5 py-2.5 rounded-xl border border-border bg-white hover:bg-cardSoft text-muted font-extrabold shadow-sm transition-colors disabled:opacity-50"
           >
             {overrideAllMutation.isPending ? <Loader2 size={16} className="animate-spin" /> : <ShieldCheck size={16} className="text-emerald-500" />}
             Override All Flags
@@ -3225,13 +3225,13 @@ function AnomalyTab() {
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
         {/* Card 1 */}
-        <div className="bg-white border border-slate-200/80 rounded-[22px] shadow-[0_18px_45px_rgba(15,23,42,0.06)] p-6 flex flex-col justify-between">
+        <div className="app-card rounded-[22px] p-6 flex flex-col justify-between">
           <div>
             <div className="flex items-center gap-3 mb-4">
               <div className="w-12 h-12 rounded-2xl bg-blue-50 text-blue-600 flex items-center justify-center shrink-0">
                 <Users size={22} />
               </div>
-              <p className="text-sm font-bold text-slate-950">Total Flagged Teams</p>
+              <p className="text-sm font-bold text-foreground">Total Flagged Teams</p>
             </div>
             <p className="text-3xl font-extrabold text-blue-600 mb-6">{totalFlagged}</p>
           </div>
@@ -3239,21 +3239,21 @@ function AnomalyTab() {
             <div className="w-1/3 bg-blue-100 rounded-full h-1.5 mb-3">
               <div className="bg-blue-500 h-1.5 rounded-full w-full"></div>
             </div>
-            <p className="text-xs font-semibold text-slate-500">Historical Frequency</p>
+            <p className="text-xs font-semibold text-muted">Historical Frequency</p>
           </div>
         </div>
 
         {/* Card 2 */}
-        <div className="bg-white border border-slate-200/80 rounded-[22px] shadow-[0_18px_45px_rgba(15,23,42,0.06)] p-6 flex flex-col justify-between">
+        <div className="app-card rounded-[22px] p-6 flex flex-col justify-between">
           <div>
             <div className="flex items-center gap-3 mb-4">
               <div className="w-12 h-12 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0">
                 <ShieldCheck size={22} />
               </div>
-              <p className="text-sm font-bold text-slate-950">Sweep Status</p>
+              <p className="text-sm font-bold text-foreground">Sweep Status</p>
             </div>
-            <p className="text-xl font-extrabold text-slate-950 mb-1">Active Pipeline</p>
-            <p className="text-xs font-semibold text-slate-500 mb-6">Checking every 15s</p>
+            <p className="text-xl font-extrabold text-foreground mb-1">Active Pipeline</p>
+            <p className="text-xs font-semibold text-muted mb-6">Checking every 15s</p>
           </div>
           <div>
             <div className="w-full bg-slate-100 rounded-full h-1.5">
@@ -3263,20 +3263,20 @@ function AnomalyTab() {
         </div>
 
         {/* Card 3 */}
-        <div className="bg-white border border-slate-200/80 rounded-[22px] shadow-[0_18px_45px_rgba(15,23,42,0.06)] p-6 flex flex-col justify-between">
+        <div className="app-card rounded-[22px] p-6 flex flex-col justify-between">
           <div>
             <div className="flex items-center gap-3 mb-4">
               <div className="w-12 h-12 rounded-2xl bg-purple-50 text-purple-600 flex items-center justify-center shrink-0">
                 <Shield size={22} />
               </div>
-              <p className="text-sm font-bold text-slate-950">AI Confidence Score</p>
+              <p className="text-sm font-bold text-foreground">AI Confidence Score</p>
             </div>
             <div className="flex items-end gap-3 mb-4">
-              <p className="text-3xl font-extrabold text-slate-950">98.2%</p>
+              <p className="text-3xl font-extrabold text-foreground">98.2%</p>
               <span className="inline-flex items-center px-2.5 py-1 rounded-full bg-emerald-50 text-[10px] font-extrabold text-emerald-600 border border-emerald-200 mb-1.5">High Confidence</span>
             </div>
           </div>
-          <p className="text-xs font-medium text-slate-500 leading-relaxed">
+          <p className="text-xs font-medium text-muted leading-relaxed">
             Detector model operates with high precision. Overriding a flag will permanently unlock the team's progression.
           </p>
         </div>
@@ -3284,9 +3284,9 @@ function AnomalyTab() {
 
       {/* Flagged Pipeline */}
       <div className="space-y-4">
-        <h3 className="text-lg font-extrabold text-slate-950 mb-4">Flagged Evaluations Pipeline</h3>
+        <h3 className="text-lg font-extrabold text-foreground mb-4">Flagged Evaluations Pipeline</h3>
         {flaggedTeams.length === 0 ? (
-          <div className="bg-white border border-dashed border-slate-300/80 rounded-[22px] shadow-[0_18px_45px_rgba(15,23,42,0.04)] py-16 text-center relative overflow-hidden">
+          <div className="app-card border-dashed rounded-[22px] py-16 text-center relative overflow-hidden">
             <div className="w-20 h-20 bg-blue-50 rounded-full flex items-center justify-center mx-auto mb-4 relative">
               <ClipboardCheck size={32} className="text-blue-600" />
               <div className="absolute top-2 -left-6 w-2 h-2 rounded-full bg-blue-400" />
@@ -3294,18 +3294,18 @@ function AnomalyTab() {
               <div className="absolute top-4 -right-4 w-2 h-2 rounded-full bg-purple-400" />
               <div className="absolute bottom-2 -right-6 w-1.5 h-1.5 rounded-full bg-emerald-400" />
             </div>
-            <h4 className="text-[20px] font-extrabold text-slate-950 mb-2">No Anomalies Detected</h4>
-            <p className="text-sm font-medium text-slate-500">All scorecards are currently within expected variance thresholds.</p>
+            <h4 className="text-[20px] font-extrabold text-foreground mb-2">No Anomalies Detected</h4>
+            <p className="text-sm font-medium text-muted">All scorecards are currently within expected variance thresholds.</p>
           </div>
         ) : (
           flaggedTeams.map(team => (
-            <div key={team.id} className="bg-white border border-slate-200/80 rounded-[22px] shadow-[0_18px_45px_rgba(15,23,42,0.06)] p-5 flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div key={team.id} className="app-card rounded-[22px] p-5 flex flex-col md:flex-row md:items-center justify-between gap-4">
               <div className="flex-1">
                 <div className="flex items-center gap-2 mb-2">
-                  <h4 className="font-extrabold text-slate-950 text-lg">{team.team_name}</h4>
+                  <h4 className="font-extrabold text-foreground text-lg">{team.team_name}</h4>
                   <span className="inline-flex items-center px-2.5 py-1 rounded-full bg-amber-50 text-[10px] font-extrabold text-amber-600 border border-amber-200"><AlertTriangle size={12} className="mr-1" /> Flagged</span>
                 </div>
-                <div className="text-sm text-slate-500 space-y-1 font-medium">
+                <div className="text-sm text-muted space-y-1 font-medium">
                   <p><span className="text-slate-400">Weighted Score:</span> {team.weighted_total?.toFixed(2) || team.total_score}</p>
                   <p>
                     <span className="text-slate-400">Anomaly Reason:</span>{' '}
@@ -3324,15 +3324,15 @@ function AnomalyTab() {
                         <Wand2 size={11} /> AI Explain
                       </button>
                     ) : explanations[team.team_id].status === 'loading' ? (
-                      <div className="flex items-center gap-1.5 text-xs text-slate-500 font-medium">
+                      <div className="flex items-center gap-1.5 text-xs text-muted font-medium">
                         <Loader2 size={11} className="animate-spin" /> Generating explanation…
                       </div>
                     ) : explanations[team.team_id].status === 'done' ? (
-                      <div className="bg-slate-50 rounded-xl p-3 mt-2 border border-slate-100">
+                      <div className="bg-cardSoft rounded-xl p-3 mt-2 border border-border">
                         <p className="text-xs font-extrabold text-purple-600 mb-1 flex items-center gap-1">
                           <Wand2 size={11} /> AI Explanation
                         </p>
-                        <p className="text-xs text-slate-700 font-medium leading-relaxed">
+                        <p className="text-xs text-muted font-medium leading-relaxed">
                           {explanations[team.team_id].text}
                         </p>
                       </div>
@@ -3340,7 +3340,7 @@ function AnomalyTab() {
                       <p className="text-xs font-bold text-red-500">{explanations[team.team_id].text}</p>
                     )}
                   </div>
-                  <p className="mt-2"><span className="text-slate-400">Detector Confidence:</span> <span className="text-slate-700 font-bold">99.4%</span></p>
+                  <p className="mt-2"><span className="text-slate-400">Detector Confidence:</span> <span className="text-muted font-bold">99.4%</span></p>
                 </div>
               </div>
 
@@ -3348,7 +3348,7 @@ function AnomalyTab() {
                 <button
                   onClick={() => { if (window.confirm(`Override flag for ${team.team_name}?`)) overrideMutation.mutate(team.id) }}
                   disabled={overrideMutation.isPending}
-                  className="flex justify-center items-center gap-2 text-sm px-4 py-2 rounded-xl bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 font-extrabold shadow-sm transition-colors disabled:opacity-50"
+                  className="flex justify-center items-center gap-2 text-sm px-4 py-2 rounded-xl app-btn-secondary font-extrabold shadow-sm transition-colors disabled:opacity-50"
                 >
                   {overrideMutation.isPending ? <Loader2 size={16} className="animate-spin" /> : <ShieldCheck size={16} className="text-emerald-500" />}
                   Force Override
@@ -3403,19 +3403,19 @@ function RiskTab() {
 
   if (capabilityDisabled) {
     return (
-      <div className="bg-white border border-slate-200/80 rounded-[22px] shadow-[0_18px_45px_rgba(15,23,42,0.06)] py-16 text-center">
+      <div className="app-card rounded-[22px] py-16 text-center">
         <ShieldAlert size={48} className="mx-auto text-slate-300 mb-3" />
-        <p className="text-slate-950 font-extrabold text-[20px]">Risk monitoring is not enabled for this event.</p>
+        <p className="text-foreground font-extrabold text-[20px]">Risk monitoring is not enabled for this event.</p>
       </div>
     )
   }
 
   if (summaryError || teamsError) {
     return (
-      <div className="bg-white border border-slate-200/80 rounded-[22px] shadow-[0_18px_45px_rgba(15,23,42,0.06)] py-16 text-center">
+      <div className="app-card rounded-[22px] py-16 text-center">
         <AlertTriangle size={48} className="mx-auto text-red-400 mb-3" />
-        <p className="text-slate-950 font-extrabold text-[20px]">Unable to load risk intelligence.</p>
-        <p className="text-sm text-slate-500 font-medium mt-1">{summaryError?.message || teamsError?.message}</p>
+        <p className="text-foreground font-extrabold text-[20px]">Unable to load risk intelligence.</p>
+        <p className="text-sm text-muted font-medium mt-1">{summaryError?.message || teamsError?.message}</p>
       </div>
     )
   }
@@ -3433,11 +3433,11 @@ function RiskTab() {
     <div>
 
       {/* Main AI Risk Intelligence Card */}
-      <div className="bg-white border border-slate-200/80 rounded-[22px] shadow-[0_18px_45px_rgba(15,23,42,0.06)] p-6 lg:p-8 mb-8">
+      <div className="app-card rounded-[22px] p-6 lg:p-8 mb-8">
         <div className="flex flex-col md:flex-row items-start md:items-center justify-between mb-8 gap-4">
           <div>
-            <h2 className="text-lg font-extrabold text-slate-950">AI Risk Intelligence</h2>
-            <p className="text-sm font-medium text-slate-500 mt-1">
+            <h2 className="text-lg font-extrabold text-foreground">AI Risk Intelligence</h2>
+            <p className="text-sm font-medium text-muted mt-1">
               Continuous monitoring of team health and participant engagement.
             </p>
           </div>
@@ -3454,62 +3454,62 @@ function RiskTab() {
         {/* Summary Cards */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           {/* Total Teams */}
-          <div className="bg-white border border-slate-200/80 rounded-[18px] shadow-[0_12px_30px_rgba(15,23,42,0.04)] p-5">
+          <div className="app-card rounded-[18px] p-5">
             <div className="flex items-center gap-3 mb-4">
               <div className="w-10 h-10 rounded-xl bg-blue-50 flex items-center justify-center">
                 <Users size={20} className="text-blue-600" />
               </div>
-              <p className="text-sm font-extrabold text-slate-950">Total Teams</p>
+              <p className="text-sm font-extrabold text-foreground">Total Teams</p>
             </div>
-            <p className="text-3xl font-extrabold text-slate-950">{loading ? '—' : summary?.total_teams ?? 0}</p>
+            <p className="text-3xl font-extrabold text-foreground">{loading ? '—' : summary?.total_teams ?? 0}</p>
           </div>
           {/* Average Risk Score */}
-          <div className="bg-white border border-slate-200/80 rounded-[18px] shadow-[0_12px_30px_rgba(15,23,42,0.04)] p-5">
+          <div className="app-card rounded-[18px] p-5">
             <div className="flex items-center gap-3 mb-4">
               <div className="w-10 h-10 rounded-xl bg-emerald-50 flex items-center justify-center">
                 <Activity size={20} className="text-emerald-600" />
               </div>
-              <p className="text-sm font-extrabold text-slate-950">Average Risk Score</p>
+              <p className="text-sm font-extrabold text-foreground">Average Risk Score</p>
             </div>
-            <p className="text-3xl font-extrabold text-slate-950">{loading ? '—' : (summary?.average_risk_score ?? 0).toFixed(1)}</p>
+            <p className="text-3xl font-extrabold text-foreground">{loading ? '—' : (summary?.average_risk_score ?? 0).toFixed(1)}</p>
           </div>
           {/* High Risk */}
-          <div className="bg-white border border-slate-200/80 rounded-[18px] shadow-[0_12px_30px_rgba(15,23,42,0.04)] p-5">
+          <div className="app-card rounded-[18px] p-5">
             <div className="flex items-center gap-3 mb-4">
               <div className="w-10 h-10 rounded-xl bg-orange-50 flex items-center justify-center">
                 <AlertTriangle size={20} className="text-orange-500" />
               </div>
-              <p className="text-sm font-extrabold text-slate-950">High Risk</p>
+              <p className="text-sm font-extrabold text-foreground">High Risk</p>
             </div>
-            <p className="text-3xl font-extrabold text-slate-950">{loading ? '—' : summary?.high_count ?? 0}</p>
+            <p className="text-3xl font-extrabold text-foreground">{loading ? '—' : summary?.high_count ?? 0}</p>
           </div>
           {/* Critical Risk */}
-          <div className="bg-white border border-slate-200/80 rounded-[18px] shadow-[0_12px_30px_rgba(15,23,42,0.04)] p-5">
+          <div className="app-card rounded-[18px] p-5">
             <div className="flex items-center gap-3 mb-4">
               <div className="w-10 h-10 rounded-xl bg-red-50 flex items-center justify-center">
                 <ShieldAlert size={20} className="text-red-500" />
               </div>
-              <p className="text-sm font-extrabold text-slate-950">Critical Risk</p>
+              <p className="text-sm font-extrabold text-foreground">Critical Risk</p>
             </div>
-            <p className="text-3xl font-extrabold text-slate-950">{loading ? '—' : summary?.critical_count ?? 0}</p>
+            <p className="text-3xl font-extrabold text-foreground">{loading ? '—' : summary?.critical_count ?? 0}</p>
           </div>
         </div>
       </div>
 
-      <h3 className="text-[20px] font-extrabold text-slate-950 mb-6">Team Risk Dashboard</h3>
+      <h3 className="text-[20px] font-extrabold text-foreground mb-6">Team Risk Dashboard</h3>
 
       {loading ? (
-        <div className="bg-white border border-slate-200/80 rounded-[22px] shadow-[0_18px_45px_rgba(15,23,42,0.06)] py-16 text-center">
+        <div className="app-card rounded-[22px] py-16 text-center">
           <Loader2 size={48} className="mx-auto text-blue-500 mb-3 animate-spin" />
-          <p className="text-slate-950 font-extrabold text-[20px]">Loading risk intelligence...</p>
+          <p className="text-foreground font-extrabold text-[20px]">Loading risk intelligence...</p>
         </div>
       ) : teams.length === 0 ? (
-        <div className="bg-white border border-slate-200/80 rounded-[22px] shadow-[0_18px_45px_rgba(15,23,42,0.06)] py-16 text-center">
-          <div className="w-16 h-16 bg-slate-50 rounded-full flex items-center justify-center mx-auto mb-4">
+        <div className="app-card rounded-[22px] py-16 text-center">
+          <div className="w-16 h-16 bg-cardSoft rounded-full flex items-center justify-center mx-auto mb-4">
             <Activity size={32} className="text-slate-400" />
           </div>
-          <p className="text-[20px] font-extrabold text-slate-950 mb-2">No team risk snapshots available</p>
-          <p className="text-sm font-medium text-slate-500">Run a risk sweep to generate updated team risk intelligence.</p>
+          <p className="text-[20px] font-extrabold text-foreground mb-2">No team risk snapshots available</p>
+          <p className="text-sm font-medium text-muted">Run a risk sweep to generate updated team risk intelligence.</p>
         </div>
       ) : (
         <div className="space-y-4">
@@ -3520,47 +3520,47 @@ function RiskTab() {
             return (
               <div
                 key={team.team_id}
-                className={`bg-white border border-slate-200/80 rounded-[22px] shadow-[0_18px_45px_rgba(15,23,42,0.06)] p-6 ${style.cardBorder}`}
+                className={`app-card rounded-[22px] p-6 ${style.cardBorder}`}
               >
                 <div className="flex flex-col md:flex-row justify-between gap-4">
                   <div className="flex-1">
                     <div className="flex items-center gap-3 mb-2">
-                      <h4 className="font-extrabold text-slate-950 text-lg">{team.team_name || 'Team'}</h4>
+                      <h4 className="font-extrabold text-foreground text-lg">{team.team_name || 'Team'}</h4>
                       <span className={`px-3 py-1 rounded-full text-[10px] font-extrabold uppercase tracking-wide ${style.pill}`}>
                         {team.risk_level || 'MEDIUM'}
                       </span>
                     </div>
 
-                    <p className="text-sm text-slate-500 mb-6 font-medium">
-                      <span className="text-slate-600">Risk Score:</span> {team.risk_score || 0}/100
+                    <p className="text-sm text-muted mb-6 font-medium">
+                      <span className="text-muted">Risk Score:</span> {team.risk_score || 0}/100
                     </p>
 
                     <div className="mb-4">
-                      <p className="text-xs font-extrabold text-slate-950 uppercase tracking-wide mb-2">Reasons</p>
+                      <p className="text-xs font-extrabold text-foreground uppercase tracking-wide mb-2">Reasons</p>
                       {team.reasons?.length > 0 ? (
-                        <ul className="list-disc pl-5 text-sm text-slate-600 font-medium space-y-1">
+                        <ul className="list-disc pl-5 text-sm text-muted font-medium space-y-1">
                           {team.reasons.map((reason, index) => <li key={index} className="pl-1">{reason}</li>)}
                         </ul>
                       ) : (
-                        <p className="text-sm text-slate-500 font-medium">No risk reasons available.</p>
+                        <p className="text-sm text-muted font-medium">No risk reasons available.</p>
                       )}
                     </div>
 
                     <div>
-                      <p className="text-xs font-extrabold text-slate-950 uppercase tracking-wide mb-2">Recommended Actions</p>
+                      <p className="text-xs font-extrabold text-foreground uppercase tracking-wide mb-2">Recommended Actions</p>
                       {team.recommended_actions?.length > 0 ? (
-                        <ul className="list-disc pl-5 text-sm text-slate-600 font-medium space-y-1">
+                        <ul className="list-disc pl-5 text-sm text-muted font-medium space-y-1">
                           {team.recommended_actions.map((action, index) => <li key={index} className="pl-1">{action}</li>)}
                         </ul>
                       ) : (
-                        <p className="text-sm text-slate-500 font-medium">No recommended actions available.</p>
+                        <p className="text-sm text-muted font-medium">No recommended actions available.</p>
                       )}
                     </div>
                   </div>
 
                   <div className="flex items-start justify-end gap-3 mt-1 md:mt-0">
-                    <p className="text-xs font-medium text-slate-500 mt-1">Computed: {computedDate}</p>
-                    <button className="text-slate-400 hover:text-slate-600 transition-colors">
+                    <p className="text-xs font-medium text-muted mt-1">Computed: {computedDate}</p>
+                    <button className="text-slate-400 hover:text-muted transition-colors">
                       <MoreVertical size={16} />
                     </button>
                   </div>
@@ -3658,78 +3658,78 @@ function DemoControlsTab() {
   return (
     <div>
 
-      <h2 className="text-[20px] font-extrabold text-slate-950 mb-6">Demo Controls</h2>
+      <h2 className="text-[20px] font-extrabold text-foreground mb-6">Demo Controls</h2>
 
       {/* Stats Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
-        <div className="bg-white border border-slate-200/80 rounded-[18px] shadow-[0_12px_30px_rgba(15,23,42,0.04)] p-5 flex items-start gap-4">
+        <div className="app-card rounded-[18px] p-5 flex items-start gap-4">
           <div className="w-10 h-10 rounded-xl bg-blue-50 flex items-center justify-center shrink-0">
             <Users size={20} className="text-blue-600" />
           </div>
           <div>
-            <p className="text-sm font-extrabold text-slate-950 mb-1">Participants</p>
-            <p className="text-[28px] leading-none font-extrabold text-slate-950">{status?.participants ?? 0}</p>
+            <p className="text-sm font-extrabold text-foreground mb-1">Participants</p>
+            <p className="text-[28px] leading-none font-extrabold text-foreground">{status?.participants ?? 0}</p>
           </div>
         </div>
 
-        <div className="bg-white border border-slate-200/80 rounded-[18px] shadow-[0_12px_30px_rgba(15,23,42,0.04)] p-5 flex items-start gap-4">
+        <div className="app-card rounded-[18px] p-5 flex items-start gap-4">
           <div className="w-10 h-10 rounded-xl bg-blue-50 flex items-center justify-center shrink-0">
             <GitBranch size={20} className="text-blue-600" />
           </div>
           <div>
-            <p className="text-sm font-extrabold text-slate-950 mb-1">Teams</p>
-            <p className="text-[28px] leading-none font-extrabold text-slate-950">{status?.teams ?? 0}</p>
+            <p className="text-sm font-extrabold text-foreground mb-1">Teams</p>
+            <p className="text-[28px] leading-none font-extrabold text-foreground">{status?.teams ?? 0}</p>
           </div>
         </div>
 
-        <div className="bg-white border border-slate-200/80 rounded-[18px] shadow-[0_12px_30px_rgba(15,23,42,0.04)] p-5 flex items-start gap-4">
+        <div className="app-card rounded-[18px] p-5 flex items-start gap-4">
           <div className="w-10 h-10 rounded-xl bg-blue-50 flex items-center justify-center shrink-0">
             <BarChart2 size={20} className="text-blue-600" />
           </div>
           <div>
-            <p className="text-sm font-extrabold text-slate-950 mb-1">Evaluations</p>
-            <p className="text-[28px] leading-none font-extrabold text-slate-950">{status?.evaluations ?? 0}</p>
+            <p className="text-sm font-extrabold text-foreground mb-1">Evaluations</p>
+            <p className="text-[28px] leading-none font-extrabold text-foreground">{status?.evaluations ?? 0}</p>
           </div>
         </div>
 
-        <div className="bg-white border border-slate-200/80 rounded-[18px] shadow-[0_12px_30px_rgba(15,23,42,0.04)] p-5 flex items-start gap-4">
+        <div className="app-card rounded-[18px] p-5 flex items-start gap-4">
           <div className="w-10 h-10 rounded-xl bg-blue-50 flex items-center justify-center shrink-0">
             <UserCheck size={20} className="text-blue-600" />
           </div>
           <div>
-            <p className="text-sm font-extrabold text-slate-950 mb-1">Mentors</p>
-            <p className="text-[28px] leading-none font-extrabold text-slate-950">{status?.mentors ?? 0}</p>
+            <p className="text-sm font-extrabold text-foreground mb-1">Mentors</p>
+            <p className="text-[28px] leading-none font-extrabold text-foreground">{status?.mentors ?? 0}</p>
           </div>
         </div>
 
-        <div className="bg-white border border-slate-200/80 rounded-[18px] shadow-[0_12px_30px_rgba(15,23,42,0.04)] p-5 flex items-start gap-4">
+        <div className="app-card rounded-[18px] p-5 flex items-start gap-4">
           <div className="w-10 h-10 rounded-xl bg-blue-50 flex items-center justify-center shrink-0">
             <Target size={20} className="text-blue-600" />
           </div>
           <div>
-            <p className="text-sm font-extrabold text-slate-950 mb-1">Mentor Assignments</p>
-            <p className="text-[28px] leading-none font-extrabold text-slate-950">{status?.mentor_assignments ?? 0}</p>
+            <p className="text-sm font-extrabold text-foreground mb-1">Mentor Assignments</p>
+            <p className="text-[28px] leading-none font-extrabold text-foreground">{status?.mentor_assignments ?? 0}</p>
           </div>
         </div>
 
-        <div className="bg-white border border-slate-200/80 rounded-[18px] shadow-[0_12px_30px_rgba(15,23,42,0.04)] p-5 flex items-start gap-4">
+        <div className="app-card rounded-[18px] p-5 flex items-start gap-4">
           <div className="w-10 h-10 rounded-xl bg-blue-50 flex items-center justify-center shrink-0">
             <Mail size={20} className="text-blue-600" />
           </div>
           <div>
-            <p className="text-sm font-extrabold text-slate-950 mb-1">Comms Logs</p>
-            <p className="text-[28px] leading-none font-extrabold text-slate-950">{status?.communication_logs ?? 0}</p>
+            <p className="text-sm font-extrabold text-foreground mb-1">Comms Logs</p>
+            <p className="text-[28px] leading-none font-extrabold text-foreground">{status?.communication_logs ?? 0}</p>
           </div>
         </div>
       </div>
 
       {/* Reset Demo Data Card */}
-      <div className="bg-white border border-slate-200/80 rounded-[22px] shadow-[0_18px_45px_rgba(15,23,42,0.06)] p-6 lg:p-8 mb-6">
+      <div className="app-card rounded-[22px] p-6 lg:p-8 mb-6">
         <div className="flex items-center gap-2 mb-4 text-orange-500">
           <AlertTriangle size={20} />
           <h3 className="text-lg font-extrabold">Reset Demo Data</h3>
         </div>
-        <p className="text-sm font-medium text-slate-600 mb-6 max-w-3xl">
+        <p className="text-sm font-medium text-muted mb-6 max-w-3xl">
           This clears participants, teams, evaluations, mentor assignments, feedback, sessions, and communication logs so you can restart the demo with the same CSV. Admin accounts are preserved.
         </p>
         <div className="flex flex-col md:flex-row gap-4 items-center">
@@ -3738,7 +3738,7 @@ function DemoControlsTab() {
             value={confirmText}
             onChange={e => setConfirmText(e.target.value)}
             placeholder="Type RESET_DEMO_DATA"
-            className="w-full bg-white border border-slate-200 rounded-xl h-11 px-4 text-sm font-medium text-slate-700 placeholder:text-slate-400 focus:outline-none focus:border-blue-300 focus:ring-2 focus:ring-blue-100 transition-all"
+            className="w-full app-input h-11 px-4 text-sm font-medium text-muted placeholder:text-slate-400 focus:outline-none focus:border-blue-300 focus:ring-2 focus:ring-blue-100 transition-all"
           />
           <button
             onClick={() => resetMutation.mutate()}
@@ -3752,15 +3752,15 @@ function DemoControlsTab() {
       </div>
 
       {/* Delete Current Event Card */}
-      <div className="bg-white border border-slate-200/80 rounded-[22px] shadow-[0_18px_45px_rgba(15,23,42,0.06)] p-6 lg:p-8 mb-8">
+      <div className="app-card rounded-[22px] p-6 lg:p-8 mb-8">
         <div className="flex items-center gap-2 mb-4 text-red-500">
           <AlertTriangle size={20} />
           <h3 className="text-lg font-extrabold">Delete Current Event</h3>
         </div>
-        <p className="text-sm font-medium text-slate-600 mb-2 max-w-3xl">
+        <p className="text-sm font-medium text-muted mb-2 max-w-3xl">
           This permanently deletes the selected event and its event-scoped data. Use this only for demo/test events.
         </p>
-        <p className="text-sm font-extrabold text-slate-950 mb-6">
+        <p className="text-sm font-extrabold text-foreground mb-6">
           Selected event: {activeEvent?.name || 'No event selected'}
         </p>
         <div className="flex flex-col md:flex-row gap-4 items-center">
@@ -3769,7 +3769,7 @@ function DemoControlsTab() {
             value={deleteEventConfirm}
             onChange={(e) => setDeleteEventConfirm(e.target.value)}
             placeholder="Type DELETE_EVENT"
-            className="w-full bg-white border border-slate-200 rounded-xl h-11 px-4 text-sm font-medium text-slate-700 placeholder:text-slate-400 focus:outline-none focus:border-blue-300 focus:ring-2 focus:ring-blue-100 transition-all"
+            className="w-full app-input h-11 px-4 text-sm font-medium text-muted placeholder:text-slate-400 focus:outline-none focus:border-blue-300 focus:ring-2 focus:ring-blue-100 transition-all"
           />
           <button
             onClick={() => {
@@ -3787,16 +3787,16 @@ function DemoControlsTab() {
       </div>
 
       {/* Security & Integrity Section */}
-      <h3 className="text-[20px] font-extrabold text-slate-950 mb-6">Security & Integrity</h3>
-      <div className="bg-white border border-slate-200/80 rounded-[22px] shadow-[0_18px_45px_rgba(15,23,42,0.06)] p-6 lg:p-8 mb-8">
+      <h3 className="text-[20px] font-extrabold text-foreground mb-6">Security & Integrity</h3>
+      <div className="app-card rounded-[22px] p-6 lg:p-8 mb-8">
         <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
           <div className="flex items-start gap-4">
-            <div className="w-10 h-10 rounded-xl bg-slate-50 border border-slate-200/60 flex items-center justify-center shrink-0">
-              <Shield className="text-slate-700" size={20} />
+            <div className="w-10 h-10 rounded-xl bg-cardSoft border border-border/60 flex items-center justify-center shrink-0">
+              <Shield className="text-muted" size={20} />
             </div>
             <div>
-              <h3 className="text-lg font-extrabold text-slate-950">Zero-Trust Integrity Audit</h3>
-              <p className="text-sm font-medium text-slate-500 mt-1">Cryptographically verify that no scorecards have been manipulated.</p>
+              <h3 className="text-lg font-extrabold text-foreground">Zero-Trust Integrity Audit</h3>
+              <p className="text-sm font-medium text-muted mt-1">Cryptographically verify that no scorecards have been manipulated.</p>
             </div>
           </div>
           <button
@@ -3841,20 +3841,20 @@ function DemoControlsTab() {
       </div>
 
       {/* Stage Controls Section */}
-      <h3 className="text-[20px] font-extrabold text-slate-950 mb-6">Stage Controls</h3>
-      <div className="bg-white border border-slate-200/80 rounded-[22px] shadow-[0_18px_45px_rgba(15,23,42,0.06)] p-6 lg:p-8 mb-8">
+      <h3 className="text-[20px] font-extrabold text-foreground mb-6">Stage Controls</h3>
+      <div className="app-card rounded-[22px] p-6 lg:p-8 mb-8">
         <div className="flex flex-col lg:flex-row justify-between gap-8">
           <div className="flex-1 max-w-sm">
-            <p className="text-xs font-extrabold text-slate-950 uppercase tracking-wide mb-2">Current Stage</p>
-            <p className="text-2xl font-extrabold text-slate-950 uppercase tracking-wide mb-6">
+            <p className="text-xs font-extrabold text-foreground uppercase tracking-wide mb-2">Current Stage</p>
+            <p className="text-2xl font-extrabold text-foreground uppercase tracking-wide mb-6">
               {eventState?.current_stage?.replace('_', ' ') || 'loading...'}
             </p>
             
-            <p className="text-xs font-extrabold text-slate-950 mb-2">Jump directly to stage:</p>
+            <p className="text-xs font-extrabold text-foreground mb-2">Jump directly to stage:</p>
             <select
               value={eventState?.current_stage || ''}
               onChange={e => stageMutation.mutate(e.target.value)}
-              className="w-full bg-white border border-slate-200 rounded-xl h-11 px-4 text-sm font-medium text-slate-900 focus:outline-none focus:border-blue-300 focus:ring-2 focus:ring-blue-100 transition-all appearance-none"
+              className="w-full app-input h-11 px-4 text-sm font-medium text-foreground focus:outline-none focus:border-blue-300 focus:ring-2 focus:ring-blue-100 transition-all appearance-none"
             >
               <option value="registration">Registration</option>
               <option value="team_formation">Team Formation</option>
@@ -3864,10 +3864,10 @@ function DemoControlsTab() {
           </div>
           
           <div className="flex flex-wrap items-end gap-3">
-            <button onClick={() => stepMutation.mutate('prev')} className="bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 px-5 py-2.5 rounded-xl text-sm font-extrabold transition-colors shadow-sm">
+            <button onClick={() => stepMutation.mutate('prev')} className="app-btn-secondary px-5 py-2.5 rounded-xl text-sm font-extrabold transition-colors shadow-sm">
               Previous
             </button>
-            <button onClick={() => stepMutation.mutate('next')} className="bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 px-5 py-2.5 rounded-xl text-sm font-extrabold transition-colors shadow-sm">
+            <button onClick={() => stepMutation.mutate('next')} className="app-btn-secondary px-5 py-2.5 rounded-xl text-sm font-extrabold transition-colors shadow-sm">
               Next
             </button>
             <button onClick={() => resetStageMutation.mutate()} disabled={resetStageMutation.isPending} className="bg-white border border-blue-100 hover:bg-blue-50 text-blue-600 px-5 py-2.5 rounded-xl text-sm font-extrabold transition-colors shadow-sm disabled:opacity-50">
@@ -3930,15 +3930,15 @@ function CreateEventTab() {
 
   return (
     <div className="grid grid-cols-1 xl:grid-cols-[minmax(0,1fr)_320px] gap-6 items-start">
-      <div className="bg-white border border-slate-200/80 rounded-[22px] shadow-[0_18px_45px_rgba(15,23,42,0.06)] p-8">
+      <div className="app-card rounded-[22px] p-8">
         <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4 mb-8">
           <div>
             <h2 className="text-2xl font-bold text-red-600">Create Event</h2>
-            <p className="text-sm text-slate-600 mt-1">
+            <p className="text-sm text-muted mt-1">
               Create from a system template. The event receives a copied template config and its own active capabilities.
             </p>
           </div>
-          <button type="button" className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 shadow-sm hover:bg-slate-50 shrink-0 transition-colors">
+          <button type="button" className="inline-flex items-center gap-2 rounded-xl border border-border bg-white px-4 py-2 text-sm font-semibold text-muted shadow-sm hover:bg-cardSoft shrink-0 transition-colors">
             <LayoutTemplate className="h-4 w-4" />
             Template marketplace
           </button>
@@ -3946,7 +3946,7 @@ function CreateEventTab() {
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 mb-5">
           <div>
-            <label className="block text-sm font-semibold text-slate-700 mb-2">Event name</label>
+            <label className="block text-sm font-semibold text-muted mb-2">Event name</label>
             <div className="relative opacity-100">
               <div className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 flex h-9 w-9 items-center justify-center rounded-lg bg-green-100 text-green-600">
                 <Calendar className="h-4 w-4" />
@@ -3959,12 +3959,12 @@ function CreateEventTab() {
                   slug: f.slug || slugifyEventName(e.target.value),
                 }))}
                 placeholder="Smart India Hackathon Demo"
-                className="w-full h-14 rounded-xl border border-slate-200 bg-white pl-14 pr-4 text-sm font-medium text-slate-900 placeholder:text-slate-400 outline-none transition focus:border-blue-300 focus:ring-4 focus:ring-blue-100/70"
+                className="w-full h-14 rounded-xl border border-border bg-white pl-14 pr-4 text-sm font-medium text-foreground placeholder:text-slate-400 outline-none transition focus:border-blue-300 focus:ring-4 focus:ring-blue-100/70"
               />
             </div>
           </div>
           <div>
-            <label className="block text-sm font-semibold text-slate-700 mb-2">Slug</label>
+            <label className="block text-sm font-semibold text-muted mb-2">Slug</label>
             <div className="relative opacity-100">
               <div className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 flex h-9 w-9 items-center justify-center rounded-lg bg-blue-100 text-blue-600">
                 <Link className="h-4 w-4" />
@@ -3973,14 +3973,14 @@ function CreateEventTab() {
                 value={form.slug}
                 onChange={(e) => setForm((f) => ({ ...f, slug: slugifyEventName(e.target.value) }))}
                 placeholder="smart-india-hackathon-demo"
-                className="w-full h-14 rounded-xl border border-slate-200 bg-white pl-14 pr-4 text-sm font-medium text-slate-900 placeholder:text-slate-400 outline-none transition focus:border-blue-300 focus:ring-4 focus:ring-blue-100/70"
+                className="w-full h-14 rounded-xl border border-border bg-white pl-14 pr-4 text-sm font-medium text-foreground placeholder:text-slate-400 outline-none transition focus:border-blue-300 focus:ring-4 focus:ring-blue-100/70"
               />
             </div>
           </div>
         </div>
 
         <div className="mb-5">
-          <label className="block text-sm font-semibold text-slate-700 mb-2">Template</label>
+          <label className="block text-sm font-semibold text-muted mb-2">Template</label>
           <div className="relative opacity-100">
             <div className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 flex h-9 w-9 items-center justify-center rounded-lg bg-orange-100 text-orange-600">
               <LayoutTemplate className="h-4 w-4" />
@@ -3988,11 +3988,11 @@ function CreateEventTab() {
             <select
               value={form.template_id}
               onChange={(e) => setForm((f) => ({ ...f, template_id: e.target.value }))}
-              className="w-full h-14 rounded-xl border border-slate-200 bg-white pl-14 pr-10 text-sm font-medium text-slate-900 outline-none transition focus:border-blue-300 focus:ring-4 focus:ring-blue-100/70 appearance-none"
+              className="w-full h-14 rounded-xl border border-border bg-white pl-14 pr-10 text-sm font-medium text-foreground outline-none transition focus:border-blue-300 focus:ring-4 focus:ring-blue-100/70 appearance-none"
             >
               <option value="" className="text-slate-400">{isLoading ? 'Loading templates...' : 'Choose a template'}</option>
               {templates.map((template) => (
-                <option key={template.id} value={template.id} className="text-slate-900">
+                <option key={template.id} value={template.id} className="text-foreground">
                   {template.name}
                 </option>
               ))}
@@ -4004,9 +4004,9 @@ function CreateEventTab() {
         </div>
 
         {selectedTemplate && (
-          <div className="rounded-xl bg-slate-50 border border-slate-200 p-4 mb-5">
-            <p className="text-sm font-bold text-slate-900">{selectedTemplate.name}</p>
-            <p className="text-xs text-slate-600 mt-1">{selectedTemplate.description}</p>
+          <div className="rounded-xl bg-cardSoft border border-border p-4 mb-5">
+            <p className="text-sm font-bold text-foreground">{selectedTemplate.name}</p>
+            <p className="text-xs text-muted mt-1">{selectedTemplate.description}</p>
             <div className="flex gap-2 flex-wrap mt-3">
               {(selectedTemplate.default_capabilities || []).map((cap) => (
                 <Badge key={cap} colour="teal">{cap}</Badge>
@@ -4016,7 +4016,7 @@ function CreateEventTab() {
         )}
 
         <div className="mb-8 opacity-100">
-          <label className="block text-sm font-semibold text-slate-700 mb-2">Description (Optional)</label>
+          <label className="block text-sm font-semibold text-muted mb-2">Description (Optional)</label>
           <div className="relative">
             <div className="pointer-events-none absolute left-3 top-3 flex h-9 w-9 items-center justify-center rounded-lg bg-purple-100 text-purple-600">
               <ClipboardList className="h-4 w-4" />
@@ -4025,7 +4025,7 @@ function CreateEventTab() {
               value={form.description}
               onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))}
               placeholder="Optional internal description for this event..."
-              className="w-full min-h-[150px] rounded-xl border border-slate-200 bg-white pl-14 pr-4 py-4 text-sm font-medium text-slate-900 placeholder:text-slate-400 outline-none resize-none transition focus:border-blue-300 focus:ring-4 focus:ring-blue-100/70"
+              className="w-full min-h-[150px] rounded-xl border border-border bg-white pl-14 pr-4 py-4 text-sm font-medium text-foreground placeholder:text-slate-400 outline-none resize-none transition focus:border-blue-300 focus:ring-4 focus:ring-blue-100/70"
             />
           </div>
         </div>
@@ -4046,12 +4046,12 @@ function CreateEventTab() {
         </button>
       </div>
 
-      <aside className="bg-white border border-slate-200/80 rounded-[22px] shadow-[0_18px_45px_rgba(15,23,42,0.06)] p-8">
+      <aside className="app-card rounded-[22px] p-8">
         <div className="mb-5 flex h-12 w-12 items-center justify-center rounded-2xl bg-orange-50 text-orange-500">
           <Lightbulb className="h-7 w-7" />
         </div>
-        <h3 className="text-xl font-bold text-slate-900 mb-2">Need AI help?</h3>
-        <p className="text-sm text-slate-600 mb-6 leading-relaxed">
+        <h3 className="text-xl font-bold text-foreground mb-2">Need AI help?</h3>
+        <p className="text-sm text-muted mb-6 leading-relaxed">
           Use the AI event builder when you do not know the template, stages, team size, or scoring structure yet.
         </p>
         <button
