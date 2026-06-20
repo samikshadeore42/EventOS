@@ -1,6 +1,6 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
-import { ArrowRight, Activity, ShieldCheck, Target, FileText, Users, Star, LayoutDashboard, Network, Sparkles, Box, Shield, Gavel, UserCircle } from 'lucide-react'
+import { ArrowRight, Activity, ShieldCheck, Target, FileText, Users, Star, LayoutDashboard, Network, Sparkles, Box, Shield, Gavel, UserCircle, TrendingUp } from 'lucide-react'
 import EventOSLogo from '../components/EventOSLogo'
 
 function Navbar() {
@@ -62,10 +62,150 @@ function StatBox({ icon: Icon, colorTheme, count, label }) {
   )
 }
 
+
+const heroSlides = [
+  {
+    eyebrow: 'AI-POWERED HACKATHON MANAGEMENT',
+    title: 'Reimagine Innovation Through',
+    highlight: 'Competition',
+    description: 'The central operating system for enterprise-grade hackathons. Connect students, innovators, and organizations to solve real-world challenges.',
+    visualType: 'metrics-orbit'
+  },
+  {
+    eyebrow: 'REAL CHALLENGES. REAL OUTCOMES.',
+    title: 'Accelerate Learning Through',
+    highlight: 'Real Challenges',
+    description: 'Partner with industry leaders, research centers, and universities in a robust, globally connected infrastructure.',
+    visualType: 'network-node'
+  },
+  {
+    eyebrow: 'LIVE TELEMETRY',
+    title: 'Build Solutions That',
+    highlight: 'Matter',
+    description: 'Track live metrics, manage team collaborations, and showcase projects on transparent, high-performance dashboards.',
+    visualType: 'telemetry-dashboard'
+  },
+  {
+    eyebrow: 'IDEAS TO IMPACT',
+    title: 'Transform Ideas Into',
+    highlight: 'Impact',
+    description: 'A unified digital ecosystem bridging hackathons, case studies, and research programs through intelligent pathways.',
+    visualType: 'layered-rings'
+  }
+];
+
+function HeroVisual({ type }) {
+  switch (type) {
+    case 'metrics-orbit':
+      return (
+        <>
+          <div className="absolute inset-0 flex items-center justify-center pointer-events-none opacity-50">
+             <div className="w-64 h-64 border border-slate-200 rounded-full absolute" />
+             <div className="w-96 h-96 border border-slate-100 rounded-full absolute" />
+          </div>
+          <div className="absolute top-1/4 right-1/4 w-2 h-2 rounded-full bg-emerald-400 opacity-50" />
+          <div className="absolute bottom-1/4 left-1/4 w-3 h-3 rounded-full bg-blue-400 opacity-50" />
+          <div className="relative z-10 grid grid-cols-2 gap-4 w-full max-w-sm">
+             <StatBox icon={Users} colorTheme="blue" label="Participants" count="10K+" />
+             <StatBox icon={Target} colorTheme="green" label="Competitions" count="500+" />
+             <StatBox icon={Box} colorTheme="orange" label="Organizations" count="100+" />
+             <StatBox icon={Activity} colorTheme="purple" label="Case Studies" count="50+" />
+          </div>
+        </>
+      )
+    case 'network-node':
+      return (
+        <div className="relative w-full h-full flex items-center justify-center">
+          {/* Connecting lines */}
+          <div className="absolute w-full h-px bg-slate-200 top-1/2 -translate-y-1/2" />
+          <div className="absolute h-full w-px bg-slate-200 left-1/2 -translate-x-1/2" />
+          <div className="absolute w-48 h-48 border-2 border-dashed border-slate-200 rounded-full" />
+          
+          {/* Nodes */}
+          <div className="absolute z-10 w-20 h-20 rounded-2xl bg-gradient-to-br from-red-500 to-purple-600 shadow-lg shadow-red-500/20 flex items-center justify-center animate-pulse">
+             <Network className="text-white" size={32} />
+          </div>
+          <div className="absolute z-10 top-[20%] left-[20%] w-12 h-12 rounded-xl bg-white border border-slate-200 shadow-sm flex items-center justify-center text-blue-500"><Users size={20} /></div>
+          <div className="absolute z-10 bottom-[20%] right-[20%] w-12 h-12 rounded-xl bg-white border border-slate-200 shadow-sm flex items-center justify-center text-emerald-500"><ShieldCheck size={20} /></div>
+          <div className="absolute z-10 top-[20%] right-[20%] w-12 h-12 rounded-xl bg-white border border-slate-200 shadow-sm flex items-center justify-center text-orange-500"><Box size={20} /></div>
+          <div className="absolute z-10 bottom-[20%] left-[20%] w-12 h-12 rounded-xl bg-white border border-slate-200 shadow-sm flex items-center justify-center text-purple-500"><Activity size={20} /></div>
+        </div>
+      )
+    case 'telemetry-dashboard':
+      return (
+        <div className="relative w-full max-w-sm">
+          <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAiIGhlaWdodD0iMjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PHBhdGggZD0iTTEgMWgyMHYyMEgxek0wIDBoMjF2MjFIMHoiIGZpbGw9Im5vbmUiIHN0cm9rZT0iI2YxZjViOSIgc3Ryb2tlLXdpZHRoPSIxIi8+PC9zdmc+')] opacity-50" />
+          <div className="relative z-10 bg-white border border-slate-200 rounded-2xl shadow-xl overflow-hidden">
+            <div className="bg-slate-50 border-b border-slate-200 px-4 py-3 flex items-center gap-2">
+              <Activity size={16} className="text-blue-600" />
+              <span className="text-xs font-black text-slate-950 uppercase tracking-widest">Live Telemetry</span>
+            </div>
+            <div className="p-5 space-y-4">
+              <div className="bg-slate-50 rounded-xl p-3 border border-slate-100">
+                <div className="text-[10px] font-bold text-slate-500 uppercase">Active Competitions</div>
+                <div className="text-2xl font-black text-slate-950">24</div>
+                <div className="w-full bg-slate-200 rounded-full h-1 mt-2">
+                  <div className="bg-emerald-500 h-1 rounded-full w-[70%]" />
+                </div>
+              </div>
+              <div className="bg-slate-50 rounded-xl p-3 border border-slate-100 flex items-center justify-between">
+                <div>
+                  <div className="text-[10px] font-bold text-slate-500 uppercase">Innovation Index</div>
+                  <div className="text-lg font-black text-slate-950">+14.2%</div>
+                </div>
+                <TrendingUp size={24} className="text-purple-500" />
+              </div>
+              <div className="space-y-2">
+                <div className="flex items-center gap-2">
+                  <div className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+                  <div className="h-1.5 bg-slate-100 rounded-full flex-1"><div className="h-full bg-emerald-500 rounded-full w-[90%]" /></div>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+                  <div className="h-1.5 bg-slate-100 rounded-full flex-1"><div className="h-full bg-emerald-500 rounded-full w-[85%]" /></div>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+                  <div className="h-1.5 bg-slate-100 rounded-full flex-1"><div className="h-full bg-emerald-500 rounded-full w-[95%]" /></div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div className="absolute -right-6 -bottom-6 bg-white border border-slate-200 rounded-xl p-3 shadow-lg z-20 flex items-center gap-2 animate-bounce">
+            <div className="w-2 h-2 rounded-full bg-blue-500 animate-pulse" />
+            <span className="text-[10px] font-bold text-slate-950 uppercase tracking-widest">DATA STREAM</span>
+          </div>
+        </div>
+      )
+    case 'layered-rings':
+      return (
+        <div className="relative w-full h-full flex items-center justify-center">
+          <div className="absolute w-80 h-32 border-2 border-slate-200 rounded-[100%] rotate-12" />
+          <div className="absolute w-80 h-32 border-2 border-slate-200/60 rounded-[100%] -rotate-12" />
+          <div className="absolute w-80 h-32 border-2 border-slate-100 rounded-[100%] rotate-45" />
+          <div className="relative z-10 w-16 h-16 rounded-full bg-gradient-to-tr from-blue-500 via-purple-500 to-red-500 shadow-[0_0_40px_rgba(168,85,247,0.4)] animate-pulse" />
+          <div className="absolute w-3 h-3 rounded-full bg-blue-500 top-[20%] left-[30%]" />
+          <div className="absolute w-4 h-4 rounded-full bg-emerald-400 bottom-[20%] right-[30%]" />
+          <div className="absolute w-2 h-2 rounded-full bg-orange-400 top-[40%] right-[20%]" />
+        </div>
+      )
+    default:
+      return null
+  }
+}
+
 function Hero() {
+  const [activeHeroSlide, setActiveHeroSlide] = useState(0);
+
+  useEffect(() => {
+    const timer = window.setInterval(() => {
+      setActiveHeroSlide((prev) => (prev + 1) % heroSlides.length)
+    }, 4000)
+    return () => window.clearInterval(timer)
+  }, []);
+
   return (
-    <section className="relative w-full pt-20 pb-16 px-6 overflow-hidden flex flex-col items-center border-b border-slate-200">
-      
+    <section className="relative w-full pt-20 pb-16 px-6 overflow-hidden flex flex-col items-center border-b border-slate-200 min-h-[700px]">
       {/* Subtle Background Patterns */}
       <div className="absolute top-20 left-10 opacity-40 hidden lg:grid grid-cols-4 gap-3 pointer-events-none">
         {Array.from({ length: 24 }).map((_, i) => <div key={i} className="w-1 h-1 rounded-full bg-slate-300" />)}
@@ -74,23 +214,28 @@ function Hero() {
       <div className="max-w-7xl mx-auto w-full relative z-10 flex flex-col lg:flex-row items-center gap-16 mb-16">
         
         {/* Left Content */}
-        <div className="w-full lg:w-[45%] flex flex-col">
-          <div className="inline-flex items-center self-start gap-2 px-3 py-1.5 rounded-full border border-blue-200 bg-blue-50 text-blue-700 text-[10px] font-bold uppercase tracking-widest mb-6">
-            <Sparkles size={12} /> AI-POWERED HACKATHON MANAGEMENT
-          </div>
-          
-          <h1 className="text-5xl lg:text-6xl font-black text-slate-950 tracking-tight leading-[1.1] mb-6">
-            Reimagine<br />
-            Innovation<br />
-            Through<br />
-            <span className="text-red-500">Competition</span>
-          </h1>
-          
-          <p className="text-lg text-slate-600 font-medium leading-relaxed max-w-lg mb-8">
-            The central operating system for enterprise-grade hackathons. Connect students, innovators, and organizations to solve real-world challenges.
-          </p>
+        <div className="w-full lg:w-[45%] flex flex-col relative h-[380px] justify-center">
+          {heroSlides.map((slide, index) => (
+            <div 
+              key={index} 
+              className={`absolute inset-0 flex flex-col justify-center transition-opacity duration-700 ease-out ${activeHeroSlide === index ? 'opacity-100 z-10' : 'opacity-0 z-0 pointer-events-none'}`}
+            >
+              <div className="inline-flex items-center self-start gap-2 px-3 py-1.5 rounded-full border border-blue-200 bg-blue-50 text-blue-700 text-[10px] font-bold uppercase tracking-widest mb-6">
+                <Sparkles size={12} /> {slide.eyebrow}
+              </div>
+              
+              <h1 className="text-5xl lg:text-6xl font-black text-slate-950 tracking-tight leading-[1.1] mb-6">
+                {slide.title}<br />
+                <span className="text-red-500">{slide.highlight}</span>
+              </h1>
+              
+              <p className="text-lg text-slate-600 font-medium leading-relaxed max-w-lg mb-8">
+                {slide.description}
+              </p>
+            </div>
+          ))}
 
-          <div className="flex flex-col sm:flex-row gap-4">
+          <div className="flex flex-col sm:flex-row gap-4 mt-auto relative z-20">
             <Link to="/participant" className="flex items-center justify-center gap-2 px-8 py-3.5 bg-gradient-to-r from-red-500 to-red-600 text-white text-sm font-bold rounded-xl shadow-lg shadow-red-500/20 hover:from-red-600 hover:to-red-700 transition-all">
               Explore Competitions <ArrowRight size={16} />
             </Link>
@@ -101,36 +246,34 @@ function Hero() {
         </div>
 
         {/* Right Visual */}
-        <div className="w-full lg:w-[55%] relative">
-          <div className="bg-white/80 backdrop-blur rounded-[28px] border border-slate-200/80 shadow-[0_24px_70px_rgba(15,23,42,0.08)] p-10 relative overflow-hidden aspect-[4/3] flex items-center justify-center">
+        <div className="w-full lg:w-[55%] relative h-[450px]">
+          <div className="bg-white/80 backdrop-blur rounded-[28px] border border-slate-200/80 shadow-[0_24px_70px_rgba(15,23,42,0.08)] p-10 relative overflow-hidden aspect-[4/3] w-full h-full flex items-center justify-center">
             
-            {/* Visual background lines/circles */}
-            <div className="absolute inset-0 flex items-center justify-center pointer-events-none opacity-50">
-               <div className="w-64 h-64 border border-slate-200 rounded-full absolute" />
-               <div className="w-96 h-96 border border-slate-100 rounded-full absolute" />
-            </div>
+            {heroSlides.map((slide, index) => (
+              <div
+                key={index}
+                className={`absolute inset-0 flex items-center justify-center transition-opacity duration-700 ease-out ${activeHeroSlide === index ? 'opacity-100 z-10' : 'opacity-0 z-0 pointer-events-none'}`}
+              >
+                <HeroVisual type={slide.visualType} />
+              </div>
+            ))}
 
-            <div className="absolute top-1/4 right-1/4 w-2 h-2 rounded-full bg-emerald-400 opacity-50" />
-            <div className="absolute bottom-1/4 left-1/4 w-3 h-3 rounded-full bg-blue-400 opacity-50" />
-            <div className="absolute bottom-10 right-10 flex gap-1.5">
-               <div className="w-2 h-2 rounded-full bg-red-500" />
-               <div className="w-2 h-2 rounded-full bg-slate-300" />
-               <div className="w-2 h-2 rounded-full bg-slate-300" />
+            <div className="absolute bottom-6 right-8 flex gap-2 z-20">
+              {heroSlides.map((_, i) => (
+                <button
+                  key={i}
+                  onClick={() => setActiveHeroSlide(i)}
+                  className={`w-2 h-2 rounded-full transition-all ${activeHeroSlide === i ? 'bg-red-500 w-4' : 'bg-slate-300'}`}
+                  aria-label={`Go to slide ${i + 1}`}
+                />
+              ))}
             </div>
-
-            <div className="relative z-10 grid grid-cols-2 gap-4 w-full max-w-sm">
-               <StatBox icon={Users} colorTheme="blue" label="Participants" count="10K+" />
-               <StatBox icon={Target} colorTheme="green" label="Competitions" count="500+" />
-               <StatBox icon={Box} colorTheme="orange" label="Organizations" count="100+" />
-               <StatBox icon={Activity} colorTheme="purple" label="Case Studies" count="50+" />
-            </div>
-
           </div>
         </div>
       </div>
 
       {/* Stats Strip */}
-      <div className="max-w-6xl mx-auto w-full bg-white/90 backdrop-blur rounded-[24px] border border-slate-200/80 shadow-[0_18px_45px_rgba(15,23,42,0.06)] px-8 py-8">
+      <div className="max-w-6xl mx-auto w-full bg-white/90 backdrop-blur rounded-[24px] border border-slate-200/80 shadow-[0_18px_45px_rgba(15,23,42,0.06)] px-8 py-8 relative z-20">
         <div className="flex flex-col md:flex-row items-center justify-between gap-8 md:gap-0 divide-y md:divide-y-0 md:divide-x divide-slate-100">
            
            <div className="flex items-center gap-4 px-6 w-full justify-center md:justify-start">
@@ -178,7 +321,6 @@ function Hero() {
     </section>
   )
 }
-
 function SectionHeader({ badge, title, subtitle }) {
   return (
     <div className="text-center mb-12 flex flex-col items-center">
