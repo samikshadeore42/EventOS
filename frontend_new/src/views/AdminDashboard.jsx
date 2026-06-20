@@ -1160,18 +1160,18 @@ function ApprovalsTab() {
 
   return (
     <div className="w-full pt-8">
-      <section className="w-full min-h-[640px] rounded-[24px] bg-card px-8 py-8 shadow-[0_18px_48px_rgba(15,23,42,0.07)] ring-1 ring-border">
+      <section className="w-full min-h-[640px] rounded-[24px] border border-slate-200/80 bg-white px-8 py-8 shadow-[0_18px_48px_rgba(15,23,42,0.06)] ring-0">
         {/* Pending Approvals heading area */}
         <div className="flex flex-col">
           <div className="flex items-center gap-2">
-            <h2 className="text-[22px] font-extrabold text-foreground">
+            <h2 className="text-[22px] font-extrabold text-slate-950">
               Pending Approvals
             </h2>
             <span className="inline-flex h-6 min-w-6 items-center justify-center rounded-full bg-red-100 px-2 text-xs font-extrabold text-red-600">
               {pending?.total_pending ?? 0}
             </span>
           </div>
-          <p className="mt-2 text-base font-semibold text-muted">
+          <p className="mt-2 text-base font-semibold text-slate-600">
             {pending?.total_pending ?? 0} team(s) awaiting review
           </p>
         </div>
@@ -1253,10 +1253,10 @@ function ApprovalsTab() {
               <CheckCircle2 size={22} />
             </div>
             <div>
-              <p className="text-base font-extrabold text-foreground">
+              <p className="text-base font-extrabold text-slate-950">
                 Formation Published
               </p>
-              <p className="mt-1 text-sm font-semibold text-muted">
+              <p className="mt-1 text-sm font-semibold text-slate-600">
                 This formation has been finalized and participants have been notified and can view their teams.
               </p>
             </div>
@@ -1272,7 +1272,7 @@ function ApprovalsTab() {
         <div className="mt-8 h-px w-full bg-slate-200/80" />
 
         {/* Empty state center */}
-        {!isLoading && pending?.total_pending === 0 && !hasPublished && !hasRejected && (
+        {!isLoading && (pending?.total_pending ?? 0) === 0 && !hasRejected && (
           <div className="flex min-h-[390px] flex-col items-center justify-center text-center">
             <div className="relative mb-8 h-36 w-44">
               <div className="absolute left-1/2 top-[96px] h-5 w-28 -translate-x-1/2 rounded-full bg-slate-200/80 blur-sm pointer-events-none" />
@@ -1301,10 +1301,10 @@ function ApprovalsTab() {
                 <path d="M142 80L145 86L151 89L145 92L142 98L139 92L133 89L139 86Z" fill="#60a5fa" />
               </svg>
             </div>
-            <p className="text-lg font-extrabold text-foreground">
+            <p className="text-lg font-extrabold text-slate-950">
               All teams reviewed
             </p>
-            <p className="mt-3 text-sm font-semibold text-muted">
+            <p className="mt-3 text-sm font-semibold text-slate-600">
               Run the solver and review lockup to populate this queue.
             </p>
           </div>
@@ -1314,18 +1314,18 @@ function ApprovalsTab() {
         {!isLoading && (pending?.total_pending ?? 0) > 0 && (
           <div className="space-y-4">
             {pending?.teams.map((team) => (
-              <div key={team.team_id} className="rounded-[18px] bg-card p-5 shadow-[0_10px_26px_rgba(15,23,42,0.05)] ring-1 ring-border">
+              <div key={team.team_id} className="rounded-[18px] border border-slate-200/80 bg-white p-5 shadow-[0_10px_26px_rgba(15,23,42,0.05)] ring-0">
                 {/* Row */}
                 <div
                   className="flex items-center gap-4 cursor-pointer"
                   onClick={() => setExpanded(expanded === team.team_id ? null : team.team_id)}
                 >
-                  <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-cardSoft text-lg font-extrabold text-muted">
+                  <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-slate-100 text-lg font-extrabold text-slate-600">
                     {team.team_name[0]}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-base font-extrabold text-foreground">{team.team_name}</p>
-                    <p className="mt-1 text-sm font-semibold text-muted">{team.member_count} members</p>
+                    <p className="text-base font-extrabold text-slate-950">{team.team_name}</p>
+                    <p className="mt-1 text-sm font-semibold text-slate-600">{team.member_count} members</p>
                   </div>
                   <span className="rounded-lg border border-amber-400 bg-amber-50 px-3 py-1 text-sm font-extrabold text-amber-600">Pending</span>
                   {expanded === team.team_id
