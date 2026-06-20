@@ -1,10 +1,9 @@
 import { useState, useEffect, useMemo } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { createPortal } from 'react-dom'
 import {
   Users, Calendar, MessageSquare, AlertTriangle, Loader2,
   Send, Plus, ChevronDown, ChevronRight,
-  Target, X, Moon, Bell, Menu, LayoutGrid, CalendarDays
+  Target, Moon, Bell, Menu, LayoutGrid, CalendarDays
 } from 'lucide-react'
 import { mentorApi, portalApi, eventStorage } from '../services/api'
 import TeamChatPanel from '../components/TeamChatPanel'
@@ -318,12 +317,12 @@ function DailyProgressForm({ teamId, members, token, onSuccess }) {
 // ── Workspace Card ───────────────────────────────────────────────────────────
 function WorkspaceCard({ title, icon: Icon, mainText, subText, actionText, onAction, colorTheme }) {
   const theme = {
-    blue: { icon: 'bg-blue-50 text-blue-600 border border-blue-200', btn: 'text-blue-700 border-blue-200 hover:bg-blue-50' },
-    purple: { icon: 'bg-purple-50 text-purple-600 border border-purple-200', btn: 'text-purple-700 border-purple-200 hover:bg-purple-50' }
+    blue: { icon: 'bg-blue-50 text-blue-600 border border-blue-200', btn: 'bg-white border-blue-300 text-blue-600 hover:bg-blue-50' },
+    purple: { icon: 'bg-purple-50 text-purple-600 border border-purple-200', btn: 'bg-white border-purple-300 text-purple-600 hover:bg-purple-50' }
   }[colorTheme]
 
   return (
-    <div className="bg-white border border-slate-200/80 rounded-[24px] p-6 shadow-sm mb-4">
+    <div className="bg-white border border-slate-200/80 rounded-[22px] shadow-[0_14px_35px_rgba(15,23,42,0.05)] p-6 mb-4">
       <div className="flex items-center gap-3 mb-5 pb-5 border-b border-slate-100">
         <div className={`w-12 h-12 rounded-xl flex items-center justify-center shrink-0 ${theme.icon}`}>
           <Icon size={24} />
@@ -334,7 +333,7 @@ function WorkspaceCard({ title, icon: Icon, mainText, subText, actionText, onAct
         <h4 className="text-base font-black text-slate-950 mb-1">{mainText}</h4>
         <p className="text-sm font-medium text-slate-500 whitespace-pre-line truncate">{subText}</p>
       </div>
-      <button onClick={onAction} className={`w-full py-3 bg-white border rounded-xl text-sm font-bold transition-colors flex items-center justify-center gap-2 ${theme.btn}`}>
+      <button onClick={onAction} className={`w-full py-3 border rounded-xl text-sm font-bold transition-colors flex items-center justify-center gap-2 ${theme.btn}`}>
         <Plus size={16} /> {actionText}
       </button>
     </div>
@@ -349,101 +348,9 @@ function TeamCard({ team, token, eventId, mentorId }) {
 
   const closeModal = () => setActiveModal(null)
 
-  const renderModal = () => {
-    if (!expanded) return null
-    return createPortal(
-      <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6 bg-slate-950/35 backdrop-blur-sm">
-        <div className="bg-white w-full max-w-5xl rounded-[28px] shadow-[0_28px_90px_rgba(15,23,42,0.25)] border border-slate-200/80 flex flex-col h-full max-h-[90vh] overflow-hidden animate-in fade-in zoom-in-95 duration-200">
-          
-          {/* Modal Header */}
-          <div className="flex items-center justify-between px-8 py-6 border-b border-slate-100 shrink-0">
-             <div>
-               <h2 className="text-xl font-black text-slate-950">{team.team_name} Workspace</h2>
-               <p className="text-sm font-medium text-slate-500 mt-1">Manage meetings, feedback, and team chat</p>
-             </div>
-             <button onClick={() => setExpanded(false)} className="w-10 h-10 rounded-full border border-slate-200 flex items-center justify-center text-slate-400 hover:text-slate-700 hover:bg-slate-50 transition-colors">
-                <X size={20} />
-             </button>
-          </div>
-
-          {/* Modal Body */}
-          <div className="flex flex-col md:flex-row flex-1 min-h-0 bg-slate-50/50">
-             
-             {/* Left Column: Actions */}
-             <div className="flex-1 p-6 md:p-8 overflow-y-auto custom-scrollbar md:border-r border-slate-100">
-                {activeModal === 'schedule' ? (
-                  <ScheduleMeetingForm teamId={team.team_id} token={token} onSuccess={closeModal} />
-                ) : activeModal === 'feedback' ? (
-                  <DailyProgressForm teamId={team.team_id} members={team.members} token={token} onSuccess={closeModal} />
-                ) : (
-                  <div className="grid grid-cols-1 gap-4 max-w-xl">
-                    <WorkspaceCard
-                      title="Schedule Meet"
-                      icon={CalendarDays}
-                      colorTheme="blue"
-                      mainText={team.next_meeting ? "Scheduled" : "No upcoming meetings."}
-                      subText={team.next_meeting ? `${new Date(team.next_meeting.scheduled_at).toLocaleString()}\n${team.next_meeting.duration_minutes}min` : "Schedule your next meeting with the team."}
-                      actionText={team.next_meeting ? "View / Edit Meeting" : "Schedule Meeting"}
-                      onAction={() => setActiveModal('schedule')}
-                    />
-
-                    <WorkspaceCard
-                      title="Submit Feedback"
-                      icon={MessageSquare}
-                      colorTheme="purple"
-                      mainText={`${team.feedback_count ?? 0} Feedbacks`}
-                      subText={`Progress Score: ${team.latest_progress_score?.toFixed(1) ?? 'N/A'}/10`}
-                      actionText="Submit Feedback"
-                      onAction={() => setActiveModal('feedback')}
-                    />
-                  </div>
-                )}
-             </div>
-
-             {/* Right Column: Chat */}
-             {eventId && mentorId && (
-               <div className="w-full md:w-[400px] flex flex-col bg-white shrink-0 border-t md:border-t-0 md:border-l border-slate-100 min-h-[50vh] md:min-h-0">
-                  <div className="flex px-4 pt-2 gap-2 overflow-x-auto border-b border-slate-100 shrink-0">
-                     <button onClick={() => setChatTab('team')} className={`px-4 py-3 text-sm font-bold border-b-2 whitespace-nowrap transition-colors ${chatTab === 'team' ? 'border-blue-600 text-blue-600' : 'border-transparent text-slate-500 hover:text-slate-700'}`}>Team Chat</button>
-                     <button onClick={() => setChatTab('mentor')} className={`px-4 py-3 text-sm font-bold border-b-2 whitespace-nowrap transition-colors ${chatTab === 'mentor' ? 'border-blue-600 text-blue-600' : 'border-transparent text-slate-500 hover:text-slate-700'}`}>Mentor Chat</button>
-                     <button onClick={() => setChatTab('support')} className={`px-4 py-3 text-sm font-bold border-b-2 whitespace-nowrap transition-colors ${chatTab === 'support' ? 'border-blue-600 text-blue-600' : 'border-transparent text-slate-500 hover:text-slate-700'}`}>Event Support</button>
-                  </div>
-                  <div className="flex-1 min-h-0 relative">
-                     {chatTab === 'team' ? (
-                       <TeamChatPanel
-                         eventId={eventId}
-                         teamId={team.team_id}
-                         token={token}
-                         kind="mentor"
-                         title="Team Chat"
-                         currentSenderId={mentorId}
-                         currentSenderRole="mentor"
-                         inline={true}
-                       />
-                     ) : (
-                       <div className="flex flex-col items-center justify-center h-full text-center p-8 text-slate-400">
-                          <MessageSquare size={32} className="mb-4 opacity-50" />
-                          <h4 className="text-sm font-bold text-slate-950 mb-1">No messages yet</h4>
-                          <p className="text-xs font-medium">Start the conversation with your team.</p>
-                          <div className="absolute bottom-6 left-6 right-6 flex items-center gap-2">
-                             <input placeholder="Type a message..." disabled className="flex-1 bg-slate-50 border border-slate-200 rounded-full px-4 py-2.5 text-sm outline-none" />
-                             <button disabled className="w-10 h-10 rounded-full bg-blue-600 text-white flex items-center justify-center shrink-0 opacity-50"><Send size={16} className="-ml-0.5 mt-0.5" /></button>
-                          </div>
-                       </div>
-                     )}
-                  </div>
-               </div>
-             )}
-          </div>
-        </div>
-      </div>,
-      document.body
-    )
-  }
-
   return (
-    <>
-      <div className="bg-white/90 border border-white/80 rounded-[24px] shadow-[0_18px_45px_rgba(15,23,42,0.08)] backdrop-blur-sm mb-4">
+    <div className="mb-4">
+      <div className="bg-white/90 border border-white/80 rounded-[24px] shadow-[0_18px_45px_rgba(15,23,42,0.08)] backdrop-blur-sm">
         <div className="flex items-center gap-4 px-6 py-5">
           <div className="w-14 h-14 rounded-xl bg-blue-50 border border-blue-100 text-blue-600 flex items-center justify-center font-bold text-lg shrink-0">
             {initials(team.team_name)}
@@ -452,18 +359,99 @@ function TeamCard({ team, token, eventId, mentorId }) {
             <p className="text-base font-black text-slate-950">{team.team_name}</p>
             <p className="text-sm font-medium text-slate-500 mt-0.5">{team.member_count} members · {team.feedback_count} feedbacks</p>
           </div>
-          <button onClick={() => setExpanded(true)} className="hidden sm:flex items-center gap-1.5 px-5 py-2.5 rounded-xl bg-white border border-slate-200 text-sm font-bold text-slate-700 hover:bg-slate-50 transition-colors">
-            Manage Team <ChevronRight size={16} className="text-slate-400" />
+          <button onClick={() => setExpanded(!expanded)} className="hidden sm:flex items-center gap-1.5 px-5 py-2.5 rounded-xl bg-white border border-slate-200 text-sm font-bold text-slate-700 hover:bg-slate-50 transition-colors">
+            Manage Team <ChevronRight size={16} className={`text-slate-400 transition-transform ${expanded ? 'rotate-90' : ''}`} />
           </button>
         </div>
         <div className="sm:hidden px-6 pb-5 pt-1">
-          <button onClick={() => setExpanded(true)} className="w-full flex items-center justify-center gap-1.5 px-5 py-2.5 rounded-xl bg-white border border-slate-200 text-sm font-bold text-slate-700 hover:bg-slate-50 transition-colors">
-            Manage Team <ChevronRight size={16} className="text-slate-400" />
+          <button onClick={() => setExpanded(!expanded)} className="w-full flex items-center justify-center gap-1.5 px-5 py-2.5 rounded-xl bg-white border border-slate-200 text-sm font-bold text-slate-700 hover:bg-slate-50 transition-colors">
+            Manage Team <ChevronRight size={16} className={`text-slate-400 transition-transform ${expanded ? 'rotate-90' : ''}`} />
           </button>
         </div>
       </div>
-      {renderModal()}
-    </>
+
+      {expanded && (
+        <div className="bg-white/95 border border-slate-200/80 rounded-[28px] shadow-[0_22px_60px_rgba(15,23,42,0.10)] overflow-hidden mt-4">
+          {/* Header */}
+          <div className="px-8 py-6 border-b border-slate-200/80">
+            <h2 className="text-2xl sm:text-3xl font-bold text-slate-950">{team.team_name} Workspace</h2>
+            <p className="text-sm font-medium text-slate-500 mt-1">Manage meetings, feedback, and team chat</p>
+          </div>
+
+          {/* Body */}
+          <div className="grid grid-cols-1 lg:grid-cols-[1.1fr_0.9fr] bg-white">
+            
+            {/* Left Column: Actions */}
+            <div className="p-8 space-y-6 bg-white">
+              {activeModal === 'schedule' ? (
+                <ScheduleMeetingForm teamId={team.team_id} token={token} onSuccess={closeModal} />
+              ) : activeModal === 'feedback' ? (
+                <DailyProgressForm teamId={team.team_id} members={team.members} token={token} onSuccess={closeModal} />
+              ) : (
+                <div className="grid grid-cols-1 gap-4 max-w-xl">
+                  <WorkspaceCard
+                    title="Schedule Meet"
+                    icon={CalendarDays}
+                    colorTheme="blue"
+                    mainText={team.next_meeting ? "Scheduled" : "No upcoming meetings."}
+                    subText={team.next_meeting ? `${new Date(team.next_meeting.scheduled_at).toLocaleString()}\n${team.next_meeting.duration_minutes}min` : "Schedule your next meeting with the team."}
+                    actionText={team.next_meeting ? "View / Edit Meeting" : "Schedule Meeting"}
+                    onAction={() => setActiveModal('schedule')}
+                  />
+
+                  <WorkspaceCard
+                    title="Submit Feedback"
+                    icon={MessageSquare}
+                    colorTheme="purple"
+                    mainText={`${team.feedback_count ?? 0} Feedbacks`}
+                    subText={`Progress Score: ${team.latest_progress_score?.toFixed(1) ?? 'N/A'}/10`}
+                    actionText="Submit Feedback"
+                    onAction={() => setActiveModal('feedback')}
+                  />
+                </div>
+              )}
+            </div>
+
+            {/* Right Column: Chat */}
+            <div className="border-t lg:border-t-0 lg:border-l border-slate-200/80 bg-slate-50/40 flex flex-col min-h-[520px]">
+              <div className="flex px-4 pt-2 gap-2 overflow-x-auto border-b border-slate-200/80 bg-white shrink-0">
+                <button onClick={() => setChatTab('team')} className={`px-4 py-3 text-sm font-bold border-b-2 whitespace-nowrap transition-colors ${chatTab === 'team' ? 'border-blue-600 text-blue-600' : 'border-transparent text-slate-500 hover:text-slate-800'}`}>Team Chat</button>
+                <button onClick={() => setChatTab('mentor')} className={`px-4 py-3 text-sm font-bold border-b-2 whitespace-nowrap transition-colors ${chatTab === 'mentor' ? 'border-blue-600 text-blue-600' : 'border-transparent text-slate-500 hover:text-slate-800'}`}>Mentor Chat</button>
+                <button onClick={() => setChatTab('support')} className={`px-4 py-3 text-sm font-bold border-b-2 whitespace-nowrap transition-colors ${chatTab === 'support' ? 'border-blue-600 text-blue-600' : 'border-transparent text-slate-500 hover:text-slate-800'}`}>Event Support</button>
+              </div>
+              <div className="flex-1 bg-gradient-to-b from-slate-50/40 to-white text-slate-700 relative flex flex-col min-h-[400px]">
+                {chatTab === 'team' && eventId && mentorId ? (
+                  <TeamChatPanel
+                    eventId={eventId}
+                    teamId={team.team_id}
+                    token={token}
+                    kind="mentor"
+                    title="Team Chat"
+                    currentSenderId={mentorId}
+                    currentSenderRole="mentor"
+                    inline={true}
+                  />
+                ) : (
+                  <div className="flex-1 flex flex-col items-center justify-center text-center p-8 text-slate-400">
+                    <MessageSquare size={32} className="mb-4 text-slate-300" />
+                    <h4 className="text-sm font-bold text-slate-950 mb-1">No messages yet</h4>
+                    <p className="text-xs font-medium text-slate-500">Start the conversation with your team.</p>
+                  </div>
+                )}
+                {(!eventId || !mentorId || chatTab !== 'team') && (
+                  <div className="bg-white border-t border-slate-200/80 p-4 shrink-0">
+                    <div className="relative flex items-center">
+                      <input placeholder="Type a message..." disabled className="w-full bg-slate-100/80 border border-slate-200 text-slate-800 placeholder:text-slate-400 rounded-full px-4 py-2.5 pr-12 text-sm focus:outline-none focus:ring-4 focus:ring-blue-100/70 focus:border-blue-300 transition-all" />
+                      <button disabled className="absolute right-1 top-1 bottom-1 w-8 h-8 rounded-full bg-blue-600 text-white flex items-center justify-center shrink-0 opacity-50"><Send size={14} className="-ml-0.5 mt-0.5" /></button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
   )
 }
 
