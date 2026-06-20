@@ -22,12 +22,6 @@ const CRITERIA = [
 
 const DEFAULT_SCORES = Object.fromEntries(CRITERIA.map((c) => [c.key, 5.0]))
 
-const SCORE_BANDS = [
- { range: '9–10', label: 'Excellent', description: 'Outstanding work with strong execution, clarity, and very few gaps.' },
- { range: '7–8.5', label: 'Good', description: 'Solid implementation with clear strengths and minor improvement areas.' },
- { range: '5–6.5', label: 'Average', description: 'Acceptable attempt, but missing depth, polish, or consistency.' },
- { range: '0–4.5', label: 'Needs work', description: 'Major gaps in implementation, explanation, feasibility, or completeness.' },
-]
 
 function weightedTotal(scores) {
  return CRITERIA.reduce((sum, c) => sum + (scores[c.key] ?? 0) * c.weight, 0)
@@ -435,127 +429,135 @@ function TeamSubmissionSection({ teamId, token }) {
  )
 }
 
-function ScoringGuideCard({ onOpen }) {
- const { isDark } = useTheme();
+function ScoringGuideCard({ onOpen, loading }) {
+  const { isDark } = useTheme();
 
- return (
- <button
- type="button"
- onClick={onOpen}
- aria-label="Open AI scoring guide"
- className={isDark ? "w-full bg-slate-900/80 border border-white/10 rounded-[16px] p-4 shadow-none flex items-center justify-between cursor-pointer hover:border-red-400/50 transition-colors text-left" : "w-full bg-white/95 border border-slate-200 rounded-[16px] p-4 shadow-[0_12px_30px_rgba(15,23,42,0.04)] flex items-center justify-between cursor-pointer hover:border-red-300 transition-colors text-left"}
- >
- <div className="flex items-center gap-4">
- <div className="w-10 h-10 rounded-lg bg-red-50 text-red-500 flex items-center justify-center shrink-0">
- <Sparkles size={20} />
- </div>
- <div>
- <h3 className={isDark ? "text-sm font-black text-slate-100 flex items-center gap-2" : "text-sm font-black text-slate-950 flex items-center gap-2"}>
- AI Scoring Guide
- </h3>
- <p className={isDark ? "text-xs font-medium text-slate-400" : "text-xs font-medium text-slate-500"}>
- View scoring rubric, criteria definitions, and examples.
- </p>
- </div>
- </div>
- <ChevronRight size={16} className="text-slate-400" />
- </button>
- )
+  return (
+    <button
+      type="button"
+      onClick={onOpen}
+      className={isDark ? "w-full bg-slate-900/80 border border-white/10 rounded-[16px] p-4 shadow-none flex items-center justify-between cursor-pointer hover:border-red-400/50 transition-colors text-left" : "w-full bg-white/95 border border-slate-200 rounded-[16px] p-4 shadow-[0_12px_30px_rgba(15,23,42,0.04)] flex items-center justify-between cursor-pointer hover:border-red-300 transition-colors text-left"}
+    >
+      <div className="flex items-center gap-4">
+        <div className="w-10 h-10 rounded-lg bg-red-50 text-red-500 flex items-center justify-center shrink-0">
+          {loading ? <Loader2 size={20} className="animate-spin" /> : <Sparkles size={20} />}
+        </div>
+        <div>
+          <h3 className={isDark ? "text-sm font-black text-slate-100 flex items-center gap-2" : "text-sm font-black text-slate-950 flex items-center gap-2"}>
+            AI Scoring Guide
+          </h3>
+          <p className={isDark ? "text-xs font-medium text-slate-400" : "text-xs font-medium text-slate-500"}>
+            Generate rubric, criteria definitions, and scoring examples using AI.
+          </p>
+        </div>
+      </div>
+      <ChevronRight size={16} className="text-slate-400" />
+    </button>
+  )
 }
 
-function ScoringGuideModal({ open, onClose }) {
- const { isDark } = useTheme();
+function ScoringGuideModal({ open, onClose, loading, error, rubric }) {
+  const { isDark } = useTheme();
 
- if (!open) return null
+  if (!open) return null
 
- return (
- <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-950/50 backdrop-blur-sm p-4">
- <div className={isDark ? "w-full max-w-3xl rounded-2xl bg-slate-950 border border-white/10 shadow-2xl overflow-hidden" : "w-full max-w-3xl rounded-2xl bg-white border border-slate-200 shadow-2xl overflow-hidden"}>
- <div className={isDark ? "flex items-center justify-between px-6 py-4 border-b border-white/10" : "flex items-center justify-between px-6 py-4 border-b border-slate-200"}>
- <div className="flex items-center gap-3">
- <div className="w-10 h-10 rounded-xl bg-red-50 text-red-500 flex items-center justify-center">
- <Sparkles size={20} />
- </div>
- <div>
- <h2 className={isDark ? "text-lg font-black text-slate-100" : "text-lg font-black text-slate-950"}>AI Scoring Guide</h2>
- <p className={isDark ? "text-xs font-medium text-slate-400" : "text-xs font-medium text-slate-500"}>Use this guide to score teams consistently.</p>
- </div>
- </div>
+  return (
+    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-950/50 backdrop-blur-sm p-4">
+      <div className={isDark ? "w-full max-w-4xl rounded-2xl bg-slate-950 border border-white/10 shadow-2xl overflow-hidden" : "w-full max-w-4xl rounded-2xl bg-white border border-slate-200 shadow-2xl overflow-hidden"}>
+        <div className={isDark ? "flex items-center justify-between px-6 py-4 border-b border-white/10" : "flex items-center justify-between px-6 py-4 border-b border-slate-200"}>
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-red-50 text-red-500 flex items-center justify-center">
+              {loading ? <Loader2 size={20} className="animate-spin" /> : <Sparkles size={20} />}
+            </div>
+            <div>
+              <h2 className={isDark ? "text-lg font-black text-slate-100" : "text-lg font-black text-slate-950"}>AI Scoring Guide</h2>
+              <p className={isDark ? "text-xs font-medium text-slate-400" : "text-xs font-medium text-slate-500"}>
+                Generated from the event criteria using the backend AI rubric service.
+              </p>
+            </div>
+          </div>
 
- <button
- type="button"
- onClick={onClose}
- className={isDark ? "p-2 rounded-xl text-slate-400 hover:text-slate-100 hover:bg-white/10 transition-colors" : "p-2 rounded-xl text-slate-500 hover:text-slate-950 hover:bg-slate-100 transition-colors"}
- aria-label="Close scoring guide"
- >
- <X size={18} />
- </button>
- </div>
+          <button
+            type="button"
+            onClick={onClose}
+            className={isDark ? "p-2 rounded-xl text-slate-400 hover:text-slate-100 hover:bg-white/10 transition-colors" : "p-2 rounded-xl text-slate-500 hover:text-slate-950 hover:bg-slate-100 transition-colors"}
+            aria-label="Close AI scoring guide"
+          >
+            <X size={18} />
+          </button>
+        </div>
 
- <div className="max-h-[72vh] overflow-y-auto px-6 py-5 space-y-6">
- <section>
- <p className={isDark ? "text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-3" : "text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-3"}>
- Criteria and weights
- </p>
+        <div className="max-h-[72vh] overflow-y-auto px-6 py-5">
+          {loading ? (
+            <div className="py-16 text-center">
+              <Loader2 size={28} className="animate-spin text-red-500 mx-auto mb-3" />
+              <p className={isDark ? "text-sm font-bold text-slate-100" : "text-sm font-bold text-slate-950"}>Generating AI scoring guide…</p>
+              <p className={isDark ? "text-xs text-slate-400 mt-1" : "text-xs text-slate-500 mt-1"}>This may take a few seconds.</p>
+            </div>
+          ) : error ? (
+            <div className="rounded-xl border border-red-200 bg-red-50 p-4 text-red-700 text-sm font-medium">
+              {error}
+            </div>
+          ) : rubric?.criteria?.length ? (
+            <div className="space-y-4">
+              {rubric.criteria.map((criterion) => (
+                <div
+                  key={criterion.name}
+                  className={isDark ? "rounded-2xl border border-white/10 bg-slate-900/80 p-5" : "rounded-2xl border border-slate-200 bg-slate-50/70 p-5"}
+                >
+                  <div className="flex items-start justify-between gap-4 mb-3">
+                    <div>
+                      <h3 className={isDark ? "text-base font-black text-slate-100" : "text-base font-black text-slate-950"}>
+                        {criterion.name}
+                      </h3>
+                      <p className={isDark ? "text-xs font-medium text-slate-400 mt-1" : "text-xs font-medium text-slate-600 mt-1"}>
+                        {criterion.description}
+                      </p>
+                    </div>
+                    <span className="shrink-0 rounded-full bg-red-50 text-red-600 px-3 py-1 text-xs font-black">
+                      {Math.round((criterion.weight || 0) * 100)}%
+                    </span>
+                  </div>
 
- <div className="grid gap-3">
- {CRITERIA.map((criterion) => {
- const Icon = criterion.icon
- const colors = themeColors[criterion.theme]
+                  <div className="mb-4">
+                    <p className={isDark ? "text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2" : "text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-2"}>
+                      What to look for
+                    </p>
+                    <ul className={isDark ? "list-disc pl-5 space-y-1 text-xs text-slate-300" : "list-disc pl-5 space-y-1 text-xs text-slate-600"}>
+                      {(criterion.what_to_look_for || []).map((item) => (
+                        <li key={item}>{item}</li>
+                      ))}
+                    </ul>
+                  </div>
 
- return (
- <div
- key={criterion.key}
- className={isDark ? "rounded-2xl border border-white/10 bg-slate-900/80 p-4" : "rounded-2xl border border-slate-200 bg-slate-50/60 p-4"}
- >
- <div className="flex items-start gap-4">
- <div className={`w-11 h-11 rounded-xl flex items-center justify-center shrink-0 ${colors.bg} ${colors.text}`}>
- <Icon size={20} />
- </div>
- <div className="flex-1">
- <div className="flex items-center gap-2 mb-1">
- <h3 className={isDark ? "text-sm font-black text-slate-100" : "text-sm font-black text-slate-950"}>
- {criterion.label}
- </h3>
- <span className={`text-[10px] font-bold px-2 py-0.5 rounded-md ${colors.bg} ${colors.text}`}>
- {(criterion.weight * 100).toFixed(0)}%
- </span>
- </div>
- <p className={isDark ? "text-xs font-medium text-slate-400" : "text-xs font-medium text-slate-600"}>
- {criterion.description}
- </p>
- </div>
- </div>
- </div>
- )
- })}
- </div>
- </section>
-
- <section>
- <p className={isDark ? "text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-3" : "text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-3"}>
- Scoring bands
- </p>
-
- <div className="grid gap-2">
- {SCORE_BANDS.map((band) => (
- <div
- key={band.range}
- className={isDark ? "flex gap-4 rounded-xl border border-white/10 bg-slate-900/70 p-3" : "flex gap-4 rounded-xl border border-slate-200 bg-white p-3"}
- >
- <div className="w-16 shrink-0 text-sm font-black text-red-500">{band.range}</div>
- <div>
- <p className={isDark ? "text-sm font-black text-slate-100" : "text-sm font-black text-slate-950"}>{band.label}</p>
- <p className={isDark ? "text-xs font-medium text-slate-400" : "text-xs font-medium text-slate-500"}>{band.description}</p>
- </div>
- </div>
- ))}
- </div>
- </section>
- </div>
- </div>
- </div>
- )
+                  <div>
+                    <p className={isDark ? "text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-2" : "text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-2"}>
+                      Scoring guide
+                    </p>
+                    <div className="grid gap-2">
+                      {Object.entries(criterion.scoring_guide || {}).map(([range, text]) => (
+                        <div
+                          key={range}
+                          className={isDark ? "rounded-xl border border-white/10 bg-slate-950/60 p-3" : "rounded-xl border border-slate-200 bg-white p-3"}
+                        >
+                          <p className="text-xs font-black text-red-500 mb-1">{range}</p>
+                          <p className={isDark ? "text-xs font-medium text-slate-300" : "text-xs font-medium text-slate-600"}>{text}</p>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="py-12 text-center text-sm text-slate-500">
+              Click AI Scoring Guide again to generate the rubric.
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  )
 }
 
 // ── Team queue sidebar ─────────────────────────────────────────────────────
@@ -631,9 +633,11 @@ function JudgePortalContent() {
  const { setToken } = useAuth()
  const [selectedTeam, setSelectedTeam] = useState(null)
  const [submittedIds, setSubmittedIds] = useState([])
+ const [aiRubric, setAiRubric] = useState(null)
+ const [aiRubricError, setAiRubricError] = useState('')
+ 
 
  const [showScoringGuide, setShowScoringGuide] = useState(false)
-
  // Extract token from URL on mount
  const rawUrlToken = useMemo(() => {
  return new URLSearchParams(window.location.search).get('token')
@@ -650,6 +654,50 @@ function JudgePortalContent() {
  : null
  }, [rawUrlToken, evaluatorPortalTokenKey])
 
+ const rubricMutation = useMutation({
+  mutationFn: async () => {
+    if (!selectedTeam) {
+      throw new Error('Select a team before generating the scoring guide.')
+    }
+
+    const criteriaWeights = Object.fromEntries(
+      CRITERIA.map((c) => [c.label, c.weight])
+    )
+
+    const enqueue = await evaluationsApi.aiRubric({
+      challenge_area: 'Hackathon project evaluation',
+      criteria: criteriaWeights,
+      event_name: 'WiSE@TI Hackathon',
+      team_context: {
+        team_id: selectedTeam.team_id,
+        team_name: selectedTeam.team_name,
+      },
+    }, urlToken)
+
+    for (let i = 0; i < 30; i += 1) {
+      await new Promise((resolve) => setTimeout(resolve, 2000))
+
+      try {
+        const result = await evaluationsApi.aiRubricResult(enqueue.task_id, urlToken)
+        return result
+      } catch (err) {
+        if (!err.message?.includes('still generating')) {
+          throw err
+        }
+      }
+    }
+
+    throw new Error('AI scoring guide generation timed out. Please try again.')
+  },
+  onSuccess: (result) => {
+    setAiRubric(result)
+    setAiRubricError('')
+  },
+  onError: (err) => {
+    setAiRubricError(err.message || 'Failed to generate AI scoring guide.')
+  },
+ })
+
  useEffect(() => {
  if (!rawUrlToken || !evaluatorPortalTokenKey) return
  sessionStorage.setItem(evaluatorPortalTokenKey, rawUrlToken)
@@ -663,6 +711,8 @@ function JudgePortalContent() {
  retry: false,
  staleTime: 5 * 60 * 1000,
  })
+
+ 
 
  // ── Render guards ────────────────────────────────────────────────────────
 
@@ -716,6 +766,8 @@ function JudgePortalContent() {
 
  function handleTeamSelect(team) {
  setSelectedTeam(team)
+ setAiRubric(null)
+ setAiRubricError('')
  window.scrollTo({ top: 0, behavior: 'smooth' })
  }
 
@@ -726,6 +778,14 @@ function JudgePortalContent() {
  (t) => !allSubmitted.includes(t.team_id) && !t.already_graded
  )
  setSelectedTeam(nextTeam ?? null)
+ }
+
+ function handleOpenScoringGuide() {
+  setShowScoringGuide(true)
+
+  if (!aiRubric && !rubricMutation.isPending) {
+    rubricMutation.mutate()
+  }
  }
 
  // ── Main layout ──────────────────────────────────────────────────────────
@@ -783,8 +843,17 @@ function JudgePortalContent() {
  {/* Selected Team Content */}
  {selectedTeam && (
  <div className="flex flex-col gap-4 animate-in fade-in slide-in-from-bottom-4 duration-500">
- <ScoringGuideCard onOpen={() => setShowScoringGuide(true)} />
- <ScoringGuideModal open={showScoringGuide} onClose={() => setShowScoringGuide(false)} />
+ <ScoringGuideCard
+     onOpen={handleOpenScoringGuide}
+     loading={rubricMutation.isPending}
+     />
+     <ScoringGuideModal
+     open={showScoringGuide}
+     onClose={() => setShowScoringGuide(false)}
+     loading={rubricMutation.isPending}
+     error={aiRubricError}
+     rubric={aiRubric}
+     />
  <TeamSubmissionSection teamId={selectedTeam.team_id} token={urlToken} />
 
  <ScoringForm
