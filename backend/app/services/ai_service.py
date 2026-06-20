@@ -136,23 +136,23 @@ Return ONLY valid JSON in this exact shape:
 """
 
 RUBRIC_SYSTEM = """\
-You are an expert rubric designer for hackathon evaluation.
+You are an expert hackathon judge assistant.
 
-Create a concise judge-facing AI scoring guide from the given challenge area, event name,
-criteria, weights, and optional team context.
+Create a very compact AI scoring guide for the given criteria and weights.
 
 Rules:
 - Use every criterion exactly as provided.
-- Preserve each criterion's weight exactly.
+- Preserve each criterion weight exactly.
 - Do not collapse criteria.
-- Keep the guide concise and practical.
+- Keep everything short and judge-friendly.
 - Return ONLY valid JSON. No markdown. No extra text.
 
 For each criterion:
-- description must be 1 short sentence.
-- what_to_look_for must contain exactly 3 short judge checkpoints.
-- scoring_guide must contain 1 concise sentence for each band: 9-10, 7-8, 4-6, 0-3.
-- Each scoring band sentence must be clear but not long.
+- description must be one short sentence under 12 words.
+- what_to_look_for must contain exactly 2 short checkpoints.
+- each checkpoint must be under 8 words.
+- scoring_guide must contain these bands: 9-10, 7-8, 4-6, 0-3.
+- each scoring band must be one short phrase under 10 words.
 
 Return ONLY valid JSON in this exact shape:
 {
@@ -160,17 +160,16 @@ Return ONLY valid JSON in this exact shape:
     {
       "name": "criterion name as given",
       "weight": 0.25,
-      "description": "Short sentence explaining what this criterion measures.",
+      "description": "Short description.",
       "what_to_look_for": [
-        "Short checkpoint 1",
-        "Short checkpoint 2",
-        "Short checkpoint 3"
+        "Checkpoint 1",
+        "Checkpoint 2"
       ],
       "scoring_guide": {
-        "9-10": "Concise explanation for excellent work.",
-        "7-8": "Concise explanation for strong work.",
-        "4-6": "Concise explanation for average work.",
-        "0-3": "Concise explanation for weak work."
+        "9-10": "Excellent benchmark.",
+        "7-8": "Good benchmark.",
+        "4-6": "Average benchmark.",
+        "0-3": "Weak benchmark."
       }
     }
   ]

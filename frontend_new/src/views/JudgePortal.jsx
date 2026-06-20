@@ -43,6 +43,13 @@ const themeColors = {
 
 // ── Shared UI Components ───────────────────────────────────────────────────
 
+function compactGuideText(value, maxWords = 12) {
+ const text = String(value || '').replace(/\s+/g, ' ').trim()
+ if (!text) return ''
+ const words = text.split(' ')
+ return words.length <= maxWords ? text : `${words.slice(0, maxWords).join(' ')}…`
+}
+
 function FullPageMessage({ icon: Icon, title, message }) {
  const { isDark } = useTheme();
  return (
@@ -139,7 +146,7 @@ function CriterionSlider({ criterion, value, onChange }) {
  {(criterion.weight * 100).toFixed(0)}%
  </span>
  </div>
- <p className={isDark ? "text-xs font-medium text-slate-400" : "text-xs font-medium text-slate-500"}>{criterion.description}</p>
+ <p className={isDark ? "text-xs font-medium text-slate-400" : "text-xs font-medium text-slate-500"}>{compactGuideText(criterion.description, 12)}</p>
  </div>
  </div>
 
@@ -504,7 +511,7 @@ function ScoringGuideModal({ open, onClose, loading, error, rubric }) {
                      {criterion.name}
                    </h3>
                    <p className={isDark ? "text-xs font-medium text-slate-400 mt-1 leading-relaxed" : "text-xs font-medium text-slate-600 mt-1 leading-relaxed"}>
-                     {criterion.description}
+                     {compactGuideText(criterion.description, 12)}
                    </p>
                  </div>
                  <span className="shrink-0 rounded-full bg-red-50 text-red-600 px-3 py-1 text-xs font-black">
@@ -517,8 +524,8 @@ function ScoringGuideModal({ open, onClose, loading, error, rubric }) {
                    What to look for
                  </p>
                  <ul className={isDark ? "list-disc pl-5 space-y-1 text-xs text-slate-300" : "list-disc pl-5 space-y-1 text-xs text-slate-600"}>
-                   {(criterion.what_to_look_for || []).slice(0, 3).map((item) => (
-                     <li key={item}>{item}</li>
+                   {(criterion.what_to_look_for || []).slice(0, 2).map((item) => (
+                     <li key={item}>{compactGuideText(item, 8)}</li>
                    ))}
                  </ul>
                </div>
@@ -535,7 +542,7 @@ function ScoringGuideModal({ open, onClose, loading, error, rubric }) {
                      >
                        <p className="text-xs font-black text-red-500 mb-1">{range}</p>
                        <p className={isDark ? "text-xs font-medium text-slate-300 leading-relaxed" : "text-xs font-medium text-slate-600 leading-relaxed"}>
-                         {text}
+                         {compactGuideText(text, 10)}
                        </p>
                      </div>
                    ))}
