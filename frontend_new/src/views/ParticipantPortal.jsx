@@ -851,7 +851,9 @@ export default function ParticipantPortal() {
         <div className="text-center max-w-sm bg-white p-8 rounded-[22px] shadow-sm border border-slate-200">
           <AlertTriangle size={40} className="text-orange-500 mx-auto mb-4" />
           <h2 className="text-lg font-bold text-slate-950 mb-1">No access token</h2>
-          <p className="text-sm font-medium text-slate-600">Please use the secure participant link sent to your email.</p>
+          <p className="text-sm font-medium text-slate-600">
+            Please use the secure participant link sent to your email. It looks like /participant?token=...
+          </p>
         </div>
       </div>
     )
