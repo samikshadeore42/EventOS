@@ -3630,6 +3630,8 @@ function DemoControlsTab() {
   const qc = useQueryClient()
   const { activeEvent, loadEvents } = useAuth()
   const [deleteEventConfirm, setDeleteEventConfirm] = useState('')
+  const [deleteEventError, setDeleteEventError] = useState('')
+  const [deleteEventSuccess, setDeleteEventSuccess] = useState('')
   const [confirmText, setConfirmText] = useState('')
   const [auditResult, setAuditResult] = useState(null);
   const [auditError, setAuditError] = useState('');
@@ -3696,15 +3698,78 @@ function DemoControlsTab() {
   })
 
   const deleteEventMutation = useMutation({
-    mutationFn: () => eventsApi.remove(activeEvent.id),
+    mutationFn: async () => {
+      const eventId = activeEvent?.id
+
+      if (!eventId) {
+        throw new Error('No active event selected.')
+      }
+
+      return eventsApi.remove(eventId)
+    },
+    onMutate: () => {
+      setDeleteEventError('')
+      setDeleteEventSuccess('')
+    },
     onSuccess: async (res) => {
-      alert(res?.data?.message || res?.message || 'Event deleted successfully.')
+      const message =
+        res?.data?.message ||
+        res?.message ||
+        `${activeEvent?.name || 'Event'} deleted successfully.`
+
       setDeleteEventConfirm('')
+      setDeleteEventError('')
+      setDeleteEventSuccess(message)
+
+      try {
+        localStorage.removeItem('eventos_active_event_id')
+      } catch {
+        // ignore localStorage failure
+      }
+
       qc.clear()
       await loadEvents()
+      await refetchStatus()
     },
-    onError: (err) => alert('Error: ' + (err.response?.data?.detail || err.message))
+    onError: (err) => {
+      const message =
+        err?.response?.data?.detail ||
+        err?.message ||
+        'Failed to delete event.'
+
+      setDeleteEventError(message)
+      setDeleteEventSuccess('')
+      alert(`Delete event failed: ${message}`)
+    },
   })
+
+
+  const handleDeleteCurrentEvent = useCallback((event) => {
+    event?.preventDefault?.()
+    event?.stopPropagation?.()
+
+    const typed = deleteEventConfirm.trim()
+
+    if (!activeEvent?.id) {
+      setDeleteEventError('No active event selected.')
+      return
+    }
+
+    if (typed !== 'DELETE_EVENT') {
+      setDeleteEventError('Type DELETE_EVENT exactly to enable deletion.')
+      return
+    }
+
+    const ok = window.confirm(
+      `Delete event "${activeEvent?.name}" permanently? This cannot be undone.`
+    )
+
+    if (!ok) return
+
+    deleteEventMutation.mutate()
+  }, [activeEvent?.id, activeEvent?.name, deleteEventConfirm, deleteEventMutation])
+
+
 
   return (
     <div>
@@ -3808,33 +3873,59 @@ function DemoControlsTab() {
           <AlertTriangle size={20} />
           <h3 className="text-lg font-extrabold">Delete Current Event</h3>
         </div>
+
         <p className="text-sm font-medium text-muted mb-2 max-w-3xl">
           This permanently deletes the selected event and its event-scoped data. Use this only for demo/test events.
         </p>
+
         <p className="text-sm font-extrabold text-foreground mb-6">
           Selected event: {activeEvent?.name || 'No event selected'}
         </p>
+
         <div className="flex flex-col md:flex-row gap-4 items-center">
           <input
             type="text"
             value={deleteEventConfirm}
-            onChange={(e) => setDeleteEventConfirm(e.target.value)}
+            onChange={(e) => {
+              setDeleteEventConfirm(e.target.value)
+              setDeleteEventError('')
+              setDeleteEventSuccess('')
+            }}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') {
+                e.preventDefault()
+                const typed = e.target.value.trim()
+                if (activeEvent?.id && typed === 'DELETE_EVENT' && !deleteEventMutation.isPending) {
+                  handleDeleteCurrentEvent(e)
+                }
+              }
+            }}
             placeholder="Type DELETE_EVENT"
             className="w-full app-input h-11 px-4 text-sm font-medium text-muted placeholder:text-slate-400 focus:outline-none focus:border-blue-300 focus:ring-2 focus:ring-blue-100 transition-all"
           />
+
           <button
-            onClick={() => {
-              if (window.confirm(`Delete event "${activeEvent?.name}" permanently?`)) {
-                deleteEventMutation.mutate()
-              }
-            }}
-            disabled={!activeEvent?.id || deleteEventConfirm !== 'DELETE_EVENT' || deleteEventMutation.isPending}
+            type="button"
+            onClick={handleDeleteCurrentEvent}
+            disabled={!activeEvent?.id || deleteEventConfirm.trim() !== 'DELETE_EVENT' || deleteEventMutation.isPending}
             className="w-full md:w-auto shrink-0 px-6 h-11 bg-red-500 hover:bg-red-600 text-white text-sm font-extrabold rounded-xl transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
           >
             {deleteEventMutation.isPending ? <Loader2 size={16} className="animate-spin" /> : <Trash2 size={16} />}
             Delete Event
           </button>
         </div>
+
+        {deleteEventError && (
+          <div className="mt-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-bold text-red-700">
+            {deleteEventError}
+          </div>
+        )}
+
+        {deleteEventSuccess && (
+          <div className="mt-4 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-bold text-emerald-700">
+            {deleteEventSuccess}
+          </div>
+        )}
       </div>
 
       {/* Security & Integrity Section */}

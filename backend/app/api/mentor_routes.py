@@ -332,6 +332,38 @@ def mentor_portal_mark_all_notifications_read(
     mentor_id = _get_mentor_id(token, scope)
     return {"marked_read": mark_all_read_for_mentor(scope.db, scope.event_id, mentor_id)}
 
+
+
+@portal_router.get("/mentor-portal/updates", summary="Mentor: list updates from assigned teams")
+def mentor_portal_updates(
+    token: str = Query(..., description="Mentor JWT"),
+    scope: ScopedEventService = Depends(get_event_scope),
+):
+    from app.services.mentor_notification_service import (
+        list_updates_for_mentor,
+        materialize_update_notifications_for_mentor,
+    )
+
+    mentor_id = _get_mentor_id(token, scope)
+    materialize_update_notifications_for_mentor(scope.db, scope.event_id, mentor_id)
+    return {"updates": list_updates_for_mentor(scope.db, scope.event_id, mentor_id)}
+
+
+@portal_router.get("/mentor-portal/updates/team/{team_id}", summary="Mentor: list updates for one assigned team")
+def mentor_portal_team_updates(
+    team_id: UUID,
+    token: str = Query(..., description="Mentor JWT"),
+    scope: ScopedEventService = Depends(get_event_scope),
+):
+    from app.services.mentor_notification_service import (
+        list_updates_for_mentor,
+        materialize_update_notifications_for_mentor,
+    )
+
+    mentor_id = _get_mentor_id(token, scope)
+    materialize_update_notifications_for_mentor(scope.db, scope.event_id, mentor_id)
+    return {"updates": list_updates_for_mentor(scope.db, scope.event_id, mentor_id, team_id=team_id)}
+
 # ═══════════════════════════════════════════════════════════════════════════
 # ADMIN MENTOR OPS
 # ═══════════════════════════════════════════════════════════════════════════

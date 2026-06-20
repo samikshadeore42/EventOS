@@ -304,7 +304,12 @@ export const invitationsApi = {
 export const eventsApi = {
   list: () => api.get('/events'),
   create: (data) => api.post('/events', data),
-  remove: (id) => api.delete(`/events/${id}`),
+  remove: (id) => {
+    if (!id) {
+      return Promise.reject(new Error('Event id is required to delete event.'))
+    }
+    return api.delete(`/events/${id}`)
+  },
   templates: () => api.get('/templates'),
 }
 
