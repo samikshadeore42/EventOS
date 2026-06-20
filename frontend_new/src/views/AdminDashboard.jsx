@@ -804,26 +804,26 @@ function TeamsTab() {
   return (
     <div>
       {/* Solver config form */}
-      <div className="rounded-[24px] bg-card p-8 shadow-[0_18px_45px_rgba(15,23,42,0.08)] ring-1 ring-border mb-6">
+      <div className="rounded-[24px] border border-slate-200/80 bg-white p-8 shadow-[0_18px_45px_rgba(15,23,42,0.06)] ring-0 mb-6">
         <h2 className="text-2xl font-extrabold text-red-600">Solver Configuration</h2>
 
         <div className="mt-8 grid grid-cols-1 gap-8 lg:grid-cols-3">
           {/* Column 1 */}
-          <div className="space-y-10 lg:border-r lg:border-border lg:pr-10">
+          <div className="space-y-10 lg:border-r lg:border-slate-200/80 lg:pr-10">
             {/* Number of teams */}
             <div className="flex items-start gap-5">
               <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-blue-100 text-blue-600">
                 <Users className="h-6 w-6" />
               </div>
               <div>
-                <label className="block text-sm font-semibold text-muted">
+                <label className="block text-sm font-semibold text-slate-700">
                   Number of teams
                 </label>
                 <input
                   type="number" min={1} max={50}
                   value={config.num_teams}
                   onChange={(e) => setConfig((c) => ({ ...c, num_teams: +e.target.value }))}
-                  className="mt-2 w-24 bg-transparent text-2xl font-extrabold text-foreground outline-none placeholder:text-slate-400"
+                  className="mt-2 w-24 bg-transparent text-2xl font-extrabold text-slate-950 outline-none placeholder:text-slate-400"
                 />
               </div>
             </div>
@@ -834,35 +834,35 @@ function TeamsTab() {
                 <UserPlus className="h-6 w-6" />
               </div>
               <div>
-                <label className="block text-sm font-semibold text-muted">
+                <label className="block text-sm font-semibold text-slate-700">
                   Max size
                 </label>
                 <input
                   type="number" min={2} max={10}
                   value={config.k_max}
                   onChange={(e) => setConfig((c) => ({ ...c, k_max: +e.target.value }))}
-                  className="mt-2 w-24 bg-transparent text-2xl font-extrabold text-foreground outline-none placeholder:text-slate-400"
+                  className="mt-2 w-24 bg-transparent text-2xl font-extrabold text-slate-950 outline-none placeholder:text-slate-400"
                 />
               </div>
             </div>
           </div>
 
           {/* Column 2 */}
-          <div className="space-y-10 lg:border-r lg:border-border lg:pr-10">
+          <div className="space-y-10 lg:border-r lg:border-slate-200/80 lg:pr-10">
             {/* Target team size */}
             <div className="flex items-start gap-5">
               <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-green-100 text-green-600">
                 <Target className="h-6 w-6" />
               </div>
               <div>
-                <label className="block text-sm font-semibold text-muted">
+                <label className="block text-sm font-semibold text-slate-700">
                   Target team size
                 </label>
                 <input
                   type="number" min={2} max={10}
                   value={config.target_size}
                   onChange={(e) => setConfig((c) => ({ ...c, target_size: +e.target.value }))}
-                  className="mt-2 w-24 bg-transparent text-2xl font-extrabold text-foreground outline-none placeholder:text-slate-400"
+                  className="mt-2 w-24 bg-transparent text-2xl font-extrabold text-slate-950 outline-none placeholder:text-slate-400"
                 />
               </div>
             </div>
@@ -873,14 +873,14 @@ function TeamsTab() {
                 <Building2 className="h-6 w-6" />
               </div>
               <div>
-                <label className="block text-sm font-semibold text-muted">
+                <label className="block text-sm font-semibold text-slate-700">
                   Max / institution
                 </label>
                 <input
                   type="number" min={1} max={5}
                   value={config.max_per_institution}
                   onChange={(e) => setConfig((c) => ({ ...c, max_per_institution: +e.target.value }))}
-                  className="mt-2 w-24 bg-transparent text-2xl font-extrabold text-foreground outline-none placeholder:text-slate-400"
+                  className="mt-2 w-24 bg-transparent text-2xl font-extrabold text-slate-950 outline-none placeholder:text-slate-400"
                 />
               </div>
             </div>
@@ -894,21 +894,21 @@ function TeamsTab() {
                 <User className="h-6 w-6" />
               </div>
               <div>
-                <label className="block text-sm font-semibold text-muted">
+                <label className="block text-sm font-semibold text-slate-700">
                   Min size
                 </label>
                 <input
                   type="number" min={1} max={10}
                   value={config.k_min}
                   onChange={(e) => setConfig((c) => ({ ...c, k_min: +e.target.value }))}
-                  className="mt-2 w-24 bg-transparent text-2xl font-extrabold text-foreground outline-none placeholder:text-slate-400"
+                  className="mt-2 w-24 bg-transparent text-2xl font-extrabold text-slate-950 outline-none placeholder:text-slate-400"
                 />
               </div>
             </div>
 
             {/* Use mock data */}
             <div className="flex items-start gap-5 pt-2">
-              <label className="flex items-center gap-3 text-sm font-semibold text-muted cursor-pointer">
+              <label className="flex items-center gap-3 text-sm font-semibold text-slate-700 cursor-pointer">
                 <input
                   type="checkbox"
                   checked={config.use_mock_data}
