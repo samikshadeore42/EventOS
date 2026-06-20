@@ -17,8 +17,12 @@ function initials(name = '') {
 }
 
 function Badge({ children }) {
+  let colorClass = "bg-white border border-slate-200 text-slate-800";
+  if (children === "AI") colorClass = "bg-blue-50 text-blue-700";
+  else if (children === "ML") colorClass = "bg-purple-50 text-purple-700";
+
   return (
-    <span className="inline-flex items-center gap-1 text-[11px] font-bold px-3 py-1 rounded-full bg-slate-50 border border-slate-200 text-slate-700">
+    <span className={`inline-flex items-center gap-1 text-[11px] font-bold px-3 py-1 rounded-full ${colorClass}`}>
       {children}
     </span>
   )
@@ -27,15 +31,15 @@ function Badge({ children }) {
 // ── Loading skeleton ───────────────────────────────────────────────────────
 function PortalSkeleton() {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/40 to-slate-100 flex flex-col">
+    <div className="min-h-screen bg-gradient-to-br from-[#f8fbff] via-[#eef6fb] to-[#f7fbff] flex flex-col">
       <div className="bg-white/80 border-b border-slate-200/70 h-16 w-full animate-pulse" />
       <div className="max-w-6xl w-full mx-auto px-4 py-12">
         <div className="h-6 w-48 bg-slate-200 rounded animate-pulse mb-4" />
         <div className="h-4 w-32 bg-slate-200 rounded animate-pulse mb-12" />
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-12">
-          {[1,2,3,4].map(i => <div key={i} className="h-32 bg-white/60 rounded-[24px] animate-pulse" />)}
+          {[1,2,3,4].map(i => <div key={i} className="h-32 bg-white border border-white/80 rounded-[24px] animate-pulse shadow-[0_18px_45px_rgba(15,23,42,0.08)]" />)}
         </div>
-        <div className="h-24 bg-white/60 rounded-[24px] animate-pulse" />
+        <div className="h-24 bg-white border border-white/80 rounded-[24px] animate-pulse shadow-[0_18px_45px_rgba(15,23,42,0.08)]" />
       </div>
     </div>
   )
@@ -51,7 +55,7 @@ function StatCard({ label, value, sub, statusText, colorTheme, icon: Icon }) {
   }[colorTheme]
 
   return (
-    <div className="bg-white/90 border border-slate-200/70 rounded-[24px] shadow-[0_18px_45px_rgba(15,23,42,0.08)] p-6 flex flex-col h-full backdrop-blur transition-all hover:-translate-y-1">
+    <div className="bg-white/90 border border-white/80 rounded-[24px] shadow-[0_18px_45px_rgba(15,23,42,0.08)] p-6 flex flex-col h-full backdrop-blur-sm transition-all hover:-translate-y-1">
       <div className="flex justify-between items-start mb-4">
         <div>
           <p className="text-xs font-bold text-slate-950 uppercase tracking-widest mb-2">{label}</p>
@@ -439,7 +443,7 @@ function TeamCard({ team, token, eventId, mentorId }) {
 
   return (
     <>
-      <div className="bg-white/90 border border-slate-200/70 rounded-[22px] shadow-sm mb-4">
+      <div className="bg-white/90 border border-white/80 rounded-[24px] shadow-[0_18px_45px_rgba(15,23,42,0.08)] backdrop-blur-sm mb-4">
         <div className="flex items-center gap-4 px-6 py-5">
           <div className="w-14 h-14 rounded-xl bg-blue-50 border border-blue-100 text-blue-600 flex items-center justify-center font-bold text-lg shrink-0">
             {initials(team.team_name)}
@@ -554,21 +558,13 @@ export default function MentorPortal() {
   const mentorName = profile.name?.split(' ')[0] ?? 'Mentor'
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/40 to-slate-100 text-slate-950 font-sans pb-20 relative overflow-x-hidden">
+    <div className="min-h-screen bg-gradient-to-br from-[#f8fbff] via-[#eef6fb] to-[#f7fbff] text-slate-950 font-sans pb-20 relative overflow-x-hidden">
       
       <PortalNavbar mentorName={profile.name ?? 'Mentor'} />
 
       {/* Decorative Dots */}
-      <div className="absolute top-32 right-12 opacity-30 hidden lg:grid grid-cols-5 gap-3 pointer-events-none">
-        {Array.from({ length: 25 }).map((_, i) => (
-          <div key={i} className="w-1.5 h-1.5 rounded-full bg-slate-400" />
-        ))}
-      </div>
-      <div className="absolute bottom-64 left-12 opacity-30 hidden lg:grid grid-cols-5 gap-3 pointer-events-none">
-        {Array.from({ length: 25 }).map((_, i) => (
-          <div key={i} className="w-1.5 h-1.5 rounded-full bg-red-400" />
-        ))}
-      </div>
+      <div className="pointer-events-none absolute right-14 top-28 h-28 w-28 opacity-30 [background-image:radial-gradient(#cbd5e1_1.5px,transparent_1.5px)] [background-size:16px_16px]" />
+      <div className="pointer-events-none absolute left-14 bottom-28 h-24 w-24 opacity-25 [background-image:radial-gradient(#f87171_1.5px,transparent_1.5px)] [background-size:16px_16px]" />
 
       <div className="max-w-6xl w-full mx-auto px-4 sm:px-6 py-12 relative z-10">
         
