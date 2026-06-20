@@ -3,7 +3,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import {
   Users, Calendar, MessageSquare, AlertTriangle, Loader2,
   Send, Plus, ChevronDown, ChevronRight,
-  Target, Moon, Bell, Menu, LayoutGrid, CalendarDays
+  Target, Bell, Menu, LayoutGrid, CalendarDays
 } from 'lucide-react'
 import { mentorApi, portalApi, eventStorage } from '../services/api'
 import TeamChatPanel from '../components/TeamChatPanel'

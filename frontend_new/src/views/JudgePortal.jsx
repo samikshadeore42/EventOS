@@ -3,7 +3,7 @@ import { useQuery, useMutation } from '@tanstack/react-query'
 import {
   ClipboardList, CheckCircle, Loader2, AlertTriangle,
   ChevronRight, ArrowLeft, RotateCcw, Download,
-  Code, Lightbulb, MonitorPlay, ShieldCheck, TrendingUp, Sparkles, FileText, Sun
+  Code, Lightbulb, MonitorPlay, ShieldCheck, TrendingUp, Sparkles, FileText
 } from 'lucide-react'
 import { portalApi, evaluationsApi, aiApi, solverApi, submissionsApi, eventStorage } from '../services/api'
 import { useAuth } from '../context/AuthContext'
