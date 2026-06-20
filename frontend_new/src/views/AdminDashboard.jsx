@@ -3930,7 +3930,7 @@ function CreateEventTab() {
 
   return (
     <div className="grid grid-cols-1 xl:grid-cols-[minmax(0,1fr)_320px] gap-6 items-start">
-      <div className="app-card rounded-[22px] p-8">
+      <div className="bg-white border border-slate-100 shadow-[0_18px_45px_rgba(15,23,42,0.06)] rounded-[22px] p-8 dark:bg-slate-900/80 dark:border-white/10 dark:shadow-none">
         <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4 mb-8">
           <div>
             <h2 className="text-2xl font-bold text-red-600">Create Event</h2>
@@ -3938,7 +3938,7 @@ function CreateEventTab() {
               Create from a system template. The event receives a copied template config and its own active capabilities.
             </p>
           </div>
-          <button type="button" className="inline-flex items-center gap-2 rounded-xl border border-border bg-card px-4 py-2 text-sm font-semibold text-muted shadow-sm hover:bg-cardSoft shrink-0 transition-colors">
+          <button type="button" className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-800 shadow-sm hover:bg-slate-50 shrink-0 transition-colors dark:bg-slate-900/70 dark:border-white/10 dark:text-slate-100 dark:hover:bg-slate-800">
             <LayoutTemplate className="h-4 w-4" />
             Template marketplace
           </button>
@@ -3959,7 +3959,7 @@ function CreateEventTab() {
                   slug: f.slug || slugifyEventName(e.target.value),
                 }))}
                 placeholder="Smart India Hackathon Demo"
-                className="w-full h-14 rounded-xl border border-border bg-card pl-14 pr-4 text-sm font-medium text-foreground placeholder:text-slate-400 outline-none transition focus:border-blue-300 focus:ring-4 focus:ring-blue-100/70"
+                className="w-full h-14 rounded-xl border border-slate-200 bg-white pl-14 pr-4 text-sm font-medium text-slate-900 placeholder:text-slate-400 outline-none transition focus:border-red-300 focus:ring-4 focus:ring-red-100 shadow-sm dark:bg-slate-950/70 dark:border-white/10 dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus:border-red-400/50 dark:focus:ring-red-500/10"
               />
             </div>
           </div>
@@ -3973,7 +3973,7 @@ function CreateEventTab() {
                 value={form.slug}
                 onChange={(e) => setForm((f) => ({ ...f, slug: slugifyEventName(e.target.value) }))}
                 placeholder="smart-india-hackathon-demo"
-                className="w-full h-14 rounded-xl border border-border bg-card pl-14 pr-4 text-sm font-medium text-foreground placeholder:text-slate-400 outline-none transition focus:border-blue-300 focus:ring-4 focus:ring-blue-100/70"
+                className="w-full h-14 rounded-xl border border-slate-200 bg-white pl-14 pr-4 text-sm font-medium text-slate-900 placeholder:text-slate-400 outline-none transition focus:border-red-300 focus:ring-4 focus:ring-red-100 shadow-sm dark:bg-slate-950/70 dark:border-white/10 dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus:border-red-400/50 dark:focus:ring-red-500/10"
               />
             </div>
           </div>
@@ -3988,7 +3988,7 @@ function CreateEventTab() {
             <select
               value={form.template_id}
               onChange={(e) => setForm((f) => ({ ...f, template_id: e.target.value }))}
-              className="w-full h-14 rounded-xl border border-border bg-card pl-14 pr-10 text-sm font-medium text-foreground outline-none transition focus:border-blue-300 focus:ring-4 focus:ring-blue-100/70 appearance-none"
+              className="w-full h-14 rounded-xl border border-slate-200 bg-white pl-14 pr-10 text-sm font-medium text-slate-900 outline-none transition focus:border-red-300 focus:ring-4 focus:ring-red-100 shadow-sm appearance-none dark:bg-slate-950/70 dark:border-white/10 dark:text-slate-100 dark:focus:border-red-400/50 dark:focus:ring-red-500/10"
             >
               <option value="" className="text-slate-400">{isLoading ? 'Loading templates...' : 'Choose a template'}</option>
               {templates.map((template) => (
@@ -4025,7 +4025,7 @@ function CreateEventTab() {
               value={form.description}
               onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))}
               placeholder="Optional internal description for this event..."
-              className="w-full min-h-[150px] rounded-xl border border-border bg-card pl-14 pr-4 py-4 text-sm font-medium text-foreground placeholder:text-slate-400 outline-none resize-none transition focus:border-blue-300 focus:ring-4 focus:ring-blue-100/70"
+              className="w-full min-h-[150px] rounded-xl border border-slate-200 bg-white pl-14 pr-4 py-4 text-sm font-medium text-slate-900 placeholder:text-slate-400 outline-none resize-none transition focus:border-red-300 focus:ring-4 focus:ring-red-100 shadow-sm dark:bg-slate-950/70 dark:border-white/10 dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus:border-red-400/50 dark:focus:ring-red-500/10"
             />
           </div>
         </div>
@@ -4046,7 +4046,7 @@ function CreateEventTab() {
         </button>
       </div>
 
-      <aside className="app-card rounded-[22px] p-8">
+      <aside className="bg-white border border-slate-100 shadow-[0_18px_45px_rgba(15,23,42,0.06)] rounded-[22px] p-8 dark:bg-slate-900/80 dark:border-white/10">
         <div className="mb-5 flex h-12 w-12 items-center justify-center rounded-2xl bg-orange-50 text-orange-500">
           <Lightbulb className="h-7 w-7" />
         </div>

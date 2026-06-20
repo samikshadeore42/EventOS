@@ -43,7 +43,6 @@ const themeColors = {
 // ── Shared UI Components ───────────────────────────────────────────────────
 
 function FullPageMessage({ icon: Icon, title, message }) {
-  const { isDark } = useContext(ThemeContext);
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 via-blue-50/30 to-white dark:bg-gradient-to-br dark:justify-center dark:items-center dark:flex dark:min-h-screen dark:from-[#0b0f14] dark:via-slate-900/50 dark:to-[#0b0f14]">
       <div className="text-center max-w-sm px-4">
@@ -71,7 +70,6 @@ function PortalThemeToggle() {
 }
 
 function PortalNavbar({ evaluatorName }) {
-  const { isDark } = useContext(ThemeContext);
   const initial = evaluatorName ? evaluatorName.charAt(0).toUpperCase() : 'A'
   
   return (
@@ -112,7 +110,6 @@ function PortalNavbar({ evaluatorName }) {
 // ── Criterion slider row ───────────────────────────────────────────────────
 
 function CriterionSlider({ criterion, value, onChange }) {
-  const { isDark } = useContext(ThemeContext);
   const pct = (value / 10) * 100
   const colors = themeColors[criterion.theme]
   const Icon = criterion.icon
@@ -188,7 +185,6 @@ function CriterionSlider({ criterion, value, onChange }) {
 // ── Scoring form ──────────────────────────────────────────────────────────
 
 function ScoringForm({ team, onSubmitted, alreadySubmitted, token }) {
-  const { isDark } = useContext(ThemeContext);
   const urlToken = token
   const [scores, setScores]         = useState(DEFAULT_SCORES)
   const [confirming, setConfirming] = useState(false)
@@ -359,7 +355,6 @@ function ScoringForm({ team, onSubmitted, alreadySubmitted, token }) {
 // ── Team submission download section ───────────────────────────────────────
 
 function TeamSubmissionSection({ teamId, token }) {
-  const { isDark } = useContext(ThemeContext);
   const urlToken = token
   const [downloading, setDownloading] = useState(false)
 
@@ -429,7 +424,6 @@ function TeamSubmissionSection({ teamId, token }) {
 }
 
 function ScoringGuideCard({ rubricLoading }) {
-  const { isDark } = useContext(ThemeContext);
    return (
       <div className="bg-white/95 border border-slate-200 rounded-[16px] p-4 shadow-[0_12px_30px_rgba(15,23,42,0.04)] flex items-center justify-between cursor-pointer hover:border-slate-300 transition-colors dark:transition-colors dark:hover:border-slate-300 dark:cursor-pointer dark:justify-between dark:items-center dark:flex dark:shadow-[0_12px_30px_rgba(15,23,42,0.04)] dark:p-4 dark:rounded-[16px] dark:border dark:bg-slate-950/90 dark:border-white/10/80 dark:border-white/10">
          <div className="flex items-center gap-4">
@@ -452,7 +446,7 @@ function ScoringGuideCard({ rubricLoading }) {
 // ── Team queue sidebar ─────────────────────────────────────────────────────
 
 function TeamQueueSidebar({ teams, selectedId, submittedIds, onSelect }) {
-  const { isDark } = useContext(ThemeContext);
+  
   const total = teams.length
   const submitted = submittedIds.length
   const progressPct = total > 0 ? (submitted / total) * 100 : 0
@@ -534,7 +528,7 @@ export default function JudgePortal() {
 }
 
 function JudgePortalContent() {
-  const { isDark } = useContext(ThemeContext);
+
   const { eventId } = useParams();
   useEffect(() => {
     if (eventId) eventStorage.set(eventId)

@@ -18,37 +18,16 @@ function SidebarNav({ navigationItems, onItemClick }) {
             item.onClick()
             if (onItemClick) onItemClick()
           }}
-          className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all"
-          style={
+          className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all ${
             item.isActive
-              ? {
-                  backgroundColor: 'rgba(232, 121, 50, 0.12)',
-                  color: 'var(--color-primary)',
-                }
-              : {
-                  color: 'var(--text-muted)',
-                  backgroundColor: 'transparent',
-                }
-          }
-          onMouseEnter={(e) => {
-            if (!item.isActive) {
-              e.currentTarget.style.backgroundColor = 'var(--bg-card-soft)'
-              e.currentTarget.style.color = 'var(--text-main)'
-            }
-          }}
-          onMouseLeave={(e) => {
-            if (!item.isActive) {
-              e.currentTarget.style.backgroundColor = 'transparent'
-              e.currentTarget.style.color = 'var(--text-muted)'
-            }
-          }}
+              ? 'bg-red-50 text-red-600 dark:bg-red-500/10 dark:text-red-400'
+              : 'text-muted hover:bg-cardSoft hover:text-foreground bg-transparent'
+          }`}
         >
           {item.Icon && (
             <item.Icon
               size={18}
-              style={{
-                color: item.isActive ? 'var(--color-primary)' : 'var(--text-muted)',
-              }}
+              className={item.isActive ? 'text-red-600 dark:text-red-400' : 'text-muted group-hover:text-foreground'}
             />
           )}
           <span className="truncate">{item.label}</span>
