@@ -23,6 +23,7 @@ export default function ThemeToggle() {
 
   return (
     <button
+      type="button"
       onClick={toggleTheme}
       className="p-2 rounded-xl hover:bg-[var(--bg-card-soft)] transition-colors border border-transparent hover:border-[var(--color-border)]"
       aria-label="Toggle Theme"

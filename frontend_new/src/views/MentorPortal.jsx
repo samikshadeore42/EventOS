@@ -139,7 +139,7 @@ function ScheduleMeetingForm({ teamId, token, onSuccess }) {
   })
 
   return (
-    <div className="bg-slate-50 border border-slate-200 dark:border-white/10 rounded-2xl p-6 relative overflow-hidden group mb-4">
+    <div className="bg-slate-50 dark:bg-slate-900/80 border border-slate-200 dark:border-white/10 rounded-2xl p-6 relative overflow-hidden group mb-4">
       <div className="relative z-10">
         <h3 className="text-sm font-bold text-slate-950 dark:text-slate-100 mb-4 flex items-center gap-2">
           <Calendar size={16} className="text-blue-500" /> Schedule Meeting
@@ -148,28 +148,28 @@ function ScheduleMeetingForm({ teamId, token, onSuccess }) {
           <div>
             <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">Title</label>
             <input value={form.title} onChange={e => setForm(f => ({...f, title: e.target.value}))}
-              placeholder="Daily standup" className="w-full bg-white dark:bg-slate-900/80 text-slate-950 dark:text-slate-100 border border-slate-200 dark:border-white/10 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-blue-300 shadow-sm placeholder:text-slate-400 transition-all" />
+              placeholder="Daily standup" className="w-full bg-white dark:bg-slate-950/70 text-slate-950 dark:text-slate-100 border border-slate-200 dark:border-white/10 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-blue-300 shadow-sm placeholder:text-slate-400 transition-all" />
           </div>
           <div>
             <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">Meeting URL</label>
             <input value={form.meeting_url} onChange={e => setForm(f => ({...f, meeting_url: e.target.value}))}
-              placeholder="https://meet.google.com/..." className="w-full bg-white dark:bg-slate-900/80 text-slate-950 dark:text-slate-100 border border-slate-200 dark:border-white/10 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-blue-300 shadow-sm placeholder:text-slate-400 transition-all" />
+              placeholder="https://meet.google.com/..." className="w-full bg-white dark:bg-slate-950/70 text-slate-950 dark:text-slate-100 border border-slate-200 dark:border-white/10 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-blue-300 shadow-sm placeholder:text-slate-400 transition-all" />
           </div>
           <div>
             <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">Date & Time</label>
             <input type="datetime-local" value={form.scheduled_at} onChange={e => setForm(f => ({...f, scheduled_at: e.target.value}))}
-              className="w-full bg-white dark:bg-slate-900/80 text-slate-950 dark:text-slate-100 border border-slate-200 dark:border-white/10 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-blue-300 shadow-sm transition-all" />
+              className="w-full bg-white dark:bg-slate-950/70 text-slate-950 dark:text-slate-100 border border-slate-200 dark:border-white/10 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-blue-300 shadow-sm transition-all" />
           </div>
           <div>
             <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">Duration (min)</label>
             <input type="number" min={5} max={480} value={form.duration_minutes} onChange={e => setForm(f => ({...f, duration_minutes: e.target.value}))}
-              className="w-full bg-white dark:bg-slate-900/80 text-slate-950 dark:text-slate-100 border border-slate-200 dark:border-white/10 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-blue-300 shadow-sm transition-all" />
+              className="w-full bg-white dark:bg-slate-950/70 text-slate-950 dark:text-slate-100 border border-slate-200 dark:border-white/10 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-blue-300 shadow-sm transition-all" />
           </div>
         </div>
         <div className="mb-5">
           <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">Agenda (optional)</label>
           <textarea value={form.agenda} onChange={e => setForm(f => ({...f, agenda: e.target.value}))}
-            rows={2} placeholder="Topics to discuss..." className="w-full bg-white dark:bg-slate-900/80 text-slate-950 dark:text-slate-100 border border-slate-200 dark:border-white/10 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-blue-300 resize-none shadow-sm placeholder:text-slate-400 transition-all" />
+            rows={2} placeholder="Topics to discuss..." className="w-full bg-white dark:bg-slate-950/70 text-slate-950 dark:text-slate-100 border border-slate-200 dark:border-white/10 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-blue-300 resize-none shadow-sm placeholder:text-slate-400 transition-all" />
         </div>
         <div className="flex justify-end gap-3">
           <button onClick={onSuccess} className="px-5 py-2.5 rounded-xl bg-white dark:bg-slate-900/80 border border-slate-200 dark:border-white/10 text-sm font-bold text-slate-700 dark:text-slate-300 hover:bg-slate-50 transition-all shadow-sm">
@@ -229,12 +229,12 @@ function DailyProgressForm({ teamId, members, token, onSuccess }) {
       <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">{label} (0-10)</label>
       <input type="number" min={0} max={10} step={0.5} value={form[key]}
         onChange={e => setForm(f => ({...f, [key]: e.target.value}))}
-        className="w-full bg-white dark:bg-slate-900/80 text-slate-950 dark:text-slate-100 border border-slate-200 dark:border-white/10 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-purple-100 focus:border-purple-300 shadow-sm transition-all" />
+        className="w-full bg-white dark:bg-slate-950/70 text-slate-950 dark:text-slate-100 border border-slate-200 dark:border-white/10 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-purple-100 focus:border-purple-300 shadow-sm transition-all" />
     </div>
   )
 
   return (
-    <div className="bg-slate-50 border border-slate-200 dark:border-white/10 rounded-2xl p-6 relative overflow-hidden group mb-4">
+    <div className="bg-slate-50 dark:bg-slate-900/80 border border-slate-200 dark:border-white/10 rounded-2xl p-6 relative overflow-hidden group mb-4">
       <div className="relative z-10">
         <div className="flex items-center gap-3 mb-5 pb-4 border-b border-slate-200 dark:border-white/10/60">
           <div className="w-10 h-10 rounded-xl bg-purple-50 text-purple-600 border border-purple-200 flex items-center justify-center shrink-0 shadow-sm">
@@ -247,10 +247,10 @@ function DailyProgressForm({ teamId, members, token, onSuccess }) {
         </div>
         {/* Tab toggle */}
         <div className="flex gap-1 mb-5 bg-slate-100 border border-slate-200 dark:border-white/10 rounded-xl p-1 w-fit shadow-inner">
-          <button onClick={() => setTab('team')} className={`text-xs font-bold px-4 py-2 rounded-lg transition-all ${tab === 'team' ? 'bg-white dark:bg-slate-900/80 text-slate-950 dark:text-slate-100 shadow-sm' : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:text-slate-300'}`}>
+          <button onClick={() => setTab('team')} className={`text-xs font-bold px-4 py-2 rounded-lg transition-all ${tab === 'team' ? 'bg-white dark:bg-slate-950/70 text-slate-950 dark:text-slate-100 shadow-sm' : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:text-slate-300'}`}>
             Team Update
           </button>
-          <button onClick={() => setTab('individual')} className={`text-xs font-bold px-4 py-2 rounded-lg transition-all ${tab === 'individual' ? 'bg-white dark:bg-slate-900/80 text-slate-950 dark:text-slate-100 shadow-sm' : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:text-slate-300'}`}>
+          <button onClick={() => setTab('individual')} className={`text-xs font-bold px-4 py-2 rounded-lg transition-all ${tab === 'individual' ? 'bg-white dark:bg-slate-950/70 text-slate-950 dark:text-slate-100 shadow-sm' : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:text-slate-300'}`}>
             Individual Feedback
           </button>
         </div>
@@ -259,7 +259,7 @@ function DailyProgressForm({ teamId, members, token, onSuccess }) {
           <div className="mb-4">
             <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">Select Participant</label>
             <select value={form.participant_id} onChange={e => setForm(f => ({...f, participant_id: e.target.value}))}
-              className="w-full bg-white dark:bg-slate-900/80 text-slate-950 dark:text-slate-100 border border-slate-200 dark:border-white/10 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-purple-100 focus:border-purple-300 shadow-sm transition-all">
+              className="w-full bg-white dark:bg-slate-950/70 text-slate-950 dark:text-slate-100 border border-slate-200 dark:border-white/10 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-purple-100 focus:border-purple-300 shadow-sm transition-all">
               <option value="">-- select --</option>
               {members.map(m => <option key={m.id} value={m.id}>{m.name}</option>)}
             </select>
@@ -276,19 +276,19 @@ function DailyProgressForm({ teamId, members, token, onSuccess }) {
         <div className="mb-4">
           <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">Feedback</label>
           <textarea value={form.feedback_text} onChange={e => setForm(f => ({...f, feedback_text: e.target.value}))}
-            rows={3} placeholder="Observations, progress notes..." className="w-full bg-white dark:bg-slate-900/80 text-slate-950 dark:text-slate-100 border border-slate-200 dark:border-white/10 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-purple-100 focus:border-purple-300 resize-none shadow-sm placeholder:text-slate-400 transition-all" />
+            rows={3} placeholder="Observations, progress notes..." className="w-full bg-white dark:bg-slate-950/70 text-slate-950 dark:text-slate-100 border border-slate-200 dark:border-white/10 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-purple-100 focus:border-purple-300 resize-none shadow-sm placeholder:text-slate-400 transition-all" />
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-5">
           <div>
             <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">Blockers</label>
             <textarea value={form.blockers} onChange={e => setForm(f => ({...f, blockers: e.target.value}))}
-              rows={2} placeholder="Any blockers..." className="w-full bg-white dark:bg-slate-900/80 text-slate-950 dark:text-slate-100 border border-slate-200 dark:border-white/10 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-purple-100 focus:border-purple-300 resize-none shadow-sm placeholder:text-slate-400 transition-all" />
+              rows={2} placeholder="Any blockers..." className="w-full bg-white dark:bg-slate-950/70 text-slate-950 dark:text-slate-100 border border-slate-200 dark:border-white/10 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-purple-100 focus:border-purple-300 resize-none shadow-sm placeholder:text-slate-400 transition-all" />
           </div>
           <div>
             <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">Action Items (one per line)</label>
             <textarea value={form.action_items_str} onChange={e => setForm(f => ({...f, action_items_str: e.target.value}))}
-              rows={2} placeholder="Complete API integration&#10;Fix auth bug" className="w-full bg-white dark:bg-slate-900/80 text-slate-950 dark:text-slate-100 border border-slate-200 dark:border-white/10 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-purple-100 focus:border-purple-300 resize-none shadow-sm placeholder:text-slate-400 transition-all" />
+              rows={2} placeholder="Complete API integration&#10;Fix auth bug" className="w-full bg-white dark:bg-slate-950/70 text-slate-950 dark:text-slate-100 border border-slate-200 dark:border-white/10 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-purple-100 focus:border-purple-300 resize-none shadow-sm placeholder:text-slate-400 transition-all" />
           </div>
         </div>
 
@@ -547,7 +547,7 @@ export default function MentorPortal() {
   const mentorName = profile.name?.split(' ')[0] ?? 'Mentor'
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#f8fbff] via-[#eef6fb] to-[#f7fbff] text-slate-950 dark:text-slate-100 font-sans pb-20 relative overflow-x-hidden">
+    <div className="min-h-screen bg-gradient-to-br from-[#f8fbff] via-[#eef6fb] to-[#f7fbff] dark:from-[#0b0f14] dark:via-slate-950 dark:to-[#0b0f14] text-slate-950 dark:text-slate-100 font-sans pb-20 relative overflow-x-hidden">
       
       <PortalNavbar mentorName={profile.name ?? 'Mentor'} />
 

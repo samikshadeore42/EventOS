@@ -622,7 +622,7 @@ export default function JudgePortal() {
   // ── Main layout ──────────────────────────────────────────────────────────
 
   return (
-    <div className="min-h-screen bg-[#f8fbff] text-slate-950 dark:text-slate-100 font-sans relative overflow-x-hidden">
+    <div className="min-h-screen bg-[#f8fbff] dark:bg-[#0b0f14] text-slate-950 dark:text-slate-100 font-sans relative overflow-x-hidden">
       
       {/* Background Dots */}
       <div className="pointer-events-none absolute left-24 top-24 h-36 w-28 opacity-25 [background-image:radial-gradient(#bfdbfe_1.5px,transparent_1.5px)] [background-size:16px_16px]" />
