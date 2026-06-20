@@ -18,7 +18,7 @@ import {
   Send, Copy, Trash2, Plus, Shield, ShieldAlert, ShieldCheck, FileText, Settings,
   Sparkles, Link, LayoutTemplate, ClipboardList, Lightbulb, ClipboardCheck,
   User, UserPlus, Building2, Info, UploadCloud, Search, CheckCircle2,
-  Key, Globe, Database, Flag, RefreshCw, MoreVertical
+  Key, Globe, Database, Flag, RefreshCw
 } from 'lucide-react'
 import PipelineStepper from '../components/PipelineStepper'
 import OrgSwitcher from '../components/OrgSwitcher'
@@ -38,7 +38,6 @@ import {
   portalApi,
   demoAdminApi,
   eventStateApi,
-  riskApi,
   healthDashboardApi,
   eventsApi,
   evaluationsApi,
