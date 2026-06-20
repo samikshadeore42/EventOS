@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react'
+import { useState, useEffect, useMemo, createContext, useContext } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import {
   Users, Calendar, MessageSquare, AlertTriangle, Loader2,
@@ -10,13 +10,16 @@ import TeamChatPanel from '../components/TeamChatPanel'
 import { useAuth } from '../context/AuthContext'
 import { useParams } from 'react-router-dom'
 
+const ThemeContext = createContext({ isDark: false, toggleTheme: () => {} });
+
 // ── Helpers ────────────────────────────────────────────────────────────────
 function initials(name = '') {
   return name.split(' ').slice(0, 2).map(w => w[0]?.toUpperCase() ?? '').join('')
 }
 
 function Badge({ children }) {
-  let colorClass = "bg-white dark:bg-slate-900/80 border border-slate-200 dark:border-white/10 text-slate-800 dark:text-slate-200";
+  const { isDark } = useContext(ThemeContext);
+  let colorClass = isDark ? "bg-slate-900/80 border border-white/10 text-slate-200" : "bg-white border border-slate-200 text-slate-800";
   if (children === "AI") colorClass = "bg-blue-50 text-blue-700";
   else if (children === "ML") colorClass = "bg-purple-50 text-purple-700";
 
@@ -29,16 +32,17 @@ function Badge({ children }) {
 
 // ── Loading skeleton ───────────────────────────────────────────────────────
 function PortalSkeleton() {
+  const { isDark } = useContext(ThemeContext);
   return (
     <div className="min-h-screen bg-gradient-to-br from-[#f8fbff] via-[#eef6fb] to-[#f7fbff] flex flex-col">
-      <div className="bg-white/80 dark:bg-slate-950/90 border-b border-slate-200 dark:border-white/10/70 dark:border-white/10 h-16 w-full animate-pulse" />
+      <div className={isDark ? "animate-pulse w-full h-16 border-b bg-slate-950/90 border-white/10/70 border-white/10" : "bg-white/80 border-b border-slate-200 h-16 w-full animate-pulse"} />
       <div className="max-w-6xl w-full mx-auto px-4 py-12">
         <div className="h-6 w-48 bg-slate-200 rounded animate-pulse mb-4" />
         <div className="h-4 w-32 bg-slate-200 rounded animate-pulse mb-12" />
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-12">
-          {[1,2,3,4].map(i => <div key={i} className="h-32 bg-white dark:bg-slate-900/80 border border-white/80 rounded-[24px] animate-pulse shadow-[0_18px_45px_rgba(15,23,42,0.08)]" />)}
+          {[1,2,3,4].map(i => <div key={i} className={isDark ? "shadow-[0_18px_45px_rgba(15,23,42,0.08)] animate-pulse rounded-[24px] border-white/80 border h-32 bg-slate-900/80" : "h-32 bg-white border border-white/80 rounded-[24px] animate-pulse shadow-[0_18px_45px_rgba(15,23,42,0.08)]"} />)}
         </div>
-        <div className="h-24 bg-white dark:bg-slate-900/80 border border-white/80 rounded-[24px] animate-pulse shadow-[0_18px_45px_rgba(15,23,42,0.08)]" />
+        <div className={isDark ? "shadow-[0_18px_45px_rgba(15,23,42,0.08)] animate-pulse rounded-[24px] border-white/80 border h-24 bg-slate-900/80" : "h-24 bg-white border border-white/80 rounded-[24px] animate-pulse shadow-[0_18px_45px_rgba(15,23,42,0.08)]"} />
       </div>
     </div>
   )
@@ -46,6 +50,7 @@ function PortalSkeleton() {
 
 // ── Stats card ─────────────────────────────────────────────────────────────
 function StatCard({ label, value, sub, statusText, colorTheme, icon: Icon }) {
+  const { isDark } = useContext(ThemeContext);
   const theme = {
     blue: { icon: 'bg-blue-50 text-blue-600 border border-blue-200', dot: 'bg-blue-500', text: 'text-blue-700' },
     orange: { icon: 'bg-orange-50 text-orange-600 border border-orange-200', dot: 'bg-orange-500', text: 'text-orange-700' },
@@ -57,8 +62,8 @@ function StatCard({ label, value, sub, statusText, colorTheme, icon: Icon }) {
     <div className="bg-white/90 border border-white/80 rounded-[24px] shadow-[0_18px_45px_rgba(15,23,42,0.08)] p-6 flex flex-col h-full backdrop-blur-sm transition-all hover:-translate-y-1">
       <div className="flex justify-between items-start mb-4">
         <div>
-          <p className="text-xs font-bold text-slate-950 dark:text-slate-100 uppercase tracking-widest mb-2">{label}</p>
-          <h3 className="text-4xl font-black text-slate-950 dark:text-slate-100 tracking-tight">{value ?? '0'}</h3>
+          <p className={isDark ? "mb-2 tracking-widest uppercase font-bold text-slate-100" : "text-xs font-bold text-slate-950 uppercase tracking-widest mb-2"}>{label}</p>
+          <h3 className={isDark ? "tracking-tight font-black text-slate-100" : "text-4xl font-black text-slate-950 tracking-tight"}>{value ?? '0'}</h3>
         </div>
         {Icon && (
           <div className={`w-12 h-12 rounded-xl flex items-center justify-center shrink-0 ${theme.icon}`}>
@@ -66,14 +71,14 @@ function StatCard({ label, value, sub, statusText, colorTheme, icon: Icon }) {
           </div>
         )}
       </div>
-      <div className="mt-auto pt-4 border-t border-slate-200 dark:border-white/10/70 dark:border-white/10">
+      <div className={isDark ? "border-t pt-4 mt-auto border-white/10/70 border-white/10" : "mt-auto pt-4 border-t border-slate-200"}>
         <div className="flex items-center gap-2 mb-2">
           <span className={`w-2 h-2 rounded-full ${theme.dot}`} />
           <span className={`text-[10px] font-bold uppercase tracking-wider ${theme.text}`}>
             {statusText}
           </span>
         </div>
-        <p className="text-xs font-medium text-slate-500 dark:text-slate-400 leading-snug">{sub}</p>
+        <p className={isDark ? "leading-snug font-medium text-slate-400" : "text-xs font-medium text-slate-500 leading-snug"}>{sub}</p>
       </div>
     </div>
   )
@@ -82,21 +87,12 @@ function StatCard({ label, value, sub, statusText, colorTheme, icon: Icon }) {
 // ── Top Navbar ─────────────────────────────────────────────────────────────
 
 function PortalThemeToggle() {
-  const [isDark, setIsDark] = useState(() => {
-    if (typeof window === 'undefined') return false;
-    return localStorage.getItem('theme') === 'dark';
-  });
-
-  useEffect(() => {
-    document.documentElement.classList.toggle('dark', isDark);
-    localStorage.setItem('theme', isDark ? 'dark' : 'light');
-  }, [isDark]);
-
+  const { isDark, toggleTheme } = useContext(ThemeContext);
   return (
     <button
       type="button"
-      onClick={() => setIsDark(prev => !prev)}
-      className="p-2 rounded-xl bg-white dark:bg-slate-900/80 border border-slate-200 dark:border-white/10 shadow-sm hover:bg-slate-50 transition-colors"
+      onClick={toggleTheme}
+      className={isDark ? "transition-colors hover:bg-slate-50 shadow-sm border rounded-xl p-2 bg-slate-900/80 border-white/10" : "p-2 rounded-xl bg-white border border-slate-200 shadow-sm hover:bg-slate-50 transition-colors"}
       title="Toggle theme"
     >
       {isDark ? <Sun size={18} className="text-amber-500" /> : <Moon size={18} className="text-slate-500" />}
@@ -105,25 +101,26 @@ function PortalThemeToggle() {
 }
 
 function PortalNavbar({ mentorName }) {
+  const { isDark } = useContext(ThemeContext);
   return (
-    <div className="bg-white/80 dark:bg-slate-950/90 border-b border-slate-200 dark:border-white/10/70 dark:border-white/10 backdrop-blur shadow-sm sticky top-0 z-40">
+    <div className={isDark ? "z-40 top-0 sticky shadow-sm backdrop-blur border-b bg-slate-950/90 border-white/10/70 border-white/10" : "bg-white/80 border-b border-slate-200 backdrop-blur shadow-sm sticky top-0 z-40"}>
       <div className="max-w-6xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
         <div className="flex items-center gap-4">
-          <Menu size={20} className="text-slate-600 dark:text-slate-300 hidden sm:block" />
+          <Menu size={20} className={isDark ? "sm:block hidden text-slate-300" : "text-slate-600 hidden sm:block"} />
           <div className="flex items-center gap-2">
             <div className="w-8 h-8 flex items-center justify-center text-red-500">
               <LayoutGrid size={24} />
             </div>
             <div>
-               <h1 className="text-sm font-black text-slate-950 dark:text-slate-100 leading-tight uppercase tracking-widest">WISE@TI HACKATHON</h1>
-               <p className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest">Mentor Portal</p>
+               <h1 className={isDark ? "tracking-widest uppercase leading-tight font-black text-slate-100" : "text-sm font-black text-slate-950 leading-tight uppercase tracking-widest"}>WISE@TI HACKATHON</h1>
+               <p className={isDark ? "tracking-widest uppercase font-bold text-slate-400" : "text-[10px] font-bold text-slate-500 uppercase tracking-widest"}>Mentor Portal</p>
             </div>
           </div>
         </div>
         <div className="flex items-center gap-4 sm:gap-6">
-          <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-full border border-slate-200 dark:border-white/10 bg-white dark:bg-slate-900/80 shadow-sm">
+          <div className={isDark ? "shadow-sm border rounded-full py-1.5 px-3 gap-2 items-center sm:flex hidden border-white/10 bg-slate-900/80" : "hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-full border border-slate-200 bg-white shadow-sm"}>
             <span className="w-2 h-2 rounded-full bg-emerald-500" />
-            <span className="text-[10px] font-bold text-slate-700 dark:text-slate-300 uppercase tracking-widest">System Live</span>
+            <span className={isDark ? "tracking-widest uppercase font-bold text-slate-300" : "text-[10px] font-bold text-slate-700 uppercase tracking-widest"}>System Live</span>
           </div>
           <div className="hidden sm:block"><PortalThemeToggle /></div>
           <div className="relative">
@@ -144,6 +141,7 @@ function PortalNavbar({ mentorName }) {
 
 // ── Schedule meeting form ──────────────────────────────────────────────────
 function ScheduleMeetingForm({ teamId, token, onSuccess }) {
+  const { isDark } = useContext(ThemeContext);
   const qc = useQueryClient()
   const [form, setForm] = useState({
     title: '', meeting_url: '', scheduled_at: '', duration_minutes: 30, agenda: '',
@@ -162,40 +160,40 @@ function ScheduleMeetingForm({ teamId, token, onSuccess }) {
   })
 
   return (
-    <div className="bg-slate-50 dark:bg-slate-900/80 border border-slate-200 dark:border-white/10 rounded-2xl p-6 relative overflow-hidden group mb-4">
+    <div className={isDark ? "mb-4 group overflow-hidden relative p-6 rounded-2xl border bg-slate-900/80 border-white/10" : "bg-slate-50 border border-slate-200 rounded-2xl p-6 relative overflow-hidden group mb-4"}>
       <div className="relative z-10">
-        <h3 className="text-sm font-bold text-slate-950 dark:text-slate-100 mb-4 flex items-center gap-2">
+        <h3 className={isDark ? "gap-2 items-center flex mb-4 font-bold text-slate-100" : "text-sm font-bold text-slate-950 mb-4 flex items-center gap-2"}>
           <Calendar size={16} className="text-blue-500" /> Schedule Meeting
         </h3>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
           <div>
-            <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">Title</label>
+            <label className={isDark ? "mb-1.5 font-bold block text-slate-300" : "block text-xs font-bold text-slate-700 mb-1.5"}>Title</label>
             <input value={form.title} onChange={e => setForm(f => ({...f, title: e.target.value}))}
-              placeholder="Daily standup" className="w-full bg-white dark:bg-slate-950/70 text-slate-950 dark:text-slate-100 border border-slate-200 dark:border-white/10 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-blue-300 shadow-sm placeholder:text-slate-400 transition-all" />
+              placeholder="Daily standup" className={isDark ? "transition-all placeholder:text-slate-400 shadow-sm focus:border-blue-300 focus:ring-blue-100 focus:ring-2 focus:outline-none py-2.5 px-4 rounded-xl border w-full bg-slate-950/70 text-slate-100 border-white/10" : "w-full bg-white text-slate-950 border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-blue-300 shadow-sm placeholder:text-slate-400 transition-all"} />
           </div>
           <div>
-            <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">Meeting URL</label>
+            <label className={isDark ? "mb-1.5 font-bold block text-slate-300" : "block text-xs font-bold text-slate-700 mb-1.5"}>Meeting URL</label>
             <input value={form.meeting_url} onChange={e => setForm(f => ({...f, meeting_url: e.target.value}))}
-              placeholder="https://meet.google.com/..." className="w-full bg-white dark:bg-slate-950/70 text-slate-950 dark:text-slate-100 border border-slate-200 dark:border-white/10 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-blue-300 shadow-sm placeholder:text-slate-400 transition-all" />
+              placeholder="https://meet.google.com/..." className={isDark ? "transition-all placeholder:text-slate-400 shadow-sm focus:border-blue-300 focus:ring-blue-100 focus:ring-2 focus:outline-none py-2.5 px-4 rounded-xl border w-full bg-slate-950/70 text-slate-100 border-white/10" : "w-full bg-white text-slate-950 border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-blue-300 shadow-sm placeholder:text-slate-400 transition-all"} />
           </div>
           <div>
-            <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">Date & Time</label>
+            <label className={isDark ? "mb-1.5 font-bold block text-slate-300" : "block text-xs font-bold text-slate-700 mb-1.5"}>Date & Time</label>
             <input type="datetime-local" value={form.scheduled_at} onChange={e => setForm(f => ({...f, scheduled_at: e.target.value}))}
-              className="w-full bg-white dark:bg-slate-950/70 text-slate-950 dark:text-slate-100 border border-slate-200 dark:border-white/10 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-blue-300 shadow-sm transition-all" />
+              className={isDark ? "transition-all shadow-sm focus:border-blue-300 focus:ring-blue-100 focus:ring-2 focus:outline-none py-2.5 px-4 rounded-xl border w-full bg-slate-950/70 text-slate-100 border-white/10" : "w-full bg-white text-slate-950 border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-blue-300 shadow-sm transition-all"} />
           </div>
           <div>
-            <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">Duration (min)</label>
+            <label className={isDark ? "mb-1.5 font-bold block text-slate-300" : "block text-xs font-bold text-slate-700 mb-1.5"}>Duration (min)</label>
             <input type="number" min={5} max={480} value={form.duration_minutes} onChange={e => setForm(f => ({...f, duration_minutes: e.target.value}))}
-              className="w-full bg-white dark:bg-slate-950/70 text-slate-950 dark:text-slate-100 border border-slate-200 dark:border-white/10 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-blue-300 shadow-sm transition-all" />
+              className={isDark ? "transition-all shadow-sm focus:border-blue-300 focus:ring-blue-100 focus:ring-2 focus:outline-none py-2.5 px-4 rounded-xl border w-full bg-slate-950/70 text-slate-100 border-white/10" : "w-full bg-white text-slate-950 border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-blue-300 shadow-sm transition-all"} />
           </div>
         </div>
         <div className="mb-5">
-          <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">Agenda (optional)</label>
+          <label className={isDark ? "mb-1.5 font-bold block text-slate-300" : "block text-xs font-bold text-slate-700 mb-1.5"}>Agenda (optional)</label>
           <textarea value={form.agenda} onChange={e => setForm(f => ({...f, agenda: e.target.value}))}
-            rows={2} placeholder="Topics to discuss..." className="w-full bg-white dark:bg-slate-950/70 text-slate-950 dark:text-slate-100 border border-slate-200 dark:border-white/10 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-blue-300 resize-none shadow-sm placeholder:text-slate-400 transition-all" />
+            rows={2} placeholder="Topics to discuss..." className={isDark ? "transition-all placeholder:text-slate-400 shadow-sm resize-none focus:border-blue-300 focus:ring-blue-100 focus:ring-2 focus:outline-none py-2.5 px-4 rounded-xl border w-full bg-slate-950/70 text-slate-100 border-white/10" : "w-full bg-white text-slate-950 border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-blue-300 resize-none shadow-sm placeholder:text-slate-400 transition-all"} />
         </div>
         <div className="flex justify-end gap-3">
-          <button onClick={onSuccess} className="px-5 py-2.5 rounded-xl bg-white dark:bg-slate-900/80 border border-slate-200 dark:border-white/10 text-sm font-bold text-slate-700 dark:text-slate-300 hover:bg-slate-50 transition-all shadow-sm">
+          <button onClick={onSuccess} className={isDark ? "shadow-sm transition-all hover:bg-slate-50 font-bold border rounded-xl py-2.5 px-5 bg-slate-900/80 border-white/10 text-slate-300" : "px-5 py-2.5 rounded-xl bg-white border border-slate-200 text-sm font-bold text-slate-700 hover:bg-slate-50 transition-all shadow-sm"}>
             Cancel
           </button>
           <button onClick={() => mutation.mutate()} disabled={mutation.isPending || !form.title || !form.meeting_url || !form.scheduled_at}
@@ -212,6 +210,7 @@ function ScheduleMeetingForm({ teamId, token, onSuccess }) {
 
 // ── Daily progress form ────────────────────────────────────────────────────
 function DailyProgressForm({ teamId, members, token, onSuccess }) {
+  const { isDark } = useContext(ThemeContext);
   const qc = useQueryClient()
   const [tab, setTab] = useState('team') // 'team' | 'individual'
   const [form, setForm] = useState({
@@ -249,27 +248,27 @@ function DailyProgressForm({ teamId, members, token, onSuccess }) {
 
   const scoreField = (key, label) => (
     <div>
-      <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">{label} (0-10)</label>
+      <label className={isDark ? "mb-1.5 font-bold block text-slate-300" : "block text-xs font-bold text-slate-700 mb-1.5"}>{label} (0-10)</label>
       <input type="number" min={0} max={10} step={0.5} value={form[key]}
         onChange={e => setForm(f => ({...f, [key]: e.target.value}))}
-        className="w-full bg-white dark:bg-slate-950/70 text-slate-950 dark:text-slate-100 border border-slate-200 dark:border-white/10 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-purple-100 focus:border-purple-300 shadow-sm transition-all" />
+        className={isDark ? "transition-all shadow-sm focus:border-purple-300 focus:ring-purple-100 focus:ring-2 focus:outline-none py-2.5 px-4 rounded-xl border w-full bg-slate-950/70 text-slate-100 border-white/10" : "w-full bg-white text-slate-950 border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-purple-100 focus:border-purple-300 shadow-sm transition-all"} />
     </div>
   )
 
   return (
-    <div className="bg-slate-50 dark:bg-slate-900/80 border border-slate-200 dark:border-white/10 rounded-2xl p-6 relative overflow-hidden group mb-4">
+    <div className={isDark ? "mb-4 group overflow-hidden relative p-6 rounded-2xl border bg-slate-900/80 border-white/10" : "bg-slate-50 border border-slate-200 rounded-2xl p-6 relative overflow-hidden group mb-4"}>
       <div className="relative z-10">
-        <div className="flex items-center gap-3 mb-5 pb-4 border-b border-slate-200 dark:border-white/10/60">
+        <div className={isDark ? "border-b pb-4 mb-5 gap-3 items-center flex border-white/10/60" : "flex items-center gap-3 mb-5 pb-4 border-b border-slate-200"}>
           <div className="w-10 h-10 rounded-xl bg-purple-50 text-purple-600 border border-purple-200 flex items-center justify-center shrink-0 shadow-sm">
             <MessageSquare size={18} />
           </div>
           <div>
-            <h3 className="text-sm font-bold text-slate-950 dark:text-slate-100">Submit Feedback</h3>
-            <p className="text-[11px] font-medium text-slate-500 dark:text-slate-400">Review their daily progress</p>
+            <h3 className={isDark ? "font-bold text-slate-100" : "text-sm font-bold text-slate-950"}>Submit Feedback</h3>
+            <p className={isDark ? "font-medium text-slate-400" : "text-[11px] font-medium text-slate-500"}>Review their daily progress</p>
           </div>
         </div>
         {/* Tab toggle */}
-        <div className="flex gap-1 mb-5 bg-slate-100 border border-slate-200 dark:border-white/10 rounded-xl p-1 w-fit shadow-inner">
+        <div className={isDark ? "shadow-inner w-fit p-1 rounded-xl border bg-slate-100 mb-5 gap-1 flex border-white/10" : "flex gap-1 mb-5 bg-slate-100 border border-slate-200 rounded-xl p-1 w-fit shadow-inner"}>
           <button onClick={() => setTab('team')} className={`text-xs font-bold px-4 py-2 rounded-lg transition-all ${tab === 'team' ? 'bg-white dark:bg-slate-950/70 text-slate-950 dark:text-slate-100 shadow-sm' : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:text-slate-300'}`}>
             Team Update
           </button>
@@ -280,9 +279,9 @@ function DailyProgressForm({ teamId, members, token, onSuccess }) {
 
         {tab === 'individual' && members?.length > 0 && (
           <div className="mb-4">
-            <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">Select Participant</label>
+            <label className={isDark ? "mb-1.5 font-bold block text-slate-300" : "block text-xs font-bold text-slate-700 mb-1.5"}>Select Participant</label>
             <select value={form.participant_id} onChange={e => setForm(f => ({...f, participant_id: e.target.value}))}
-              className="w-full bg-white dark:bg-slate-950/70 text-slate-950 dark:text-slate-100 border border-slate-200 dark:border-white/10 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-purple-100 focus:border-purple-300 shadow-sm transition-all">
+              className={isDark ? "transition-all shadow-sm focus:border-purple-300 focus:ring-purple-100 focus:ring-2 focus:outline-none py-2.5 px-4 rounded-xl border w-full bg-slate-950/70 text-slate-100 border-white/10" : "w-full bg-white text-slate-950 border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-purple-100 focus:border-purple-300 shadow-sm transition-all"}>
               <option value="">-- select --</option>
               {members.map(m => <option key={m.id} value={m.id}>{m.name}</option>)}
             </select>
@@ -297,32 +296,32 @@ function DailyProgressForm({ teamId, members, token, onSuccess }) {
         </div>
 
         <div className="mb-4">
-          <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">Feedback</label>
+          <label className={isDark ? "mb-1.5 font-bold block text-slate-300" : "block text-xs font-bold text-slate-700 mb-1.5"}>Feedback</label>
           <textarea value={form.feedback_text} onChange={e => setForm(f => ({...f, feedback_text: e.target.value}))}
-            rows={3} placeholder="Observations, progress notes..." className="w-full bg-white dark:bg-slate-950/70 text-slate-950 dark:text-slate-100 border border-slate-200 dark:border-white/10 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-purple-100 focus:border-purple-300 resize-none shadow-sm placeholder:text-slate-400 transition-all" />
+            rows={3} placeholder="Observations, progress notes..." className={isDark ? "transition-all placeholder:text-slate-400 shadow-sm resize-none focus:border-purple-300 focus:ring-purple-100 focus:ring-2 focus:outline-none py-2.5 px-4 rounded-xl border w-full bg-slate-950/70 text-slate-100 border-white/10" : "w-full bg-white text-slate-950 border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-purple-100 focus:border-purple-300 resize-none shadow-sm placeholder:text-slate-400 transition-all"} />
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-5">
           <div>
-            <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">Blockers</label>
+            <label className={isDark ? "mb-1.5 font-bold block text-slate-300" : "block text-xs font-bold text-slate-700 mb-1.5"}>Blockers</label>
             <textarea value={form.blockers} onChange={e => setForm(f => ({...f, blockers: e.target.value}))}
-              rows={2} placeholder="Any blockers..." className="w-full bg-white dark:bg-slate-950/70 text-slate-950 dark:text-slate-100 border border-slate-200 dark:border-white/10 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-purple-100 focus:border-purple-300 resize-none shadow-sm placeholder:text-slate-400 transition-all" />
+              rows={2} placeholder="Any blockers..." className={isDark ? "transition-all placeholder:text-slate-400 shadow-sm resize-none focus:border-purple-300 focus:ring-purple-100 focus:ring-2 focus:outline-none py-2.5 px-4 rounded-xl border w-full bg-slate-950/70 text-slate-100 border-white/10" : "w-full bg-white text-slate-950 border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-purple-100 focus:border-purple-300 resize-none shadow-sm placeholder:text-slate-400 transition-all"} />
           </div>
           <div>
-            <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1.5">Action Items (one per line)</label>
+            <label className={isDark ? "mb-1.5 font-bold block text-slate-300" : "block text-xs font-bold text-slate-700 mb-1.5"}>Action Items (one per line)</label>
             <textarea value={form.action_items_str} onChange={e => setForm(f => ({...f, action_items_str: e.target.value}))}
-              rows={2} placeholder="Complete API integration&#10;Fix auth bug" className="w-full bg-white dark:bg-slate-950/70 text-slate-950 dark:text-slate-100 border border-slate-200 dark:border-white/10 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-purple-100 focus:border-purple-300 resize-none shadow-sm placeholder:text-slate-400 transition-all" />
+              rows={2} placeholder="Complete API integration&#10;Fix auth bug" className={isDark ? "transition-all placeholder:text-slate-400 shadow-sm resize-none focus:border-purple-300 focus:ring-purple-100 focus:ring-2 focus:outline-none py-2.5 px-4 rounded-xl border w-full bg-slate-950/70 text-slate-100 border-white/10" : "w-full bg-white text-slate-950 border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-purple-100 focus:border-purple-300 resize-none shadow-sm placeholder:text-slate-400 transition-all"} />
           </div>
         </div>
 
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          <label className="flex items-center gap-2 text-sm font-bold text-slate-600 dark:text-slate-300 cursor-pointer">
+          <label className={isDark ? "cursor-pointer font-bold gap-2 items-center flex text-slate-300" : "flex items-center gap-2 text-sm font-bold text-slate-600 cursor-pointer"}>
             <input type="checkbox" checked={form.visible_to_participant} onChange={e => setForm(f => ({...f, visible_to_participant: e.target.checked}))}
               className="rounded border-slate-300 text-purple-600 focus:ring-purple-500 w-4 h-4" />
             Visible to participant
           </label>
           <div className="flex items-center gap-3">
-             <button onClick={onSuccess} className="px-5 py-2.5 rounded-xl bg-white dark:bg-slate-900/80 border border-slate-200 dark:border-white/10 text-sm font-bold text-slate-700 dark:text-slate-300 hover:bg-slate-50 transition-all shadow-sm">
+             <button onClick={onSuccess} className={isDark ? "shadow-sm transition-all hover:bg-slate-50 font-bold border rounded-xl py-2.5 px-5 bg-slate-900/80 border-white/10 text-slate-300" : "px-5 py-2.5 rounded-xl bg-white border border-slate-200 text-sm font-bold text-slate-700 hover:bg-slate-50 transition-all shadow-sm"}>
                 Cancel
              </button>
              <button onClick={() => mutation.mutate()} disabled={mutation.isPending || !form.feedback_text}
@@ -340,22 +339,23 @@ function DailyProgressForm({ teamId, members, token, onSuccess }) {
 
 // ── Workspace Card ───────────────────────────────────────────────────────────
 function WorkspaceCard({ title, icon: Icon, mainText, subText, actionText, onAction, colorTheme }) {
+  const { isDark } = useContext(ThemeContext);
   const theme = {
     blue: { icon: 'bg-blue-50 text-blue-600 border border-blue-200', btn: 'bg-white dark:bg-slate-900/80 border-blue-300 text-blue-600 hover:bg-blue-50' },
     purple: { icon: 'bg-purple-50 text-purple-600 border border-purple-200', btn: 'bg-white dark:bg-slate-900/80 border-purple-300 text-purple-600 hover:bg-purple-50' }
   }[colorTheme]
 
   return (
-    <div className="bg-white dark:bg-slate-900/80 border border-slate-200 dark:border-white/10/80 dark:border-white/10 rounded-[22px] shadow-[0_14px_35px_rgba(15,23,42,0.05)] p-6 mb-4">
+    <div className={isDark ? "mb-4 p-6 shadow-[0_14px_35px_rgba(15,23,42,0.05)] rounded-[22px] border bg-slate-900/80 border-white/10/80 border-white/10" : "bg-white border border-slate-200 rounded-[22px] shadow-[0_14px_35px_rgba(15,23,42,0.05)] p-6 mb-4"}>
       <div className="flex items-center gap-3 mb-5 pb-5 border-b border-slate-100">
         <div className={`w-12 h-12 rounded-xl flex items-center justify-center shrink-0 ${theme.icon}`}>
           <Icon size={24} />
         </div>
-        <h3 className="text-sm font-extrabold text-slate-950 dark:text-slate-100">{title}</h3>
+        <h3 className={isDark ? "font-extrabold text-slate-100" : "text-sm font-extrabold text-slate-950"}>{title}</h3>
       </div>
       <div className="mb-6">
-        <h4 className="text-base font-black text-slate-950 dark:text-slate-100 mb-1">{mainText}</h4>
-        <p className="text-sm font-medium text-slate-500 dark:text-slate-400 whitespace-pre-line truncate">{subText}</p>
+        <h4 className={isDark ? "mb-1 font-black text-slate-100" : "text-base font-black text-slate-950 mb-1"}>{mainText}</h4>
+        <p className={isDark ? "truncate whitespace-pre-line font-medium text-slate-400" : "text-sm font-medium text-slate-500 whitespace-pre-line truncate"}>{subText}</p>
       </div>
       <button onClick={onAction} className={`w-full py-3 border rounded-xl text-sm font-bold transition-colors flex items-center justify-center gap-2 ${theme.btn}`}>
         <Plus size={16} /> {actionText}
@@ -366,6 +366,7 @@ function WorkspaceCard({ title, icon: Icon, mainText, subText, actionText, onAct
 
 // ── Team card ──────────────────────────────────────────────────────────────
 function TeamCard({ team, token, eventId, mentorId }) {
+  const { isDark } = useContext(ThemeContext);
   const [expanded, setExpanded] = useState(false)
   const [activeModal, setActiveModal] = useState(null)
   const [chatTab, setChatTab] = useState('team')
@@ -380,33 +381,33 @@ function TeamCard({ team, token, eventId, mentorId }) {
             {initials(team.team_name)}
           </div>
           <div className="flex-1 min-w-0">
-            <p className="text-base font-black text-slate-950 dark:text-slate-100">{team.team_name}</p>
-            <p className="text-sm font-medium text-slate-500 dark:text-slate-400 mt-0.5">{team.member_count} members · {team.feedback_count} feedbacks</p>
+            <p className={isDark ? "font-black text-slate-100" : "text-base font-black text-slate-950"}>{team.team_name}</p>
+            <p className={isDark ? "mt-0.5 font-medium text-slate-400" : "text-sm font-medium text-slate-500 mt-0.5"}>{team.member_count} members · {team.feedback_count} feedbacks</p>
           </div>
-          <button onClick={() => setExpanded(!expanded)} className="hidden sm:flex items-center gap-1.5 px-5 py-2.5 rounded-xl bg-white dark:bg-slate-900/80 border border-slate-200 dark:border-white/10 text-sm font-bold text-slate-700 dark:text-slate-300 hover:bg-slate-50 transition-colors">
+          <button onClick={() => setExpanded(!expanded)} className={isDark ? "transition-colors hover:bg-slate-50 font-bold border rounded-xl py-2.5 px-5 gap-1.5 items-center sm:flex hidden bg-slate-900/80 border-white/10 text-slate-300" : "hidden sm:flex items-center gap-1.5 px-5 py-2.5 rounded-xl bg-white border border-slate-200 text-sm font-bold text-slate-700 hover:bg-slate-50 transition-colors"}>
             Manage Team <ChevronRight size={16} className={`text-slate-400 transition-transform ${expanded ? 'rotate-90' : ''}`} />
           </button>
         </div>
         <div className="sm:hidden px-6 pb-5 pt-1">
-          <button onClick={() => setExpanded(!expanded)} className="w-full flex items-center justify-center gap-1.5 px-5 py-2.5 rounded-xl bg-white dark:bg-slate-900/80 border border-slate-200 dark:border-white/10 text-sm font-bold text-slate-700 dark:text-slate-300 hover:bg-slate-50 transition-colors">
+          <button onClick={() => setExpanded(!expanded)} className={isDark ? "transition-colors hover:bg-slate-50 font-bold border rounded-xl py-2.5 px-5 gap-1.5 justify-center items-center flex w-full bg-slate-900/80 border-white/10 text-slate-300" : "w-full flex items-center justify-center gap-1.5 px-5 py-2.5 rounded-xl bg-white border border-slate-200 text-sm font-bold text-slate-700 hover:bg-slate-50 transition-colors"}>
             Manage Team <ChevronRight size={16} className={`text-slate-400 transition-transform ${expanded ? 'rotate-90' : ''}`} />
           </button>
         </div>
       </div>
 
       {expanded && (
-        <div className="bg-white/95 dark:bg-slate-950/90 border border-slate-200 dark:border-white/10/80 dark:border-white/10 rounded-[28px] shadow-[0_22px_60px_rgba(15,23,42,0.10)] overflow-hidden mt-4">
+        <div className={isDark ? "mt-4 overflow-hidden shadow-[0_22px_60px_rgba(15,23,42,0.10)] rounded-[28px] border bg-slate-950/90 border-white/10/80 border-white/10" : "bg-white/95 border border-slate-200 rounded-[28px] shadow-[0_22px_60px_rgba(15,23,42,0.10)] overflow-hidden mt-4"}>
           {/* Header */}
-          <div className="px-8 py-6 border-b border-slate-200 dark:border-white/10/80 dark:border-white/10">
-            <h2 className="text-2xl sm:text-3xl font-bold text-slate-950 dark:text-slate-100">{team.team_name} Workspace</h2>
-            <p className="text-sm font-medium text-slate-500 dark:text-slate-400 mt-1">Manage meetings, feedback, and team chat</p>
+          <div className={isDark ? "border-b py-6 px-8 border-white/10/80 border-white/10" : "px-8 py-6 border-b border-slate-200"}>
+            <h2 className={isDark ? "font-bold sm:text-3xl text-slate-100" : "text-2xl sm:text-3xl font-bold text-slate-950"}>{team.team_name} Workspace</h2>
+            <p className={isDark ? "mt-1 font-medium text-slate-400" : "text-sm font-medium text-slate-500 mt-1"}>Manage meetings, feedback, and team chat</p>
           </div>
 
           {/* Body */}
-          <div className="grid grid-cols-1 lg:grid-cols-[1.1fr_0.9fr] bg-white dark:bg-slate-900/80">
+          <div className={isDark ? "lg:grid-cols-[1.1fr_0.9fr] grid-cols-1 grid bg-slate-900/80" : "grid grid-cols-1 lg:grid-cols-[1.1fr_0.9fr] bg-white"}>
             
             {/* Left Column: Actions */}
-            <div className="p-8 space-y-6 bg-white dark:bg-slate-900/80">
+            <div className={isDark ? "space-y-6 p-8 bg-slate-900/80" : "p-8 space-y-6 bg-white"}>
               {activeModal === 'schedule' ? (
                 <ScheduleMeetingForm teamId={team.team_id} token={token} onSuccess={closeModal} />
               ) : activeModal === 'feedback' ? (
@@ -437,13 +438,13 @@ function TeamCard({ team, token, eventId, mentorId }) {
             </div>
 
             {/* Right Column: Chat */}
-            <div className="border-t lg:border-t-0 lg:border-l border-slate-200 dark:border-white/10/80 dark:border-white/10 bg-slate-50/40 flex flex-col min-h-[520px]">
-              <div className="flex px-4 pt-2 gap-2 overflow-x-auto border-b border-slate-200 dark:border-white/10/80 dark:border-white/10 bg-white dark:bg-slate-900/80 shrink-0">
+            <div className={isDark ? "min-h-[520px] flex-col flex bg-slate-50/40 lg:border-l lg:border-t-0 border-t border-white/10/80 border-white/10" : "border-t lg:border-t-0 lg:border-l border-slate-200 bg-slate-50/40 flex flex-col min-h-[520px]"}>
+              <div className={isDark ? "shrink-0 border-b overflow-x-auto gap-2 pt-2 px-4 flex border-white/10/80 border-white/10 bg-slate-900/80" : "flex px-4 pt-2 gap-2 overflow-x-auto border-b border-slate-200 bg-white shrink-0"}>
                 <button onClick={() => setChatTab('team')} className={`px-4 py-3 text-sm font-bold border-b-2 whitespace-nowrap transition-colors ${chatTab === 'team' ? 'border-blue-600 text-blue-600' : 'border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:text-slate-200'}`}>Team Chat</button>
                 <button onClick={() => setChatTab('mentor')} className={`px-4 py-3 text-sm font-bold border-b-2 whitespace-nowrap transition-colors ${chatTab === 'mentor' ? 'border-blue-600 text-blue-600' : 'border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:text-slate-200'}`}>Mentor Chat</button>
                 <button onClick={() => setChatTab('support')} className={`px-4 py-3 text-sm font-bold border-b-2 whitespace-nowrap transition-colors ${chatTab === 'support' ? 'border-blue-600 text-blue-600' : 'border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:text-slate-200'}`}>Event Support</button>
               </div>
-              <div className="flex-1 bg-gradient-to-b from-slate-50/40 to-white text-slate-700 dark:text-slate-300 relative flex flex-col min-h-[400px]">
+              <div className={isDark ? "min-h-[400px] flex-col flex relative to-white from-slate-50/40 bg-gradient-to-b flex-1 text-slate-300" : "flex-1 bg-gradient-to-b from-slate-50/40 to-white text-slate-700 relative flex flex-col min-h-[400px]"}>
                 {chatTab === 'team' && eventId && mentorId ? (
                   <TeamChatPanel
                     eventId={eventId}
@@ -458,14 +459,14 @@ function TeamCard({ team, token, eventId, mentorId }) {
                 ) : (
                   <div className="flex-1 flex flex-col items-center justify-center text-center p-8 text-slate-400">
                     <MessageSquare size={32} className="mb-4 text-slate-300" />
-                    <h4 className="text-sm font-bold text-slate-950 dark:text-slate-100 mb-1">No messages yet</h4>
-                    <p className="text-xs font-medium text-slate-500 dark:text-slate-400">Start the conversation with your team.</p>
+                    <h4 className={isDark ? "mb-1 font-bold text-slate-100" : "text-sm font-bold text-slate-950 mb-1"}>No messages yet</h4>
+                    <p className={isDark ? "font-medium text-slate-400" : "text-xs font-medium text-slate-500"}>Start the conversation with your team.</p>
                   </div>
                 )}
                 {(!eventId || !mentorId || chatTab !== 'team') && (
-                  <div className="bg-white dark:bg-slate-900/80 border-t border-slate-200 dark:border-white/10/80 dark:border-white/10 p-4 shrink-0">
+                  <div className={isDark ? "shrink-0 p-4 border-t bg-slate-900/80 border-white/10/80 border-white/10" : "bg-white border-t border-slate-200 p-4 shrink-0"}>
                     <div className="relative flex items-center">
-                      <input placeholder="Type a message..." disabled className="w-full bg-slate-100/80 border border-slate-200 dark:border-white/10 text-slate-800 dark:text-slate-200 placeholder:text-slate-400 rounded-full px-4 py-2.5 pr-12 text-sm focus:outline-none focus:ring-4 focus:ring-blue-100/70 focus:border-blue-300 transition-all" />
+                      <input placeholder="Type a message..." disabled className={isDark ? "transition-all focus:border-blue-300 focus:ring-blue-100/70 focus:ring-4 focus:outline-none pr-12 py-2.5 px-4 rounded-full placeholder:text-slate-400 border bg-slate-100/80 w-full border-white/10 text-slate-200" : "w-full bg-slate-100/80 border border-slate-200 text-slate-800 placeholder:text-slate-400 rounded-full px-4 py-2.5 pr-12 text-sm focus:outline-none focus:ring-4 focus:ring-blue-100/70 focus:border-blue-300 transition-all"} />
                       <button disabled className="absolute right-1 top-1 bottom-1 w-8 h-8 rounded-full bg-blue-600 text-white flex items-center justify-center shrink-0 opacity-50"><Send size={14} className="-ml-0.5 mt-0.5" /></button>
                     </div>
                   </div>
@@ -481,6 +482,33 @@ function TeamCard({ team, token, eventId, mentorId }) {
 
 // ── Main portal component ──────────────────────────────────────────────────
 export default function MentorPortal() {
+  const [isDark, setIsDark] = useState(() => {
+    if (typeof window === 'undefined') return false;
+    return localStorage.getItem('theme') === 'dark';
+  });
+
+  useEffect(() => {
+    if (isDark) {
+      document.documentElement.classList.add('dark');
+      document.documentElement.classList.remove('light');
+    } else {
+      document.documentElement.classList.add('light');
+      document.documentElement.classList.remove('dark');
+    }
+    localStorage.setItem('theme', isDark ? 'dark' : 'light');
+  }, [isDark]);
+
+  const toggleTheme = () => setIsDark(prev => !prev);
+
+  return (
+    <ThemeContext.Provider value={{ isDark, toggleTheme }}>
+      <MentorPortalContent />
+    </ThemeContext.Provider>
+  )
+}
+
+function MentorPortalContent() {
+  const { isDark } = useContext(ThemeContext);
   const { token, setToken } = useAuth()
 
   const urlToken = useMemo(() => {
@@ -520,10 +548,10 @@ export default function MentorPortal() {
   if (!urlToken) {
     return (
       <div className="min-h-screen bg-slate-50 flex items-center justify-center px-4">
-        <div className="text-center max-w-sm bg-white dark:bg-slate-900/80 p-8 rounded-[22px] shadow-sm border border-slate-200 dark:border-white/10">
+        <div className={isDark ? "border shadow-sm rounded-[22px] p-8 max-w-sm text-center bg-slate-900/80 border-white/10" : "text-center max-w-sm bg-white p-8 rounded-[22px] shadow-sm border border-slate-200"}>
           <AlertTriangle size={40} className="text-orange-500 mx-auto mb-4" />
-          <h2 className="text-lg font-bold text-slate-950 dark:text-slate-100 mb-1">No access token</h2>
-          <p className="text-sm font-medium text-slate-600 dark:text-slate-300">Please use the secure mentor link sent to your email.</p>
+          <h2 className={isDark ? "mb-1 font-bold text-slate-100" : "text-lg font-bold text-slate-950 mb-1"}>No access token</h2>
+          <p className={isDark ? "font-medium text-slate-300" : "text-sm font-medium text-slate-600"}>Please use the secure mentor link sent to your email.</p>
         </div>
       </div>
     )
@@ -534,12 +562,12 @@ export default function MentorPortal() {
   if (profileError) {
     return (
       <div className="min-h-screen bg-slate-50 flex items-center justify-center px-4">
-        <div className="text-center max-w-sm bg-white dark:bg-slate-900/80 p-8 rounded-[22px] shadow-sm border border-slate-200 dark:border-white/10">
+        <div className={isDark ? "border shadow-sm rounded-[22px] p-8 max-w-sm text-center bg-slate-900/80 border-white/10" : "text-center max-w-sm bg-white p-8 rounded-[22px] shadow-sm border border-slate-200"}>
           <AlertTriangle size={40} className="text-orange-500 mx-auto mb-4" />
-          <h2 className="text-lg font-bold text-slate-950 dark:text-slate-100 mb-2">
+          <h2 className={isDark ? "mb-2 font-bold text-slate-100" : "text-lg font-bold text-slate-950 mb-2"}>
             {profileError.message?.includes('expired') ? 'Link expired' : 'Access denied'}
           </h2>
-          <p className="text-sm font-medium text-slate-600 dark:text-slate-300 leading-relaxed">
+          <p className={isDark ? "leading-relaxed font-medium text-slate-300" : "text-sm font-medium text-slate-600 leading-relaxed"}>
             {profileError.message?.includes('expired')
               ? 'Your access link has expired. Contact the committee for a fresh link.'
               : `Could not verify your access. (${profileError.message})`
@@ -554,11 +582,11 @@ export default function MentorPortal() {
   if (profileData && profileData.role !== 'mentor') {
     return (
       <div className="min-h-screen bg-slate-50 flex items-center justify-center px-4">
-        <div className="text-center max-w-sm bg-white dark:bg-slate-900/80 p-8 rounded-[22px] shadow-sm border border-slate-200 dark:border-white/10">
+        <div className={isDark ? "border shadow-sm rounded-[22px] p-8 max-w-sm text-center bg-slate-900/80 border-white/10" : "text-center max-w-sm bg-white p-8 rounded-[22px] shadow-sm border border-slate-200"}>
           <AlertTriangle size={40} className="text-orange-500 mx-auto mb-4" />
-          <h2 className="text-lg font-bold text-slate-950 dark:text-slate-100 mb-1">Wrong portal</h2>
-          <p className="text-sm font-medium text-slate-600 dark:text-slate-300">
-            This link is for mentors. Your token has role <code className="bg-slate-100 border border-slate-200 dark:border-white/10 px-1 rounded text-xs">{profileData.role}</code>.
+          <h2 className={isDark ? "mb-1 font-bold text-slate-100" : "text-lg font-bold text-slate-950 mb-1"}>Wrong portal</h2>
+          <p className={isDark ? "font-medium text-slate-300" : "text-sm font-medium text-slate-600"}>
+            This link is for mentors. Your token has role <code className={isDark ? "text-xs rounded px-1 border bg-slate-100 border-white/10" : "bg-slate-100 border border-slate-200 px-1 rounded text-xs"}>{profileData.role}</code>.
           </p>
         </div>
       </div>
@@ -570,7 +598,7 @@ export default function MentorPortal() {
   const mentorName = profile.name?.split(' ')[0] ?? 'Mentor'
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-[#f8fbff] via-[#eef6fb] to-[#f7fbff] dark:from-[#0b0f14] dark:via-slate-950 dark:to-[#0b0f14] text-slate-950 dark:text-slate-100 font-sans pb-20 relative overflow-x-hidden">
+    <div className={isDark ? "overflow-x-hidden relative pb-20 font-sans bg-gradient-to-br min-h-screen from-[#0b0f14] via-slate-950 to-[#0b0f14] text-slate-100" : "min-h-screen bg-gradient-to-br from-[#f8fbff] via-[#eef6fb] to-[#f7fbff] text-slate-950 font-sans pb-20 relative overflow-x-hidden"}>
       
       <PortalNavbar mentorName={profile.name ?? 'Mentor'} />
 
@@ -583,11 +611,11 @@ export default function MentorPortal() {
         {/* Hero Header */}
         <div className="mb-10">
           <p className="text-xs font-bold text-red-500 uppercase tracking-widest mb-2">Mentor Portal</p>
-          <h1 className="text-4xl lg:text-5xl font-black text-slate-950 dark:text-slate-100 mb-2 tracking-tight">
+          <h1 className={isDark ? "tracking-tight mb-2 font-black lg:text-5xl text-slate-100" : "text-4xl lg:text-5xl font-black text-slate-950 mb-2 tracking-tight"}>
             Welcome, {mentorName} 👋
           </h1>
-          <p className="text-base font-medium text-slate-600 dark:text-slate-300">{profile.email || '—'}</p>
-          <p className="text-sm font-medium text-slate-500 dark:text-slate-400 mt-0.5">{profile.organization || '—'}</p>
+          <p className={isDark ? "font-medium text-slate-300" : "text-base font-medium text-slate-600"}>{profile.email || '—'}</p>
+          <p className={isDark ? "mt-0.5 font-medium text-slate-400" : "text-sm font-medium text-slate-500 mt-0.5"}>{profile.organization || '—'}</p>
           
           <div className="flex gap-2 mt-4 flex-wrap">
             {profile.expertise_areas?.length > 0 ? profile.expertise_areas.map(a => (
@@ -634,8 +662,8 @@ export default function MentorPortal() {
 
         {/* Teams */}
         <div className="mb-10">
-          <h2 className="text-lg font-bold text-slate-950 dark:text-slate-100 mb-6 flex items-center gap-2">
-            <Users size={20} className="text-slate-500 dark:text-slate-400" /> Your Teams
+          <h2 className={isDark ? "gap-2 items-center flex mb-6 font-bold text-slate-100" : "text-lg font-bold text-slate-950 mb-6 flex items-center gap-2"}>
+            <Users size={20} className={isDark ? "text-slate-400" : "text-slate-500"} /> Your Teams
           </h2>
 
           {teamsLoading ? (
@@ -643,10 +671,10 @@ export default function MentorPortal() {
               {[1,2].map(i => <div key={i} className="h-24 bg-white/60 rounded-[22px] animate-pulse" />)}
             </div>
           ) : teams.length === 0 ? (
-            <div className="text-center py-16 bg-white/90 rounded-[24px] border border-slate-200 dark:border-white/10/70 dark:border-white/10 shadow-sm">
+            <div className={isDark ? "shadow-sm border rounded-[24px] bg-white/90 py-16 text-center border-white/10/70 border-white/10" : "text-center py-16 bg-white/90 rounded-[24px] border border-slate-200 shadow-sm"}>
               <Users size={36} className="mx-auto mb-3 text-slate-400" />
-              <p className="text-base text-slate-950 dark:text-slate-100 font-bold">No teams assigned yet.</p>
-              <p className="text-sm text-slate-500 dark:text-slate-400 mt-1 font-medium">The committee will assign you to teams soon.</p>
+              <p className={isDark ? "font-bold text-slate-100" : "text-base text-slate-950 font-bold"}>No teams assigned yet.</p>
+              <p className={isDark ? "font-medium mt-1 text-slate-400" : "text-sm text-slate-500 mt-1 font-medium"}>The committee will assign you to teams soon.</p>
             </div>
           ) : (
             <div className="space-y-4">
@@ -665,7 +693,7 @@ export default function MentorPortal() {
 
         {/* Footer */}
         <div className="text-center pt-8 pb-10">
-          <p className="text-sm font-medium text-slate-500 dark:text-slate-400">EventOS • WISE@TI Hackathon • Mentor Portal</p>
+          <p className={isDark ? "font-medium text-slate-400" : "text-sm font-medium text-slate-500"}>EventOS • WISE@TI Hackathon • Mentor Portal</p>
         </div>
       </div>
     </div>

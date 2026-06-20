@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react'
+import { useState, useEffect, useMemo, createContext, useContext } from 'react'
 import { useQuery, useMutation } from '@tanstack/react-query'
 import {
   ClipboardList, CheckCircle, Loader2, AlertTriangle,
@@ -9,6 +9,8 @@ import { portalApi, evaluationsApi, aiApi, solverApi, submissionsApi, eventStora
 import { useAuth } from '../context/AuthContext'
 import { useParams } from 'react-router-dom'
 import EventOSLogo from '../components/EventOSLogo'
+
+const ThemeContext = createContext({ isDark: false, toggleTheme: () => {} });
 
 // ── Grading criteria — mirrors backend GRADING_CRITERIA constant ───────────
 const CRITERIA = [
@@ -41,12 +43,13 @@ const themeColors = {
 // ── Shared UI Components ───────────────────────────────────────────────────
 
 function FullPageMessage({ icon: Icon, title, message }) {
+  const { isDark } = useContext(ThemeContext);
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 via-blue-50/30 to-white dark:from-[#0b0f14] dark:via-slate-900/50 dark:to-[#0b0f14]">
+    <div className={isDark ? "bg-gradient-to-br justify-center items-center flex min-h-screen from-[#0b0f14] via-slate-900/50 to-[#0b0f14]" : "min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 via-blue-50/30 to-white"}>
       <div className="text-center max-w-sm px-4">
         <Icon size={40} className="mx-auto mb-4 text-red-500" />
-        <h2 className="text-xl font-bold text-slate-950 dark:text-slate-100 mb-2">{title}</h2>
-        <p className="text-sm font-medium text-slate-500 dark:text-slate-400 leading-relaxed">{message}</p>
+        <h2 className={isDark ? "mb-2 font-bold text-slate-100" : "text-xl font-bold text-slate-950 mb-2"}>{title}</h2>
+        <p className={isDark ? "leading-relaxed font-medium text-slate-400" : "text-sm font-medium text-slate-500 leading-relaxed"}>{message}</p>
       </div>
     </div>
   )
@@ -54,21 +57,12 @@ function FullPageMessage({ icon: Icon, title, message }) {
 
 
 function PortalThemeToggle() {
-  const [isDark, setIsDark] = useState(() => {
-    if (typeof window === 'undefined') return false;
-    return localStorage.getItem('theme') === 'dark';
-  });
-
-  useEffect(() => {
-    document.documentElement.classList.toggle('dark', isDark);
-    localStorage.setItem('theme', isDark ? 'dark' : 'light');
-  }, [isDark]);
-
+  const { isDark, toggleTheme } = useContext(ThemeContext);
   return (
     <button
       type="button"
-      onClick={() => setIsDark(prev => !prev)}
-      className="p-2 rounded-xl bg-white dark:bg-slate-900/80 border border-slate-200 dark:border-white/10 shadow-sm hover:bg-slate-50 transition-colors"
+      onClick={toggleTheme}
+      className={isDark ? "transition-colors hover:bg-slate-50 shadow-sm border rounded-xl p-2 bg-slate-900/80 border-white/10" : "p-2 rounded-xl bg-white border border-slate-200 shadow-sm hover:bg-slate-50 transition-colors"}
       title="Toggle theme"
     >
       {isDark ? <Sun size={18} className="text-amber-500" /> : <Moon size={18} className="text-slate-500" />}
@@ -77,28 +71,29 @@ function PortalThemeToggle() {
 }
 
 function PortalNavbar({ evaluatorName }) {
+  const { isDark } = useContext(ThemeContext);
   const initial = evaluatorName ? evaluatorName.charAt(0).toUpperCase() : 'A'
   
   return (
-    <nav className="bg-white/95 dark:bg-slate-950/90 border-b border-slate-200 dark:border-white/10/80 dark:border-white/10 backdrop-blur sticky top-0 z-50 h-[72px] flex items-center shrink-0">
+    <nav className={isDark ? "shrink-0 items-center flex h-[72px] z-50 top-0 sticky backdrop-blur border-b bg-slate-950/90 border-white/10/80 border-white/10" : "bg-white/95 border-b border-slate-200 backdrop-blur sticky top-0 z-50 h-[72px] flex items-center shrink-0"}>
       <div className="w-full flex items-center justify-between px-6">
         <div className="flex items-center gap-4">
-          <button className="text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:text-slate-100 transition-colors hidden sm:block">
+          <button className={isDark ? "sm:block hidden transition-colors hover:text-slate-900 text-slate-300 text-slate-100" : "text-slate-600 hover:text-slate-900 transition-colors hidden sm:block"}>
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
           </button>
           <div className="flex items-center gap-3">
             <EventOSLogo className="text-red-500" size={32} />
             <div>
-               <h1 className="text-sm font-black text-slate-950 dark:text-slate-100 leading-tight tracking-widest uppercase">WISE@TI HACKATHON</h1>
-               <p className="text-xs font-medium text-slate-500 dark:text-slate-400">Evaluator Portal</p>
+               <h1 className={isDark ? "uppercase tracking-widest leading-tight font-black text-slate-100" : "text-sm font-black text-slate-950 leading-tight tracking-widest uppercase"}>WISE@TI HACKATHON</h1>
+               <p className={isDark ? "font-medium text-slate-400" : "text-xs font-medium text-slate-500"}>Evaluator Portal</p>
             </div>
           </div>
         </div>
 
         <div className="flex items-center gap-4">
-           <div className="hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-full border border-slate-200 dark:border-white/10 bg-white dark:bg-slate-900/80 shadow-sm">
+           <div className={isDark ? "shadow-sm border rounded-full py-1.5 px-3 gap-2 items-center sm:flex hidden border-white/10 bg-slate-900/80" : "hidden sm:flex items-center gap-2 px-3 py-1.5 rounded-full border border-slate-200 bg-white shadow-sm"}>
              <div className="w-2 h-2 rounded-full bg-emerald-500"></div>
-             <span className="text-xs font-bold text-slate-700 dark:text-slate-300">System Live</span>
+             <span className={isDark ? "font-bold text-slate-300" : "text-xs font-bold text-slate-700"}>System Live</span>
            </div>
            
            <div className="w-px h-6 bg-slate-200 hidden sm:block mx-1"></div>
@@ -117,6 +112,7 @@ function PortalNavbar({ evaluatorName }) {
 // ── Criterion slider row ───────────────────────────────────────────────────
 
 function CriterionSlider({ criterion, value, onChange }) {
+  const { isDark } = useContext(ThemeContext);
   const pct = (value / 10) * 100
   const colors = themeColors[criterion.theme]
   const Icon = criterion.icon
@@ -129,7 +125,7 @@ function CriterionSlider({ criterion, value, onChange }) {
     '#3b82f6';
 
   return (
-    <div className="bg-white dark:bg-slate-900/80 border border-slate-200 dark:border-white/10/80 dark:border-white/10 rounded-[18px] p-6 shadow-[0_12px_30px_rgba(15,23,42,0.04)] flex flex-col md:flex-row md:items-center gap-6">
+    <div className={isDark ? "gap-6 md:items-center md:flex-row flex-col flex shadow-[0_12px_30px_rgba(15,23,42,0.04)] p-6 rounded-[18px] border bg-slate-900/80 border-white/10/80 border-white/10" : "bg-white border border-slate-200 rounded-[18px] p-6 shadow-[0_12px_30px_rgba(15,23,42,0.04)] flex flex-col md:flex-row md:items-center gap-6"}>
       
       <div className="flex-1 flex items-start gap-4">
          <div className={`w-12 h-12 rounded-xl flex items-center justify-center shrink-0 ${colors.bg} ${colors.text}`}>
@@ -137,12 +133,12 @@ function CriterionSlider({ criterion, value, onChange }) {
          </div>
          <div>
             <div className="flex items-center gap-3 mb-1">
-              <span className="text-sm font-black text-slate-950 dark:text-slate-100">{criterion.label}</span>
+              <span className={isDark ? "font-black text-slate-100" : "text-sm font-black text-slate-950"}>{criterion.label}</span>
               <span className={`text-[10px] font-bold px-2 py-0.5 rounded-md ${colors.bg} ${colors.text}`}>
                 {(criterion.weight * 100).toFixed(0)}%
               </span>
             </div>
-            <p className="text-xs font-medium text-slate-500 dark:text-slate-400">{criterion.description}</p>
+            <p className={isDark ? "font-medium text-slate-400" : "text-xs font-medium text-slate-500"}>{criterion.description}</p>
          </div>
       </div>
 
@@ -181,8 +177,8 @@ function CriterionSlider({ criterion, value, onChange }) {
       </div>
 
       <div className="shrink-0 text-right w-16">
-        <span className="text-2xl font-black tabular-nums text-slate-950 dark:text-slate-100">{value.toFixed(1)}</span>
-        <span className="text-xs font-bold text-slate-500 dark:text-slate-400"> /10</span>
+        <span className={isDark ? "tabular-nums font-black text-slate-100" : "text-2xl font-black tabular-nums text-slate-950"}>{value.toFixed(1)}</span>
+        <span className={isDark ? "font-bold text-slate-400" : "text-xs font-bold text-slate-500"}> /10</span>
       </div>
 
     </div>
@@ -192,6 +188,7 @@ function CriterionSlider({ criterion, value, onChange }) {
 // ── Scoring form ──────────────────────────────────────────────────────────
 
 function ScoringForm({ team, onSubmitted, alreadySubmitted, token }) {
+  const { isDark } = useContext(ThemeContext);
   const urlToken = token
   const [scores, setScores]         = useState(DEFAULT_SCORES)
   const [confirming, setConfirming] = useState(false)
@@ -218,8 +215,8 @@ function ScoringForm({ team, onSubmitted, alreadySubmitted, token }) {
         <div className="w-20 h-20 rounded-full bg-emerald-50 text-emerald-500 flex items-center justify-center mb-6">
            <CheckCircle size={40} />
         </div>
-        <h3 className="text-2xl font-black text-slate-950 dark:text-slate-100 mb-2">Scorecard submitted</h3>
-        <p className="text-sm font-medium text-slate-500 dark:text-slate-400">Your evaluation for <strong className="text-slate-950 dark:text-slate-100">{team.team_name}</strong> has been recorded securely.</p>
+        <h3 className={isDark ? "mb-2 font-black text-slate-100" : "text-2xl font-black text-slate-950 mb-2"}>Scorecard submitted</h3>
+        <p className={isDark ? "font-medium text-slate-400" : "text-sm font-medium text-slate-500"}>Your evaluation for <strong className={isDark ? "text-slate-100" : "text-slate-950"}>{team.team_name}</strong> has been recorded securely.</p>
       </div>
     )
   }
@@ -228,9 +225,9 @@ function ScoringForm({ team, onSubmitted, alreadySubmitted, token }) {
     <div className="flex flex-col gap-4">
       {/* Team header */}
       <div className="mt-4 mb-2">
-        <p className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest mb-1">Evaluating</p>
-        <h2 className="text-2xl font-black text-slate-950 dark:text-slate-100">{team.team_name}</h2>
-        <p className="text-sm font-medium text-slate-500 dark:text-slate-400 mt-1">
+        <p className={isDark ? "mb-1 tracking-widest uppercase font-bold text-slate-400" : "text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1"}>Evaluating</p>
+        <h2 className={isDark ? "font-black text-slate-100" : "text-2xl font-black text-slate-950"}>{team.team_name}</h2>
+        <p className={isDark ? "mt-1 font-medium text-slate-400" : "text-sm font-medium text-slate-500 mt-1"}>
           Score each criterion honestly. Your evaluation is anonymised in the final aggregate.
         </p>
       </div>
@@ -250,21 +247,21 @@ function ScoringForm({ team, onSubmitted, alreadySubmitted, token }) {
       {/* Weighted total display */}
       <div className="bg-red-50/70 rounded-[18px] border border-red-100 p-6 flex items-center justify-between mt-2">
         <div className="flex items-center gap-4">
-           <div className="w-12 h-12 rounded-full bg-white dark:bg-slate-900/80 flex items-center justify-center text-red-500 shadow-sm shrink-0">
+           <div className={isDark ? "shrink-0 shadow-sm text-red-500 justify-center items-center flex rounded-full h-12 w-12 bg-slate-900/80" : "w-12 h-12 rounded-full bg-white flex items-center justify-center text-red-500 shadow-sm shrink-0"}>
              <TrendingUp size={20} />
            </div>
            <div>
-             <p className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest mb-0.5">WEIGHTED TOTAL SCORE</p>
+             <p className={isDark ? "mb-0.5 tracking-widest uppercase font-bold text-slate-400" : "text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-0.5"}>WEIGHTED TOTAL SCORE</p>
              <div className="flex items-baseline gap-2">
                <span className="text-4xl font-black text-red-600 tabular-nums">{total.toFixed(2)}</span>
-               <span className="text-sm font-bold text-slate-500 dark:text-slate-400">/10</span>
+               <span className={isDark ? "font-bold text-slate-400" : "text-sm font-bold text-slate-500"}>/10</span>
                <span className={`text-xs font-bold px-2.5 py-1 rounded-md ml-2 ${quality.bg}`}>{quality.label}</span>
              </div>
            </div>
         </div>
         <button
           onClick={() => setScores(DEFAULT_SCORES)}
-          className="flex items-center gap-1.5 text-sm font-bold text-slate-500 dark:text-slate-400 hover:text-slate-950 dark:text-slate-100 transition-colors bg-white dark:bg-slate-900/80 px-4 py-2 rounded-xl border border-slate-200 dark:border-white/10 shadow-sm"
+          className={isDark ? "shadow-sm border rounded-xl py-2 px-4 transition-colors hover:text-slate-950 font-bold gap-1.5 items-center flex text-slate-400 text-slate-100 bg-slate-900/80 border-white/10" : "flex items-center gap-1.5 text-sm font-bold text-slate-500 hover:text-slate-950 transition-colors bg-white px-4 py-2 rounded-xl border border-slate-200 shadow-sm"}
         >
           <RotateCcw size={14} /> Reset
         </button>
@@ -272,8 +269,8 @@ function ScoringForm({ team, onSubmitted, alreadySubmitted, token }) {
 
       {/* Submit / confirm */}
       {!confirming ? (
-        <div className="bg-white dark:bg-slate-900/80 border border-slate-200 dark:border-white/10/80 dark:border-white/10 rounded-[18px] p-8 shadow-[0_12px_30px_rgba(15,23,42,0.04)] mt-2">
-           <h3 className="text-lg font-black text-slate-950 dark:text-slate-100 mb-6">Review & Submit</h3>
+        <div className={isDark ? "mt-2 shadow-[0_12px_30px_rgba(15,23,42,0.04)] p-8 rounded-[18px] border bg-slate-900/80 border-white/10/80 border-white/10" : "bg-white border border-slate-200 rounded-[18px] p-8 shadow-[0_12px_30px_rgba(15,23,42,0.04)] mt-2"}>
+           <h3 className={isDark ? "mb-6 font-black text-slate-100" : "text-lg font-black text-slate-950 mb-6"}>Review & Submit</h3>
            
            <div className="flex flex-col md:flex-row items-center justify-between gap-6 mb-8">
               <div className="flex gap-8 divide-x divide-slate-100">
@@ -281,25 +278,25 @@ function ScoringForm({ team, onSubmitted, alreadySubmitted, token }) {
                   <div key={c.key} className="pl-8 first:pl-0 flex items-center gap-3">
                      <div className={`w-2 h-2 rounded-full ${themeColors[c.theme].slider}`}></div>
                      <div>
-                       <p className="text-[10px] font-bold text-slate-500 dark:text-slate-400 mb-0.5">{c.label}</p>
-                       <p className="text-base font-black text-slate-950 dark:text-slate-100">{scores[c.key].toFixed(1)}</p>
+                       <p className={isDark ? "mb-0.5 font-bold text-slate-400" : "text-[10px] font-bold text-slate-500 mb-0.5"}>{c.label}</p>
+                       <p className={isDark ? "font-black text-slate-100" : "text-base font-black text-slate-950"}>{scores[c.key].toFixed(1)}</p>
                      </div>
                   </div>
                 ))}
               </div>
               <div className="text-right">
-                 <p className="text-[10px] font-bold text-slate-500 dark:text-slate-400 mb-0.5">Weighted total</p>
-                 <p className="text-2xl font-black text-slate-950 dark:text-slate-100">{total.toFixed(2)}</p>
+                 <p className={isDark ? "mb-0.5 font-bold text-slate-400" : "text-[10px] font-bold text-slate-500 mb-0.5"}>Weighted total</p>
+                 <p className={isDark ? "font-black text-slate-100" : "text-2xl font-black text-slate-950"}>{total.toFixed(2)}</p>
               </div>
            </div>
 
            <div className="flex flex-col md:flex-row items-center justify-between gap-4 border-t border-slate-100 pt-6">
-              <p className="text-xs font-medium text-slate-500 dark:text-slate-400">Please review carefully. After submission, this scorecard cannot be edited from the portal.</p>
+              <p className={isDark ? "font-medium text-slate-400" : "text-xs font-medium text-slate-500"}>Please review carefully. After submission, this scorecard cannot be edited from the portal.</p>
               <div className="flex gap-3 w-full md:w-auto">
                  <button
                     onClick={() => {}}
                     disabled
-                    className="flex items-center gap-2 px-6 py-2.5 rounded-xl border border-slate-200 dark:border-white/10 text-sm font-bold text-slate-400 bg-slate-50 cursor-not-allowed"
+                    className={isDark ? "cursor-not-allowed bg-slate-50 font-bold text-sm border rounded-xl py-2.5 px-6 gap-2 items-center flex border-white/10" : "flex items-center gap-2 px-6 py-2.5 rounded-xl border border-slate-200 text-sm font-bold text-slate-400 bg-slate-50 cursor-not-allowed"}
                  >
                     <ArrowLeft size={16} /> Go back
                  </button>
@@ -313,31 +310,31 @@ function ScoringForm({ team, onSubmitted, alreadySubmitted, token }) {
            </div>
         </div>
       ) : (
-        <div className="bg-white dark:bg-slate-900/80 border border-slate-200 dark:border-white/10/80 dark:border-white/10 rounded-[18px] p-8 shadow-[0_12px_30px_rgba(15,23,42,0.04)] mt-2">
-          <h3 className="text-lg font-black text-slate-950 dark:text-slate-100 mb-6">Confirm submission</h3>
+        <div className={isDark ? "mt-2 shadow-[0_12px_30px_rgba(15,23,42,0.04)] p-8 rounded-[18px] border bg-slate-900/80 border-white/10/80 border-white/10" : "bg-white border border-slate-200 rounded-[18px] p-8 shadow-[0_12px_30px_rgba(15,23,42,0.04)] mt-2"}>
+          <h3 className={isDark ? "mb-6 font-black text-slate-100" : "text-lg font-black text-slate-950 mb-6"}>Confirm submission</h3>
           
           <div className="space-y-4 max-w-sm mb-6">
             {CRITERIA.map((c) => (
               <div key={c.key} className="flex justify-between items-center text-sm">
-                <span className="font-bold text-slate-500 dark:text-slate-400">{c.label}</span>
-                <span className="font-black text-slate-950 dark:text-slate-100">{scores[c.key].toFixed(1)}</span>
+                <span className={isDark ? "font-bold text-slate-400" : "font-bold text-slate-500"}>{c.label}</span>
+                <span className={isDark ? "font-black text-slate-100" : "font-black text-slate-950"}>{scores[c.key].toFixed(1)}</span>
               </div>
             ))}
             <div className="h-px bg-slate-200 my-2"></div>
             <div className="flex justify-between items-center text-sm">
-              <span className="font-black text-slate-950 dark:text-slate-100">Weighted total</span>
-              <span className="font-black text-slate-950 dark:text-slate-100">{total.toFixed(2)}</span>
+              <span className={isDark ? "font-black text-slate-100" : "font-black text-slate-950"}>Weighted total</span>
+              <span className={isDark ? "font-black text-slate-100" : "font-black text-slate-950"}>{total.toFixed(2)}</span>
             </div>
           </div>
           
-          <p className="text-xs font-medium text-slate-500 dark:text-slate-400 mb-8">
+          <p className={isDark ? "mb-8 font-medium text-slate-400" : "text-xs font-medium text-slate-500 mb-8"}>
             Please review carefully. After submission, this scorecard cannot be edited from the portal.
           </p>
           
           <div className="flex gap-3 justify-end w-full">
             <button
               onClick={() => setConfirming(false)}
-              className="flex items-center gap-2 px-6 py-2.5 rounded-xl border border-slate-200 dark:border-white/10 text-sm font-bold text-slate-700 dark:text-slate-300 bg-white dark:bg-slate-900/80 hover:bg-slate-50 transition-colors"
+              className={isDark ? "transition-colors hover:bg-slate-50 font-bold border rounded-xl py-2.5 px-6 gap-2 items-center flex border-white/10 text-slate-300 bg-slate-900/80" : "flex items-center gap-2 px-6 py-2.5 rounded-xl border border-slate-200 text-sm font-bold text-slate-700 bg-white hover:bg-slate-50 transition-colors"}
             >
               <ArrowLeft size={16} /> Go back
             </button>
@@ -362,6 +359,7 @@ function ScoringForm({ team, onSubmitted, alreadySubmitted, token }) {
 // ── Team submission download section ───────────────────────────────────────
 
 function TeamSubmissionSection({ teamId, token }) {
+  const { isDark } = useContext(ThemeContext);
   const urlToken = token
   const [downloading, setDownloading] = useState(false)
 
@@ -395,21 +393,21 @@ function TeamSubmissionSection({ teamId, token }) {
   const sub = data?.submission
 
   return (
-    <div className="bg-white/95 dark:bg-slate-950/90 border border-slate-200 dark:border-white/10/80 dark:border-white/10 rounded-[16px] p-4 shadow-[0_12px_30px_rgba(15,23,42,0.04)] flex items-center justify-between cursor-pointer hover:border-slate-300 transition-colors">
+    <div className={isDark ? "transition-colors hover:border-slate-300 cursor-pointer justify-between items-center flex shadow-[0_12px_30px_rgba(15,23,42,0.04)] p-4 rounded-[16px] border bg-slate-950/90 border-white/10/80 border-white/10" : "bg-white/95 border border-slate-200 rounded-[16px] p-4 shadow-[0_12px_30px_rgba(15,23,42,0.04)] flex items-center justify-between cursor-pointer hover:border-slate-300 transition-colors"}>
       <div className="flex items-center gap-4">
          <div className="w-10 h-10 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center shrink-0">
            <FileText size={20} />
          </div>
          <div>
-            <h3 className="text-sm font-black text-slate-950 dark:text-slate-100">Submissions</h3>
+            <h3 className={isDark ? "font-black text-slate-100" : "text-sm font-black text-slate-950"}>Submissions</h3>
             {isLoading ? (
-               <p className="text-xs font-medium text-slate-500 dark:text-slate-400 flex items-center gap-1">
+               <p className={isDark ? "gap-1 items-center flex font-medium text-slate-400" : "text-xs font-medium text-slate-500 flex items-center gap-1"}>
                  <Loader2 size={10} className="animate-spin text-blue-500" /> Loading...
                </p>
             ) : error || !sub ? (
-               <p className="text-xs font-medium text-slate-500 dark:text-slate-400">No project ZIP submitted yet.</p>
+               <p className={isDark ? "font-medium text-slate-400" : "text-xs font-medium text-slate-500"}>No project ZIP submitted yet.</p>
             ) : (
-               <p className="text-xs font-medium text-slate-500 dark:text-slate-400">
+               <p className={isDark ? "font-medium text-slate-400" : "text-xs font-medium text-slate-500"}>
                  {sub.original_filename} · {sub.file_size_bytes ? `${(sub.file_size_bytes / 1024 / 1024).toFixed(1)} MB` : ''}
                </p>
             )}
@@ -431,18 +429,19 @@ function TeamSubmissionSection({ teamId, token }) {
 }
 
 function ScoringGuideCard({ rubricLoading }) {
+  const { isDark } = useContext(ThemeContext);
    return (
-      <div className="bg-white/95 dark:bg-slate-950/90 border border-slate-200 dark:border-white/10/80 dark:border-white/10 rounded-[16px] p-4 shadow-[0_12px_30px_rgba(15,23,42,0.04)] flex items-center justify-between cursor-pointer hover:border-slate-300 transition-colors">
+      <div className={isDark ? "transition-colors hover:border-slate-300 cursor-pointer justify-between items-center flex shadow-[0_12px_30px_rgba(15,23,42,0.04)] p-4 rounded-[16px] border bg-slate-950/90 border-white/10/80 border-white/10" : "bg-white/95 border border-slate-200 rounded-[16px] p-4 shadow-[0_12px_30px_rgba(15,23,42,0.04)] flex items-center justify-between cursor-pointer hover:border-slate-300 transition-colors"}>
          <div className="flex items-center gap-4">
             <div className="w-10 h-10 rounded-lg bg-red-50 text-red-500 flex items-center justify-center shrink-0">
                <Sparkles size={20} />
             </div>
             <div>
-               <h3 className="text-sm font-black text-slate-950 dark:text-slate-100 flex items-center gap-2">
+               <h3 className={isDark ? "gap-2 items-center flex font-black text-slate-100" : "text-sm font-black text-slate-950 flex items-center gap-2"}>
                  AI Scoring Guide 
                  {rubricLoading && <Loader2 size={12} className="animate-spin text-red-500" />}
                </h3>
-               <p className="text-xs font-medium text-slate-500 dark:text-slate-400">View scoring rubric, criteria definitions, and examples.</p>
+               <p className={isDark ? "font-medium text-slate-400" : "text-xs font-medium text-slate-500"}>View scoring rubric, criteria definitions, and examples.</p>
             </div>
          </div>
          <ChevronRight size={16} className="text-slate-400" />
@@ -453,16 +452,17 @@ function ScoringGuideCard({ rubricLoading }) {
 // ── Team queue sidebar ─────────────────────────────────────────────────────
 
 function TeamQueueSidebar({ teams, selectedId, submittedIds, onSelect }) {
+  const { isDark } = useContext(ThemeContext);
   const total = teams.length
   const submitted = submittedIds.length
   const progressPct = total > 0 ? (submitted / total) * 100 : 0
 
   return (
-    <aside className="w-[300px] shrink-0 bg-white/90 border-r border-slate-200 dark:border-white/10/80 dark:border-white/10 text-slate-950 dark:text-slate-100 backdrop-blur flex flex-col hidden lg:flex h-[calc(100vh-72px)] sticky top-[72px] overflow-y-auto">
+    <aside className={isDark ? "overflow-y-auto top-[72px] sticky h-[calc(100vh-72px)] lg:flex hidden flex-col flex backdrop-blur border-r bg-white/90 shrink-0 w-[300px] border-white/10/80 border-white/10 text-slate-100" : "w-[300px] shrink-0 bg-white/90 border-r border-slate-200 text-slate-950 backdrop-blur flex flex-col hidden lg:flex h-[calc(100vh-72px)] sticky top-[72px] overflow-y-auto"}>
       
       <div className="p-6 border-b border-slate-100">
          <div className="flex justify-between items-center mb-2">
-            <span className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest">PROGRESS</span>
+            <span className={isDark ? "tracking-widest uppercase font-bold text-slate-400" : "text-[10px] font-bold text-slate-500 uppercase tracking-widest"}>PROGRESS</span>
             <span className="text-xs font-bold text-red-500">{submitted}/{total}</span>
          </div>
          <div className="w-full bg-slate-100 rounded-full h-1.5">
@@ -471,7 +471,7 @@ function TeamQueueSidebar({ teams, selectedId, submittedIds, onSelect }) {
       </div>
 
       <div className="p-4 flex-1">
-         <p className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest px-2 mb-3">ASSIGNED TEAMS</p>
+         <p className={isDark ? "mb-3 px-2 tracking-widest uppercase font-bold text-slate-400" : "text-[10px] font-bold text-slate-500 uppercase tracking-widest px-2 mb-3"}>ASSIGNED TEAMS</p>
          <div className="space-y-2">
             {teams.map((team) => {
               const done = submittedIds.includes(team.team_id) || team.already_graded
@@ -512,6 +512,33 @@ function TeamQueueSidebar({ teams, selectedId, submittedIds, onSelect }) {
 // ── Main JudgePortal ──────────────────────────────────────────────────────
 
 export default function JudgePortal() {
+  const [isDark, setIsDark] = useState(() => {
+    if (typeof window === 'undefined') return false;
+    return localStorage.getItem('theme') === 'dark';
+  });
+
+  useEffect(() => {
+    if (isDark) {
+      document.documentElement.classList.add('dark');
+      document.documentElement.classList.remove('light');
+    } else {
+      document.documentElement.classList.add('light');
+      document.documentElement.classList.remove('dark');
+    }
+    localStorage.setItem('theme', isDark ? 'dark' : 'light');
+  }, [isDark]);
+
+  const toggleTheme = () => setIsDark(prev => !prev);
+
+  return (
+    <ThemeContext.Provider value={{ isDark, toggleTheme }}>
+      <JudgePortalContent />
+    </ThemeContext.Provider>
+  )
+}
+
+function JudgePortalContent() {
+  const { isDark } = useContext(ThemeContext);
   const { eventId } = useParams();
   useEffect(() => {
     if (eventId) eventStorage.set(eventId)
@@ -600,10 +627,10 @@ export default function JudgePortal() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 via-blue-50/30 to-white dark:from-[#0b0f14] dark:via-slate-900/50 dark:to-[#0b0f14]">
+      <div className={isDark ? "bg-gradient-to-br justify-center items-center flex min-h-screen from-[#0b0f14] via-slate-900/50 to-[#0b0f14]" : "min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 via-blue-50/30 to-white"}>
         <div className="text-center">
           <Loader2 size={32} className="text-red-500 animate-spin mx-auto mb-3" />
-          <p className="text-sm font-medium text-slate-500 dark:text-slate-400">Loading your evaluation portal…</p>
+          <p className={isDark ? "font-medium text-slate-400" : "text-sm font-medium text-slate-500"}>Loading your evaluation portal…</p>
         </div>
       </div>
     )
@@ -653,7 +680,7 @@ export default function JudgePortal() {
   // ── Main layout ──────────────────────────────────────────────────────────
 
   return (
-    <div className="min-h-screen bg-[#f8fbff] dark:bg-[#0b0f14] text-slate-950 dark:text-slate-100 font-sans relative overflow-x-hidden">
+    <div className={isDark ? "overflow-x-hidden relative font-sans min-h-screen bg-[#0b0f14] text-slate-100" : "min-h-screen bg-[#f8fbff] text-slate-950 font-sans relative overflow-x-hidden"}>
       
       {/* Background Dots */}
       <div className="pointer-events-none absolute left-24 top-24 h-36 w-28 opacity-25 [background-image:radial-gradient(#bfdbfe_1.5px,transparent_1.5px)] [background-size:16px_16px]" />
@@ -680,11 +707,11 @@ export default function JudgePortal() {
                 <div className="w-24 h-24 rounded-full bg-red-50 flex items-center justify-center text-red-500 mb-6">
                    <ClipboardList size={40} />
                 </div>
-                <h2 className="text-2xl font-black text-slate-950 dark:text-slate-100 mb-3">Select a team to evaluate</h2>
-                <p className="text-sm font-medium text-slate-500 dark:text-slate-400 mb-12 max-w-sm text-center">Choose a team from the queue on the left to begin your evaluation.</p>
+                <h2 className={isDark ? "mb-3 font-black text-slate-100" : "text-2xl font-black text-slate-950 mb-3"}>Select a team to evaluate</h2>
+                <p className={isDark ? "max-w-sm mb-12 font-medium text-slate-400" : "text-sm font-medium text-slate-500 mb-12 max-w-sm text-center"}>Choose a team from the queue on the left to begin your evaluation.</p>
 
-                <div className="bg-white/95 dark:bg-slate-950/90 border border-slate-200 dark:border-white/10/80 dark:border-white/10 rounded-[22px] p-8 shadow-[0_18px_45px_rgba(15,23,42,0.06)] w-full max-w-2xl">
-                   <p className="text-[10px] font-bold text-slate-500 dark:text-slate-400 uppercase tracking-widest mb-6">GRADING CRITERIA & WEIGHTS</p>
+                <div className={isDark ? "max-w-2xl w-full shadow-[0_18px_45px_rgba(15,23,42,0.06)] p-8 rounded-[22px] border bg-slate-950/90 border-white/10/80 border-white/10" : "bg-white/95 border border-slate-200 rounded-[22px] p-8 shadow-[0_18px_45px_rgba(15,23,42,0.06)] w-full max-w-2xl"}>
+                   <p className={isDark ? "mb-6 tracking-widest uppercase font-bold text-slate-400" : "text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-6"}>GRADING CRITERIA & WEIGHTS</p>
                    
                    <div className="space-y-5">
                       {CRITERIA.map(c => (
@@ -692,8 +719,8 @@ export default function JudgePortal() {
                            <div className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${themeColors[c.theme].bg} ${themeColors[c.theme].text}`}>
                              <c.icon size={20} />
                            </div>
-                           <span className="text-sm font-bold text-slate-950 dark:text-slate-100 shrink-0">{c.label}</span>
-                           <div className="flex-1 border-b border-dashed border-slate-200 dark:border-white/10"></div>
+                           <span className={isDark ? "shrink-0 font-bold text-slate-100" : "text-sm font-bold text-slate-950 shrink-0"}>{c.label}</span>
+                           <div className={isDark ? "border-b flex-1 border-white/10" : "flex-1 border-b border-dashed border-slate-200"}></div>
                            <span className={`text-sm font-black shrink-0 ${themeColors[c.theme].text}`}>{(c.weight * 100).toFixed(0)}%</span>
                         </div>
                       ))}
