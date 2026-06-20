@@ -1434,6 +1434,20 @@ function EvaluatorsTab() {
   const { data, isLoading } = useQuery({ queryKey: ['evaluators'], queryFn: evaluatorsApi.list })
   const { data: teamsData } = useQuery({ queryKey: ['all-teams'], queryFn: approvalsApi.all })
 
+  const evaluatorTeams = Array.isArray(teamsData)
+    ? teamsData
+    : Array.isArray(teamsData?.teams)
+      ? teamsData.teams
+      : Array.isArray(teamsData?.data)
+        ? teamsData.data
+        : []
+
+  const approvedTeams = evaluatorTeams.filter((team) =>
+    team?.is_approved ||
+    team?.approval_status === 'approved' ||
+    team?.approval_status === 'published'
+  )
+
   // Fetch assignments for expanded evaluator
   const { data: assignData } = useQuery({
     queryKey: ['evaluator-assignments', expandedEval],
@@ -1492,7 +1506,17 @@ function EvaluatorsTab() {
     </div>
   )
 
-  const approvedTeams = (teamsData?.teams || []).filter(t => t.is_approved)
+  const evaluatorAvatarStyles = [
+    'bg-blue-100 text-blue-700',
+    'bg-red-100 text-red-700',
+    'bg-yellow-100 text-yellow-700',
+    'bg-orange-100 text-orange-700',
+    'bg-green-100 text-green-700',
+    'bg-purple-100 text-purple-700',
+    'bg-pink-100 text-pink-700',
+  ]
+
+  const evaluatorAvatarClassFor = (index) => evaluatorAvatarStyles[index % evaluatorAvatarStyles.length]
 
   function toggleTeamId(tid) {
     setAssignTeamIds(ids =>
@@ -1504,14 +1528,14 @@ function EvaluatorsTab() {
     <>
       <div className="space-y-8">
         <div className="flex items-center justify-end gap-4">
-          <button onClick={() => evaluatorsApi.downloadTemplate()} className="inline-flex h-11 items-center gap-2 rounded-xl bg-card px-4 text-sm font-extrabold text-foreground shadow-sm ring-1 ring-slate-200 transition hover:bg-cardSoft">
+          <button onClick={() => evaluatorsApi.downloadTemplate()} className="inline-flex h-11 items-center gap-2 rounded-xl bg-white px-4 text-sm font-extrabold text-slate-800 shadow-sm ring-1 ring-slate-200/80 transition hover:bg-slate-50">
             <FileText className="h-5 w-5 text-emerald-600" />
             CSV Template
           </button>
-          <button onClick={() => evaluatorsApi.downloadExport()} className="inline-flex h-11 items-center gap-2 rounded-xl bg-card px-4 text-sm font-extrabold text-blue-600 shadow-sm ring-1 ring-slate-200 transition hover:bg-blue-50">
+          <button onClick={() => evaluatorsApi.downloadExport()} className="inline-flex h-11 items-center gap-2 rounded-xl bg-white px-4 text-sm font-extrabold text-blue-600 shadow-sm ring-1 ring-slate-200/80 transition hover:bg-blue-50">
             <Download className="h-5 w-5" /> Export
           </button>
-          <button onClick={() => setShowAutoAssign(true)} className="inline-flex h-11 items-center gap-2 rounded-xl bg-card px-4 text-sm font-extrabold text-purple-600 shadow-sm ring-1 ring-slate-200 transition hover:bg-purple-50">
+          <button onClick={() => setShowAutoAssign(true)} className="inline-flex h-11 items-center gap-2 rounded-xl bg-white px-4 text-sm font-extrabold text-purple-600 shadow-sm ring-1 ring-slate-200/80 transition hover:bg-purple-50">
             <Wand2 className="h-5 w-5" /> Auto-assign
           </button>
           <button onClick={() => setShowForm((s) => !s)} className="inline-flex h-11 items-center gap-2 rounded-xl bg-blue-600 px-5 text-sm font-extrabold text-white shadow-[0_14px_26px_rgba(37,99,235,0.24)] transition hover:bg-blue-700">
@@ -1526,11 +1550,11 @@ function EvaluatorsTab() {
               <ShieldCheck size={28} />
             </div>
             <div>
-              <p className="text-base font-extrabold text-foreground">Evaluation audit settings</p>
-              <p className="mt-1 text-sm font-semibold text-muted">Check event-scoped scorecard integrity, evaluator assignments, and suspicion scoring state.</p>
+              <p className="text-base font-extrabold text-slate-950">Evaluation audit settings</p>
+              <p className="mt-1 text-sm font-semibold text-slate-600">Check event-scoped scorecard integrity, evaluator assignments, and suspicion scoring state.</p>
             </div>
           </div>
-          <button onClick={() => auditMutation.mutate()} disabled={auditMutation.isPending} className="inline-flex h-11 shrink-0 items-center gap-2 rounded-xl bg-card px-5 text-sm font-extrabold text-foreground shadow-sm ring-1 ring-slate-200 transition hover:bg-emerald-50">
+          <button onClick={() => auditMutation.mutate()} disabled={auditMutation.isPending} className="inline-flex h-11 shrink-0 items-center gap-2 rounded-xl bg-white px-5 text-sm font-extrabold text-slate-800 shadow-sm ring-1 ring-slate-200/80 transition hover:bg-emerald-50">
             {auditMutation.isPending ? <Loader2 className="h-5 w-5 animate-spin text-emerald-600" /> : <ShieldCheck className="h-5 w-5 text-emerald-600" />}
             Run audit
           </button>
@@ -1547,33 +1571,33 @@ function EvaluatorsTab() {
         )}
 
         {/* Import CSV panel */}
-        <section className="rounded-[20px] bg-card p-7 shadow-[0_14px_38px_rgba(15,23,42,0.06)] ring-1 ring-border">
+        <section className="rounded-[20px] border border-slate-200/80 bg-white p-7 shadow-[0_18px_45px_rgba(15,23,42,0.06)] ring-0">
           <div className="flex flex-wrap items-center gap-6">
             <div className="flex items-center gap-3">
-              <p className="text-lg font-extrabold text-foreground">Choose File</p>
-              <p className="text-sm font-semibold text-muted">{importFile ? importFile.name : 'No file chosen'}</p>
+              <p className="text-lg font-extrabold text-slate-950">Choose File</p>
+              <p className="text-sm font-semibold text-slate-600">{importFile ? importFile.name : 'No file chosen'}</p>
             </div>
-            <label className="inline-flex items-center gap-2 text-sm font-semibold text-muted">
+            <label className="inline-flex items-center gap-2 text-sm font-semibold text-slate-600">
               <input type="checkbox" checked={importUpsert} onChange={e => setImportUpsert(e.target.checked)} className="h-5 w-5 rounded border-slate-300 text-blue-600 focus:ring-blue-500" />
               Update existing (upsert)
               <Info size={16} className="text-slate-400" />
             </label>
-            <button onClick={() => importMutation.mutate()} disabled={!importFile || importMutation.isPending} className="inline-flex h-11 items-center gap-2 rounded-xl bg-card px-5 text-sm font-extrabold text-blue-600 shadow-sm ring-1 ring-blue-500 transition hover:bg-cardSoft dark:hover:bg-blue-500/10 disabled:opacity-50 ml-auto">
+            <button onClick={() => importMutation.mutate()} disabled={!importFile || importMutation.isPending} className="inline-flex h-11 items-center gap-2 rounded-xl bg-white px-5 text-sm font-extrabold text-blue-600 shadow-sm ring-1 ring-blue-500/70 transition hover:bg-blue-50 disabled:opacity-50 ml-auto">
               {importMutation.isPending ? <Loader2 size={18} className="animate-spin" /> : <UploadCloud size={18} />}
               Import CSV
             </button>
           </div>
-          <p className="mt-6 text-sm font-semibold text-muted">
+          <p className="mt-6 text-sm font-semibold text-slate-600">
             Evaluators receive secure magic links and score approved teams on the Judge Portal. Submitted scorecards update the leaderboard and anomaly scanner.
           </p>
 
-          <label className="mt-6 flex min-h-[160px] cursor-pointer flex-col items-center justify-center rounded-[18px] border-2 border-dashed border-blue-500 bg-card px-8 py-10 text-center transition hover:bg-blue-50/30 relative">
+          <label className="mt-6 flex min-h-[160px] cursor-pointer flex-col items-center justify-center rounded-[18px] border-2 border-dashed border-blue-500/80 bg-white px-8 py-10 text-center transition hover:bg-blue-50/30 relative">
             <input type="file" accept=".csv" onChange={(e) => setImportFile(e.target.files[0])} className="hidden" />
             <UploadCloud size={42} className="text-blue-600" />
-            <p className="mt-4 text-sm font-extrabold text-foreground">
+            <p className="mt-4 text-sm font-extrabold text-slate-950">
               Drag and drop CSV file here, or click to browse
             </p>
-            <p className="mt-2 text-sm font-semibold text-muted">
+            <p className="mt-2 text-sm font-semibold text-slate-600">
               CSV should include: name, email, role (evaluator/judge), expertise (optional)
             </p>
           </label>
@@ -1639,10 +1663,10 @@ function EvaluatorsTab() {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
               </svg>
             </div>
-            <p className="mt-5 text-lg font-extrabold text-foreground">
+            <p className="mt-5 text-lg font-extrabold text-slate-950">
               No evaluators registered yet.
             </p>
-            <p className="mt-2 text-sm font-semibold text-muted">
+            <p className="mt-2 text-sm font-semibold text-slate-600">
               Add evaluators manually or import from CSV to get started.
             </p>
           </section>
@@ -1650,35 +1674,35 @@ function EvaluatorsTab() {
 
         {isLoading && (
           <div className="mt-8 space-y-4 mb-8">
-            {[1, 2, 3].map(i => <div key={i} className="h-20 bg-card rounded-[20px] ring-1 ring-border shadow-sm animate-pulse" />)}
+            {[1, 2, 3].map(i => <div key={i} className="h-20 bg-white rounded-[20px] border border-slate-200/80 shadow-sm animate-pulse" />)}
           </div>
         )}
 
         {/* Evaluator list */}
         {!isLoading && data?.evaluators?.length > 0 && (
-          <section className="overflow-hidden rounded-[20px] bg-card shadow-[0_14px_38px_rgba(15,23,42,0.06)] ring-1 ring-border">
-            {data.evaluators.map((ev) => (
-              <div key={ev.id} className="border-b border-border last:border-b-0 hover:bg-cardSoft/80 transition">
+          <section className="overflow-hidden rounded-[20px] border border-slate-200/80 bg-white shadow-[0_18px_45px_rgba(15,23,42,0.06)] ring-0">
+            {data.evaluators.map((ev, index) => (
+              <div key={ev.id} className="border-b border-slate-100 last:border-b-0 bg-white hover:bg-slate-50/80 transition">
                 <div className="flex flex-wrap items-center gap-4 px-6 py-5">
-                  <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-cardSoft text-lg font-extrabold text-muted">
+                  <div className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-full text-lg font-extrabold ${evaluatorAvatarClassFor(index)}`}>
                     {ev.first_name[0]}
                   </div>
                   <div className="flex-1 min-w-[200px]">
-                    <p className="text-base font-extrabold text-foreground break-words">{ev.first_name} {ev.last_name}</p>
-                    <p className="mt-1 text-sm font-semibold text-muted break-words">{ev.email}</p>
+                    <p className="text-base font-extrabold text-slate-950 break-words">{ev.first_name} {ev.last_name}</p>
+                    <p className="mt-1 text-sm font-semibold text-slate-600 break-words">{ev.email}</p>
                     {ev.passed_out_institution && (
-                      <p className="mt-1 text-xs font-semibold text-muted break-words">🏛️ {ev.passed_out_institution}</p>
+                      <p className="mt-1 text-xs font-semibold text-slate-500 break-words">🏛️ {ev.passed_out_institution}</p>
                     )}
                     {ev.expertise_areas?.length > 0 && (
                       <div className="flex gap-2 mt-2 flex-wrap">
                         {ev.expertise_areas.map((a) => (
-                          <span key={a} className="inline-flex items-center rounded-lg bg-cardSoft px-2 py-1 text-xs font-bold text-muted">{a}</span>
+                          <span key={a} className="inline-flex items-center rounded-lg bg-slate-50 px-2 py-1 text-xs font-bold text-slate-600 ring-1 ring-slate-200/70">{a}</span>
                         ))}
                       </div>
                     )}
                   </div>
                   <div className="flex flex-wrap items-center gap-3 shrink-0 ml-auto">
-                    <span className={`inline-flex items-center rounded-lg px-3 py-1 text-xs font-extrabold ${ev.is_active ? 'bg-emerald-50 text-emerald-600 border border-emerald-200' : 'bg-cardSoft text-muted border border-border'}`}>
+                    <span className={`inline-flex items-center rounded-lg px-3 py-1 text-xs font-extrabold ${ev.is_active ? 'bg-emerald-50 text-emerald-600 border border-emerald-200' : 'bg-slate-50 text-slate-500 border border-slate-200'}`}>
                       {ev.is_active ? 'Active' : 'Inactive'}
                     </span>
                     {ev.access_link_sent && (
@@ -1690,7 +1714,7 @@ function EvaluatorsTab() {
                   <div className="flex items-center gap-3 shrink-0">
                     <button
                       onClick={() => setExpandedEval(expandedEval === ev.id ? null : ev.id)}
-                      className="inline-flex h-9 items-center gap-1.5 rounded-lg bg-card px-3 text-xs font-bold text-muted shadow-sm ring-1 ring-slate-200 hover:bg-cardSoft transition"
+                      className="inline-flex h-9 items-center gap-1.5 rounded-lg bg-white px-3 text-xs font-bold text-slate-700 shadow-sm ring-1 ring-slate-200/80 hover:bg-slate-50 transition"
                     >
                       <UserCheck size={14} />
                       Assignments
@@ -1699,7 +1723,7 @@ function EvaluatorsTab() {
                       onClick={() => sendLinkMutation.mutate(ev.id)}
                       disabled={sendLinkMutation.isPending}
                       title={ev.access_link_sent ? "Send access link again" : "Send access link"}
-                      className="inline-flex h-9 items-center gap-1.5 rounded-lg bg-blue-50 dark:bg-blue-500/10 px-3 text-xs font-bold text-blue-600 dark:text-blue-400 hover:bg-blue-100 dark:hover:bg-blue-500/20 transition disabled:opacity-50"
+                      className="inline-flex h-9 items-center gap-1.5 rounded-lg bg-blue-50 px-3 text-xs font-bold text-blue-600 hover:bg-blue-100 transition disabled:opacity-50"
                     >
                       {sendLinkMutation.isPending ? <Loader2 size={14} className="animate-spin" /> : <Send size={14} />}
                       {ev.access_link_sent ? "Resend Link" : "Send Link"}
@@ -1715,8 +1739,8 @@ function EvaluatorsTab() {
 
                 {/* Expanded: team assignments */}
                 {expandedEval === ev.id && (
-                  <div className="bg-cardSoft/50 px-6 py-5 border-t border-border">
-                    <p className="mb-3 text-xs font-extrabold uppercase tracking-wider text-muted">Current Assignments</p>
+                  <div className="bg-slate-50/70 px-6 py-5 border-t border-slate-100">
+                    <p className="mb-3 text-xs font-extrabold uppercase tracking-wider text-slate-600">Current Assignments</p>
                     {assignData?.teams?.length > 0 ? (
                       <div className="mb-5 flex gap-2 flex-wrap">
                         {assignData.teams.map(t => (
@@ -1726,13 +1750,13 @@ function EvaluatorsTab() {
                         ))}
                       </div>
                     ) : (
-                      <p className="mb-5 text-sm font-semibold text-muted">No teams assigned yet.</p>
+                      <p className="mb-5 text-sm font-semibold text-slate-600">No teams assigned yet.</p>
                     )}
 
-                    <p className="mb-3 text-xs font-extrabold uppercase tracking-wider text-muted">Assign to teams</p>
+                    <p className="mb-3 text-xs font-extrabold uppercase tracking-wider text-slate-600">Assign to teams</p>
                     <div className="mb-5 flex flex-wrap gap-2">
                       {approvedTeams.length === 0 ? (
-                        <p className="text-sm font-semibold text-muted">No approved teams available.</p>
+                        <p className="text-sm font-semibold text-slate-600">No approved teams available.</p>
                       ) : approvedTeams.map(t => {
                         const selected = assignTeamIds.includes(t.team_id)
                         return (
@@ -1741,7 +1765,7 @@ function EvaluatorsTab() {
                             onClick={() => toggleTeamId(t.team_id)}
                             className={`inline-flex items-center rounded-lg px-3 py-1.5 text-sm font-bold border transition ${selected
                               ? 'bg-blue-50 border-blue-300 text-blue-700'
-                              : 'app-input text-muted hover:bg-cardSoft'
+                              : 'app-input text-slate-600 hover:bg-slate-50'
                               }`}
                           >
                             {t.team_name}
