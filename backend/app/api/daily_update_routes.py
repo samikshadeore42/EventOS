@@ -10,6 +10,7 @@ from app.core.database import get_db
 from app.core.security import TokenRole, decode_access_token, get_token_subject, parse_uuid_subject, verify_token_role
 from app.models.daily_update import DailyUpdate
 from app.models.participant import Participant, Team
+from app.services.mentor_notification_service import notify_mentors_about_daily_update
 
 
 router = APIRouter(prefix="/events/{event_id}/daily-updates", tags=["Daily Updates"])
@@ -102,6 +103,8 @@ def submit_update(
 
     db.commit()
     db.refresh(update)
+
+    notify_mentors_about_daily_update(db, event_id, update, participant, team)
 
     return DailyUpdateResponse(
         id=str(update.id),

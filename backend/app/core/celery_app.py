@@ -20,7 +20,8 @@ celery_app = Celery(
         "app.tasks.scheduler",
         "app.tasks.stages",
         "app.tasks.notifications",
-        "app.tasks.risk"
+        "app.tasks.risk",
+        "app.tasks.mentor_notifications"
     ]
 )
 
@@ -45,6 +46,7 @@ celery_app.conf.update(
         "app.tasks.stages.*":         {"queue": "default"},
         "app.tasks.notifications.*":  {"queue": "notifications"},
         "app.tasks.risk.*":           {"queue": "algorithms"},
+        "app.tasks.mentor_notifications.*": {"queue": "notifications"},
     },
 
     # Retry policy defaults
@@ -87,6 +89,12 @@ celery_app.conf.beat_schedule = {
     "risk-sweep": {
         "task":     "app.tasks.risk.process_risk_sweeps",
         "schedule": crontab(minute="*/30"),
+    },
+
+    # Mentor portal magic-link notifications — meeting reminders + no-update risks
+    "mentor-portal-notifications": {
+        "task":     "app.tasks.mentor_notifications.process_mentor_portal_notifications",
+        "schedule": crontab(minute="*/1"),
     },
 
     # Phase 12 — Team Health Dashboard cache refresh + participant daily update reminders

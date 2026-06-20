@@ -100,7 +100,121 @@ function PortalThemeToggle() {
  );
 }
 
-function PortalNavbar({ mentorName }) {
+function NotificationDropdown({ token }) {
+ const { isDark } = useTheme()
+ const qc = useQueryClient()
+ const [open, setOpen] = useState(false)
+
+ const countQuery = useQuery({
+   queryKey: ['mentor-notifications-count', token],
+   queryFn: () => mentorApi.notificationCount(token),
+   enabled: !!token,
+   refetchInterval: 60000,
+ })
+
+ const listQuery = useQuery({
+   queryKey: ['mentor-notifications', token],
+   queryFn: () => mentorApi.notifications(token),
+   enabled: !!token && open,
+   refetchInterval: open ? 60000 : false,
+ })
+
+ const markOne = useMutation({
+   mutationFn: (id) => mentorApi.markNotificationRead(id, token),
+   onSuccess: () => {
+     qc.invalidateQueries({ queryKey: ['mentor-notifications-count', token] })
+     qc.invalidateQueries({ queryKey: ['mentor-notifications', token] })
+   },
+ })
+
+ const markAll = useMutation({
+   mutationFn: () => mentorApi.markAllNotificationsRead(token),
+   onSuccess: () => {
+     qc.invalidateQueries({ queryKey: ['mentor-notifications-count', token] })
+     qc.invalidateQueries({ queryKey: ['mentor-notifications', token] })
+   },
+ })
+
+ const unread = countQuery.data?.data?.unread ?? 0
+ const notifications = listQuery.data?.data?.notifications ?? []
+
+ return (
+   <div className="relative">
+     <button
+       type="button"
+       onClick={() => setOpen(v => !v)}
+       className={isDark ? "relative p-2 rounded-xl border border-white/10 bg-slate-900/80 hover:bg-slate-800 transition-colors" : "relative p-2 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 shadow-sm transition-colors"}
+       title="Notifications"
+     >
+       <Bell size={20} className={isDark ? "text-slate-300" : "text-slate-500"} />
+       {unread > 0 && (
+         <span className="absolute -top-1 -right-1 min-w-4 h-4 px-1 bg-red-500 rounded-full border-2 border-white flex items-center justify-center text-[9px] font-black text-white">
+           {unread > 9 ? '9+' : unread}
+         </span>
+       )}
+     </button>
+
+     {open && (
+       <div className={isDark ? "absolute right-0 mt-3 w-[360px] max-w-[calc(100vw-2rem)] rounded-2xl border border-white/10 bg-slate-950 shadow-2xl z-50 overflow-hidden" : "absolute right-0 mt-3 w-[360px] max-w-[calc(100vw-2rem)] rounded-2xl border border-slate-200 bg-white shadow-2xl z-50 overflow-hidden"}>
+         <div className={isDark ? "px-4 py-3 border-b border-white/10 flex items-center justify-between" : "px-4 py-3 border-b border-slate-100 flex items-center justify-between"}>
+           <div>
+             <p className={isDark ? "text-sm font-black text-slate-100" : "text-sm font-black text-slate-950"}>Notifications</p>
+             <p className={isDark ? "text-[11px] font-semibold text-slate-400" : "text-[11px] font-semibold text-slate-500"}>{unread} unread</p>
+           </div>
+
+           <button
+             type="button"
+             onClick={() => markAll.mutate()}
+             disabled={!unread || markAll.isPending}
+             className="text-[11px] font-black text-blue-600 disabled:text-slate-300"
+           >
+             Mark all read
+           </button>
+         </div>
+
+         <div className="max-h-[420px] overflow-y-auto">
+           {listQuery.isLoading ? (
+             <div className="p-6 text-center">
+               <Loader2 size={20} className="animate-spin mx-auto mb-2 text-red-500" />
+               <p className="text-xs font-bold text-slate-500">Loading notifications…</p>
+             </div>
+           ) : notifications.length === 0 ? (
+             <div className="p-6 text-center">
+               <Bell size={24} className="mx-auto mb-2 text-slate-300" />
+               <p className={isDark ? "text-sm font-bold text-slate-200" : "text-sm font-bold text-slate-700"}>No notifications yet</p>
+               <p className={isDark ? "text-xs font-medium text-slate-400 mt-1" : "text-xs font-medium text-slate-500 mt-1"}>Meeting reminders and team updates will appear here.</p>
+             </div>
+           ) : (
+             notifications.map(item => (
+               <button
+                 key={item.id}
+                 type="button"
+                 onClick={() => !item.read && markOne.mutate(item.id)}
+                 className={isDark ? "w-full text-left px-4 py-3 border-b border-white/10 hover:bg-slate-900 transition-colors" : "w-full text-left px-4 py-3 border-b border-slate-100 hover:bg-slate-50 transition-colors"}
+               >
+                 <div className="flex items-start gap-3">
+                   <span className={`mt-1 w-2 h-2 rounded-full shrink-0 ${item.read ? 'bg-slate-300' : 'bg-red-500'}`} />
+                   <div className="min-w-0">
+                     <p className={isDark ? "text-xs font-black text-slate-100" : "text-xs font-black text-slate-950"}>{item.title}</p>
+                     <p className={isDark ? "text-xs font-medium text-slate-400 mt-1 leading-relaxed" : "text-xs font-medium text-slate-600 mt-1 leading-relaxed"}>{item.message}</p>
+                     {item.created_at && (
+                       <p className="text-[10px] font-bold text-slate-400 mt-2">
+                         {new Date(item.created_at).toLocaleString()}
+                       </p>
+                     )}
+                   </div>
+                 </div>
+               </button>
+             ))
+           )}
+         </div>
+       </div>
+     )}
+   </div>
+ )
+}
+
+function PortalNavbar({ mentorName, token }) {
  const { isDark } = useTheme();
  return (
  <div className={isDark ? "z-40 top-0 sticky shadow-sm backdrop-blur border-b bg-slate-950/90 border-white/10 border-white/10" : "bg-white/80 border-b border-slate-200 backdrop-blur shadow-sm sticky top-0 z-40"}>
@@ -123,10 +237,7 @@ function PortalNavbar({ mentorName }) {
  <span className={isDark ? "tracking-widest uppercase font-bold text-slate-300" : "text-[10px] font-bold text-slate-700 uppercase tracking-widest"}>System Live</span>
  </div>
  <div className="hidden sm:block"><PortalThemeToggle /></div>
- <div className="relative">
- <Bell size={20} className="text-slate-400" />
- <span className="absolute -top-1 -right-1 w-3.5 h-3.5 bg-red-500 rounded-full border-2 border-white flex items-center justify-center text-[8px] font-bold text-white">2</span>
- </div>
+ <NotificationDropdown token={token} />
  <div className="flex items-center gap-2">
  <div className="w-8 h-8 rounded-full bg-orange-500 text-white font-bold flex items-center justify-center text-sm">
  {initials(mentorName)[0] || 'M'}
@@ -138,6 +249,7 @@ function PortalNavbar({ mentorName }) {
  </div>
  )
 }
+
 
 // ── Schedule meeting form ──────────────────────────────────────────────────
 function ScheduleMeetingForm({ teamId, token, onSuccess }) {
@@ -580,7 +692,7 @@ function MentorPortalContent() {
  return (
  <div className={isDark ? "overflow-x-hidden relative pb-20 font-sans bg-gradient-to-br min-h-screen from-[#0b0f14] via-slate-950 to-[#0b0f14] text-slate-100" : "min-h-screen bg-gradient-to-br from-[#f8fbff] via-[#eef6fb] to-[#f7fbff] text-slate-950 font-sans pb-20 relative overflow-x-hidden"}>
 
- <PortalNavbar mentorName={profile.name ?? 'Mentor'} />
+ <PortalNavbar mentorName={profile.name ?? 'Mentor'} token={urlToken} />
 
  {/* Decorative Dots */}
  <div className="pointer-events-none absolute right-14 top-28 h-28 w-28 opacity-30 [background-image:radial-gradient(#cbd5e1_1.5px,transparent_1.5px)] [background-size:16px_16px]" />
