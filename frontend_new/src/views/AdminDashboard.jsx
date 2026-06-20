@@ -318,18 +318,18 @@ function ParticipantMetricCard({ title, value, sub, icon: Icon, tone }) {
     orange: 'bg-orange-100 text-orange-500'
   }
   return (
-    <div className="relative min-h-[150px] overflow-hidden rounded-[18px] bg-card p-6 shadow-[0_12px_32px_rgba(15,23,42,0.06)] ring-1 ring-border">
+    <div className="relative min-h-[150px] overflow-hidden rounded-[20px] bg-white p-6 shadow-[0_18px_45px_rgba(15,23,42,0.06)] ring-1 ring-slate-200/80">
       <div className="flex items-center gap-4">
         <div className={`h-12 w-12 rounded-xl flex items-center justify-center shrink-0 ${tones[tone] || tones.blue}`}>
           <Icon className="h-6 w-6" />
         </div>
         <div>
-          <p className="text-sm font-extrabold text-foreground">{title}</p>
+          <p className="text-sm font-extrabold text-slate-950">{title}</p>
         </div>
       </div>
       <div className="mt-4">
-        <p className="text-[34px] leading-none font-extrabold text-foreground">{value}</p>
-        {sub && <p className="mt-1 text-sm font-medium text-muted">{sub}</p>}
+        <p className="text-[34px] leading-none font-extrabold text-slate-950">{value}</p>
+        {sub && <p className="mt-1 text-sm font-medium text-slate-600">{sub}</p>}
       </div>
       <ParticipantMiniSparkline tone={tone} />
     </div>
@@ -467,7 +467,7 @@ function ParticipantsTab() {
   }
 
   return (
-    <div className="max-w-7xl mx-auto">
+    <div className="max-w-[1530px] mx-auto">
       {/* Summary cards */}
       {summary && (
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
@@ -495,8 +495,8 @@ function ParticipantsTab() {
           onDragOver={onDragOver}
           onDragLeave={onDragLeave}
           onClick={() => fileInputRef.current?.click()}
-          className={`mt-5 flex min-h-[150px] cursor-pointer flex-col items-center justify-center rounded-[18px] border-2 border-dashed border-red-400 bg-card px-8 py-10 text-center shadow-[0_10px_28px_rgba(15,23,42,0.04)] transition hover:border-red-500 hover:bg-red-50/20 ${
-            dragActive ? 'border-red-500 bg-red-50/20' : ''
+          className={`mt-5 flex min-h-[150px] cursor-pointer flex-col items-center justify-center rounded-[18px] border-2 border-dashed border-red-400 bg-white px-8 py-10 text-center shadow-[0_12px_34px_rgba(15,23,42,0.04)] transition hover:border-red-500 hover:bg-red-50/20 ${
+            dragActive ? 'border-red-500 bg-red-50/30' : ''
           }`}
         >
           <input
@@ -557,7 +557,7 @@ function ParticipantsTab() {
               value={search}
               onChange={(e) => { setSearch(e.target.value); setPage(1) }}
               placeholder="Search by name or email..."
-              className="h-11 w-full rounded-xl bg-card pl-11 pr-4 text-sm font-semibold text-foreground shadow-sm ring-1 ring-slate-200 placeholder:text-slate-400 outline-none transition focus:ring-2 focus:ring-red-500/35"
+              className="h-11 w-full rounded-xl bg-white pl-11 pr-4 text-sm font-semibold text-slate-700 shadow-sm ring-1 ring-slate-200 placeholder:text-slate-400 outline-none transition focus:ring-2 focus:ring-red-500/35"
             />
           </div>
           <div className="relative h-11 w-[330px]">
@@ -566,13 +566,13 @@ function ParticipantsTab() {
               value={collegeFilter}
               onChange={(e) => { setCollegeFilter(e.target.value); setPage(1) }}
               placeholder="Search by college..."
-              className="h-11 w-full rounded-xl bg-card pl-11 pr-4 text-sm font-semibold text-foreground shadow-sm ring-1 ring-slate-200 placeholder:text-slate-400 outline-none transition focus:ring-2 focus:ring-red-500/35"
+              className="h-11 w-full rounded-xl bg-white pl-11 pr-4 text-sm font-semibold text-slate-700 shadow-sm ring-1 ring-slate-200 placeholder:text-slate-400 outline-none transition focus:ring-2 focus:ring-red-500/35"
             />
           </div>
           <select
             value={teamFilter}
             onChange={(e) => { setTeamFilter(e.target.value); setPage(1) }}
-            className="h-11 w-[110px] rounded-xl bg-card px-4 text-sm font-extrabold text-foreground shadow-sm ring-1 ring-slate-200 outline-none transition focus:ring-2 focus:ring-red-500/35 appearance-none"
+            className="h-11 w-[110px] rounded-xl bg-white px-4 text-sm font-extrabold text-slate-800 shadow-sm ring-1 ring-slate-200 outline-none transition focus:ring-2 focus:ring-red-500/35 appearance-none"
           >
             <option value="">All</option>
             <option value="false">Unassigned</option>
@@ -596,23 +596,23 @@ function ParticipantsTab() {
       </div>
 
       {/* Participants table */}
-      <div className="mt-6 overflow-hidden rounded-[18px] bg-card shadow-[0_12px_32px_rgba(15,23,42,0.06)] ring-1 ring-border mb-8">
+      <div className="mt-6 overflow-hidden rounded-[18px] border border-slate-200/80 bg-white shadow-[0_18px_45px_rgba(15,23,42,0.06)] ring-0 mb-8">
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
-              <tr className="bg-card text-left border-b border-border">
+              <tr className="bg-white text-left border-b border-slate-200">
                 {['Name', 'Institution', 'Skills (avg)', 'Team', 'Team Link Status', ''].map((h) => (
-                  <th key={h} className="px-6 py-4 text-xs font-extrabold uppercase tracking-wide text-foreground">{h}</th>
+                  <th key={h} className="px-6 py-4 text-xs font-extrabold uppercase tracking-wide text-slate-800">{h}</th>
                 ))}
               </tr>
             </thead>
             <tbody>
               {isLoading
                 ? Array.from({ length: 6 }).map((_, i) => (
-                  <tr key={i} className="border-b border-border last:border-b-0">
+                  <tr key={i} className="border-b border-slate-100 last:border-b-0">
                     {[1, 2, 3, 4, 5, 6].map((j) => (
                       <td key={j} className="px-6 py-4">
-                        <div className="h-4 bg-cardSoft rounded animate-pulse w-24" />
+                        <div className="h-4 bg-slate-100 rounded animate-pulse w-24" />
                       </td>
                     ))}
                   </tr>
@@ -626,26 +626,26 @@ function ParticipantsTab() {
                   const colors = getRowColors(index)
 
                   return (
-                    <tr key={p.id} className="border-b border-border last:border-b-0 hover:bg-cardSoft/80 transition-colors">
-                      <td className="px-6 py-4 text-foreground">
+                    <tr key={p.id} className="border-b border-slate-100 last:border-b-0 bg-white hover:bg-slate-50/80 transition-colors">
+                      <td className="px-6 py-4 text-slate-900">
                         <div className="flex items-center gap-4">
                           <div className={`h-12 w-12 rounded-full flex items-center justify-center font-bold text-lg shrink-0 ${colors.avatar}`}>
                             {p.first_name?.[0] || '?'}
                           </div>
                           <div>
-                            <p className="text-sm font-extrabold text-foreground">{p.first_name} {p.last_name}</p>
-                            <p className="text-xs font-medium text-muted">{p.email}</p>
+                            <p className="text-sm font-extrabold text-slate-950">{p.first_name} {p.last_name}</p>
+                            <p className="text-xs font-medium text-slate-600">{p.email}</p>
                           </div>
                         </div>
                       </td>
-                      <td className="px-6 py-4 text-sm font-semibold text-foreground">{p.institution}</td>
-                      <td className="px-6 py-4 text-foreground">
+                      <td className="px-6 py-4 text-sm font-semibold text-slate-800">{p.institution}</td>
+                      <td className="px-6 py-4 text-slate-900">
                         {avg
                           ? <span className={`rounded-lg border px-3 py-1 text-sm font-extrabold ${colors.pill}`}>{avg}/10</span>
                           : <span className="text-slate-400 text-sm font-bold">—</span>
                         }
                       </td>
-                      <td className="px-6 py-4 text-foreground">
+                      <td className="px-6 py-4 text-slate-900">
                         {p.team_name
                           ? <span className={`rounded-lg border px-3 py-1 text-sm font-extrabold ${colors.pill}`}>{p.team_name}</span>
                           : p.team_status === "pending_approval"
@@ -676,7 +676,7 @@ function ParticipantsTab() {
                   )
                 }) : (
                   <tr>
-                    <td colSpan="6" className="px-6 py-12 text-center text-muted font-medium">
+                    <td colSpan="6" className="px-6 py-12 text-center text-slate-500 font-medium">
                       {search || teamFilter !== '' ? "No participants found matching the current filters." : "No participants registered yet."}
                     </td>
                   </tr>
@@ -687,13 +687,13 @@ function ParticipantsTab() {
 
         {/* Pagination */}
         {data && data.total_pages > 1 && (
-          <div className="flex justify-between items-center px-6 py-4 border-t border-border text-sm font-semibold text-muted bg-cardSoft/50">
+          <div className="flex justify-between items-center px-6 py-4 border-t border-slate-100 text-sm font-semibold text-slate-500 bg-slate-50/60">
             <span>Page {data.page} of {data.total_pages} ({data.total} total)</span>
             <div className="flex gap-2">
               <button disabled={page === 1} onClick={() => setPage(p => p - 1)}
-                className="px-4 py-2 rounded-lg bg-card ring-1 ring-slate-200 text-muted hover:bg-cardSoft disabled:opacity-40 transition">Prev</button>
+                className="px-4 py-2 rounded-lg bg-white ring-1 ring-slate-200 text-slate-600 hover:bg-slate-50 disabled:opacity-40 transition">Prev</button>
               <button disabled={page >= data.total_pages} onClick={() => setPage(p => p + 1)}
-                className="px-4 py-2 rounded-lg bg-card ring-1 ring-slate-200 text-muted hover:bg-cardSoft disabled:opacity-40 transition">Next</button>
+                className="px-4 py-2 rounded-lg bg-white ring-1 ring-slate-200 text-slate-600 hover:bg-slate-50 disabled:opacity-40 transition">Next</button>
             </div>
           </div>
         )}
