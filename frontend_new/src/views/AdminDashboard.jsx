@@ -1235,7 +1235,7 @@ function ApprovalsTab() {
                         }
                       }}
                       disabled={bulkMutation.isPending}
-                      className="inline-flex h-10 items-center justify-center gap-2 rounded-xl bg-slate-800 px-4 text-sm font-extrabold text-slate-50 shadow-sm transition hover:bg-slate-700 disabled:opacity-50"
+                      className="inline-flex h-10 items-center justify-center gap-2 rounded-xl bg-emerald-600 px-4 text-sm font-extrabold text-white shadow-sm transition hover:bg-emerald-700 disabled:opacity-50"
                     >
                       <Shield size={14} /> Approve all
                     </button>
@@ -1751,7 +1751,7 @@ function EvaluatorsTab() {
                     <button
                       onClick={() => assignMutation.mutate({ evaluator_id: ev.id, team_ids: assignTeamIds })}
                       disabled={assignMutation.isPending || assignTeamIds.length === 0}
-                      className="inline-flex h-10 items-center justify-center gap-2 rounded-xl bg-slate-800 px-5 text-sm font-extrabold text-slate-50 shadow-sm transition hover:bg-slate-700 disabled:opacity-50"
+                      className="inline-flex h-10 items-center justify-center gap-2 rounded-xl bg-blue-600 px-5 text-sm font-extrabold text-white shadow-sm transition hover:bg-blue-700 disabled:opacity-50"
                     >
                       {assignMutation.isPending ? <Loader2 size={16} className="animate-spin" /> : <Check size={16} />}
                       Assign Evaluator

@@ -4,44 +4,47 @@
 
 @layer base {
   /* ─── Light-first Pulse theme ─────────────────────────────────── */
-  :root {
-    --bg-main: #F4F7F8;
+  :root,
+  .light {
+    --bg-main: #f8fbff;
     --bg-sidebar: #FFFFFF;
     --bg-card: #FFFFFF;
-    --bg-card-soft: #F4F7F8;
+    --bg-card-soft: #f8fafc;
     --text-main: #0F172A;
     --text-muted: #64748B;
     --color-border: #E2E8F0;
-    --color-primary: #E87932;
-    --color-primary-dark: #C95F20;
-    --color-primary-light: #F4B06D;
+    --color-border-soft: #edf2f7;
+    --color-primary: #ef233c;
+    --color-primary-dark: #d90429;
+    --color-primary-light: #f4717f;
     --color-success: #22C55E;
     --color-info: #3B82F6;
     --color-ai: #C026D3;
     --color-warning: #FACC15;
     --color-danger: #EF4444;
-    --color-bg-soft: #F4F7F8;
+    --color-bg-soft: #f8fafc;
     --border-soft: color-mix(in srgb, #E2E8F0 80%, transparent);
   }
 
   .dark {
-    --bg-main: #0F1115;
-    --bg-sidebar: #15171C;
-    --bg-card: #1B1E24;
-    --bg-card-soft: #22262E;
-    --text-main: #F7F3EE;
-    --text-muted: #A8A29E;
-    --color-border: #2C3038;
-    --color-primary: #E87932;
-    --color-primary-dark: #C95F20;
-    --color-primary-light: #F4B06D;
+    --bg-main: #0b0f14;
+    --bg-sidebar: #0f172a;
+    --bg-card: #111827;
+    --bg-card-soft: #1e293b;
+    --text-main: #f8fafc;
+    --text-muted: #cbd5e1;
+    --color-border: rgba(255,255,255,0.1);
+    --color-border-soft: rgba(255,255,255,0.08);
+    --color-primary: #ef233c;
+    --color-primary-dark: #d90429;
+    --color-primary-light: #f4717f;
     --color-success: #22C55E;
     --color-info: #3B82F6;
     --color-ai: #C026D3;
     --color-warning: #FACC15;
     --color-danger: #EF4444;
-    --color-bg-soft: #22262E;
-    --border-soft: color-mix(in srgb, #2C3038 50%, transparent);
+    --color-bg-soft: #1e293b;
+    --border-soft: rgba(255,255,255,0.08);
   }
 
   html {
@@ -94,17 +97,18 @@
 
   /* ─── Cards ──────────────────────────────────────────────────── */
   .app-card {
-    background: rgba(255, 255, 255, 0.92);
-    border: 1px solid rgba(226, 232, 240, 0.9);
-    box-shadow: 0 18px 45px rgba(15, 23, 42, 0.06);
+    background: var(--bg-card);
+    color: var(--text-main);
+    border: 1px solid var(--color-border);
+    box-shadow: 0 20px 60px rgba(15, 23, 42, 0.08);
     border-radius: 1.5rem;
     transition: all 0.2s ease;
   }
   .app-card:hover {
-    box-shadow: 0 20px 50px rgba(15, 23, 42, 0.08);
+    box-shadow: 0 22px 65px rgba(15, 23, 42, 0.1);
   }
   .dark .app-card {
-    background: rgba(24, 28, 36, 0.92);
+    background: rgba(17, 24, 39, 0.92);
     border-color: rgba(255, 255, 255, 0.1);
     box-shadow: none;
   }
@@ -146,11 +150,11 @@
     border: none;
     cursor: pointer;
     transition: all 0.2s ease;
-    box-shadow: 0 1px 3px rgba(232,121,50,0.2);
+    box-shadow: 0 1px 3px rgba(239,35,60,0.2);
   }
   .app-btn-primary:hover {
     background-color: var(--color-primary-dark);
-    box-shadow: 0 4px 12px rgba(232,121,50,0.25);
+    box-shadow: 0 4px 12px rgba(239,35,60,0.25);
     transform: translateY(-1px);
   }
   .app-btn-primary:active {
@@ -406,25 +410,24 @@
     width: 100%;
     padding: 0.5rem 0.75rem;
     font-size: 0.875rem;
-    background: rgba(255, 255, 255, 0.95);
-    border: 1px solid rgb(226, 232, 240);
-    color: rgb(15, 23, 42);
+    background: #ffffff;
+    border: 1px solid #dbe4ef;
+    color: #0f172a;
     border-radius: 10px;
     outline: none;
     transition: border-color 0.2s ease, box-shadow 0.2s ease;
   }
   .app-input:focus {
     border-color: var(--color-primary);
-    box-shadow: 0 0 0 3px rgba(232,121,50,0.12);
+    box-shadow: 0 0 0 3px rgba(239,35,60,0.12);
   }
   .app-input::placeholder {
-    color: var(--text-muted);
-    opacity: 0.6;
+    color: #94a3b8;
   }
   .dark .app-input {
-    background: rgba(15, 23, 42, 0.75);
+    background: #111827;
     border-color: rgba(255, 255, 255, 0.1);
-    color: rgb(248, 250, 252);
+    color: #f8fafc;
   }
 
   /* ─── Drawer ─────────────────────────────────────────────────── */
@@ -480,7 +483,7 @@
     position: relative;
     background-color: var(--color-primary);
     color: #ffffff;
-    box-shadow: 0 2px 4px rgba(232,121,50,0.2);
+    box-shadow: 0 2px 4px rgba(239,35,60,0.2);
     transition: all 0.2s ease;
     font-weight: 600;
     letter-spacing: 0.01em;
@@ -489,7 +492,7 @@
   }
   .btn-primary:hover {
     background-color: var(--color-primary-dark);
-    box-shadow: 0 4px 12px rgba(232,121,50,0.25);
+    box-shadow: 0 4px 12px rgba(239,35,60,0.25);
     transform: translateY(-1px);
   }
   .btn-primary:active {
@@ -574,13 +577,13 @@
     border-radius: 9999px;
     background-color: var(--color-primary);
     border: 2px solid var(--bg-card);
-    box-shadow: 0 0 8px rgba(232,121,50,0.25);
+    box-shadow: 0 0 8px rgba(239,35,60,0.25);
     transition: all 0.2s;
     cursor: pointer;
   }
   input[type='range']::-webkit-slider-thumb:hover {
     transform: scale(1.15);
-    box-shadow: 0 0 12px rgba(232,121,50,0.4);
+    box-shadow: 0 0 12px rgba(239,35,60,0.4);
   }
 
   /* ─── Scrollbar hiding ───────────────────────────────────────── */

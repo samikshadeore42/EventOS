@@ -111,7 +111,7 @@ export default function SettingsTab() {
             <button
               onClick={() => updateOrgMutation.mutate({ name: orgName, description: orgDesc })}
               disabled={updateOrgMutation.isPending || (orgName === activeOrganization?.name && orgDesc === (activeOrganization?.description || ''))}
-              className="mt-2 px-6 h-11 bg-gradient-to-r from-orange-400 to-orange-500 hover:from-orange-500 hover:to-orange-600 text-white text-sm font-extrabold rounded-xl shadow-sm transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+              className="mt-2 px-6 h-11 bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white text-sm font-extrabold rounded-xl shadow-sm transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
             >
               {updateOrgMutation.isPending ? <Loader2 size={16} className="animate-spin"/> : <Save size={16} />}
               Save Changes
@@ -259,7 +259,7 @@ export default function SettingsTab() {
               <button
                 onClick={() => inviteMutation.mutate({ email: inviteEmail, role: inviteRole })}
                 disabled={inviteMutation.isPending || !inviteEmail}
-                className="w-full md:w-auto h-11 px-6 bg-gradient-to-r from-orange-400 to-orange-500 hover:from-orange-500 hover:to-orange-600 text-white text-sm font-extrabold rounded-xl shadow-sm transition-all disabled:opacity-50 flex items-center justify-center gap-2 shrink-0"
+                className="w-full md:w-auto h-11 px-6 bg-gradient-to-r from-red-500 to-red-600 hover:from-red-600 hover:to-red-700 text-white text-sm font-extrabold rounded-xl shadow-sm transition-all disabled:opacity-50 flex items-center justify-center gap-2 shrink-0"
               >
                 {inviteMutation.isPending ? <Loader2 size={16} className="animate-spin" /> : <Mail size={16} />}
                 Send Invite

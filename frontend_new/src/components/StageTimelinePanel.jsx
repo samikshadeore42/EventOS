@@ -9,7 +9,7 @@ import {
 import { stagesApi, eventLifecycleApi, eventsApi, eventStorage } from '../services/api'
 
 const DEFAULT_TZ = 'Asia/Kolkata'
-const INPUT_CLASS = 'app-input bg-white dark:bg-[#0F1115] border border-slate-200 dark:border-[#2C3038] text-slate-950 dark:text-[#F7F3EE] placeholder:text-slate-400 dark:placeholder:text-slate-500'
+const INPUT_CLASS = 'app-input bg-white dark:bg-[#111827] border border-slate-200 dark:border-white/10 text-slate-950 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500'
 const CAPABILITY_OPTIONS = [
   { key: 'teams', label: 'Teams' },
   { key: 'mentors', label: 'Mentors' },
@@ -304,7 +304,7 @@ export default function StageTimelinePanel({ eventStatus }) {
             {isValid ? <ShieldCheck className="w-5 h-5" /> : <AlertTriangle className="w-5 h-5" />}
           </div>
           <div>
-            <p className="font-extrabold text-sm text-slate-950 dark:text-[#F7F3EE]">
+            <p className="font-extrabold text-sm text-slate-950 dark:text-slate-100">
               {isValid ? 'Schedule is valid — ready to publish.' : 'Schedule has issues to fix before publishing.'}
             </p>
             {!isValid && violations.length > 0 && (
@@ -318,7 +318,7 @@ export default function StageTimelinePanel({ eventStatus }) {
           <button
             onClick={() => generateRuns.mutate()}
             disabled={generateRuns.isPending || sortedStages.length === 0}
-            className="inline-flex h-11 items-center gap-2 rounded-xl bg-white text-blue-600 border border-slate-200 dark:bg-[#22262E] dark:text-blue-400 dark:border-[#2C3038] hover:bg-slate-50 dark:hover:bg-blue-500/10 px-5 text-sm font-extrabold shadow-sm transition disabled:opacity-50"
+            className="inline-flex h-11 items-center gap-2 rounded-xl bg-white text-blue-600 border border-slate-200 dark:bg-[#1e293b] dark:text-blue-400 dark:border-white/10 hover:bg-slate-50 dark:hover:bg-blue-500/10 px-5 text-sm font-extrabold shadow-sm transition disabled:opacity-50"
           >
             {generateRuns.isPending ? <Loader2 className="w-4 h-4 animate-spin" /> : <Play className="w-4 h-4" />}
             Generate runs
@@ -343,14 +343,14 @@ export default function StageTimelinePanel({ eventStatus }) {
       )}
 
       {awaiting.length > 0 && (
-        <div className="mt-8 rounded-[20px] bg-white dark:bg-[#1B1E24] border border-slate-200 dark:border-[#2C3038] shadow-[0_12px_32px_rgba(15,23,42,0.06)] dark:shadow-none px-6 py-6">
-          <h3 className="flex items-center gap-2 font-extrabold text-sm mb-4 text-slate-950 dark:text-[#F7F3EE]">
+        <div className="mt-8 rounded-[20px] bg-white dark:bg-[#111827] border border-slate-200 dark:border-white/10 shadow-[0_12px_32px_rgba(15,23,42,0.06)] dark:shadow-none px-6 py-6">
+          <h3 className="flex items-center gap-2 font-extrabold text-sm mb-4 text-slate-950 dark:text-slate-100">
             <Clock className="w-5 h-5 text-orange-500" /> Stages awaiting approval
           </h3>
           <div className="space-y-3">
             {awaiting.map((s) => (
               <div key={s.id} className="flex items-center justify-between rounded-xl px-5 py-3 bg-orange-50/50 border border-orange-200 dark:bg-orange-500/10 dark:border-orange-500/25">
-                <span className="text-sm font-extrabold text-slate-950 dark:text-[#F7F3EE]">{s.name}</span>
+                <span className="text-sm font-extrabold text-slate-950 dark:text-slate-100">{s.name}</span>
                 <button
                   onClick={() => approve.mutate(s.id)}
                   disabled={approve.isPending}
@@ -365,11 +365,11 @@ export default function StageTimelinePanel({ eventStatus }) {
       )}
 
       {/* Timeline */}
-      <div className="mt-8 overflow-hidden rounded-[20px] border border-slate-200 bg-white shadow-[0_12px_32px_rgba(15,23,42,0.06)] dark:border-[#2C3038] dark:bg-[#1B1E24] dark:shadow-none">
-        <div className="px-6 py-5 flex items-center justify-between border-b border-slate-200 dark:border-[#2C3038]">
+      <div className="mt-8 overflow-hidden rounded-[20px] border border-slate-200 bg-white shadow-[0_12px_32px_rgba(15,23,42,0.06)] dark:border-white/10 dark:bg-[#111827] dark:shadow-none">
+        <div className="px-6 py-5 flex items-center justify-between border-b border-slate-200 dark:border-white/10">
           <div>
-            <h3 className="text-lg font-extrabold text-slate-950 dark:text-[#F7F3EE]">Stage Definitions</h3>
-            <p className="text-sm font-semibold text-slate-600 dark:text-[#A8A29E] mt-1">Create, edit, delete, and reorder creator-defined stages.</p>
+            <h3 className="text-lg font-extrabold text-slate-950 dark:text-slate-100">Stage Definitions</h3>
+            <p className="text-sm font-semibold text-slate-600 dark:text-slate-400 mt-1">Create, edit, delete, and reorder creator-defined stages.</p>
           </div>
           <button
             onClick={startCreate}
@@ -380,7 +380,7 @@ export default function StageTimelinePanel({ eventStatus }) {
         </div>
 
         {formOpen && (
-          <div className="p-4 bg-slate-50 dark:bg-[#22262E] border-b border-slate-200 dark:border-[#2C3038]">
+          <div className="p-4 bg-slate-50 dark:bg-[#1e293b] border-b border-slate-200 dark:border-white/10">
             <div className="grid md:grid-cols-2 gap-3">
               <Field label="Key">
                 <input
@@ -449,12 +449,12 @@ export default function StageTimelinePanel({ eventStatus }) {
               </Field>
 
               <Field label="Required capabilities">
-                <div className="bg-slate-50 dark:bg-[#22262E] border border-slate-200 dark:border-[#2C3038] rounded-xl p-3">
+                <div className="bg-slate-50 dark:bg-[#1e293b] border border-slate-200 dark:border-white/10 rounded-xl p-3">
                   <div className="grid sm:grid-cols-2 gap-2">
                     {CAPABILITY_OPTIONS.map((capability) => {
                       const checked = selectedCapabilities(form.required_capabilities).has(capability.key)
                       return (
-                        <label key={capability.key} className="flex items-center gap-2 text-xs" className="text-slate-950 dark:text-[#F7F3EE]">
+                        <label key={capability.key} className="flex items-center gap-2 text-xs text-slate-950 dark:text-slate-100">
                           <input
                             type="checkbox"
                             checked={checked}
@@ -464,12 +464,12 @@ export default function StageTimelinePanel({ eventStatus }) {
                             }))}
                           />
                           <span>{capability.label}</span>
-                          <span className="text-slate-600 dark:text-[#A8A29E]">({capability.key})</span>
+                          <span className="text-slate-600 dark:text-slate-400">({capability.key})</span>
                         </label>
                       )
                     })}
                   </div>
-                  <p className="mt-2 text-[11px]" className="text-slate-600 dark:text-[#A8A29E]">
+                  <p className="mt-2 text-[11px] text-slate-600 dark:text-slate-400">
                     Select only the capabilities this stage actually needs. The saved payload still uses system keys.
                   </p>
                 </div>
@@ -507,14 +507,14 @@ export default function StageTimelinePanel({ eventStatus }) {
                     rows={4}
                     className={`${INPUT_CLASS} font-mono text-xs resize-none`}
                   />
-                  <p className="text-[11px]" className="text-slate-600 dark:text-[#A8A29E]">
+                  <p className="text-[11px] text-slate-600 dark:text-slate-400">
                     You can edit this JSON before saving. Use {} if no reminders are needed.
                   </p>
                 </div>
               </Field>
             </div>
 
-            <label className="mt-3 inline-flex items-center gap-2 text-sm" className="text-slate-950 dark:text-[#F7F3EE]">
+            <label className="mt-3 inline-flex items-center gap-2 text-sm text-slate-950 dark:text-slate-100">
               <input
                 type="checkbox"
                 checked={form.is_active}
@@ -553,9 +553,9 @@ export default function StageTimelinePanel({ eventStatus }) {
         )}
         <div>
           {isLoading ? (
-            <p className="px-4 py-8 text-center text-sm" className="text-slate-600 dark:text-[#A8A29E]">Loading stages...</p>
+            <p className="px-4 py-8 text-center text-sm text-slate-600 dark:text-slate-400">Loading stages...</p>
           ) : sortedStages.length === 0 ? (
-            <p className="px-4 py-8 text-center text-sm" className="text-slate-600 dark:text-[#A8A29E]">No stages defined yet.</p>
+            <p className="px-4 py-8 text-center text-sm text-slate-600 dark:text-slate-400">No stages defined yet.</p>
           ) : sortedStages.map((s, index) => {
             const runStatus = runByStage[s.id]?.status ?? (status === 'draft' ? 'not started' : 'pending')
 
@@ -571,14 +571,14 @@ export default function StageTimelinePanel({ eventStatus }) {
             }
 
             return (
-              <div key={s.id} className={`flex items-center justify-between px-6 py-4 bg-white dark:bg-[#1B1E24] ${index < sortedStages.length - 1 ? 'border-b border-slate-200 dark:border-[#2C3038]' : ''}`}>
+              <div key={s.id} className={`flex items-center justify-between px-6 py-4 bg-white dark:bg-[#111827] ${index < sortedStages.length - 1 ? 'border-b border-slate-200 dark:border-white/10' : ''}`}>
                 <div className="flex items-center gap-4 min-w-0">
                   <span className={`w-10 h-10 flex items-center justify-center rounded-full text-sm font-extrabold ${badgeBg} ${badgeText}`}>
                     {s.position}
                   </span>
                   <div className="min-w-0">
-                    <p className="text-base font-extrabold text-slate-950 dark:text-[#F7F3EE] truncate">{s.name}</p>
-                    <p className="text-sm font-semibold text-slate-600 dark:text-[#A8A29E] truncate mt-0.5">
+                    <p className="text-base font-extrabold text-slate-950 dark:text-slate-100 truncate">{s.name}</p>
+                    <p className="text-sm font-semibold text-slate-600 dark:text-slate-400 truncate mt-0.5">
                       {new Date(s.start_at).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' })}
                       {' → '}
                       {new Date(s.end_at).toLocaleString([], { dateStyle: 'medium', timeStyle: 'short' })}
@@ -588,13 +588,13 @@ export default function StageTimelinePanel({ eventStatus }) {
                 </div>
                 <div className="flex items-center gap-3">
                   <StatusPill status={runStatus} />
-                  <button onClick={() => moveStage(index, -1)} disabled={index === 0 || reorder.isPending} className="inline-flex w-10 h-10 items-center justify-center rounded-xl border shadow-sm transition disabled:opacity-50 bg-white border-slate-200 hover:bg-slate-50 dark:bg-[#22262E] dark:border-[#2C3038] dark:hover:bg-[#2A2F38] dark:shadow-none text-emerald-600 dark:text-emerald-400" title="Move up">
+                  <button onClick={() => moveStage(index, -1)} disabled={index === 0 || reorder.isPending} className="inline-flex w-10 h-10 items-center justify-center rounded-xl border shadow-sm transition disabled:opacity-50 bg-white border-slate-200 hover:bg-slate-50 dark:bg-[#1e293b] dark:border-white/10 dark:hover:bg-[#2A2F38] dark:shadow-none text-emerald-600 dark:text-emerald-400" title="Move up">
                     <ArrowUp className="w-5 h-5" />
                   </button>
-                  <button onClick={() => moveStage(index, 1)} disabled={index === sortedStages.length - 1 || reorder.isPending} className="inline-flex w-10 h-10 items-center justify-center rounded-xl border shadow-sm transition disabled:opacity-50 bg-white border-slate-200 hover:bg-slate-50 dark:bg-[#22262E] dark:border-[#2C3038] dark:hover:bg-[#2A2F38] dark:shadow-none text-blue-600 dark:text-blue-400" title="Move down">
+                  <button onClick={() => moveStage(index, 1)} disabled={index === sortedStages.length - 1 || reorder.isPending} className="inline-flex w-10 h-10 items-center justify-center rounded-xl border shadow-sm transition disabled:opacity-50 bg-white border-slate-200 hover:bg-slate-50 dark:bg-[#1e293b] dark:border-white/10 dark:hover:bg-[#2A2F38] dark:shadow-none text-blue-600 dark:text-blue-400" title="Move down">
                     <ArrowDown className="w-5 h-5" />
                   </button>
-                  <button onClick={() => startEdit(s)} className="inline-flex w-10 h-10 items-center justify-center rounded-xl border shadow-sm transition disabled:opacity-50 bg-white border-slate-200 hover:bg-slate-50 dark:bg-[#22262E] dark:border-[#2C3038] dark:hover:bg-[#2A2F38] dark:shadow-none text-amber-500 dark:text-amber-400" title="Edit">
+                  <button onClick={() => startEdit(s)} className="inline-flex w-10 h-10 items-center justify-center rounded-xl border shadow-sm transition disabled:opacity-50 bg-white border-slate-200 hover:bg-slate-50 dark:bg-[#1e293b] dark:border-white/10 dark:hover:bg-[#2A2F38] dark:shadow-none text-amber-500 dark:text-amber-400" title="Edit">
                     <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"></path></svg>
                   </button>
                   <button
@@ -602,7 +602,7 @@ export default function StageTimelinePanel({ eventStatus }) {
                       if (window.confirm(`Delete stage "${s.name}"?`)) deleteStage.mutate(s.id)
                     }}
                     disabled={deleteStage.isPending}
-                    className="inline-flex w-10 h-10 items-center justify-center rounded-xl border shadow-sm transition disabled:opacity-50 bg-white border-slate-200 hover:bg-slate-50 dark:bg-[#22262E] dark:border-[#2C3038] dark:hover:bg-[#2A2F38] dark:shadow-none text-red-500 dark:text-red-400"
+                    className="inline-flex w-10 h-10 items-center justify-center rounded-xl border shadow-sm transition disabled:opacity-50 bg-white border-slate-200 hover:bg-slate-50 dark:bg-[#1e293b] dark:border-white/10 dark:hover:bg-[#2A2F38] dark:shadow-none text-red-500 dark:text-red-400"
                     title="Delete"
                   >
                     <Trash2 className="w-5 h-5" />
@@ -620,7 +620,7 @@ export default function StageTimelinePanel({ eventStatus }) {
 function Field({ label, children }) {
   return (
     <label className="block">
-      <span className="block text-xs font-medium mb-1" className="text-slate-600 dark:text-[#A8A29E]">{label}</span>
+      <span className="block text-xs font-medium mb-1 text-slate-600 dark:text-slate-400">{label}</span>
       {children}
     </label>
   )
