@@ -504,7 +504,7 @@ function Portals() {
   ]
 
   return (
-    <section id="portals" className="py-24 px-6 relative z-10 bg-slate-50">
+    <section id="portals" className="py-24 px-6 relative z-10">
       <div className="max-w-6xl mx-auto text-center">
         <h2 className="text-3xl font-black text-slate-950 mb-3">Access Infrastructure</h2>
         <div className="w-12 h-1 bg-red-500 rounded-full mb-4 mx-auto"></div>
@@ -530,7 +530,7 @@ function Portals() {
 
 function Footer() {
   return (
-    <footer className="border-t border-slate-200 bg-white py-12 px-6 relative z-10">
+    <footer className="border-t border-slate-200 py-12 px-6 relative z-10">
       <div className="max-w-6xl mx-auto flex flex-col md:flex-row items-center justify-between gap-6">
         <div className="flex items-center gap-2">
           <EventOSLogo className="text-slate-950" size={32} />
@@ -552,7 +552,7 @@ function Footer() {
 
 export default function LandingPage() {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-white text-slate-950 font-sans">
+    <div className="min-h-screen bg-[#f8fbff] text-slate-950 font-sans">
       <Navbar />
       <main>
         <Hero />
