@@ -3,13 +3,12 @@ import { useQuery, useMutation } from '@tanstack/react-query'
 import {
   ClipboardList, CheckCircle, Loader2, AlertTriangle,
   ChevronRight, ArrowLeft, RotateCcw, Download,
-  Code, Lightbulb, MonitorPlay, ShieldCheck, TrendingUp, Sparkles, FileText
+  Code, Lightbulb, MonitorPlay, ShieldCheck, TrendingUp, Sparkles, FileText, Sun, Moon
 } from 'lucide-react'
 import { portalApi, evaluationsApi, aiApi, solverApi, submissionsApi, eventStorage } from '../services/api'
 import { useAuth } from '../context/AuthContext'
 import { useParams } from 'react-router-dom'
 import EventOSLogo from '../components/EventOSLogo'
-import ThemeToggle from '../components/ThemeToggle'
 
 // ── Grading criteria — mirrors backend GRADING_CRITERIA constant ───────────
 const CRITERIA = [
@@ -53,6 +52,30 @@ function FullPageMessage({ icon: Icon, title, message }) {
   )
 }
 
+
+function PortalThemeToggle() {
+  const [isDark, setIsDark] = useState(() => {
+    if (typeof window === 'undefined') return false;
+    return localStorage.getItem('theme') === 'dark';
+  });
+
+  useEffect(() => {
+    document.documentElement.classList.toggle('dark', isDark);
+    localStorage.setItem('theme', isDark ? 'dark' : 'light');
+  }, [isDark]);
+
+  return (
+    <button
+      type="button"
+      onClick={() => setIsDark(prev => !prev)}
+      className="p-2 rounded-xl bg-white dark:bg-slate-900/80 border border-slate-200 dark:border-white/10 shadow-sm hover:bg-slate-50 transition-colors"
+      title="Toggle theme"
+    >
+      {isDark ? <Sun size={18} className="text-amber-500" /> : <Moon size={18} className="text-slate-500" />}
+    </button>
+  );
+}
+
 function PortalNavbar({ evaluatorName }) {
   const initial = evaluatorName ? evaluatorName.charAt(0).toUpperCase() : 'A'
   
@@ -80,7 +103,7 @@ function PortalNavbar({ evaluatorName }) {
            
            <div className="w-px h-6 bg-slate-200 hidden sm:block mx-1"></div>
            
-           <div className="hidden sm:block"><ThemeToggle /></div>
+           <div className="hidden sm:block"><PortalThemeToggle /></div>
 
            <div className="w-9 h-9 rounded-full bg-red-500 text-white flex items-center justify-center font-bold text-sm shadow-sm border-2 border-white">
              {initial}

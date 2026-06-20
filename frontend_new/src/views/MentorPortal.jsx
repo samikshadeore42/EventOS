@@ -3,13 +3,12 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import {
   Users, Calendar, MessageSquare, AlertTriangle, Loader2,
   Send, Plus, ChevronDown, ChevronRight,
-  Target, Bell, Menu, LayoutGrid, CalendarDays
+  Target, Bell, Menu, LayoutGrid, CalendarDays, Sun, Moon
 } from 'lucide-react'
 import { mentorApi, portalApi, eventStorage } from '../services/api'
 import TeamChatPanel from '../components/TeamChatPanel'
 import { useAuth } from '../context/AuthContext'
 import { useParams } from 'react-router-dom'
-import ThemeToggle from '../components/ThemeToggle'
 
 // ── Helpers ────────────────────────────────────────────────────────────────
 function initials(name = '') {
@@ -81,6 +80,30 @@ function StatCard({ label, value, sub, statusText, colorTheme, icon: Icon }) {
 }
 
 // ── Top Navbar ─────────────────────────────────────────────────────────────
+
+function PortalThemeToggle() {
+  const [isDark, setIsDark] = useState(() => {
+    if (typeof window === 'undefined') return false;
+    return localStorage.getItem('theme') === 'dark';
+  });
+
+  useEffect(() => {
+    document.documentElement.classList.toggle('dark', isDark);
+    localStorage.setItem('theme', isDark ? 'dark' : 'light');
+  }, [isDark]);
+
+  return (
+    <button
+      type="button"
+      onClick={() => setIsDark(prev => !prev)}
+      className="p-2 rounded-xl bg-white dark:bg-slate-900/80 border border-slate-200 dark:border-white/10 shadow-sm hover:bg-slate-50 transition-colors"
+      title="Toggle theme"
+    >
+      {isDark ? <Sun size={18} className="text-amber-500" /> : <Moon size={18} className="text-slate-500" />}
+    </button>
+  );
+}
+
 function PortalNavbar({ mentorName }) {
   return (
     <div className="bg-white/80 dark:bg-slate-950/90 border-b border-slate-200 dark:border-white/10/70 dark:border-white/10 backdrop-blur shadow-sm sticky top-0 z-40">
@@ -102,7 +125,7 @@ function PortalNavbar({ mentorName }) {
             <span className="w-2 h-2 rounded-full bg-emerald-500" />
             <span className="text-[10px] font-bold text-slate-700 dark:text-slate-300 uppercase tracking-widest">System Live</span>
           </div>
-          <div className="hidden sm:block"><ThemeToggle /></div>
+          <div className="hidden sm:block"><PortalThemeToggle /></div>
           <div className="relative">
             <Bell size={20} className="text-slate-400" />
             <span className="absolute -top-1 -right-1 w-3.5 h-3.5 bg-red-500 rounded-full border-2 border-white flex items-center justify-center text-[8px] font-bold text-white">2</span>
