@@ -4,7 +4,7 @@
 // shared thread — `kind` and `title` differentiate them.
 import { useState, useRef, useEffect } from 'react'
 import { createPortal } from 'react-dom'
-import { MessageCircle, X, Send, Loader2, AlertTriangle } from 'lucide-react'
+import { MessageCircle, X, Send, Loader2, AlertTriangle, MessageSquare } from 'lucide-react'
 import { useChat } from '../hooks/useChat'
 
 function formatTime(iso) {
@@ -57,26 +57,24 @@ export default function TeamChatPanel({
     <>
       {/* Connection status */}
       {!isConnected && (
-        <div className="px-4 py-2 text-[11px] font-medium text-center"
-          style={{
-            backgroundColor: 'color-mix(in srgb, var(--color-primary) 8%, var(--bg-card-soft))',
-            borderBottom: '1px solid color-mix(in srgb, var(--color-primary) 15%, transparent)',
-            color: 'var(--color-primary)',
-          }}
-        >
+        <div className="px-4 py-2 text-[11px] font-bold text-center bg-blue-50 border-b border-blue-100 text-blue-600">
           {connectionState === 'connecting' ? 'Connecting…' : 'Reconnecting…'}
         </div>
       )}
 
       {/* Messages area */}
-      <div className="relative flex-1 overflow-y-auto px-3 py-3 space-y-2" style={{ backgroundColor: 'var(--bg-main)' }}>
+      <div className="relative flex-1 overflow-y-auto px-6 py-10 space-y-4 bg-gradient-to-b from-slate-50/60 to-white text-slate-700">
         {historyError && (
-          <p className="relative z-10 text-xs flex items-center gap-1.5" style={{ color: 'var(--color-danger)' }}>
+          <p className="relative z-10 text-xs flex items-center gap-1.5 text-red-500 font-bold">
             <AlertTriangle size={12} /> Couldn't load history: {historyError}
           </p>
         )}
         {messages.length === 0 && !historyError && (
-          <p className="relative z-10 text-xs text-center mt-8" style={{ color: 'var(--text-muted)' }}>No messages yet — say hello.</p>
+          <div className="flex h-full min-h-[360px] flex-col items-center justify-center text-center">
+            <MessageSquare className="mb-4 h-14 w-14 text-slate-300" />
+            <p className="text-lg font-bold text-slate-950">No messages yet</p>
+            <p className="mt-2 text-sm text-slate-500">Start the conversation with your team.</p>
+          </div>
         )}
         {messages.map((m) => {
           const senderId = m.sender_role === 'mentor' ? m.sender_mentor_id : m.sender_participant_id
@@ -86,22 +84,18 @@ export default function TeamChatPanel({
           return (
             <div key={m.id} className={`relative z-10 flex flex-col max-w-[85%] ${isMine ? 'ml-auto items-end' : 'items-start'}`}>
               {!isMine && (
-                <span className="text-[10px] font-semibold px-1 mb-0.5" style={{ color: 'var(--text-muted)' }}>
+                <span className="text-[10px] font-bold px-1 mb-1 text-slate-500">
                   {m.sender_name}{m.sender_role === 'mentor' ? ' (Mentor)' : ''}
                 </span>
               )}
               <div
-                className={`px-3 py-2 rounded-2xl text-sm leading-relaxed shadow-sm ${
-                  isMine ? 'rounded-br-sm text-white' : 'rounded-bl-sm'
+                className={`px-4 py-2.5 rounded-2xl text-sm leading-relaxed shadow-sm ${
+                  isMine ? 'rounded-br-sm text-white bg-blue-600' : 'rounded-bl-sm bg-white border border-slate-200 text-slate-700'
                 }`}
-                style={isMine
-                  ? { backgroundColor: 'var(--color-primary)' }
-                  : { backgroundColor: 'var(--bg-card)', border: '1px solid var(--border-soft)', color: 'var(--text-main)' }
-                }
               >
                 {m.body}
               </div>
-              <span className="text-[10px] px-1 mt-0.5" style={{ color: 'var(--text-muted)' }}>{formatTime(m.created_at)}</span>
+              <span className="text-[10px] font-semibold px-1 mt-1 text-slate-400">{formatTime(m.created_at)}</span>
             </div>
           )
         })}
@@ -109,24 +103,21 @@ export default function TeamChatPanel({
       </div>
 
       {/* Input bar */}
-      <form onSubmit={handleSend} className="relative z-10 flex items-center gap-2 p-3"
-        style={{ borderTop: '1px solid var(--border-soft)', backgroundColor: 'var(--bg-card)' }}
-      >
+      <form onSubmit={handleSend} className="relative z-10 flex items-center gap-2 p-4 border-t border-slate-200/80 bg-white">
         <input
           type="text"
           value={draft}
           onChange={(e) => setDraft(e.target.value)}
           placeholder={isConnected ? 'Type a message…' : 'Connecting…'}
           disabled={!isConnected}
-          className="app-input flex-1 !rounded-full !px-4 !py-2"
+          className="h-12 flex-1 rounded-full border border-slate-200 bg-slate-100/80 px-5 text-sm text-slate-800 placeholder:text-slate-400 outline-none focus:border-blue-300 focus:ring-4 focus:ring-blue-100/70 transition-all"
         />
         <button
           type="submit"
           disabled={!isConnected || !draft.trim()}
-          className="w-9 h-9 rounded-full text-white flex items-center justify-center disabled:opacity-40 shrink-0 transition-colors"
-          style={{ backgroundColor: 'var(--color-primary)' }}
+          className="flex h-12 w-12 items-center justify-center rounded-full bg-blue-600 text-white shadow-lg shadow-blue-500/25 hover:bg-blue-700 disabled:opacity-50 shrink-0 transition-colors"
         >
-          {connectionState === 'connecting' ? <Loader2 size={16} className="animate-spin" /> : <Send size={15} />}
+          {connectionState === 'connecting' ? <Loader2 size={18} className="animate-spin" /> : <Send size={18} className="-ml-0.5 mt-0.5" />}
         </button>
       </form>
     </>
@@ -134,7 +125,7 @@ export default function TeamChatPanel({
 
   // Inline mode (embedded directly in page)
   if (inline) {
-    return <div className="flex flex-col w-full h-full" style={{ backgroundColor: 'var(--bg-main)' }}>{chatBody}</div>
+    return <div className="flex flex-col w-full h-full bg-transparent">{chatBody}</div>
   }
 
   // Drawer mode (right-side panel)
