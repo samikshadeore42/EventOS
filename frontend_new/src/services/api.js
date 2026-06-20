@@ -304,7 +304,12 @@ export const invitationsApi = {
 export const eventsApi = {
   list: () => api.get('/events'),
   create: (data) => api.post('/events', data),
-  remove: (id) => api.delete(`/events/${id}`),
+  remove: (id) => {
+    if (!id) {
+      return Promise.reject(new Error('Event id is required to delete event.'))
+    }
+    return api.delete(`/events/${id}`)
+  },
   templates: () => api.get('/templates'),
 }
 
@@ -635,8 +640,17 @@ export const mentorApi = {
   createSession:  (data, token) => api.post(portalEventPath('/mentor-portal/sessions', token), data, { params: token ? { token } : undefined }),
   updateSession:  (id, data, token) => api.patch(portalEventPath(`/mentor-portal/sessions/${id}`, token), data, { params: token ? { token } : undefined }),
   cancelSession:  (id, token) => api.patch(portalEventPath(`/mentor-portal/sessions/${id}`, token), { status: 'cancelled' }, { params: token ? { token } : undefined }),
+  completeSession: (id, token) => api.patch(portalEventPath(`/mentor-portal/sessions/${id}`, token), { status: 'completed' }, { params: token ? { token } : undefined }),
   submitFeedback: (data, token) => api.post(portalEventPath('/mentor-portal/feedback', token), data, { params: token ? { token } : undefined }),
   teamFeedback:   (teamId, token) => api.get(portalEventPath(`/mentor-portal/feedback/team/${teamId}`, token), { params: token ? { token } : undefined }),
+  notifications:   (token) => api.get(portalEventPath('/mentor-portal/notifications', token), { params: token ? { token } : undefined }),
+  notificationCount: (token) => api.get(portalEventPath('/mentor-portal/notifications/unread-count', token), { params: token ? { token } : undefined }),
+  markNotificationRead: (id, token) => api.post(portalEventPath(`/mentor-portal/notifications/${id}/read`, token), null, { params: token ? { token } : undefined }),
+  markAllNotificationsRead: (token) => api.post(portalEventPath('/mentor-portal/notifications/read-all', token), null, { params: token ? { token } : undefined }),
+  updates:         (token) => api.get(portalEventPath('/mentor-portal/updates', token), { params: token ? { token } : undefined }),
+  teamUpdates:     (teamId, token) => api.get(portalEventPath(`/mentor-portal/updates/team/${teamId}`, token), { params: token ? { token } : undefined }),
+
+
 
   // Participant-safe mentor info
   participantInfo: (token) => api.get(portalEventPath('/participant-mentor-info', token), { params: token ? { token } : undefined }),
@@ -669,16 +683,12 @@ export const riskApi = {
 }
 
 export const dailyUpdatesApi = {
-  submit: (data) =>
-    api.post('/daily-updates/submit', data),
-
-  myUpdates: () =>
-    api.get('/daily-updates/my-updates'),
-
-  teamUpdates: (teamId) =>
-    api.get(`/daily-updates/team/${teamId}`),
+  submit: (data) => api.post('/daily-updates/submit', data),
+  myUpdates: () => api.get('/daily-updates/my-updates'),
+  team: (teamId) => api.get(`/daily-updates/team/${teamId}`),
+  teamUpdates: (teamId) => api.get(`/daily-updates/team/${teamId}`),
+  getTeamUpdates: (teamId) => api.get(`/daily-updates/team/${teamId}`),
 }
-
 
 export const anomalyApi = {
   // POST /events/{event_id}/anomalies/detect — enqueue statistical anomaly scan

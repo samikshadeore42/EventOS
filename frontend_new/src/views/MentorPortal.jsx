@@ -3,7 +3,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import {
  Users, Calendar, MessageSquare, AlertTriangle, Loader2,
  Send, Plus, ChevronDown, ChevronRight,
- Target, Bell, Menu, LayoutGrid, CalendarDays, Sun, Moon
+ Target, Bell, Menu, LayoutGrid, CalendarDays, Sun, Moon, ClipboardList, CheckCircle, XCircle, ExternalLink
 } from 'lucide-react'
 import { mentorApi, portalApi, eventStorage } from '../services/api'
 import TeamChatPanel from '../components/TeamChatPanel'
@@ -100,7 +100,222 @@ function PortalThemeToggle() {
  );
 }
 
-function PortalNavbar({ mentorName }) {
+
+function NotificationDropdown({ token }) {
+ const { isDark } = useTheme()
+ const qc = useQueryClient()
+ const [open, setOpen] = useState(false)
+
+ const storageKey = `mentor-notifications-read-v3:${token || 'anonymous'}`
+ const [readDerivedIds, setReadDerivedIds] = useState(() => {
+   try {
+     return JSON.parse(window.localStorage.getItem(storageKey) || '[]')
+   } catch {
+     return []
+   }
+ })
+
+ const saveReadDerived = (ids) => {
+   const unique = Array.from(new Set(ids))
+   setReadDerivedIds(unique)
+   try {
+     window.localStorage.setItem(storageKey, JSON.stringify(unique))
+   } catch {
+     // ignore
+   }
+ }
+
+ const countQuery = useQuery({
+   queryKey: ['mentor-notifications-count', token],
+   queryFn: () => mentorApi.notificationCount(token),
+   enabled: !!token,
+   refetchInterval: 15000,
+ })
+
+ const listQuery = useQuery({
+   queryKey: ['mentor-notifications', token],
+   queryFn: () => mentorApi.notifications(token),
+   enabled: !!token && open,
+   refetchInterval: open ? 15000 : false,
+ })
+
+ const updatesQuery = useQuery({
+   queryKey: ['mentor-notification-updates-fallback-v3', token],
+   queryFn: () => mentorApi.updates(token),
+   enabled: !!token,
+   refetchInterval: 15000,
+ })
+
+ const markOne = useMutation({
+   mutationFn: (id) => mentorApi.markNotificationRead(id, token),
+   onSuccess: () => {
+     qc.invalidateQueries({ queryKey: ['mentor-notifications-count', token] })
+     qc.invalidateQueries({ queryKey: ['mentor-notifications', token] })
+   },
+ })
+
+ const markAll = useMutation({
+   mutationFn: () => mentorApi.markAllNotificationsRead(token),
+   onSuccess: () => {
+     qc.invalidateQueries({ queryKey: ['mentor-notifications-count', token] })
+     qc.invalidateQueries({ queryKey: ['mentor-notifications', token] })
+   },
+ })
+
+ const backendItems = (listQuery.data?.data?.notifications ?? []).map(item => ({
+   id: item.id,
+   readKey: `backend:${item.id}`,
+   source: 'backend',
+   title: item.title,
+   message: item.message,
+   created_at: item.created_at,
+   read: Boolean(item.read),
+   notification_type: item.notification_type,
+ }))
+
+ const updateItems = (updatesQuery.data?.data?.updates ?? []).map(update => {
+   const details = update.details || {}
+   const built = details.what_i_built || details.summary || details.progress || ''
+   const readKey = `update:${update.id}`
+
+   return {
+     id: `derived-update:${update.id}`,
+     readKey,
+     source: 'derived-update',
+     title: `${update.team_name || 'Team'} submitted an update`,
+     message: `${update.participant_name || 'Participant'} submitted a daily update${built ? `: ${built}` : '.'}`,
+     created_at: update.submitted_at || update.created_at || update.update_date,
+     read: readDerivedIds.includes(readKey),
+     notification_type: 'mentor_daily_update_submitted',
+   }
+ })
+
+ const byKey = new Map()
+
+ for (const item of [...backendItems, ...updateItems]) {
+   const uniqueKey =
+     item.notification_type === 'mentor_daily_update_submitted'
+       ? `${item.title}:${item.message}`
+       : item.readKey
+
+   if (!byKey.has(uniqueKey)) {
+     byKey.set(uniqueKey, item)
+   }
+ }
+
+ const items = Array.from(byKey.values()).sort((a, b) => {
+   const at = a.created_at ? new Date(a.created_at).getTime() : 0
+   const bt = b.created_at ? new Date(b.created_at).getTime() : 0
+   return bt - at
+ })
+
+ const backendUnread = countQuery.data?.data?.unread ?? backendItems.filter(item => !item.read).length
+ const derivedUnread = updateItems.filter(item => !item.read).length
+ const unread = backendUnread + derivedUnread
+
+ const handleItemClick = (item) => {
+   if (item.source === 'derived-update') {
+     saveReadDerived([...readDerivedIds, item.readKey])
+     return
+   }
+
+   if (!item.read) {
+     markOne.mutate(item.id)
+   }
+ }
+
+ const handleMarkAllRead = () => {
+   saveReadDerived(updateItems.map(item => item.readKey))
+
+   if (backendUnread > 0) {
+     markAll.mutate()
+   }
+ }
+
+ return (
+   <div className="relative">
+     <button
+       type="button"
+       onClick={() => setOpen(value => !value)}
+       className={isDark ? "relative p-2 rounded-xl border border-white/10 bg-slate-900/80 hover:bg-slate-800 transition-colors" : "relative p-2 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 shadow-sm transition-colors"}
+       title="Notifications"
+     >
+       <Bell size={20} className={isDark ? "text-slate-300" : "text-slate-500"} />
+       {unread > 0 && (
+         <span className="absolute -top-1 -right-1 min-w-4 h-4 px-1 bg-red-500 rounded-full border-2 border-white flex items-center justify-center text-[9px] font-black text-white">
+           {unread > 9 ? '9+' : unread}
+         </span>
+       )}
+     </button>
+
+     {open && (
+       <div className={isDark ? "absolute right-0 mt-3 w-[400px] max-w-[calc(100vw-2rem)] rounded-2xl border border-white/10 bg-slate-950 shadow-2xl z-50 overflow-hidden" : "absolute right-0 mt-3 w-[400px] max-w-[calc(100vw-2rem)] rounded-2xl border border-slate-200 bg-white shadow-2xl z-50 overflow-hidden"}>
+         <div className={isDark ? "px-4 py-3 border-b border-white/10 flex items-center justify-between" : "px-4 py-3 border-b border-slate-100 flex items-center justify-between"}>
+           <div>
+             <p className={isDark ? "text-sm font-black text-slate-100" : "text-sm font-black text-slate-950"}>Notifications</p>
+             <p className={isDark ? "text-[11px] font-semibold text-slate-400" : "text-[11px] font-semibold text-slate-500"}>{unread} unread</p>
+           </div>
+
+           <button
+             type="button"
+             onClick={handleMarkAllRead}
+             disabled={!unread || markAll.isPending}
+             className="text-[11px] font-black text-blue-600 disabled:text-slate-300"
+           >
+             Mark all read
+           </button>
+         </div>
+
+         <div className="max-h-[420px] overflow-y-auto">
+           {(listQuery.isLoading || updatesQuery.isLoading) && items.length === 0 ? (
+             <div className="p-6 text-center">
+               <Loader2 size={20} className="animate-spin mx-auto mb-2 text-red-500" />
+               <p className="text-xs font-bold text-slate-500">Loading notifications…</p>
+             </div>
+           ) : items.length === 0 ? (
+             <div className="p-6 text-center">
+               <Bell size={24} className="mx-auto mb-2 text-slate-300" />
+               <p className={isDark ? "text-sm font-bold text-slate-200" : "text-sm font-bold text-slate-700"}>No notifications yet</p>
+               <p className={isDark ? "text-xs font-medium text-slate-400 mt-1" : "text-xs font-medium text-slate-500 mt-1"}>
+                 Meeting reminders, chat, stage changes, and team updates will appear here.
+               </p>
+             </div>
+           ) : (
+             items.map(item => (
+               <button
+                 key={item.readKey}
+                 type="button"
+                 onClick={() => handleItemClick(item)}
+                 className={isDark ? "w-full text-left px-4 py-3 border-b border-white/10 hover:bg-slate-900 transition-colors" : "w-full text-left px-4 py-3 border-b border-slate-100 hover:bg-slate-50 transition-colors"}
+               >
+                 <div className="flex items-start gap-3">
+                   <span className={`mt-1 w-2 h-2 rounded-full shrink-0 ${item.read ? 'bg-slate-300' : 'bg-red-500'}`} />
+                   <div className="min-w-0">
+                     <p className={isDark ? "text-xs font-black text-slate-100" : "text-xs font-black text-slate-950"}>
+                       {item.title}
+                     </p>
+                     <p className={isDark ? "text-xs font-medium text-slate-400 mt-1 leading-relaxed" : "text-xs font-medium text-slate-600 mt-1 leading-relaxed"}>
+                       {item.message}
+                     </p>
+                     {item.created_at && (
+                       <p className="text-[10px] font-bold text-slate-400 mt-2">
+                         {new Date(item.created_at).toLocaleString()}
+                       </p>
+                     )}
+                   </div>
+                 </div>
+               </button>
+             ))
+           )}
+         </div>
+       </div>
+     )}
+   </div>
+ )
+}
+
+
+function PortalNavbar({ mentorName, token }) {
  const { isDark } = useTheme();
  return (
  <div className={isDark ? "z-40 top-0 sticky shadow-sm backdrop-blur border-b bg-slate-950/90 border-white/10 border-white/10" : "bg-white/80 border-b border-slate-200 backdrop-blur shadow-sm sticky top-0 z-40"}>
@@ -123,10 +338,7 @@ function PortalNavbar({ mentorName }) {
  <span className={isDark ? "tracking-widest uppercase font-bold text-slate-300" : "text-[10px] font-bold text-slate-700 uppercase tracking-widest"}>System Live</span>
  </div>
  <div className="hidden sm:block"><PortalThemeToggle /></div>
- <div className="relative">
- <Bell size={20} className="text-slate-400" />
- <span className="absolute -top-1 -right-1 w-3.5 h-3.5 bg-red-500 rounded-full border-2 border-white flex items-center justify-center text-[8px] font-bold text-white">2</span>
- </div>
+ <NotificationDropdown token={token} />
  <div className="flex items-center gap-2">
  <div className="w-8 h-8 rounded-full bg-orange-500 text-white font-bold flex items-center justify-center text-sm">
  {initials(mentorName)[0] || 'M'}
@@ -138,6 +350,7 @@ function PortalNavbar({ mentorName }) {
  </div>
  )
 }
+
 
 // ── Schedule meeting form ──────────────────────────────────────────────────
 function ScheduleMeetingForm({ teamId, token, onSuccess }) {
@@ -366,6 +579,216 @@ function WorkspaceCard({ title, icon: Icon, mainText, subText, actionText, onAct
  )
 }
 
+
+function UpdateDetailsGrid({ details }) {
+ const clean = details || {}
+ const entries = Object.entries(clean).filter(([, value]) => value !== null && value !== undefined && value !== '')
+
+ const label = (key) =>
+   key
+     .replace(/_/g, ' ')
+     .replace(/\b\w/g, c => c.toUpperCase())
+
+ if (!entries.length) {
+   return (
+     <p className="text-xs font-semibold text-slate-500">
+       Update submitted, but no extra details were provided.
+     </p>
+   )
+ }
+
+ return (
+   <div className="grid gap-2 md:grid-cols-2">
+     {entries.map(([key, value]) => (
+       <div key={key} className="rounded-xl border border-slate-200 bg-white p-3">
+         <p className="text-[10px] font-black uppercase tracking-[0.16em] text-slate-400 mb-1">
+           {label(key)}
+         </p>
+         <p className="text-xs font-semibold text-slate-600 leading-relaxed">
+           {typeof value === 'string' ? value : JSON.stringify(value)}
+         </p>
+       </div>
+     ))}
+   </div>
+ )
+}
+
+function TeamUpdatesReceived({ team, token }) {
+ const { isDark } = useTheme()
+
+ const updatesQuery = useQuery({
+   queryKey: ['mentor-team-updates', team.team_id, token],
+   queryFn: () => mentorApi.teamUpdates(team.team_id, token),
+   enabled: !!team?.team_id && !!token,
+   refetchInterval: 30000,
+ })
+
+ const apiUpdates = updatesQuery.data?.data?.updates ?? []
+
+ const fallbackUpdates = (team.members || [])
+   .filter(member => member.latest_daily_update)
+   .map(member => ({
+     id: `${team.team_id}-${member.id}-${member.latest_daily_update.update_date}`,
+     team_id: team.team_id,
+     team_name: team.team_name,
+     participant_name: member.name,
+     update_date: member.latest_daily_update.update_date,
+     submitted_at: member.latest_daily_update.submitted_at,
+     details: {
+       what_i_built: member.latest_daily_update.what_i_built,
+       blockers: member.latest_daily_update.blockers,
+       hours_worked: member.latest_daily_update.hours_worked,
+     },
+   }))
+
+ const updates = apiUpdates.length ? apiUpdates : fallbackUpdates
+
+ return (
+   <div className={isDark ? "mb-4 p-6 rounded-[22px] border bg-slate-900/80 border-white/10" : "mb-4 p-6 rounded-[22px] border border-slate-200 bg-white shadow-[0_14px_35px_rgba(15,23,42,0.05)]"}>
+     <div className="flex items-start justify-between gap-3 mb-5 pb-5 border-b border-slate-100">
+       <div className="flex items-center gap-3">
+         <div className="w-12 h-12 rounded-xl flex items-center justify-center shrink-0 bg-purple-50 text-purple-600 border border-purple-200">
+           <ClipboardList size={24} />
+         </div>
+         <div>
+           <h3 className={isDark ? "font-extrabold text-slate-100" : "text-sm font-extrabold text-slate-950"}>Updates Received</h3>
+           <p className="text-xs font-semibold text-slate-500">Daily updates from this team</p>
+         </div>
+       </div>
+       <span className="rounded-full bg-purple-50 text-purple-600 px-3 py-1 text-[11px] font-black">
+         {updates.length} update{updates.length === 1 ? '' : 's'}
+       </span>
+     </div>
+
+     {updatesQuery.isLoading && !fallbackUpdates.length ? (
+       <div className="py-6 text-center">
+         <Loader2 size={20} className="animate-spin text-purple-500 mx-auto mb-2" />
+         <p className="text-xs font-bold text-slate-500">Loading updates…</p>
+       </div>
+     ) : updates.length === 0 ? (
+       <div className="rounded-2xl border border-slate-200 bg-slate-50 p-5 text-center">
+         <p className="text-sm font-black text-slate-800">No updates yet</p>
+         <p className="text-xs font-semibold text-slate-500 mt-1">Participant daily updates will appear here.</p>
+       </div>
+     ) : (
+       <div className="space-y-3">
+         {updates.map(update => (
+           <div key={update.id} className="rounded-2xl border border-slate-200 bg-slate-50/70 p-4">
+             <div className="flex flex-wrap items-center justify-between gap-2 mb-3">
+               <div>
+                 <p className="text-sm font-black text-slate-950">
+                   {update.participant_name || 'Participant'}
+                 </p>
+                 <p className="text-xs font-semibold text-slate-500">
+                   {update.update_date ? `Update date: ${update.update_date}` : 'Daily update'}
+                   {update.submitted_at ? ` • ${new Date(update.submitted_at).toLocaleString()}` : ''}
+                 </p>
+               </div>
+             </div>
+             <UpdateDetailsGrid details={update.details} />
+           </div>
+         ))}
+       </div>
+     )}
+   </div>
+ )
+}
+
+function MeetingWorkspaceCard({ team, token, onEdit }) {
+ const qc = useQueryClient()
+ const session = team.next_meeting
+
+ const completeMutation = useMutation({
+   mutationFn: () => mentorApi.completeSession(session.id, token),
+   onSuccess: () => {
+     qc.invalidateQueries({ queryKey: ['mentor-teams'] })
+     qc.invalidateQueries({ queryKey: ['portal-access', token] })
+   },
+ })
+
+ const cancelMutation = useMutation({
+   mutationFn: () => mentorApi.cancelSession(session.id, token),
+   onSuccess: () => {
+     qc.invalidateQueries({ queryKey: ['mentor-teams'] })
+     qc.invalidateQueries({ queryKey: ['portal-access', token] })
+   },
+ })
+
+ return (
+   <div className="bg-white border border-slate-200 rounded-[22px] shadow-[0_14px_35px_rgba(15,23,42,0.05)] p-6 mb-4">
+     <div className="flex items-center gap-3 mb-5 pb-5 border-b border-slate-100">
+       <div className="w-12 h-12 rounded-xl flex items-center justify-center shrink-0 bg-blue-50 text-blue-600 border border-blue-200">
+         <CalendarDays size={24} />
+       </div>
+       <h3 className="text-sm font-extrabold text-slate-950">Schedule Meet</h3>
+     </div>
+
+     {session ? (
+       <div className="space-y-4">
+         <div>
+           <h4 className="text-base font-black text-slate-950">{session.title || 'Scheduled meeting'}</h4>
+           <p className="text-sm font-semibold text-slate-500 mt-1">
+             {new Date(session.scheduled_at).toLocaleString()} · {session.duration_minutes}min
+           </p>
+         </div>
+
+         <div className="grid gap-3 sm:grid-cols-3">
+           {session.meeting_url && (
+             <a
+               href={session.meeting_url}
+               target="_blank"
+               rel="noreferrer"
+               className="inline-flex items-center justify-center gap-2 rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-black text-white hover:bg-blue-700"
+             >
+               <ExternalLink size={16} /> Join
+             </a>
+           )}
+
+           <button
+             type="button"
+             onClick={() => completeMutation.mutate()}
+             disabled={completeMutation.isPending}
+             className="inline-flex items-center justify-center gap-2 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-2.5 text-sm font-black text-emerald-700 hover:bg-emerald-100 disabled:opacity-50"
+           >
+             <CheckCircle size={16} /> Complete
+           </button>
+
+           <button
+             type="button"
+             onClick={() => cancelMutation.mutate()}
+             disabled={cancelMutation.isPending}
+             className="inline-flex items-center justify-center gap-2 rounded-xl border border-red-200 bg-red-50 px-4 py-2.5 text-sm font-black text-red-600 hover:bg-red-100 disabled:opacity-50"
+           >
+             <XCircle size={16} /> Remove
+           </button>
+         </div>
+
+         <button
+           type="button"
+           onClick={onEdit}
+           className="w-full py-3 border border-blue-300 rounded-xl text-sm font-bold text-blue-600 hover:bg-blue-50 transition-colors flex items-center justify-center gap-2"
+         >
+           <Plus size={16} /> View / Edit Meeting
+         </button>
+       </div>
+     ) : (
+       <div>
+         <h4 className="text-base font-black text-slate-950 mb-1">No upcoming meetings.</h4>
+         <p className="text-sm font-medium text-slate-500 mb-6">Schedule your next meeting with the team.</p>
+         <button
+           type="button"
+           onClick={onEdit}
+           className="w-full py-3 border border-blue-300 rounded-xl text-sm font-bold text-blue-600 hover:bg-blue-50 transition-colors flex items-center justify-center gap-2"
+         >
+           <Plus size={16} /> Schedule Meeting
+         </button>
+       </div>
+     )}
+   </div>
+ )
+}
+
+
 // ── Team card ──────────────────────────────────────────────────────────────
 function TeamCard({ team, token, eventId, mentorId }) {
  const { isDark } = useTheme();
@@ -416,14 +839,12 @@ function TeamCard({ team, token, eventId, mentorId }) {
  <DailyProgressForm teamId={team.team_id} members={team.members} token={token} onSuccess={closeModal} />
  ) : (
  <div className="grid grid-cols-1 gap-4 max-w-xl">
- <WorkspaceCard
- title="Schedule Meet"
- icon={CalendarDays}
- colorTheme="blue"
- mainText={team.next_meeting ? "Scheduled" : "No upcoming meetings."}
- subText={team.next_meeting ? `${new Date(team.next_meeting.scheduled_at).toLocaleString()}\n${team.next_meeting.duration_minutes}min` : "Schedule your next meeting with the team."}
- actionText={team.next_meeting ? "View / Edit Meeting" : "Schedule Meeting"}
- onAction={() => setActiveModal('schedule')}
+ <TeamUpdatesReceived team={team} token={token} />
+
+ <MeetingWorkspaceCard
+ team={team}
+ token={token}
+ onEdit={() => setActiveModal('schedule')}
  />
 
  <WorkspaceCard
@@ -580,7 +1001,7 @@ function MentorPortalContent() {
  return (
  <div className={isDark ? "overflow-x-hidden relative pb-20 font-sans bg-gradient-to-br min-h-screen from-[#0b0f14] via-slate-950 to-[#0b0f14] text-slate-100" : "min-h-screen bg-gradient-to-br from-[#f8fbff] via-[#eef6fb] to-[#f7fbff] text-slate-950 font-sans pb-20 relative overflow-x-hidden"}>
 
- <PortalNavbar mentorName={profile.name ?? 'Mentor'} />
+ <PortalNavbar mentorName={profile.name ?? 'Mentor'} token={urlToken} />
 
  {/* Decorative Dots */}
  <div className="pointer-events-none absolute right-14 top-28 h-28 w-28 opacity-30 [background-image:radial-gradient(#cbd5e1_1.5px,transparent_1.5px)] [background-size:16px_16px]" />

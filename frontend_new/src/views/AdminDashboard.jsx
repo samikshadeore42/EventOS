@@ -250,7 +250,7 @@ function OverviewTab({ onTileClick }) {
 
         {/* Approval Status */}
         <motion.div onClick={() => onTileClick?.('approvals')} whileHover={{ y: -2, scale: 1.01 }} className="cursor-pointer app-card rounded-2xl p-6 relative overflow-hidden group flex flex-col justify-between h-full">
-          <div className="absolute -right-8 -top-8 w-32 h-32 bg-gradient-to-br from-green-500/10 to-transparent rounded-full blur-2xl group-hover:scale-110 transition-transform duration-700" />
+          <div className="absolute -right-8 -top-8 w-32 h-32 bg-gradient-to-br from-green-500/10 to-transparent rounded-full blur-2xl group-hover:scale-110 transition-transform duration-700 pointer-events-none" />
           <div className="flex items-center gap-3 mb-4 relative z-10">
             <div className="w-10 h-10 rounded-xl flex items-center justify-center shadow-sm bg-green-100 text-green-600 dark:bg-green-500/15 dark:text-green-300 border border-green-200 dark:border-green-500/20">
               <CheckSquare size={20} />
@@ -272,7 +272,7 @@ function OverviewTab({ onTileClick }) {
 
         {/* Evaluation Progress */}
         <motion.div onClick={() => onTileClick?.('evaluators')} whileHover={{ y: -2, scale: 1.01 }} className="cursor-pointer app-card rounded-2xl p-6 relative overflow-hidden group flex flex-col justify-between h-full">
-          <div className="absolute -right-8 -top-8 w-32 h-32 bg-gradient-to-br from-orange-500/10 to-transparent rounded-full blur-2xl group-hover:scale-110 transition-transform duration-700" />
+          <div className="absolute -right-8 -top-8 w-32 h-32 bg-gradient-to-br from-orange-500/10 to-transparent rounded-full blur-2xl group-hover:scale-110 transition-transform duration-700 pointer-events-none" />
           <div className="flex items-center gap-3 mb-4 relative z-10">
             <div className="w-10 h-10 rounded-xl flex items-center justify-center shadow-sm bg-orange-100 text-orange-600 dark:bg-orange-500/15 dark:text-orange-300 border border-orange-200 dark:border-orange-500/20">
               <BarChart2 size={20} />
@@ -1275,7 +1275,7 @@ function ApprovalsTab() {
         {!isLoading && pending?.total_pending === 0 && !hasPublished && !hasRejected && (
           <div className="flex min-h-[390px] flex-col items-center justify-center text-center">
             <div className="relative mb-8 h-36 w-44">
-              <div className="absolute left-1/2 top-[96px] h-5 w-28 -translate-x-1/2 rounded-full bg-slate-200/80 blur-sm" />
+              <div className="absolute left-1/2 top-[96px] h-5 w-28 -translate-x-1/2 rounded-full bg-slate-200/80 blur-sm pointer-events-none" />
               <svg
                 viewBox="0 0 160 130"
                 className="absolute left-1/2 top-0 h-32 w-40 -translate-x-1/2"
@@ -2427,6 +2427,55 @@ function CommunicationsTab() {
 }
 
 // ── TAB 8: MENTOR OPS ──────────────────────────────────────────────────────
+
+function MentorOpsPointerSafetyStyle() {
+  return (
+    <style>{`
+      [data-mentor-ops-safe-zone] {
+        position: relative;
+        isolation: isolate;
+        pointer-events: auto;
+      }
+
+      [data-mentor-ops-safe-zone] [aria-hidden="true"],
+      [data-mentor-ops-safe-zone] .pointer-events-none,
+      [data-mentor-ops-safe-zone] .absolute.inset-0,
+      [data-mentor-ops-safe-zone] .fixed.inset-0,
+      [data-mentor-ops-safe-zone] [class*="blur-"],
+      [data-mentor-ops-safe-zone] [class*="bg-gradient"],
+      [data-mentor-ops-safe-zone] [class*="radial"],
+      [data-mentor-ops-safe-zone] [class*="decor"],
+      [data-mentor-ops-safe-zone] [class*="pattern"] {
+        pointer-events: none !important;
+      }
+
+      [data-mentor-ops-safe-zone] button,
+      [data-mentor-ops-safe-zone] a,
+      [data-mentor-ops-safe-zone] input,
+      [data-mentor-ops-safe-zone] select,
+      [data-mentor-ops-safe-zone] textarea,
+      [data-mentor-ops-safe-zone] summary,
+      [data-mentor-ops-safe-zone] [role="button"],
+      [data-mentor-ops-safe-zone] [role="menuitem"],
+      [data-mentor-ops-safe-zone] [data-clickable="true"] {
+        pointer-events: auto !important;
+        position: relative;
+        z-index: 20;
+      }
+
+      [data-mentor-ops-safe-zone] table button,
+      [data-mentor-ops-safe-zone] table a,
+      [data-mentor-ops-safe-zone] .soft-table button,
+      [data-mentor-ops-safe-zone] .soft-table a {
+        pointer-events: auto !important;
+        position: relative;
+        z-index: 30;
+      }
+    `}</style>
+  )
+}
+
+
 function MentorOpsTab() {
   const qc = useQueryClient()
   const [showForm, setShowForm] = useState(false)
@@ -2561,7 +2610,7 @@ function MentorOpsTab() {
           <div className="flex items-center gap-3 flex-wrap flex-1">
             <button className="flex items-center gap-2 app-btn-secondary">
                <UploadCloud size={16} /> Choose File
-               <input type="file" accept=".csv" onChange={(e) => setImportFile(e.target.files[0])} className="absolute inset-0 w-full h-full opacity-0 cursor-pointer" />
+               <input type="file" accept=".csv" onChange={(e) => setImportFile(e.target.files[0])} className="absolute inset-0 w-full h-full opacity-0 cursor-pointer pointer-events-none" />
             </button>
             <span className="text-sm font-semibold text-muted truncate max-w-[200px]">
               {importFile ? importFile.name : 'No file chosen'}
@@ -2826,7 +2875,8 @@ function MentorOpsTab() {
 
         {/* Suggestions */}
         {suggestions.length > 0 && (
-          <div className="mb-8">
+          <div className="mb-8" data-mentor-ops-safe-zone>
+      <MentorOpsPointerSafetyStyle />
             <h2 className="text-base font-semibold text-foreground mb-4 flex items-center gap-2"><Wand2 size={16} className="text-primary" /> Skill-Gap Mentor Suggestions</h2>
             <div className="space-y-3">
               {suggestions.map(s => (
@@ -3580,6 +3630,8 @@ function DemoControlsTab() {
   const qc = useQueryClient()
   const { activeEvent, loadEvents } = useAuth()
   const [deleteEventConfirm, setDeleteEventConfirm] = useState('')
+  const [deleteEventError, setDeleteEventError] = useState('')
+  const [deleteEventSuccess, setDeleteEventSuccess] = useState('')
   const [confirmText, setConfirmText] = useState('')
   const [auditResult, setAuditResult] = useState(null);
   const [auditError, setAuditError] = useState('');
@@ -3646,15 +3698,78 @@ function DemoControlsTab() {
   })
 
   const deleteEventMutation = useMutation({
-    mutationFn: () => eventsApi.remove(activeEvent.id),
+    mutationFn: async () => {
+      const eventId = activeEvent?.id
+
+      if (!eventId) {
+        throw new Error('No active event selected.')
+      }
+
+      return eventsApi.remove(eventId)
+    },
+    onMutate: () => {
+      setDeleteEventError('')
+      setDeleteEventSuccess('')
+    },
     onSuccess: async (res) => {
-      alert(res?.data?.message || res?.message || 'Event deleted successfully.')
+      const message =
+        res?.data?.message ||
+        res?.message ||
+        `${activeEvent?.name || 'Event'} deleted successfully.`
+
       setDeleteEventConfirm('')
+      setDeleteEventError('')
+      setDeleteEventSuccess(message)
+
+      try {
+        localStorage.removeItem('eventos_active_event_id')
+      } catch {
+        // ignore localStorage failure
+      }
+
       qc.clear()
       await loadEvents()
+      await refetchStatus()
     },
-    onError: (err) => alert('Error: ' + (err.response?.data?.detail || err.message))
+    onError: (err) => {
+      const message =
+        err?.response?.data?.detail ||
+        err?.message ||
+        'Failed to delete event.'
+
+      setDeleteEventError(message)
+      setDeleteEventSuccess('')
+      alert(`Delete event failed: ${message}`)
+    },
   })
+
+
+  const handleDeleteCurrentEvent = useCallback((event) => {
+    event?.preventDefault?.()
+    event?.stopPropagation?.()
+
+    const typed = deleteEventConfirm.trim()
+
+    if (!activeEvent?.id) {
+      setDeleteEventError('No active event selected.')
+      return
+    }
+
+    if (typed !== 'DELETE_EVENT') {
+      setDeleteEventError('Type DELETE_EVENT exactly to enable deletion.')
+      return
+    }
+
+    const ok = window.confirm(
+      `Delete event "${activeEvent?.name}" permanently? This cannot be undone.`
+    )
+
+    if (!ok) return
+
+    deleteEventMutation.mutate()
+  }, [activeEvent?.id, activeEvent?.name, deleteEventConfirm, deleteEventMutation])
+
+
 
   return (
     <div>
@@ -3758,33 +3873,59 @@ function DemoControlsTab() {
           <AlertTriangle size={20} />
           <h3 className="text-lg font-extrabold">Delete Current Event</h3>
         </div>
+
         <p className="text-sm font-medium text-muted mb-2 max-w-3xl">
           This permanently deletes the selected event and its event-scoped data. Use this only for demo/test events.
         </p>
+
         <p className="text-sm font-extrabold text-foreground mb-6">
           Selected event: {activeEvent?.name || 'No event selected'}
         </p>
+
         <div className="flex flex-col md:flex-row gap-4 items-center">
           <input
             type="text"
             value={deleteEventConfirm}
-            onChange={(e) => setDeleteEventConfirm(e.target.value)}
+            onChange={(e) => {
+              setDeleteEventConfirm(e.target.value)
+              setDeleteEventError('')
+              setDeleteEventSuccess('')
+            }}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') {
+                e.preventDefault()
+                const typed = e.target.value.trim()
+                if (activeEvent?.id && typed === 'DELETE_EVENT' && !deleteEventMutation.isPending) {
+                  handleDeleteCurrentEvent(e)
+                }
+              }
+            }}
             placeholder="Type DELETE_EVENT"
             className="w-full app-input h-11 px-4 text-sm font-medium text-muted placeholder:text-slate-400 focus:outline-none focus:border-blue-300 focus:ring-2 focus:ring-blue-100 transition-all"
           />
+
           <button
-            onClick={() => {
-              if (window.confirm(`Delete event "${activeEvent?.name}" permanently?`)) {
-                deleteEventMutation.mutate()
-              }
-            }}
-            disabled={!activeEvent?.id || deleteEventConfirm !== 'DELETE_EVENT' || deleteEventMutation.isPending}
+            type="button"
+            onClick={handleDeleteCurrentEvent}
+            disabled={!activeEvent?.id || deleteEventConfirm.trim() !== 'DELETE_EVENT' || deleteEventMutation.isPending}
             className="w-full md:w-auto shrink-0 px-6 h-11 bg-red-500 hover:bg-red-600 text-white text-sm font-extrabold rounded-xl transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
           >
             {deleteEventMutation.isPending ? <Loader2 size={16} className="animate-spin" /> : <Trash2 size={16} />}
             Delete Event
           </button>
         </div>
+
+        {deleteEventError && (
+          <div className="mt-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-bold text-red-700">
+            {deleteEventError}
+          </div>
+        )}
+
+        {deleteEventSuccess && (
+          <div className="mt-4 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-bold text-emerald-700">
+            {deleteEventSuccess}
+          </div>
+        )}
       </div>
 
       {/* Security & Integrity Section */}

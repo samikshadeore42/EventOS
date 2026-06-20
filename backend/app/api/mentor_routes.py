@@ -270,6 +270,100 @@ def mentor_team_feedback(
     return {"feedback": [MentorFeedbackOut.model_validate(fb).model_dump() for fb in feedbacks]}
 
 
+
+@portal_router.get("/mentor-portal/notifications", summary="Mentor: list own portal notifications")
+def mentor_portal_notifications(
+    unread_only: bool = Query(default=False),
+    token: str = Query(..., description="Mentor JWT"),
+    scope: ScopedEventService = Depends(get_event_scope),
+):
+    from app.services.mentor_notification_service import list_for_mentor
+
+    mentor_id = _get_mentor_id(token, scope)
+    rows = list_for_mentor(scope.db, scope.event_id, mentor_id, unread_only=unread_only)
+    return {
+        "notifications": [
+            {
+                "id": str(row.id),
+                "title": row.title,
+                "message": row.message,
+                "notification_type": row.notification_type,
+                "read": row.read_at is not None,
+                "created_at": row.created_at.isoformat() if row.created_at else None,
+            }
+            for row in rows
+        ]
+    }
+
+
+@portal_router.get("/mentor-portal/notifications/unread-count", summary="Mentor: unread notification count")
+def mentor_portal_notification_count(
+    token: str = Query(..., description="Mentor JWT"),
+    scope: ScopedEventService = Depends(get_event_scope),
+):
+    from app.services.mentor_notification_service import unread_count_for_mentor
+
+    mentor_id = _get_mentor_id(token, scope)
+    return {"unread": unread_count_for_mentor(scope.db, scope.event_id, mentor_id)}
+
+
+@portal_router.post("/mentor-portal/notifications/{notification_id}/read", summary="Mentor: mark notification read")
+def mentor_portal_mark_notification_read(
+    notification_id: UUID,
+    token: str = Query(..., description="Mentor JWT"),
+    scope: ScopedEventService = Depends(get_event_scope),
+):
+    from app.services.mentor_notification_service import mark_read_for_mentor
+
+    mentor_id = _get_mentor_id(token, scope)
+    row = mark_read_for_mentor(scope.db, scope.event_id, mentor_id, notification_id)
+    if not row:
+        raise HTTPException(status_code=404, detail="Notification not found.")
+    return {"id": str(row.id), "read": row.read_at is not None}
+
+
+@portal_router.post("/mentor-portal/notifications/read-all", summary="Mentor: mark all notifications read")
+def mentor_portal_mark_all_notifications_read(
+    token: str = Query(..., description="Mentor JWT"),
+    scope: ScopedEventService = Depends(get_event_scope),
+):
+    from app.services.mentor_notification_service import mark_all_read_for_mentor
+
+    mentor_id = _get_mentor_id(token, scope)
+    return {"marked_read": mark_all_read_for_mentor(scope.db, scope.event_id, mentor_id)}
+
+
+
+@portal_router.get("/mentor-portal/updates", summary="Mentor: list updates from assigned teams")
+def mentor_portal_updates(
+    token: str = Query(..., description="Mentor JWT"),
+    scope: ScopedEventService = Depends(get_event_scope),
+):
+    from app.services.mentor_notification_service import (
+        list_updates_for_mentor,
+        materialize_update_notifications_for_mentor,
+    )
+
+    mentor_id = _get_mentor_id(token, scope)
+    materialize_update_notifications_for_mentor(scope.db, scope.event_id, mentor_id)
+    return {"updates": list_updates_for_mentor(scope.db, scope.event_id, mentor_id)}
+
+
+@portal_router.get("/mentor-portal/updates/team/{team_id}", summary="Mentor: list updates for one assigned team")
+def mentor_portal_team_updates(
+    team_id: UUID,
+    token: str = Query(..., description="Mentor JWT"),
+    scope: ScopedEventService = Depends(get_event_scope),
+):
+    from app.services.mentor_notification_service import (
+        list_updates_for_mentor,
+        materialize_update_notifications_for_mentor,
+    )
+
+    mentor_id = _get_mentor_id(token, scope)
+    materialize_update_notifications_for_mentor(scope.db, scope.event_id, mentor_id)
+    return {"updates": list_updates_for_mentor(scope.db, scope.event_id, mentor_id, team_id=team_id)}
+
 # ═══════════════════════════════════════════════════════════════════════════
 # ADMIN MENTOR OPS
 # ═══════════════════════════════════════════════════════════════════════════

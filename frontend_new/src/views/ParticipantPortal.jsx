@@ -499,6 +499,89 @@ function NextMeetingCard({ mentorData }) {
   )
 }
 
+
+function MentorFeedbackVisibleSection({ mentorData }) {
+  const feedback = mentorData?.visible_feedback ?? []
+  const actionItems = mentorData?.action_items ?? []
+
+  return (
+    <div className="bg-white/90 border border-white/80 rounded-[22px] p-6 shadow-[0_16px_40px_rgba(15,23,42,0.07)] backdrop-blur-sm mb-6">
+      <div className="flex items-center gap-2 mb-5">
+        <ClipboardList size={18} className="text-purple-500" />
+        <h3 className="text-base font-bold text-slate-950">Mentor Feedback</h3>
+      </div>
+
+      {feedback.length > 0 ? (
+        <div className="space-y-3 mb-5">
+          {feedback.map(item => (
+            <div key={item.id} className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+              <div className="flex flex-wrap items-center justify-between gap-2 mb-2">
+                <p className="text-sm font-black text-slate-950">
+                  {item.feedback_type === 'individual' ? 'Individual Feedback' : 'Team Feedback'}
+                </p>
+                {item.created_at && (
+                  <span className="text-[11px] font-bold text-slate-400">
+                    {new Date(item.created_at).toLocaleString()}
+                  </span>
+                )}
+              </div>
+
+              <p className="text-sm font-semibold text-slate-700 leading-relaxed">
+                {item.feedback_text}
+              </p>
+
+              {item.blockers && (
+                <p className="mt-3 text-xs font-semibold text-red-600 bg-red-50 border border-red-100 rounded-xl p-3">
+                  <span className="font-black">Blockers:</span> {item.blockers}
+                </p>
+              )}
+
+              {item.progress_score !== null && item.progress_score !== undefined && (
+                <div className="mt-3 flex flex-wrap gap-2 text-[11px] font-black">
+                  <span className="rounded-full bg-blue-50 text-blue-600 px-3 py-1">Progress {item.progress_score}/10</span>
+                  {item.collaboration_score !== null && item.collaboration_score !== undefined && (
+                    <span className="rounded-full bg-emerald-50 text-emerald-600 px-3 py-1">Collab {item.collaboration_score}/10</span>
+                  )}
+                  {item.execution_score !== null && item.execution_score !== undefined && (
+                    <span className="rounded-full bg-orange-50 text-orange-600 px-3 py-1">Execution {item.execution_score}/10</span>
+                  )}
+                  {item.clarity_score !== null && item.clarity_score !== undefined && (
+                    <span className="rounded-full bg-purple-50 text-purple-600 px-3 py-1">Clarity {item.clarity_score}/10</span>
+                  )}
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+      ) : (
+        <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4 mb-5">
+          <p className="text-sm font-black text-slate-950">No mentor feedback yet</p>
+          <p className="text-xs font-semibold text-slate-500 mt-1">
+            Feedback from your mentor will appear here once submitted.
+          </p>
+        </div>
+      )}
+
+      <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+        <p className="text-xs font-black uppercase tracking-widest text-slate-950 mb-2">
+          Action Items
+        </p>
+
+        {actionItems.length > 0 ? (
+          <ul className="list-disc pl-5 space-y-1 text-sm font-semibold text-slate-950">
+            {actionItems.map((item, idx) => <li key={`${item}-${idx}`}>{item}</li>)}
+          </ul>
+        ) : (
+          <p className="text-sm font-semibold text-slate-600">
+            No action items yet.
+          </p>
+        )}
+      </div>
+    </div>
+  )
+}
+
+
 function ProjectSubmissionSection({ token }) {
   const qc = useQueryClient()
   const [file, setFile] = useState(null)
@@ -877,6 +960,10 @@ export default function ParticipantPortal() {
             </>
           )}
         </div>
+
+        {team_assigned && (
+          <MentorFeedbackVisibleSection mentorData={mentorData} />
+        )}
 
         {/* Support */}
         <SupportFooter supportEmail={supportEmail} />
