@@ -25,13 +25,6 @@ from app.tasks.ai_tasks import generate_rubric_task
 # 1. Update Prefix
 router = APIRouter(prefix="/events/{event_id}/evaluations", tags=["Evaluations"])
 
-@router.post(
-    "",
-    response_model=EvaluationResponse,
-    status_code=201,
-    summary="Submit a scorecard for a team",
-)
-
 def _require_evaluator_portal_access(token: str, scope: ScopedEventService) -> Evaluator:
     payload = decode_access_token(token)
     token_event_id = payload.get("event_id")
@@ -56,6 +49,13 @@ def _require_evaluator_portal_access(token: str, scope: ScopedEventService) -> E
         raise HTTPException(status_code=403, detail="Your evaluator account is inactive.")
 
     return evaluator
+
+@router.post(
+    "",
+    response_model=EvaluationResponse,
+    status_code=201,
+    summary="Submit a scorecard for a team",
+)
 
 def submit_scorecard(
     body:        ScoreSubmissionRequest,
@@ -109,6 +109,90 @@ def submit_scorecard(
         db=scope.db
     )
 
+
+@router.post(
+    "/ai-rubric",
+    response_model=AITaskEnqueueResponse,
+    status_code=202,
+    summary="Generate an AI scoring guide for evaluator portal",
+)
+def generate_evaluator_ai_rubric(
+    body: RubricRequest,
+    token: str = Query(..., description="Evaluator JWT from portal link"),
+    scope: ScopedEventService = Depends(get_event_scope),
+):
+    evaluator = _require_evaluator_portal_access(token, scope)
+
+    team_context = body.team_context or {}
+    team_id = team_context.get("team_id")
+
+    if team_id:
+        try:
+            team_uuid = UUID(str(team_id))
+        except ValueError:
+            raise HTTPException(status_code=400, detail="Invalid team_id in team_context.")
+
+        assigned = scope.db.query(EvaluatorTeamAssignment).filter_by(
+            evaluator_id=evaluator.id,
+            team_id=team_uuid,
+            event_id=scope.event_id,
+        ).first()
+
+        if not assigned:
+            raise HTTPException(status_code=403, detail="You are not assigned to evaluate this team.")
+
+    event_name = body.event_name
+    if not event_name or event_name == "the event":
+        event_name = scope.event.name
+
+    task = generate_rubric_task.delay(
+        body.challenge_area,
+        body.criteria,
+        event_name,
+        team_context,
+    )
+
+    return AITaskEnqueueResponse(
+        task_id=task.id,
+        status_url=f"/tasks/{task.id}/status",
+        result_url=f"/events/{scope.event_id}/evaluations/ai-rubric/{task.id}",
+        message="AI scoring guide generation enqueued. Poll the result endpoint until it completes.",
+    )
+
+
+@router.get(
+    "/ai-rubric/{task_id}",
+    response_model=RubricResult,
+    summary="Fetch generated evaluator AI scoring guide",
+)
+def get_evaluator_ai_rubric_result(
+    task_id: str,
+    token: str = Query(..., description="Evaluator JWT from portal link"),
+    scope: ScopedEventService = Depends(get_event_scope),
+):
+    _require_evaluator_portal_access(token, scope)
+
+    status = TaskTracker.get_status(task_id)
+
+    if not status:
+        raise HTTPException(status_code=404, detail=f"Task '{task_id}' not found.")
+
+    if status.get("task_type") != "ai_rubric":
+        raise HTTPException(status_code=400, detail="This task is not an AI rubric task.")
+
+    if status["status"] in ("running", "pending", "retrying"):
+        raise HTTPException(status_code=425, detail="AI scoring guide is still generating.")
+
+    if status["status"] == "failed":
+        raise HTTPException(status_code=500, detail=status.get("error") or "AI scoring guide generation failed.")
+
+    result = status.get("result")
+    if not result:
+        raise HTTPException(status_code=500, detail="AI rubric task completed but result is missing.")
+
+    return RubricResult(criteria=[CriterionRubric(**c) for c in result["criteria"]])
+
+
 @router.patch(
     "/{evaluation_id}",
     response_model=EvaluationResponse,
@@ -155,88 +239,6 @@ def update_scorecard(
     scope.db.refresh(evaluation)
 
     return evaluation
-
-@router.post(
-    "/ai-rubric",
-    response_model=AITaskEnqueueResponse,
-    status_code=202,
-    summary="Generate an AI scoring guide for evaluator portal",
-)
-def generate_evaluator_ai_rubric(
-    body: RubricRequest,
-    token: str = Query(..., description="Evaluator JWT from portal link"),
-    scope: ScopedEventService = Depends(get_event_scope),
-):
-    evaluator = _require_evaluator_portal_access(token, scope)
-
-    team_context = body.team_context or {}
-    team_id = team_context.get("team_id")
-
-    if team_id:
-        try:
-            team_uuid = UUID(str(team_id))
-        except ValueError:
-            raise HTTPException(status_code=400, detail="Invalid team_id in team_context.")
-
-        assigned = scope.db.query(EvaluatorTeamAssignment).filter_by(
-            evaluator_id=evaluator.id,
-            team_id=team_uuid,
-            event_id=scope.event_id,
-        ).first()
-
-        if not assigned:
-            raise HTTPException(status_code=403, detail="You are not assigned to this team.")
-
-    event_name = body.event_name
-    if not event_name or event_name == "the event":
-        event_name = scope.event.name
-
-    task = generate_rubric_task.delay(
-        body.challenge_area,
-        body.criteria,
-        event_name,
-        team_context,
-    )
-
-    return AITaskEnqueueResponse(
-        task_id=task.id,
-        status_url=f"/tasks/{task.id}/status",
-        result_url=f"/events/{scope.event_id}/evaluations/ai-rubric/{task.id}",
-        message="AI scoring guide generation enqueued. Poll status_url until status is success.",
-    )
-
-
-@router.get(
-    "/ai-rubric/{task_id}",
-    response_model=RubricResult,
-    summary="Fetch generated evaluator AI scoring guide",
-)
-def get_evaluator_ai_rubric_result(
-    task_id: str,
-    token: str = Query(..., description="Evaluator JWT from portal link"),
-    scope: ScopedEventService = Depends(get_event_scope),
-):
-    _require_evaluator_portal_access(token, scope)
-
-    status = TaskTracker.get_status(task_id)
-
-    if not status:
-        raise HTTPException(status_code=404, detail=f"Task '{task_id}' not found.")
-
-    if status.get("task_type") != "ai_rubric":
-        raise HTTPException(status_code=400, detail="This task is not an AI rubric task.")
-
-    if status["status"] in ("running", "pending", "retrying"):
-        raise HTTPException(status_code=425, detail="AI scoring guide is still generating.")
-
-    if status["status"] == "failed":
-        raise HTTPException(status_code=500, detail=status.get("error") or "AI scoring guide generation failed.")
-
-    result = status.get("result")
-    if not result:
-        raise HTTPException(status_code=500, detail="AI rubric task completed but result is missing.")
-
-    return RubricResult(criteria=[CriterionRubric(**c) for c in result["criteria"]])
 
 @router.get(
     "/team/{team_id}",
