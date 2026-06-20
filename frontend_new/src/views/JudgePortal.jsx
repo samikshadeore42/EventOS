@@ -135,7 +135,7 @@ function CriterionSlider({ criterion, value, onChange }) {
  return (
  <div className={isDark ? "bg-slate-900/80 border border-white/10 rounded-[18px] p-6 shadow-none flex flex-col md:flex-row md:items-center gap-6" : "bg-white border border-slate-200 rounded-[18px] p-6 shadow-[0_12px_30px_rgba(15,23,42,0.04)] flex flex-col md:flex-row md:items-center gap-6"}>
 
- <div className="flex-1 flex items-start gap-4">
+ <div className="flex-1 min-w-0 flex items-start gap-4">
  <div className={`w-12 h-12 rounded-xl flex items-center justify-center shrink-0 ${colors.bg} ${colors.text}`}>
  <Icon size={24} />
  </div>
@@ -150,7 +150,7 @@ function CriterionSlider({ criterion, value, onChange }) {
  </div>
  </div>
 
- <div className="flex-1 max-w-sm relative px-2">
+ <div className="flex-1 min-w-0 max-w-sm relative px-2">
  <input
  type="range"
  min={0} max={10} step={0.5}
@@ -302,12 +302,19 @@ function ScoringForm({ team, onSubmitted, alreadySubmitted, token }) {
  <p className={isDark ? "text-xs font-medium text-slate-400" : "text-xs font-medium text-slate-500"}>Please review carefully. After submission, this scorecard cannot be edited from the portal.</p>
  <div className="flex gap-3 w-full md:w-auto">
  <button
- onClick={() => {}}
- disabled
- className={isDark ? "flex items-center gap-2 px-6 py-2.5 rounded-xl border border-white/10 text-sm font-bold text-slate-500 bg-slate-800 cursor-not-allowed" : "flex items-center gap-2 px-6 py-2.5 rounded-xl border border-slate-200 text-sm font-bold text-slate-400 bg-slate-50 cursor-not-allowed"}
- >
+ type="button"
+ onClick={() => {
+   const container = document.querySelector('[data-judge-scroll="true"]')
+   if (container) {
+     container.scrollTo({ top: 0, behavior: 'smooth' })
+   } else {
+     window.scrollTo({ top: 0, behavior: 'smooth' })
+   }
+ }}
+ className="inline-flex items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-5 py-3 text-sm font-bold text-slate-500 shadow-sm hover:text-slate-900 dark:border-white/10 dark:bg-slate-900 dark:text-slate-300 dark:hover:text-white"
+>
  <ArrowLeft size={16} /> Go back
- </button>
+</button>
  <button
  onClick={() => setConfirming(true)}
  className="flex items-center justify-center gap-2 px-6 py-2.5 rounded-xl bg-red-500 text-white text-sm font-bold shadow-sm hover:bg-red-600 transition-colors flex-1 md:flex-none"
@@ -341,11 +348,12 @@ function ScoringForm({ team, onSubmitted, alreadySubmitted, token }) {
 
  <div className="flex gap-3 justify-end w-full">
  <button
+ type="button"
  onClick={() => setConfirming(false)}
- className={isDark ? "flex items-center gap-2 px-6 py-2.5 rounded-xl border border-white/10 text-sm font-bold text-slate-300 bg-slate-900/80 hover:bg-slate-800 transition-colors" : "flex items-center gap-2 px-6 py-2.5 rounded-xl border border-slate-200 text-sm font-bold text-slate-700 bg-white hover:bg-slate-50 transition-colors"}
- >
+ className="inline-flex items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-5 py-3 text-sm font-bold text-slate-500 shadow-sm hover:text-slate-900 dark:border-white/10 dark:bg-slate-900 dark:text-slate-300 dark:hover:text-white"
+>
  <ArrowLeft size={16} /> Go back
- </button>
+</button>
  <button
  onClick={() => submitMutation.mutate()}
  disabled={submitMutation.isPending}
@@ -573,7 +581,7 @@ function TeamQueueSidebar({ teams, selectedId, submittedIds, onSelect }) {
  const { isDark } = useTheme();
 
  return (
-   <aside className={isDark ? "w-[300px] shrink-0 bg-slate-900/90 border-r border-white/10 text-slate-100 backdrop-blur flex flex-col hidden lg:flex min-h-[calc(100vh-72px)] self-stretch" : "w-[300px] shrink-0 bg-white/90 border-r border-slate-200 text-slate-950 backdrop-blur flex flex-col hidden lg:flex min-h-[calc(100vh-72px)] self-stretch"}>
+   <aside className={isDark ? "w-[300px] shrink-0 bg-slate-900/90 border-r border-white/10 text-slate-100 backdrop-blur flex flex-col hidden lg:flex h-full overflow-y-auto" : "w-[300px] shrink-0 bg-white/90 border-r border-slate-200 text-slate-950 backdrop-blur flex flex-col hidden lg:flex h-full overflow-y-auto"}>
      <div className="p-5 border-b border-slate-200/70">
        <div className="flex items-center justify-between mb-3">
          <p className={isDark ? "text-[10px] font-black uppercase tracking-[0.2em] text-slate-400" : "text-[10px] font-black uppercase tracking-[0.2em] text-slate-500"}>
@@ -730,7 +738,7 @@ function JudgePortalContent() {
  // ── Render guards ────────────────────────────────────────────────────────
 
  if (!urlToken) {
- return (
+return (
  <FullPageMessage
  icon={AlertTriangle}
  title="No access token"
@@ -741,7 +749,7 @@ function JudgePortalContent() {
 
  if (isLoading) {
  return (
- <div className={isDark ? "min-h-screen flex items-center justify-center bg-[#0b0f14]" : "min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 via-blue-50/30 to-white"}>
+ <div className={isDark ? "h-screen overflow-hidden flex items-center justify-center bg-[#0b0f14]" : "h-screen overflow-hidden flex items-center justify-center bg-gradient-to-br from-slate-50 via-blue-50/30 to-white"}>
  <div className="text-center">
  <Loader2 size={32} className="text-red-500 animate-spin mx-auto mb-3" />
  <p className={isDark ? "text-sm font-medium text-slate-400" : "text-sm font-medium text-slate-500"}>Loading your evaluation portal…</p>
@@ -812,7 +820,7 @@ function JudgePortalContent() {
 
  <PortalNavbar evaluatorName={evaluatorName} />
 
- <div className="flex w-full">
+ <div className="flex h-[calc(100vh-72px)] overflow-hidden">
  <TeamQueueSidebar
  teams={teams}
  selectedId={selectedTeam?.team_id}
@@ -823,7 +831,7 @@ function JudgePortalContent() {
  onSelect={handleTeamSelect}
  />
 
- <main className="flex-1 px-4 py-8 md:px-8 max-w-4xl mx-auto z-10 relative">
+ <main data-judge-scroll="true" className="flex-1 min-w-0 px-4 py-8 md:px-8 w-full max-w-none z-10 relative h-full overflow-y-auto">
 
  {/* Empty State */}
  {!selectedTeam && (
@@ -844,7 +852,7 @@ function JudgePortalContent() {
  <c.icon size={20} />
  </div>
  <span className={isDark ? "text-sm font-bold text-slate-100 shrink-0" : "text-sm font-bold text-slate-950 shrink-0"}>{c.label}</span>
- <div className="flex-1 border-b border-dashed border-slate-200-1"></div>
+ <div className="flex-1 min-w-0 border-b border-dashed border-slate-200-1"></div>
  <span className={`text-sm font-black shrink-0 ${themeColors[c.theme].text}`}>{(c.weight * 100).toFixed(0)}%</span>
  </div>
  ))}
