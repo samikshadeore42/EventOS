@@ -596,7 +596,7 @@ function ParticipantsTab() {
       </div>
 
       {/* Participants table */}
-      <div className="mt-6 overflow-hidden rounded-[18px] bg-card shadow-[0_12px_32px_rgba(15,23,42,0.06)] ring-1 ring-border mb-8">
+      <div className="mt-6 overflow-hidden rounded-[18px] border border-slate-200/80 bg-white shadow-[0_18px_45px_rgba(15,23,42,0.06)] ring-0 mb-8">
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
