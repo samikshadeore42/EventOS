@@ -10,7 +10,7 @@ import TeamChatPanel from '../components/TeamChatPanel'
 import { useAuth } from '../context/AuthContext'
 import { useParams } from 'react-router-dom'
 
-const ThemeContext = createContext({ isDark: false, toggleTheme: () => {} });
+const ThemeContext = createContext({ isDark: false, toggleTheme: () => { } });
 
 // ── Helpers ────────────────────────────────────────────────────────────────
 function initials(name = '') {
@@ -40,7 +40,7 @@ function PortalSkeleton() {
         <div className="h-6 w-48 bg-slate-200 rounded animate-pulse mb-4" />
         <div className="h-4 w-32 bg-slate-200 rounded animate-pulse mb-12" />
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-12">
-          {[1,2,3,4].map(i => <div key={i} className={isDark ? "shadow-[0_18px_45px_rgba(15,23,42,0.08)] animate-pulse rounded-[24px] border-white/80 border h-32 bg-slate-900/80" : "h-32 bg-white border border-white/80 rounded-[24px] animate-pulse shadow-[0_18px_45px_rgba(15,23,42,0.08)]"} />)}
+          {[1, 2, 3, 4].map(i => <div key={i} className={isDark ? "shadow-[0_18px_45px_rgba(15,23,42,0.08)] animate-pulse rounded-[24px] border-white/80 border h-32 bg-slate-900/80" : "h-32 bg-white border border-white/80 rounded-[24px] animate-pulse shadow-[0_18px_45px_rgba(15,23,42,0.08)]"} />)}
         </div>
         <div className={isDark ? "shadow-[0_18px_45px_rgba(15,23,42,0.08)] animate-pulse rounded-[24px] border-white/80 border h-24 bg-slate-900/80" : "h-24 bg-white border border-white/80 rounded-[24px] animate-pulse shadow-[0_18px_45px_rgba(15,23,42,0.08)]"} />
       </div>
@@ -112,8 +112,8 @@ function PortalNavbar({ mentorName }) {
               <LayoutGrid size={24} />
             </div>
             <div>
-               <h1 className={isDark ? "tracking-widest uppercase leading-tight font-black text-slate-100" : "text-sm font-black text-slate-950 leading-tight uppercase tracking-widest"}>WISE@TI HACKATHON</h1>
-               <p className={isDark ? "tracking-widest uppercase font-bold text-slate-400" : "text-[10px] font-bold text-slate-500 uppercase tracking-widest"}>Mentor Portal</p>
+              <h1 className={isDark ? "tracking-widest uppercase leading-tight font-black text-slate-100" : "text-sm font-black text-slate-950 leading-tight uppercase tracking-widest"}>WISE@TI HACKATHON</h1>
+              <p className={isDark ? "tracking-widest uppercase font-bold text-slate-400" : "text-[10px] font-bold text-slate-500 uppercase tracking-widest"}>Mentor Portal</p>
             </div>
           </div>
         </div>
@@ -168,28 +168,28 @@ function ScheduleMeetingForm({ teamId, token, onSuccess }) {
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
           <div>
             <label className={isDark ? "mb-1.5 font-bold block text-slate-300" : "block text-xs font-bold text-slate-700 mb-1.5"}>Title</label>
-            <input value={form.title} onChange={e => setForm(f => ({...f, title: e.target.value}))}
+            <input value={form.title} onChange={e => setForm(f => ({ ...f, title: e.target.value }))}
               placeholder="Daily standup" className={isDark ? "transition-all placeholder:text-slate-400 shadow-sm focus:border-blue-300 focus:ring-blue-100 focus:ring-2 focus:outline-none py-2.5 px-4 rounded-xl border w-full bg-slate-950/70 text-slate-100 border-white/10" : "w-full bg-white text-slate-950 border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-blue-300 shadow-sm placeholder:text-slate-400 transition-all"} />
           </div>
           <div>
             <label className={isDark ? "mb-1.5 font-bold block text-slate-300" : "block text-xs font-bold text-slate-700 mb-1.5"}>Meeting URL</label>
-            <input value={form.meeting_url} onChange={e => setForm(f => ({...f, meeting_url: e.target.value}))}
+            <input value={form.meeting_url} onChange={e => setForm(f => ({ ...f, meeting_url: e.target.value }))}
               placeholder="https://meet.google.com/..." className={isDark ? "transition-all placeholder:text-slate-400 shadow-sm focus:border-blue-300 focus:ring-blue-100 focus:ring-2 focus:outline-none py-2.5 px-4 rounded-xl border w-full bg-slate-950/70 text-slate-100 border-white/10" : "w-full bg-white text-slate-950 border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-blue-300 shadow-sm placeholder:text-slate-400 transition-all"} />
           </div>
           <div>
             <label className={isDark ? "mb-1.5 font-bold block text-slate-300" : "block text-xs font-bold text-slate-700 mb-1.5"}>Date & Time</label>
-            <input type="datetime-local" value={form.scheduled_at} onChange={e => setForm(f => ({...f, scheduled_at: e.target.value}))}
+            <input type="datetime-local" value={form.scheduled_at} onChange={e => setForm(f => ({ ...f, scheduled_at: e.target.value }))}
               className={isDark ? "transition-all shadow-sm focus:border-blue-300 focus:ring-blue-100 focus:ring-2 focus:outline-none py-2.5 px-4 rounded-xl border w-full bg-slate-950/70 text-slate-100 border-white/10" : "w-full bg-white text-slate-950 border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-blue-300 shadow-sm transition-all"} />
           </div>
           <div>
             <label className={isDark ? "mb-1.5 font-bold block text-slate-300" : "block text-xs font-bold text-slate-700 mb-1.5"}>Duration (min)</label>
-            <input type="number" min={5} max={480} value={form.duration_minutes} onChange={e => setForm(f => ({...f, duration_minutes: e.target.value}))}
+            <input type="number" min={5} max={480} value={form.duration_minutes} onChange={e => setForm(f => ({ ...f, duration_minutes: e.target.value }))}
               className={isDark ? "transition-all shadow-sm focus:border-blue-300 focus:ring-blue-100 focus:ring-2 focus:outline-none py-2.5 px-4 rounded-xl border w-full bg-slate-950/70 text-slate-100 border-white/10" : "w-full bg-white text-slate-950 border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-blue-300 shadow-sm transition-all"} />
           </div>
         </div>
         <div className="mb-5">
           <label className={isDark ? "mb-1.5 font-bold block text-slate-300" : "block text-xs font-bold text-slate-700 mb-1.5"}>Agenda (optional)</label>
-          <textarea value={form.agenda} onChange={e => setForm(f => ({...f, agenda: e.target.value}))}
+          <textarea value={form.agenda} onChange={e => setForm(f => ({ ...f, agenda: e.target.value }))}
             rows={2} placeholder="Topics to discuss..." className={isDark ? "transition-all placeholder:text-slate-400 shadow-sm resize-none focus:border-blue-300 focus:ring-blue-100 focus:ring-2 focus:outline-none py-2.5 px-4 rounded-xl border w-full bg-slate-950/70 text-slate-100 border-white/10" : "w-full bg-white text-slate-950 border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-100 focus:border-blue-300 resize-none shadow-sm placeholder:text-slate-400 transition-all"} />
         </div>
         <div className="flex justify-end gap-3">
@@ -240,8 +240,10 @@ function DailyProgressForm({ teamId, members, token, onSuccess }) {
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['mentor-teams'] })
-      setForm({ progress_score: '', collaboration_score: '', execution_score: '', clarity_score: '',
-        blockers: '', feedback_text: '', action_items_str: '', visible_to_participant: true, participant_id: '' })
+      setForm({
+        progress_score: '', collaboration_score: '', execution_score: '', clarity_score: '',
+        blockers: '', feedback_text: '', action_items_str: '', visible_to_participant: true, participant_id: ''
+      })
       onSuccess?.()
     },
   })
@@ -250,7 +252,7 @@ function DailyProgressForm({ teamId, members, token, onSuccess }) {
     <div>
       <label className={isDark ? "mb-1.5 font-bold block text-slate-300" : "block text-xs font-bold text-slate-700 mb-1.5"}>{label} (0-10)</label>
       <input type="number" min={0} max={10} step={0.5} value={form[key]}
-        onChange={e => setForm(f => ({...f, [key]: e.target.value}))}
+        onChange={e => setForm(f => ({ ...f, [key]: e.target.value }))}
         className={isDark ? "transition-all shadow-sm focus:border-purple-300 focus:ring-purple-100 focus:ring-2 focus:outline-none py-2.5 px-4 rounded-xl border w-full bg-slate-950/70 text-slate-100 border-white/10" : "w-full bg-white text-slate-950 border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-purple-100 focus:border-purple-300 shadow-sm transition-all"} />
     </div>
   )
@@ -280,7 +282,7 @@ function DailyProgressForm({ teamId, members, token, onSuccess }) {
         {tab === 'individual' && members?.length > 0 && (
           <div className="mb-4">
             <label className={isDark ? "mb-1.5 font-bold block text-slate-300" : "block text-xs font-bold text-slate-700 mb-1.5"}>Select Participant</label>
-            <select value={form.participant_id} onChange={e => setForm(f => ({...f, participant_id: e.target.value}))}
+            <select value={form.participant_id} onChange={e => setForm(f => ({ ...f, participant_id: e.target.value }))}
               className={isDark ? "transition-all shadow-sm focus:border-purple-300 focus:ring-purple-100 focus:ring-2 focus:outline-none py-2.5 px-4 rounded-xl border w-full bg-slate-950/70 text-slate-100 border-white/10" : "w-full bg-white text-slate-950 border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-purple-100 focus:border-purple-300 shadow-sm transition-all"}>
               <option value="">-- select --</option>
               {members.map(m => <option key={m.id} value={m.id}>{m.name}</option>)}
@@ -297,37 +299,37 @@ function DailyProgressForm({ teamId, members, token, onSuccess }) {
 
         <div className="mb-4">
           <label className={isDark ? "mb-1.5 font-bold block text-slate-300" : "block text-xs font-bold text-slate-700 mb-1.5"}>Feedback</label>
-          <textarea value={form.feedback_text} onChange={e => setForm(f => ({...f, feedback_text: e.target.value}))}
+          <textarea value={form.feedback_text} onChange={e => setForm(f => ({ ...f, feedback_text: e.target.value }))}
             rows={3} placeholder="Observations, progress notes..." className={isDark ? "transition-all placeholder:text-slate-400 shadow-sm resize-none focus:border-purple-300 focus:ring-purple-100 focus:ring-2 focus:outline-none py-2.5 px-4 rounded-xl border w-full bg-slate-950/70 text-slate-100 border-white/10" : "w-full bg-white text-slate-950 border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-purple-100 focus:border-purple-300 resize-none shadow-sm placeholder:text-slate-400 transition-all"} />
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-5">
           <div>
             <label className={isDark ? "mb-1.5 font-bold block text-slate-300" : "block text-xs font-bold text-slate-700 mb-1.5"}>Blockers</label>
-            <textarea value={form.blockers} onChange={e => setForm(f => ({...f, blockers: e.target.value}))}
+            <textarea value={form.blockers} onChange={e => setForm(f => ({ ...f, blockers: e.target.value }))}
               rows={2} placeholder="Any blockers..." className={isDark ? "transition-all placeholder:text-slate-400 shadow-sm resize-none focus:border-purple-300 focus:ring-purple-100 focus:ring-2 focus:outline-none py-2.5 px-4 rounded-xl border w-full bg-slate-950/70 text-slate-100 border-white/10" : "w-full bg-white text-slate-950 border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-purple-100 focus:border-purple-300 resize-none shadow-sm placeholder:text-slate-400 transition-all"} />
           </div>
           <div>
             <label className={isDark ? "mb-1.5 font-bold block text-slate-300" : "block text-xs font-bold text-slate-700 mb-1.5"}>Action Items (one per line)</label>
-            <textarea value={form.action_items_str} onChange={e => setForm(f => ({...f, action_items_str: e.target.value}))}
+            <textarea value={form.action_items_str} onChange={e => setForm(f => ({ ...f, action_items_str: e.target.value }))}
               rows={2} placeholder="Complete API integration&#10;Fix auth bug" className={isDark ? "transition-all placeholder:text-slate-400 shadow-sm resize-none focus:border-purple-300 focus:ring-purple-100 focus:ring-2 focus:outline-none py-2.5 px-4 rounded-xl border w-full bg-slate-950/70 text-slate-100 border-white/10" : "w-full bg-white text-slate-950 border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-purple-100 focus:border-purple-300 resize-none shadow-sm placeholder:text-slate-400 transition-all"} />
           </div>
         </div>
 
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <label className={isDark ? "cursor-pointer font-bold gap-2 items-center flex text-slate-300" : "flex items-center gap-2 text-sm font-bold text-slate-600 cursor-pointer"}>
-            <input type="checkbox" checked={form.visible_to_participant} onChange={e => setForm(f => ({...f, visible_to_participant: e.target.checked}))}
+            <input type="checkbox" checked={form.visible_to_participant} onChange={e => setForm(f => ({ ...f, visible_to_participant: e.target.checked }))}
               className="rounded border-slate-300 text-purple-600 focus:ring-purple-500 w-4 h-4" />
             Visible to participant
           </label>
           <div className="flex items-center gap-3">
-             <button onClick={onSuccess} className={isDark ? "shadow-sm transition-all hover:bg-slate-50 font-bold border rounded-xl py-2.5 px-5 bg-slate-900/80 border-white/10 text-slate-300" : "px-5 py-2.5 rounded-xl bg-white border border-slate-200 text-sm font-bold text-slate-700 hover:bg-slate-50 transition-all shadow-sm"}>
-                Cancel
-             </button>
-             <button onClick={() => mutation.mutate()} disabled={mutation.isPending || !form.feedback_text}
-               className="flex items-center gap-2 text-sm font-bold px-6 py-2.5 rounded-xl bg-purple-600 text-white hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed shadow-md transition-all">
-               {mutation.isPending ? <Loader2 size={16} className="animate-spin" /> : <Send size={16} />} Submit
-             </button>
+            <button onClick={onSuccess} className={isDark ? "shadow-sm transition-all hover:bg-slate-50 font-bold border rounded-xl py-2.5 px-5 bg-slate-900/80 border-white/10 text-slate-300" : "px-5 py-2.5 rounded-xl bg-white border border-slate-200 text-sm font-bold text-slate-700 hover:bg-slate-50 transition-all shadow-sm"}>
+              Cancel
+            </button>
+            <button onClick={() => mutation.mutate()} disabled={mutation.isPending || !form.feedback_text}
+              className="flex items-center gap-2 text-sm font-bold px-6 py-2.5 rounded-xl bg-purple-600 text-white hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed shadow-md transition-all">
+              {mutation.isPending ? <Loader2 size={16} className="animate-spin" /> : <Send size={16} />} Submit
+            </button>
           </div>
         </div>
         {mutation.isError && <p className="mt-3 text-xs font-bold text-red-500">{mutation.error?.message}</p>}
@@ -405,7 +407,7 @@ function TeamCard({ team, token, eventId, mentorId }) {
 
           {/* Body */}
           <div className={isDark ? "lg:grid-cols-[1.1fr_0.9fr] grid-cols-1 grid bg-slate-900/80" : "grid grid-cols-1 lg:grid-cols-[1.1fr_0.9fr] bg-white"}>
-            
+
             {/* Left Column: Actions */}
             <div className={isDark ? "space-y-6 p-8 bg-slate-900/80" : "p-8 space-y-6 bg-white"}>
               {activeModal === 'schedule' ? (
@@ -515,7 +517,7 @@ function MentorPortalContent() {
     return new URLSearchParams(window.location.search).get('token') || token
   }, [token])
 
-  const {eventId} = useParams()
+  const { eventId } = useParams()
   useEffect(() => {
     if (eventId) eventStorage.set(eventId)
   }, [eventId])
@@ -523,7 +525,7 @@ function MentorPortalContent() {
   useEffect(() => {
     const t = new URLSearchParams(window.location.search).get('token')
     if (t) setToken(t)
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
 
@@ -599,7 +601,7 @@ function MentorPortalContent() {
 
   return (
     <div className={isDark ? "overflow-x-hidden relative pb-20 font-sans bg-gradient-to-br min-h-screen from-[#0b0f14] via-slate-950 to-[#0b0f14] text-slate-100" : "min-h-screen bg-gradient-to-br from-[#f8fbff] via-[#eef6fb] to-[#f7fbff] text-slate-950 font-sans pb-20 relative overflow-x-hidden"}>
-      
+
       <PortalNavbar mentorName={profile.name ?? 'Mentor'} />
 
       {/* Decorative Dots */}
@@ -607,7 +609,7 @@ function MentorPortalContent() {
       <div className="pointer-events-none absolute left-14 bottom-28 h-24 w-24 opacity-25 [background-image:radial-gradient(#f87171_1.5px,transparent_1.5px)] [background-size:16px_16px]" />
 
       <div className="max-w-6xl w-full mx-auto px-4 sm:px-6 py-12 relative z-10">
-        
+
         {/* Hero Header */}
         <div className="mb-10">
           <p className="text-xs font-bold text-red-500 uppercase tracking-widest mb-2">Mentor Portal</p>
@@ -616,10 +618,10 @@ function MentorPortalContent() {
           </h1>
           <p className={isDark ? "font-medium text-slate-300" : "text-base font-medium text-slate-600"}>{profile.email || '—'}</p>
           <p className={isDark ? "mt-0.5 font-medium text-slate-400" : "text-sm font-medium text-slate-500 mt-0.5"}>{profile.organization || '—'}</p>
-          
+
           <div className="flex gap-2 mt-4 flex-wrap">
             {profile.expertise_areas?.length > 0 ? profile.expertise_areas.map(a => (
-               <Badge key={a}>{a}</Badge>
+              <Badge key={a}>{a}</Badge>
             )) : <Badge>No skills specified</Badge>}
           </div>
         </div>
@@ -668,7 +670,7 @@ function MentorPortalContent() {
 
           {teamsLoading ? (
             <div className="space-y-4">
-              {[1,2].map(i => <div key={i} className="h-24 bg-white/60 rounded-[22px] animate-pulse" />)}
+              {[1, 2].map(i => <div key={i} className="h-24 bg-white/60 rounded-[22px] animate-pulse" />)}
             </div>
           ) : teams.length === 0 ? (
             <div className={isDark ? "shadow-sm border rounded-[24px] bg-white/90 py-16 text-center border-white/10/70 border-white/10" : "text-center py-16 bg-white/90 rounded-[24px] border border-slate-200 shadow-sm"}>
