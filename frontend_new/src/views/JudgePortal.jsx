@@ -497,53 +497,66 @@ function ScoringGuideModal({ open, onClose, loading, error, rubric }) {
              </button>
            </div>
 
-           {rubric.criteria.map((criterion) => (
-             <div
-               key={criterion.name}
-               className={isDark ? "rounded-xl border border-white/10 bg-slate-950/50 p-3" : "rounded-xl border border-slate-200 bg-slate-50/70 p-3"}
-             >
-               <div className="flex items-start justify-between gap-3 mb-2">
-                 <div className="min-w-0">
-                   <div className="flex items-center gap-2 flex-wrap">
-                     <h3 className={isDark ? "text-sm font-black text-slate-100" : "text-sm font-black text-slate-950"}>
-                       {criterion.name}
-                     </h3>
-                     <span className="rounded-full bg-red-50 text-red-600 px-2 py-0.5 text-[10px] font-black">
-                       {Math.round((criterion.weight || 0) * 100)}%
-                     </span>
+           {rubric.criteria.map((criterion) => {
+             const matchedCriterion = CRITERIA.find((item) => item.label.toLowerCase() === String(criterion.name || '').toLowerCase())
+             const GuideIcon = matchedCriterion?.icon || Sparkles
+             const colors = themeColors[matchedCriterion?.theme || 'red']
+
+             return (
+               <div
+                 key={criterion.name}
+                 className={isDark ? "rounded-xl border border-white/10 bg-slate-950/50 p-3" : "rounded-xl border border-slate-200 bg-slate-50/70 p-3"}
+               >
+                 <div className="flex items-start justify-between gap-3 mb-2">
+                   <div className="flex items-start gap-3 min-w-0">
+                     <div className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 ${colors.bg} ${colors.text}`}>
+                       <GuideIcon size={18} />
+                     </div>
+
+                     <div className="min-w-0">
+                       <div className="flex items-center gap-2 flex-wrap">
+                         <h3 className={isDark ? "text-sm font-black text-slate-100" : "text-sm font-black text-slate-950"}>
+                           {criterion.name}
+                         </h3>
+                         <span className={`rounded-full px-2 py-0.5 text-[10px] font-black ${colors.bg} ${colors.text}`}>
+                           {Math.round((criterion.weight || 0) * 100)}%
+                         </span>
+                       </div>
+
+                       <p className={isDark ? "text-xs font-medium text-slate-400 mt-1" : "text-xs font-medium text-slate-600 mt-1"}>
+                         {compactGuideText(criterion.description, 7)}
+                       </p>
+                     </div>
                    </div>
-                   <p className={isDark ? "text-xs font-medium text-slate-400 mt-1" : "text-xs font-medium text-slate-600 mt-1"}>
-                     {compactGuideText(criterion.description, 7)}
-                   </p>
+                 </div>
+
+                 <div className="flex flex-wrap gap-1.5 mb-2">
+                   {(criterion.what_to_look_for || []).slice(0, 1).map((item) => (
+                     <span
+                       key={item}
+                       className={isDark ? `rounded-full bg-slate-900 px-2 py-1 text-[11px] font-semibold ${colors.text}` : `rounded-full border border-slate-200 px-2 py-1 text-[11px] font-semibold ${colors.bg} ${colors.text}`}
+                     >
+                       {compactGuideText(item, 6)}
+                     </span>
+                   ))}
+                 </div>
+
+                 <div className="grid grid-cols-2 md:grid-cols-4 gap-1.5">
+                   {Object.entries(criterion.scoring_guide || {}).map(([range, text]) => (
+                     <div
+                       key={range}
+                       className={isDark ? "rounded-lg border border-white/10 bg-slate-900/70 p-2" : "rounded-lg border border-slate-200 bg-white p-2"}
+                     >
+                       <p className={`text-[10px] font-black ${colors.text}`}>{range}</p>
+                       <p className={isDark ? "text-[11px] font-semibold text-slate-300" : "text-[11px] font-semibold text-slate-600"}>
+                         {compactGuideText(text, 5)}
+                       </p>
+                     </div>
+                   ))}
                  </div>
                </div>
-
-               <div className="flex flex-wrap gap-1.5 mb-2">
-                 {(criterion.what_to_look_for || []).slice(0, 1).map((item) => (
-                   <span
-                     key={item}
-                     className={isDark ? "rounded-full bg-slate-900 px-2 py-1 text-[11px] font-semibold text-slate-300" : "rounded-full bg-white border border-slate-200 px-2 py-1 text-[11px] font-semibold text-slate-600"}
-                   >
-                     {compactGuideText(item, 6)}
-                   </span>
-                 ))}
-               </div>
-
-               <div className="grid grid-cols-2 md:grid-cols-4 gap-1.5">
-                 {Object.entries(criterion.scoring_guide || {}).map(([range, text]) => (
-                   <div
-                     key={range}
-                     className={isDark ? "rounded-lg border border-white/10 bg-slate-900/70 p-2" : "rounded-lg border border-slate-200 bg-white p-2"}
-                   >
-                     <p className="text-[10px] font-black text-red-500">{range}</p>
-                     <p className={isDark ? "text-[11px] font-semibold text-slate-300" : "text-[11px] font-semibold text-slate-600"}>
-                       {compactGuideText(text, 5)}
-                     </p>
-                   </div>
-                 ))}
-               </div>
-             </div>
-           ))}
+             )
+           })}
          </div>
        ) : (
          <div className="py-6 text-center text-sm text-slate-500">
