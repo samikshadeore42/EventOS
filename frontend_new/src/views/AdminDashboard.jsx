@@ -18,7 +18,7 @@ import {
   Send, Copy, Trash2, Plus, Shield, ShieldAlert, ShieldCheck, FileText, Settings,
   Sparkles, Link, LayoutTemplate, ClipboardList, Lightbulb, ClipboardCheck,
   User, UserPlus, Building2, Info, UploadCloud, Search, CheckCircle2,
-  Key, Globe, Database, Flag, RefreshCw
+  Key, Globe, Database, Flag, RefreshCw, MoreVertical
 } from 'lucide-react'
 import PipelineStepper from '../components/PipelineStepper'
 import OrgSwitcher from '../components/OrgSwitcher'
@@ -3374,6 +3374,7 @@ function AnomalyTab() {
 
 // ── TAB: RISK INTELLIGENCE ───────────────────────────────────────────────
 function RiskTab() {
+  const { activeEvent } = useAuth()
   const {
     data: summary,
     error: summaryError,
@@ -3412,117 +3413,176 @@ function RiskTab() {
 
   if (capabilityDisabled) {
     return (
-      <div className="app-card py-16 text-center border-l-2 border-l-primary relative overflow-hidden group transition-all hover:-translate-y-1 hover:scale-[1.01]">
-        <div className="absolute -right-8 -top-8 w-40 h-40 bg-gradient-to-br from-primary/10 to-transparent rounded-full blur-3xl group-hover:scale-125 transition-transform duration-700 pointer-events-none z-0" />
-        <ShieldAlert size={48} className="mx-auto text-primary/50 mb-3" />
-        <p className="text-foreground font-medium">Risk monitoring is not enabled for this event.</p>
+      <div className="bg-white border border-slate-200/80 rounded-[22px] shadow-[0_18px_45px_rgba(15,23,42,0.06)] py-16 text-center">
+        <ShieldAlert size={48} className="mx-auto text-slate-300 mb-3" />
+        <p className="text-slate-950 font-extrabold text-[20px]">Risk monitoring is not enabled for this event.</p>
       </div>
     )
   }
 
   if (summaryError || teamsError) {
     return (
-      <div className="app-card py-16 text-center border-l-2 border-l-primary relative overflow-hidden group transition-all hover:-translate-y-1 hover:scale-[1.01]">
-        <div className="absolute -right-8 -top-8 w-40 h-40 bg-gradient-to-br from-primary/10 to-transparent rounded-full blur-3xl group-hover:scale-125 transition-transform duration-700 pointer-events-none z-0" />
-        <AlertTriangle size={48} className="mx-auto text-primary/50 mb-3" />
-        <p className="text-foreground font-medium">Unable to load risk intelligence.</p>
-        <p className="text-sm text-muted mt-1">{summaryError?.message || teamsError?.message}</p>
+      <div className="bg-white border border-slate-200/80 rounded-[22px] shadow-[0_18px_45px_rgba(15,23,42,0.06)] py-16 text-center">
+        <AlertTriangle size={48} className="mx-auto text-red-400 mb-3" />
+        <p className="text-slate-950 font-extrabold text-[20px]">Unable to load risk intelligence.</p>
+        <p className="text-sm text-slate-500 font-medium mt-1">{summaryError?.message || teamsError?.message}</p>
       </div>
     )
   }
 
   const loading = summaryLoading || teamsLoading
 
+  const riskLevelStyles = {
+    critical: { cardBorder: 'border-l-[4px] border-l-red-500', pill: 'bg-red-50 text-red-600 border border-red-200' },
+    high: { cardBorder: 'border-l-[4px] border-l-orange-500', pill: 'bg-orange-50 text-orange-600 border border-orange-200' },
+    medium: { cardBorder: 'border-l-[4px] border-l-blue-500', pill: 'bg-blue-50 text-blue-600 border border-blue-200' },
+    low: { cardBorder: 'border-l-[4px] border-l-emerald-500', pill: 'bg-emerald-50 text-emerald-600 border border-emerald-200' },
+  }
+
   return (
     <div>
-      <div className="flex items-center justify-between mb-6">
-        <div>
-          <h2 className="text-lg font-bold text-foreground">AI Risk Intelligence</h2>
-          <p className="text-sm text-muted">Continuous monitoring of team health and participant engagement.</p>
+      {/* Page Header */}
+      <div className="mb-8">
+        <h1 className="text-[24px] font-extrabold text-slate-950">Risk</h1>
+        <p className="text-sm font-medium text-slate-500 mt-1">{activeEvent?.name || 'Loading...'}</p>
+      </div>
+
+      {/* Main AI Risk Intelligence Card */}
+      <div className="bg-white border border-slate-200/80 rounded-[22px] shadow-[0_18px_45px_rgba(15,23,42,0.06)] p-6 lg:p-8 mb-8">
+        <div className="flex flex-col md:flex-row items-start md:items-center justify-between mb-8 gap-4">
+          <div>
+            <h2 className="text-lg font-extrabold text-slate-950">AI Risk Intelligence</h2>
+            <p className="text-sm font-medium text-slate-500 mt-1">
+              Continuous monitoring of team health and participant engagement.
+            </p>
+          </div>
+          <button
+            onClick={() => sweepMutation.mutate()}
+            disabled={sweepMutation.isPending}
+            className="flex items-center gap-2 bg-[#ff6b1a] hover:bg-[#ea580c] text-white px-4 py-2 rounded-xl text-sm font-extrabold transition-colors shadow-[0_10px_20px_rgba(255,107,26,0.2)] disabled:opacity-50"
+          >
+            {sweepMutation.isPending ? <Loader2 size={16} className="animate-spin" /> : <Activity size={16} />}
+            Run risk sweep
+          </button>
         </div>
-        <button
-          onClick={() => sweepMutation.mutate()}
-          disabled={sweepMutation.isPending}
-          className="btn-primary px-4 py-2 rounded-lg text-sm flex items-center gap-2 text-white bg-primary hover:bg-primary-dark disabled:opacity-50 disabled:cursor-not-allowed"
-        >
-          {sweepMutation.isPending ? <Loader2 size={16} className="animate-spin" /> : <Activity size={16} />}
-          Run risk sweep
-        </button>
+
+        {/* Summary Cards */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          {/* Total Teams */}
+          <div className="bg-white border border-slate-200/80 rounded-[18px] shadow-[0_12px_30px_rgba(15,23,42,0.04)] p-5">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-10 h-10 rounded-xl bg-blue-50 flex items-center justify-center">
+                <Users size={20} className="text-blue-600" />
+              </div>
+              <p className="text-sm font-extrabold text-slate-950">Total Teams</p>
+            </div>
+            <p className="text-3xl font-extrabold text-slate-950">{loading ? '—' : summary?.total_teams ?? 0}</p>
+          </div>
+          {/* Average Risk Score */}
+          <div className="bg-white border border-slate-200/80 rounded-[18px] shadow-[0_12px_30px_rgba(15,23,42,0.04)] p-5">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-10 h-10 rounded-xl bg-emerald-50 flex items-center justify-center">
+                <Activity size={20} className="text-emerald-600" />
+              </div>
+              <p className="text-sm font-extrabold text-slate-950">Average Risk Score</p>
+            </div>
+            <p className="text-3xl font-extrabold text-slate-950">{loading ? '—' : (summary?.average_risk_score ?? 0).toFixed(1)}</p>
+          </div>
+          {/* High Risk */}
+          <div className="bg-white border border-slate-200/80 rounded-[18px] shadow-[0_12px_30px_rgba(15,23,42,0.04)] p-5">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-10 h-10 rounded-xl bg-orange-50 flex items-center justify-center">
+                <AlertTriangle size={20} className="text-orange-500" />
+              </div>
+              <p className="text-sm font-extrabold text-slate-950">High Risk</p>
+            </div>
+            <p className="text-3xl font-extrabold text-slate-950">{loading ? '—' : summary?.high_count ?? 0}</p>
+          </div>
+          {/* Critical Risk */}
+          <div className="bg-white border border-slate-200/80 rounded-[18px] shadow-[0_12px_30px_rgba(15,23,42,0.04)] p-5">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-10 h-10 rounded-xl bg-red-50 flex items-center justify-center">
+                <ShieldAlert size={20} className="text-red-500" />
+              </div>
+              <p className="text-sm font-extrabold text-slate-950">Critical Risk</p>
+            </div>
+            <p className="text-3xl font-extrabold text-slate-950">{loading ? '—' : summary?.critical_count ?? 0}</p>
+          </div>
+        </div>
       </div>
 
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-        <StatCard label="Total Teams" value={loading ? '—' : summary?.total_teams ?? 0} colour="teal" icon={Users} sectionClass="section-green" />
-        <StatCard label="Average Risk Score" value={loading ? '—' : (summary?.average_risk_score ?? 0).toFixed(1)} colour="teal" icon={Activity} sectionClass="section-blue" />
-        <StatCard label="High Risk" value={loading ? '—' : summary?.high_count ?? 0} colour="amber" icon={AlertTriangle} sectionClass="section-yellow" />
-        <StatCard label="Critical Risk" value={loading ? '—' : summary?.critical_count ?? 0} colour="red" icon={ShieldAlert} sectionClass="section-red" />
-      </div>
-
-      <h3 className="text-lg font-semibold text-foreground mb-4">Team Risk Dashboard</h3>
+      <h3 className="text-[20px] font-extrabold text-slate-950 mb-6">Team Risk Dashboard</h3>
 
       {loading ? (
-        <div className="app-card py-16 text-center border-l-2 border-l-primary relative overflow-hidden group transition-all hover:-translate-y-1 hover:scale-[1.01]">
-          <div className="absolute -right-8 -top-8 w-40 h-40 bg-gradient-to-br from-primary/10 to-transparent rounded-full blur-3xl group-hover:scale-125 transition-transform duration-700 pointer-events-none z-0" />
-          <Loader2 size={48} className="mx-auto text-primary-light mb-3 animate-spin" />
-          <p className="text-foreground font-medium">Loading risk intelligence...</p>
+        <div className="bg-white border border-slate-200/80 rounded-[22px] shadow-[0_18px_45px_rgba(15,23,42,0.06)] py-16 text-center">
+          <Loader2 size={48} className="mx-auto text-blue-500 mb-3 animate-spin" />
+          <p className="text-slate-950 font-extrabold text-[20px]">Loading risk intelligence...</p>
         </div>
       ) : teams.length === 0 ? (
-        <div className="app-card py-16 text-center border-l-2 border-l-primary relative overflow-hidden group transition-all hover:-translate-y-1 hover:scale-[1.01]">
-          <div className="absolute -right-8 -top-8 w-40 h-40 bg-gradient-to-br from-primary/10 to-transparent rounded-full blur-3xl group-hover:scale-125 transition-transform duration-700 pointer-events-none z-0" />
-          <Activity size={48} className="mx-auto text-primary-light mb-3" />
-          <p className="text-foreground font-medium">No risk snapshots yet.</p>
-          <p className="text-sm text-muted">Run a risk sweep to generate the first report.</p>
+        <div className="bg-white border border-slate-200/80 rounded-[22px] shadow-[0_18px_45px_rgba(15,23,42,0.06)] py-16 text-center">
+          <div className="w-16 h-16 bg-slate-50 rounded-full flex items-center justify-center mx-auto mb-4">
+            <Activity size={32} className="text-slate-400" />
+          </div>
+          <p className="text-[20px] font-extrabold text-slate-950 mb-2">No team risk snapshots available</p>
+          <p className="text-sm font-medium text-slate-500">Run a risk sweep to generate updated team risk intelligence.</p>
         </div>
       ) : (
         <div className="space-y-4">
-          {teams.map((team) => (
-            <div
-              key={team.team_id}
-              className="app-card p-5"
-              style={{
-                borderLeft: team.risk_level === 'critical' ? '3px solid var(--color-danger)' :
-                  team.risk_level === 'high' ? '3px solid var(--color-primary)' :
-                    team.risk_level === 'medium' ? '3px solid var(--color-info)' :
-                      '3px solid var(--color-success)',
-              }}
-            >
-              <div className="flex flex-col md:flex-row justify-between gap-4">
-                <div className="flex-1">
-                  <div className="flex items-center gap-2 mb-2">
-                    <h4 className="font-bold text-foreground text-lg">{team.team_name || 'Unnamed team'}</h4>
-                    <Badge colour={team.risk_level === 'critical' ? 'red' : team.risk_level === 'high' ? 'amber' : team.risk_level === 'medium' ? 'amber' : 'green'}>
-                      {team.risk_level.toUpperCase()}
-                    </Badge>
+          {teams.map((team) => {
+            const style = riskLevelStyles[team.risk_level] ?? riskLevelStyles.low;
+            const computedDate = team.created_at || team.computed_at ? new Date(team.created_at || team.computed_at).toLocaleString() : '—';
+            
+            return (
+              <div
+                key={team.team_id}
+                className={`bg-white border border-slate-200/80 rounded-[22px] shadow-[0_18px_45px_rgba(15,23,42,0.06)] p-6 ${style.cardBorder}`}
+              >
+                <div className="flex flex-col md:flex-row justify-between gap-4">
+                  <div className="flex-1">
+                    <div className="flex items-center gap-3 mb-2">
+                      <h4 className="font-extrabold text-slate-950 text-lg">{team.team_name || 'Team'}</h4>
+                      <span className={`px-3 py-1 rounded-full text-[10px] font-extrabold uppercase tracking-wide ${style.pill}`}>
+                        {team.risk_level || 'MEDIUM'}
+                      </span>
+                    </div>
+
+                    <p className="text-sm text-slate-500 mb-6 font-medium">
+                      <span className="text-slate-600">Risk Score:</span> {team.risk_score || 0}/100
+                    </p>
+
+                    <div className="mb-4">
+                      <p className="text-xs font-extrabold text-slate-950 uppercase tracking-wide mb-2">Reasons</p>
+                      {team.reasons?.length > 0 ? (
+                        <ul className="list-disc pl-5 text-sm text-slate-600 font-medium space-y-1">
+                          {team.reasons.map((reason, index) => <li key={index} className="pl-1">{reason}</li>)}
+                        </ul>
+                      ) : (
+                        <p className="text-sm text-slate-500 font-medium">No risk reasons available.</p>
+                      )}
+                    </div>
+
+                    <div>
+                      <p className="text-xs font-extrabold text-slate-950 uppercase tracking-wide mb-2">Recommended Actions</p>
+                      {team.recommended_actions?.length > 0 ? (
+                        <ul className="list-disc pl-5 text-sm text-slate-600 font-medium space-y-1">
+                          {team.recommended_actions.map((action, index) => <li key={index} className="pl-1">{action}</li>)}
+                        </ul>
+                      ) : (
+                        <p className="text-sm text-slate-500 font-medium">No recommended actions available.</p>
+                      )}
+                    </div>
                   </div>
 
-                  <p className="text-sm text-muted mb-3">
-                    <span className="text-muted font-medium">Risk Score:</span> {team.risk_score}/100
-                  </p>
-
-                  {team.reasons?.length > 0 && (
-                    <div className="mb-3">
-                      <p className="text-xs font-bold text-foreground uppercase tracking-wide mb-1">Reasons</p>
-                      <ul className="list-disc pl-5 text-sm text-muted space-y-1">
-                        {team.reasons.map((reason, index) => <li key={index}>{reason}</li>)}
-                      </ul>
-                    </div>
-                  )}
-
-                  {team.recommended_actions?.length > 0 && (
-                    <div>
-                      <p className="text-xs font-bold text-foreground uppercase tracking-wide mb-1">Recommended Actions</p>
-                      <ul className="list-disc pl-5 text-sm text-primary space-y-1">
-                        {team.recommended_actions.map((action, index) => <li key={index}>{action}</li>)}
-                      </ul>
-                    </div>
-                  )}
-                </div>
-
-                <div className="text-right">
-                  <p className="text-xs text-muted">Computed: {new Date(team.created_at).toLocaleString()}</p>
+                  <div className="flex items-start justify-end gap-3 mt-1 md:mt-0">
+                    <p className="text-xs font-medium text-slate-500 mt-1">Computed: {computedDate}</p>
+                    <button className="text-slate-400 hover:text-slate-600 transition-colors">
+                      <MoreVertical size={16} />
+                    </button>
+                  </div>
                 </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       )}
     </div>
