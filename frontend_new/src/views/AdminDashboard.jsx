@@ -3624,7 +3624,7 @@ function DemoControlsTab() {
   const resetMutation = useMutation({
     mutationFn: () => demoAdminApi.reset(confirmText),
     onSuccess: (res) => {
-      alert(res.message + '\\n\\nDeleted:\\n' + JSON.stringify(res.deleted, null, 2))
+      alert(res.message + '\n\nDeleted:\n' + JSON.stringify(res.deleted, null, 2))
       setConfirmText('')
       refetchStatus()
       qc.invalidateQueries()
@@ -3672,163 +3672,227 @@ function DemoControlsTab() {
 
   return (
     <div>
+      {/* Page Header */}
       <div className="mb-8">
-        <h2 className="text-lg font-semibold text-foreground mb-4">Demo Controls</h2>
+        <h1 className="text-[24px] font-extrabold text-slate-950">Demo Controls</h1>
+        <p className="text-sm font-medium text-slate-500 mt-1">{activeEvent?.name || 'Loading...'}</p>
+      </div>
 
-        <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mb-6">
-          <StatCard label="Participants" value={status?.participants} colour="teal" icon={Users} sectionClass="section-blue" />
-          <StatCard label="Teams" value={status?.teams} colour="teal" icon={GitBranch} sectionClass="section-green" />
-          <StatCard label="Evaluations" value={status?.evaluations} colour="amber" icon={BarChart2} sectionClass="section-purple" />
-          <StatCard label="Mentors" value={status?.mentors} colour="teal" icon={UserCheck} sectionClass="section-yellow" />
-          <StatCard label="Mentor Assignments" value={status?.mentor_assignments} colour="teal" icon={Target} sectionClass="section-orange" />
-          <StatCard label="Comms Logs" value={status?.communication_logs} colour="amber" icon={Mail} sectionClass="section-pink" />
-        </div>
+      <h2 className="text-[20px] font-extrabold text-slate-950 mb-6">Demo Controls</h2>
 
-        <div className="section-orange p-6 mb-8">
-          <h3 className="text-base font-bold flex items-center gap-2 mb-2" style={{ color: "var(--color-primary)" }}>
-            <AlertTriangle size={18} /> Reset Demo Data
-          </h3>
-          <p className="text-sm text-muted mb-4">
-            This clears participants, teams, evaluations, mentor assignments, feedback, sessions, and communication logs so you can restart the demo with the same CSV. Admin accounts are preserved.
-          </p>
-          <div className="flex gap-3 items-center">
-            <input
-              type="text"
-              value={confirmText}
-              onChange={e => setConfirmText(e.target.value)}
-              placeholder="Type RESET_DEMO_DATA"
-              className="soft-input w-64"
-            />
-            <button
-              onClick={() => resetMutation.mutate()}
-              disabled={confirmText !== 'RESET_DEMO_DATA' || resetMutation.isPending}
-              className="px-4 py-2 bg-primary hover:bg-primary-dark text-white text-sm font-medium rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed disabled:cursor-not-allowed flex items-center gap-2"
-            >
-              {resetMutation.isPending ? <Loader2 size={16} className="animate-spin" /> : <Trash2 size={16} />}
-              Reset Data
-            </button>
+      {/* Stats Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
+        <div className="bg-white border border-slate-200/80 rounded-[18px] shadow-[0_12px_30px_rgba(15,23,42,0.04)] p-5 flex items-start gap-4">
+          <div className="w-10 h-10 rounded-xl bg-blue-50 flex items-center justify-center shrink-0">
+            <Users size={20} className="text-blue-600" />
+          </div>
+          <div>
+            <p className="text-sm font-extrabold text-slate-950 mb-1">Participants</p>
+            <p className="text-[28px] leading-none font-extrabold text-slate-950">{status?.participants ?? 0}</p>
           </div>
         </div>
 
-        <div className="section-red p-6 mb-8">
-          <h3 className="text-base font-bold flex items-center gap-2 mb-2" style={{ color: "var(--color-danger)" }}>
-            <AlertTriangle size={18} /> Delete Current Event
-          </h3>
-          <p className="text-sm text-muted mb-2">
-            This permanently deletes the selected event and its event-scoped data. Use this only for demo/test events.
-          </p>
-          <p className="text-sm font-semibold text-foreground mb-4">
-            Selected event: {activeEvent?.name || 'No event selected'}
-          </p>
-
-          <div className="flex flex-col md:flex-row gap-3 md:items-center">
-            <input
-              type="text"
-              value={deleteEventConfirm}
-              onChange={(e) => setDeleteEventConfirm(e.target.value)}
-              placeholder="Type DELETE_EVENT"
-              className="soft-input w-full md:w-64"
-            />
-
-            <button
-              onClick={() => {
-                if (window.confirm(`Delete event "${activeEvent?.name}" permanently?`)) {
-                  deleteEventMutation.mutate()
-                }
-              }}
-              disabled={!activeEvent?.id || deleteEventConfirm !== 'DELETE_EVENT' || deleteEventMutation.isPending}
-              className="px-4 py-2 bg-primary hover:bg-primary-dark text-white text-sm font-medium rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed disabled:cursor-not-allowed flex items-center justify-center gap-2"
-            >
-              {deleteEventMutation.isPending ? <Loader2 size={16} className="animate-spin" /> : <Trash2 size={16} />}
-              Delete Event
-            </button>
+        <div className="bg-white border border-slate-200/80 rounded-[18px] shadow-[0_12px_30px_rgba(15,23,42,0.04)] p-5 flex items-start gap-4">
+          <div className="w-10 h-10 rounded-xl bg-blue-50 flex items-center justify-center shrink-0">
+            <GitBranch size={20} className="text-blue-600" />
+          </div>
+          <div>
+            <p className="text-sm font-extrabold text-slate-950 mb-1">Teams</p>
+            <p className="text-[28px] leading-none font-extrabold text-slate-950">{status?.teams ?? 0}</p>
           </div>
         </div>
 
-        <div className="mb-8">
-          <h2 className="text-lg font-semibold text-foreground mb-4">Security & Integrity</h2>
-          <div className="section-blue p-6">
-            <div className="flex items-center justify-between mb-4">
-              <div>
-                <h3 className="text-base font-bold text-foreground flex items-center gap-2">
-                  <Shield className="text-primary" /> Zero-Trust Integrity Audit
-                </h3>
-                <p className="text-sm text-muted mt-1">Cryptographically verify that no scorecards have been manipulated.</p>
-              </div>
-              <button
-                onClick={runSecurityAudit}
-                disabled={isAuditing}
-                className="bg-primary hover:bg-primary text-white px-4 py-2 rounded-lg text-sm font-medium transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
-              >
-                {isAuditing ? <Loader2 size={16} className="animate-spin" /> : <ShieldCheck size={16} />}
-                {isAuditing ? "Scanning..." : "Run System Audit"}
-              </button>
-            </div>
+        <div className="bg-white border border-slate-200/80 rounded-[18px] shadow-[0_12px_30px_rgba(15,23,42,0.04)] p-5 flex items-start gap-4">
+          <div className="w-10 h-10 rounded-xl bg-blue-50 flex items-center justify-center shrink-0">
+            <BarChart2 size={20} className="text-blue-600" />
+          </div>
+          <div>
+            <p className="text-sm font-extrabold text-slate-950 mb-1">Evaluations</p>
+            <p className="text-[28px] leading-none font-extrabold text-slate-950">{status?.evaluations ?? 0}</p>
+          </div>
+        </div>
 
-            {auditResult && (
-              <div className={`p-4 rounded-xl ${auditResult.is_secure ? 'section-green' : 'section-red'}`}>
-                {auditResult.is_secure ? (
-                  <p className="text-sm font-medium flex items-center gap-2" style={{ color: "var(--color-success)" }}>
-                    <ShieldCheck size={18} />
-                    Secure: {auditResult.total_audited} scorecards cryptographically verified. No tampering detected.
-                  </p>
-                ) : (
-                  <div>
-                    <p className="text-primary text-sm font-bold flex items-center gap-2 mb-2">
-                      <ShieldAlert size={18} />
-                      CRITICAL ALERT: Database tampering detected!
-                    </p>
-                    <ul className="text-xs text-primary list-disc pl-5 space-y-1">
-                      {auditResult.tampered_records.map(record => (
-                        <li key={record.evaluation_id}>
-                          Evaluation <span className="font-mono">{record.evaluation_id.slice(0, 8)}...</span> fails signature check.
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                )}
-              </div>
-            )}
-            {auditError && (
-              <div className="p-4 app-card bg-[var(--bg-card-soft)] text-primary text-sm">
-                {auditError}
-              </div>
-            )}
+        <div className="bg-white border border-slate-200/80 rounded-[18px] shadow-[0_12px_30px_rgba(15,23,42,0.04)] p-5 flex items-start gap-4">
+          <div className="w-10 h-10 rounded-xl bg-blue-50 flex items-center justify-center shrink-0">
+            <UserCheck size={20} className="text-blue-600" />
+          </div>
+          <div>
+            <p className="text-sm font-extrabold text-slate-950 mb-1">Mentors</p>
+            <p className="text-[28px] leading-none font-extrabold text-slate-950">{status?.mentors ?? 0}</p>
+          </div>
+        </div>
+
+        <div className="bg-white border border-slate-200/80 rounded-[18px] shadow-[0_12px_30px_rgba(15,23,42,0.04)] p-5 flex items-start gap-4">
+          <div className="w-10 h-10 rounded-xl bg-blue-50 flex items-center justify-center shrink-0">
+            <Target size={20} className="text-blue-600" />
+          </div>
+          <div>
+            <p className="text-sm font-extrabold text-slate-950 mb-1">Mentor Assignments</p>
+            <p className="text-[28px] leading-none font-extrabold text-slate-950">{status?.mentor_assignments ?? 0}</p>
+          </div>
+        </div>
+
+        <div className="bg-white border border-slate-200/80 rounded-[18px] shadow-[0_12px_30px_rgba(15,23,42,0.04)] p-5 flex items-start gap-4">
+          <div className="w-10 h-10 rounded-xl bg-blue-50 flex items-center justify-center shrink-0">
+            <Mail size={20} className="text-blue-600" />
+          </div>
+          <div>
+            <p className="text-sm font-extrabold text-slate-950 mb-1">Comms Logs</p>
+            <p className="text-[28px] leading-none font-extrabold text-slate-950">{status?.communication_logs ?? 0}</p>
           </div>
         </div>
       </div>
 
-      <div>
-        <h2 className="text-lg font-semibold text-foreground mb-4">Stage Controls</h2>
-        <div className="section-purple p-6">
-          <div className="flex items-center justify-between mb-6">
-            <div>
-              <p className="text-sm font-medium text-muted">Current Stage</p>
-              <p className="text-xl font-bold text-primary uppercase tracking-wide mt-1">
-                {eventState?.current_stage?.replace('_', ' ') || 'loading...'}
-              </p>
+      {/* Reset Demo Data Card */}
+      <div className="bg-white border border-slate-200/80 rounded-[22px] shadow-[0_18px_45px_rgba(15,23,42,0.06)] p-6 lg:p-8 mb-6">
+        <div className="flex items-center gap-2 mb-4 text-orange-500">
+          <AlertTriangle size={20} />
+          <h3 className="text-lg font-extrabold">Reset Demo Data</h3>
+        </div>
+        <p className="text-sm font-medium text-slate-600 mb-6 max-w-3xl">
+          This clears participants, teams, evaluations, mentor assignments, feedback, sessions, and communication logs so you can restart the demo with the same CSV. Admin accounts are preserved.
+        </p>
+        <div className="flex flex-col md:flex-row gap-4 items-center">
+          <input
+            type="text"
+            value={confirmText}
+            onChange={e => setConfirmText(e.target.value)}
+            placeholder="Type RESET_DEMO_DATA"
+            className="w-full bg-white border border-slate-200 rounded-xl h-11 px-4 text-sm font-medium text-slate-700 placeholder:text-slate-400 focus:outline-none focus:border-blue-300 focus:ring-2 focus:ring-blue-100 transition-all"
+          />
+          <button
+            onClick={() => resetMutation.mutate()}
+            disabled={confirmText !== 'RESET_DEMO_DATA' || resetMutation.isPending}
+            className="w-full md:w-auto shrink-0 px-6 h-11 bg-[#ff7a1a] hover:bg-[#ea580c] text-white text-sm font-extrabold rounded-xl transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+          >
+            {resetMutation.isPending ? <Loader2 size={16} className="animate-spin" /> : <RefreshCw size={16} />}
+            Reset Data
+          </button>
+        </div>
+      </div>
+
+      {/* Delete Current Event Card */}
+      <div className="bg-white border border-slate-200/80 rounded-[22px] shadow-[0_18px_45px_rgba(15,23,42,0.06)] p-6 lg:p-8 mb-8">
+        <div className="flex items-center gap-2 mb-4 text-red-500">
+          <AlertTriangle size={20} />
+          <h3 className="text-lg font-extrabold">Delete Current Event</h3>
+        </div>
+        <p className="text-sm font-medium text-slate-600 mb-2 max-w-3xl">
+          This permanently deletes the selected event and its event-scoped data. Use this only for demo/test events.
+        </p>
+        <p className="text-sm font-extrabold text-slate-950 mb-6">
+          Selected event: {activeEvent?.name || 'No event selected'}
+        </p>
+        <div className="flex flex-col md:flex-row gap-4 items-center">
+          <input
+            type="text"
+            value={deleteEventConfirm}
+            onChange={(e) => setDeleteEventConfirm(e.target.value)}
+            placeholder="Type DELETE_EVENT"
+            className="w-full bg-white border border-slate-200 rounded-xl h-11 px-4 text-sm font-medium text-slate-700 placeholder:text-slate-400 focus:outline-none focus:border-blue-300 focus:ring-2 focus:ring-blue-100 transition-all"
+          />
+          <button
+            onClick={() => {
+              if (window.confirm(`Delete event "${activeEvent?.name}" permanently?`)) {
+                deleteEventMutation.mutate()
+              }
+            }}
+            disabled={!activeEvent?.id || deleteEventConfirm !== 'DELETE_EVENT' || deleteEventMutation.isPending}
+            className="w-full md:w-auto shrink-0 px-6 h-11 bg-red-500 hover:bg-red-600 text-white text-sm font-extrabold rounded-xl transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+          >
+            {deleteEventMutation.isPending ? <Loader2 size={16} className="animate-spin" /> : <Trash2 size={16} />}
+            Delete Event
+          </button>
+        </div>
+      </div>
+
+      {/* Security & Integrity Section */}
+      <h3 className="text-[20px] font-extrabold text-slate-950 mb-6">Security & Integrity</h3>
+      <div className="bg-white border border-slate-200/80 rounded-[22px] shadow-[0_18px_45px_rgba(15,23,42,0.06)] p-6 lg:p-8 mb-8">
+        <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+          <div className="flex items-start gap-4">
+            <div className="w-10 h-10 rounded-xl bg-slate-50 border border-slate-200/60 flex items-center justify-center shrink-0">
+              <Shield className="text-slate-700" size={20} />
             </div>
-            <div className="flex gap-2">
-              <button onClick={() => stepMutation.mutate('prev')} className="soft-button text-sm">Previous</button>
-              <button onClick={() => stepMutation.mutate('next')} className="px-4 py-2 bg-primary hover:bg-primary-dark text-white text-sm font-semibold rounded-lg transition-colors">Next</button>
-              <button onClick={() => resetStageMutation.mutate()} disabled={resetStageMutation.isPending} className="px-4 py-2 text-muted hover:bg-[var(--bg-card-soft)] text-sm font-semibold rounded-lg transition-colors ml-2 disabled:opacity-50">
-                {resetStageMutation.isPending ? 'Resetting...' : 'Reset to Registration'}
-              </button>
+            <div>
+              <h3 className="text-lg font-extrabold text-slate-950">Zero-Trust Integrity Audit</h3>
+              <p className="text-sm font-medium text-slate-500 mt-1">Cryptographically verify that no scorecards have been manipulated.</p>
             </div>
           </div>
+          <button
+            onClick={runSecurityAudit}
+            disabled={isAuditing}
+            className="bg-white border border-blue-100 hover:bg-blue-50 text-blue-600 px-4 py-2.5 rounded-xl text-sm font-extrabold transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 shadow-sm shrink-0"
+          >
+            {isAuditing ? <Loader2 size={16} className="animate-spin" /> : <ShieldCheck size={16} />}
+            {isAuditing ? "Scanning..." : "Run System Audit"}
+          </button>
+        </div>
 
-          <div>
-            <label className="block text-xs font-medium text-muted mb-2">Jump directly to stage:</label>
+        {auditResult && (
+          <div className={`mt-6 p-4 rounded-xl border ${auditResult.is_secure ? 'bg-emerald-50 border-emerald-100 text-emerald-700' : 'bg-red-50 border-red-100 text-red-700'}`}>
+            {auditResult.is_secure ? (
+              <p className="text-sm font-extrabold flex items-center gap-2">
+                <ShieldCheck size={18} />
+                Secure: {auditResult.total_audited} scorecards cryptographically verified. No tampering detected.
+              </p>
+            ) : (
+              <div>
+                <p className="text-sm font-extrabold flex items-center gap-2 mb-2">
+                  <ShieldAlert size={18} />
+                  CRITICAL ALERT: Database tampering detected!
+                </p>
+                <ul className="text-xs font-medium list-disc pl-5 space-y-1">
+                  {auditResult.tampered_records.map(record => (
+                    <li key={record.evaluation_id}>
+                      Evaluation <span className="font-mono">{record.evaluation_id.slice(0, 8)}...</span> fails signature check.
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+          </div>
+        )}
+        {auditError && (
+          <div className="mt-6 p-4 rounded-xl bg-red-50 border border-red-100 text-red-700 text-sm font-extrabold">
+            {auditError}
+          </div>
+        )}
+      </div>
+
+      {/* Stage Controls Section */}
+      <h3 className="text-[20px] font-extrabold text-slate-950 mb-6">Stage Controls</h3>
+      <div className="bg-white border border-slate-200/80 rounded-[22px] shadow-[0_18px_45px_rgba(15,23,42,0.06)] p-6 lg:p-8 mb-8">
+        <div className="flex flex-col lg:flex-row justify-between gap-8">
+          <div className="flex-1 max-w-sm">
+            <p className="text-xs font-extrabold text-slate-950 uppercase tracking-wide mb-2">Current Stage</p>
+            <p className="text-2xl font-extrabold text-slate-950 uppercase tracking-wide mb-6">
+              {eventState?.current_stage?.replace('_', ' ') || 'loading...'}
+            </p>
+            
+            <p className="text-xs font-extrabold text-slate-950 mb-2">Jump directly to stage:</p>
             <select
               value={eventState?.current_stage || ''}
               onChange={e => stageMutation.mutate(e.target.value)}
-              className="w-full md:w-64 soft-select"
+              className="w-full bg-white border border-slate-200 rounded-xl h-11 px-4 text-sm font-medium text-slate-900 focus:outline-none focus:border-blue-300 focus:ring-2 focus:ring-blue-100 transition-all appearance-none"
             >
               <option value="registration">Registration</option>
               <option value="team_formation">Team Formation</option>
               <option value="evaluation">Evaluation</option>
               <option value="results">Results</option>
             </select>
+          </div>
+          
+          <div className="flex flex-wrap items-end gap-3">
+            <button onClick={() => stepMutation.mutate('prev')} className="bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 px-5 py-2.5 rounded-xl text-sm font-extrabold transition-colors shadow-sm">
+              Previous
+            </button>
+            <button onClick={() => stepMutation.mutate('next')} className="bg-white border border-slate-200 hover:bg-slate-50 text-slate-700 px-5 py-2.5 rounded-xl text-sm font-extrabold transition-colors shadow-sm">
+              Next
+            </button>
+            <button onClick={() => resetStageMutation.mutate()} disabled={resetStageMutation.isPending} className="bg-white border border-blue-100 hover:bg-blue-50 text-blue-600 px-5 py-2.5 rounded-xl text-sm font-extrabold transition-colors shadow-sm disabled:opacity-50">
+              {resetStageMutation.isPending ? 'Resetting...' : 'Reset to Registration'}
+            </button>
           </div>
         </div>
       </div>
