@@ -5,7 +5,7 @@ import {
  ChevronRight, ArrowLeft, RotateCcw, Download,
  Code, Lightbulb, MonitorPlay, ShieldCheck, TrendingUp, Sparkles, FileText, Sun, Moon
 } from 'lucide-react'
-import { portalApi, evaluationsApi, aiApi, solverApi, submissionsApi, eventStorage } from '../services/api'
+import { portalApi, evaluationsApi, submissionsApi, eventStorage } from '../services/api'
 import { useAuth } from '../context/AuthContext'
 import { useParams } from 'react-router-dom'
 import { useTheme } from '../hooks/useTheme'
@@ -21,6 +21,7 @@ const CRITERIA = [
 ]
 
 const DEFAULT_SCORES = Object.fromEntries(CRITERIA.map((c) => [c.key, 5.0]))
+
 
 function weightedTotal(scores) {
  return CRITERIA.reduce((sum, c) => sum + (scores[c.key] ?? 0) * c.weight, 0)
@@ -41,6 +42,13 @@ const themeColors = {
 }
 
 // ── Shared UI Components ───────────────────────────────────────────────────
+
+function compactGuideText(value, maxWords = 12) {
+ const text = String(value || '').replace(/\s+/g, ' ').trim()
+ if (!text) return ''
+ const words = text.split(' ')
+ return words.length <= maxWords ? text : `${words.slice(0, maxWords).join(' ')}…`
+}
 
 function FullPageMessage({ icon: Icon, title, message }) {
  const { isDark } = useTheme();
@@ -127,7 +135,7 @@ function CriterionSlider({ criterion, value, onChange }) {
  return (
  <div className={isDark ? "bg-slate-900/80 border border-white/10 rounded-[18px] p-6 shadow-none flex flex-col md:flex-row md:items-center gap-6" : "bg-white border border-slate-200 rounded-[18px] p-6 shadow-[0_12px_30px_rgba(15,23,42,0.04)] flex flex-col md:flex-row md:items-center gap-6"}>
 
- <div className="flex-1 flex items-start gap-4">
+ <div className="flex-1 min-w-0 flex items-start gap-4">
  <div className={`w-12 h-12 rounded-xl flex items-center justify-center shrink-0 ${colors.bg} ${colors.text}`}>
  <Icon size={24} />
  </div>
@@ -138,11 +146,11 @@ function CriterionSlider({ criterion, value, onChange }) {
  {(criterion.weight * 100).toFixed(0)}%
  </span>
  </div>
- <p className={isDark ? "text-xs font-medium text-slate-400" : "text-xs font-medium text-slate-500"}>{criterion.description}</p>
+ <p className={isDark ? "text-xs font-medium text-slate-400" : "text-xs font-medium text-slate-500"}>{compactGuideText(criterion.description, 12)}</p>
  </div>
  </div>
 
- <div className="flex-1 max-w-sm relative px-2">
+ <div className="flex-1 min-w-0 max-w-sm relative px-2">
  <input
  type="range"
  min={0} max={10} step={0.5}
@@ -294,12 +302,19 @@ function ScoringForm({ team, onSubmitted, alreadySubmitted, token }) {
  <p className={isDark ? "text-xs font-medium text-slate-400" : "text-xs font-medium text-slate-500"}>Please review carefully. After submission, this scorecard cannot be edited from the portal.</p>
  <div className="flex gap-3 w-full md:w-auto">
  <button
- onClick={() => {}}
- disabled
- className={isDark ? "flex items-center gap-2 px-6 py-2.5 rounded-xl border border-white/10 text-sm font-bold text-slate-500 bg-slate-800 cursor-not-allowed" : "flex items-center gap-2 px-6 py-2.5 rounded-xl border border-slate-200 text-sm font-bold text-slate-400 bg-slate-50 cursor-not-allowed"}
- >
+ type="button"
+ onClick={() => {
+   const container = document.querySelector('[data-judge-scroll="true"]')
+   if (container) {
+     container.scrollTo({ top: 0, behavior: 'smooth' })
+   } else {
+     window.scrollTo({ top: 0, behavior: 'smooth' })
+   }
+ }}
+ className="inline-flex items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-5 py-3 text-sm font-bold text-slate-500 shadow-sm hover:text-slate-900 dark:border-white/10 dark:bg-slate-900 dark:text-slate-300 dark:hover:text-white"
+>
  <ArrowLeft size={16} /> Go back
- </button>
+</button>
  <button
  onClick={() => setConfirming(true)}
  className="flex items-center justify-center gap-2 px-6 py-2.5 rounded-xl bg-red-500 text-white text-sm font-bold shadow-sm hover:bg-red-600 transition-colors flex-1 md:flex-none"
@@ -333,11 +348,12 @@ function ScoringForm({ team, onSubmitted, alreadySubmitted, token }) {
 
  <div className="flex gap-3 justify-end w-full">
  <button
+ type="button"
  onClick={() => setConfirming(false)}
- className={isDark ? "flex items-center gap-2 px-6 py-2.5 rounded-xl border border-white/10 text-sm font-bold text-slate-300 bg-slate-900/80 hover:bg-slate-800 transition-colors" : "flex items-center gap-2 px-6 py-2.5 rounded-xl border border-slate-200 text-sm font-bold text-slate-700 bg-white hover:bg-slate-50 transition-colors"}
- >
+ className="inline-flex items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-5 py-3 text-sm font-bold text-slate-500 shadow-sm hover:text-slate-900 dark:border-white/10 dark:bg-slate-900 dark:text-slate-300 dark:hover:text-white"
+>
  <ArrowLeft size={16} /> Go back
- </button>
+</button>
  <button
  onClick={() => submitMutation.mutate()}
  disabled={submitMutation.isPending}
@@ -428,89 +444,205 @@ function TeamSubmissionSection({ teamId, token }) {
  )
 }
 
-function ScoringGuideCard({ rubricLoading }) {
+function ScoringGuideCard({ onOpen, loading }) {
   const { isDark } = useTheme();
+
+  return (
+    <button
+      type="button"
+      onClick={onOpen}
+      className={isDark ? "w-full bg-slate-900/80 border border-white/10 rounded-[16px] p-4 shadow-none flex items-center justify-between cursor-pointer hover:border-red-400/50 transition-colors text-left" : "w-full bg-white/95 border border-slate-200 rounded-[16px] p-4 shadow-[0_12px_30px_rgba(15,23,42,0.04)] flex items-center justify-between cursor-pointer hover:border-red-300 transition-colors text-left"}
+    >
+      <div className="flex items-center gap-4">
+        <div className="w-10 h-10 rounded-lg bg-red-50 text-red-500 flex items-center justify-center shrink-0">
+          {loading ? <Loader2 size={20} className="animate-spin" /> : <Sparkles size={20} />}
+        </div>
+        <div>
+          <h3 className={isDark ? "text-sm font-black text-slate-100 flex items-center gap-2" : "text-sm font-black text-slate-950 flex items-center gap-2"}>
+            AI Scoring Guide
+          </h3>
+          <p className={isDark ? "text-xs font-medium text-slate-400" : "text-xs font-medium text-slate-500"}>
+            Generate rubric, criteria definitions, and scoring examples using AI.
+          </p>
+        </div>
+      </div>
+      <ChevronRight size={16} className="text-slate-400" />
+    </button>
+  )
+}
+
+function ScoringGuideModal({ open, onClose, loading, error, rubric }) {
+ const { isDark } = useTheme();
+
+ if (!open) return null
+
  return (
- <div className="bg-white/95 border border-slate-200 rounded-[16px] p-4 shadow-[0_12px_30px_rgba(15,23,42,0.04)] flex items-center justify-between cursor-pointer hover:border-slate-300 transition-colors">
- <div className="flex items-center gap-4">
- <div className="w-10 h-10 rounded-lg bg-red-50 text-red-500 flex items-center justify-center shrink-0">
- <Sparkles size={20} />
- </div>
- <div>
- <h3 className="text-sm font-black text-slate-950 flex items-center gap-2">
- AI Scoring Guide
- {rubricLoading && <Loader2 size={12} className="animate-spin text-red-500" />}
- </h3>
- <p className={isDark ? "text-xs font-medium text-slate-400" : "text-xs font-medium text-slate-500"}>View scoring rubric, criteria definitions, and examples.</p>
- </div>
- </div>
- <ChevronRight size={16} className="text-slate-400" />
- </div>
+   <div className={isDark ? "mt-3 w-full rounded-2xl border border-white/10 bg-slate-900/80 shadow-sm overflow-hidden" : "mt-3 w-full rounded-2xl border border-slate-200 bg-white shadow-[0_12px_30px_rgba(15,23,42,0.04)] overflow-hidden"}>
+     <div className="px-4 py-4">
+       {loading ? (
+         <div className="py-6 text-center">
+           <Loader2 size={22} className="animate-spin text-red-500 mx-auto mb-2" />
+           <p className={isDark ? "text-sm font-bold text-slate-100" : "text-sm font-bold text-slate-950"}>
+             Generating guide…
+           </p>
+         </div>
+       ) : error ? (
+         <div className="rounded-xl border border-red-200 bg-red-50 p-3 text-red-700 text-xs font-medium">
+           {error}
+         </div>
+       ) : rubric?.criteria?.length ? (
+         <div className="space-y-2">
+           <div className="flex items-center justify-between gap-3">
+             <p className={isDark ? "text-[10px] font-black uppercase tracking-[0.2em] text-slate-400" : "text-[10px] font-black uppercase tracking-[0.2em] text-slate-500"}>
+               Generated guide
+             </p>
+             <button
+               type="button"
+               onClick={onClose}
+               className={isDark ? "text-xs font-bold text-slate-400 hover:text-slate-100" : "text-xs font-bold text-slate-500 hover:text-slate-950"}
+             >
+               Hide
+             </button>
+           </div>
+
+           {rubric.criteria.map((criterion) => {
+             const matchedCriterion = CRITERIA.find((item) => item.label.toLowerCase() === String(criterion.name || '').toLowerCase())
+             const GuideIcon = matchedCriterion?.icon || Sparkles
+             const colors = themeColors[matchedCriterion?.theme || 'red']
+
+             return (
+               <div
+                 key={criterion.name}
+                 className={isDark ? "rounded-xl border border-white/10 bg-slate-950/50 p-3" : "rounded-xl border border-slate-200 bg-slate-50/70 p-3"}
+               >
+                 <div className="flex items-start justify-between gap-3 mb-2">
+                   <div className="flex items-start gap-3 min-w-0">
+                     <div className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 ${colors.bg} ${colors.text}`}>
+                       <GuideIcon size={18} />
+                     </div>
+
+                     <div className="min-w-0">
+                       <div className="flex items-center gap-2 flex-wrap">
+                         <h3 className={isDark ? "text-sm font-black text-slate-100" : "text-sm font-black text-slate-950"}>
+                           {criterion.name}
+                         </h3>
+                         <span className={`rounded-full px-2 py-0.5 text-[10px] font-black ${colors.bg} ${colors.text}`}>
+                           {Math.round((criterion.weight || 0) * 100)}%
+                         </span>
+                       </div>
+
+                       <p className={isDark ? "text-xs font-medium text-slate-400 mt-1" : "text-xs font-medium text-slate-600 mt-1"}>
+                         {compactGuideText(criterion.description, 7)}
+                       </p>
+                     </div>
+                   </div>
+                 </div>
+
+                 <div className="flex flex-wrap gap-1.5 mb-2">
+                   {(criterion.what_to_look_for || []).slice(0, 1).map((item) => (
+                     <span
+                       key={item}
+                       className={isDark ? `rounded-full bg-slate-900 px-2 py-1 text-[11px] font-semibold ${colors.text}` : `rounded-full border border-slate-200 px-2 py-1 text-[11px] font-semibold ${colors.bg} ${colors.text}`}
+                     >
+                       {compactGuideText(item, 6)}
+                     </span>
+                   ))}
+                 </div>
+
+                 <div className="grid grid-cols-2 md:grid-cols-4 gap-1.5">
+                   {Object.entries(criterion.scoring_guide || {}).map(([range, text]) => (
+                     <div
+                       key={range}
+                       className={isDark ? "rounded-lg border border-white/10 bg-slate-900/70 p-2" : "rounded-lg border border-slate-200 bg-white p-2"}
+                     >
+                       <p className={`text-[10px] font-black ${colors.text}`}>{range}</p>
+                       <p className={isDark ? "text-[11px] font-semibold text-slate-300" : "text-[11px] font-semibold text-slate-600"}>
+                         {compactGuideText(text, 5)}
+                       </p>
+                     </div>
+                   ))}
+                 </div>
+               </div>
+             )
+           })}
+         </div>
+       ) : (
+         <div className="py-6 text-center text-sm text-slate-500">
+           Click AI Scoring Guide again.
+         </div>
+       )}
+     </div>
+   </div>
  )
 }
 
-// ── Team queue sidebar ─────────────────────────────────────────────────────
 
 function TeamQueueSidebar({ teams, selectedId, submittedIds, onSelect }) {
  const { isDark } = useTheme();
 
- const total = teams.length
- const submitted = submittedIds.length
- const progressPct = total > 0 ? (submitted / total) * 100 : 0
-
  return (
- <aside className={isDark ? "w-[300px] shrink-0 bg-slate-900/90 border-r border-white/10 text-slate-100 backdrop-blur flex flex-col hidden lg:flex h-[calc(100vh-72px)] sticky top-[72px] overflow-y-auto" : "w-[300px] shrink-0 bg-white/90 border-r border-slate-200 text-slate-950 backdrop-blur flex flex-col hidden lg:flex h-[calc(100vh-72px)] sticky top-[72px] overflow-y-auto"}>
+   <aside className={isDark ? "w-[300px] shrink-0 bg-slate-900/90 border-r border-white/10 text-slate-100 backdrop-blur flex flex-col hidden lg:flex h-full overflow-y-auto" : "w-[300px] shrink-0 bg-white/90 border-r border-slate-200 text-slate-950 backdrop-blur flex flex-col hidden lg:flex h-full overflow-y-auto"}>
+     <div className="p-5 border-b border-slate-200/70">
+       <div className="flex items-center justify-between mb-3">
+         <p className={isDark ? "text-[10px] font-black uppercase tracking-[0.2em] text-slate-400" : "text-[10px] font-black uppercase tracking-[0.2em] text-slate-500"}>
+           Progress
+         </p>
+         <p className="text-[11px] font-black text-red-500">
+           {submittedIds.length}/{teams.length}
+         </p>
+       </div>
+       <div className={isDark ? "h-2 rounded-full bg-slate-800 overflow-hidden" : "h-2 rounded-full bg-slate-100 overflow-hidden"}>
+         <div
+           className="h-full rounded-full bg-red-500 transition-all"
+           style={{ width: `${teams.length ? (submittedIds.length / teams.length) * 100 : 0}%` }}
+         />
+       </div>
+     </div>
 
- <div className="p-6 border-b border-slate-100">
- <div className="flex justify-between items-center mb-2">
- <span className={isDark ? "text-[10px] font-bold text-slate-400 uppercase tracking-widest" : "text-[10px] font-bold text-slate-500 uppercase tracking-widest"}>PROGRESS</span>
- <span className="text-xs font-bold text-red-500">{submitted}/{total}</span>
- </div>
- <div className="w-full bg-slate-100 rounded-full h-1.5">
- <div className="bg-red-500 h-1.5 rounded-full transition-all" style={{ width: `${progressPct}%` }} />
- </div>
- </div>
+     <div className="p-4 space-y-3">
+       <p className={isDark ? "text-[10px] font-black uppercase tracking-[0.2em] text-slate-400" : "text-[10px] font-black uppercase tracking-[0.2em] text-slate-500"}>
+         Assigned Teams
+       </p>
 
- <div className="p-4 flex-1">
- <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest px-2 mb-3">ASSIGNED TEAMS</p>
- <div className="space-y-2">
- {teams.map((team) => {
- const done = submittedIds.includes(team.team_id) || team.already_graded
- const isActive = selectedId === team.team_id
+       {teams.map((team, index) => {
+         const isSelected = team.team_id === selectedId
+         const isSubmitted = submittedIds.includes(team.team_id)
 
- // alternate colors for unselected dots just for visual similarity to screenshot
- // team A is blue, team B is yellow in screenshot.
- // Let's just use team.team_name length or hash to pick amber/blue.
- const dotColor = done ? 'bg-red-500' : (team.team_name.length % 2 === 0 ? 'bg-blue-500' : 'bg-amber-400')
-
- return (
- <button
- key={team.team_id}
- onClick={() => onSelect(team)}
- className={`w-full flex items-center justify-between p-3 rounded-xl transition-all border ${isActive ?"bg-red-50/70 border-red-300 text-slate-950" :"bg-white border-slate-200 text-slate-950 hover:bg-slate-50"}`}
- >
- <div className="flex items-start gap-3 text-left">
- <div className={`w-2.5 h-2.5 rounded-full shrink-0 mt-1.5 ${isActive ? 'bg-red-500' : dotColor}`}></div>
- <div>
- <p className={`text-sm font-black ${isActive ? (isDark ? 'text-slate-100' : 'text-slate-950') : (isDark ? 'text-slate-300' : 'text-slate-700')}`}>{team.team_name}</p>
- <p className={`text-[10px] font-bold mt-0.5 ${isActive ? (isDark ? 'text-slate-400' : 'text-slate-500') : 'text-slate-400'}`}>{done ? 'Submitted' : 'Awaiting your score'}</p>
- </div>
- </div>
- <ChevronRight size={16} className={isActive ? (isDark ? 'text-slate-100' : 'text-slate-950') : 'text-slate-400'} />
- </button>
- )
- })}
- </div>
- </div>
- </aside>
+         return (
+           <button
+             key={team.team_id}
+             type="button"
+             onClick={() => onSelect(team)}
+             className={
+               isSelected
+                 ? "w-full rounded-xl border border-red-300 bg-red-50 p-4 text-left transition-colors"
+                 : isDark
+                   ? "w-full rounded-xl border border-white/10 bg-slate-900/70 p-4 text-left hover:border-red-400/50 transition-colors"
+                   : "w-full rounded-xl border border-slate-200 bg-white p-4 text-left hover:border-red-300 transition-colors"
+             }
+           >
+             <div className="flex items-center justify-between gap-3">
+               <div className="flex items-center gap-3 min-w-0">
+                 <span className={isSubmitted ? "w-2.5 h-2.5 rounded-full bg-emerald-500 shrink-0" : index % 2 === 0 ? "w-2.5 h-2.5 rounded-full bg-red-500 shrink-0" : "w-2.5 h-2.5 rounded-full bg-blue-500 shrink-0"} />
+                 <div className="min-w-0">
+                   <p className={isDark ? "text-sm font-black text-slate-100 truncate" : "text-sm font-black text-slate-950 truncate"}>
+                     {team.team_name}
+                   </p>
+                   <p className={isSubmitted ? "text-[11px] font-bold text-emerald-600" : "text-[11px] font-bold text-slate-500"}>
+                     {isSubmitted ? "Score submitted" : "Awaiting your score"}
+                   </p>
+                 </div>
+               </div>
+               <ChevronRight size={16} className={isSelected ? "text-red-500" : "text-slate-400"} />
+             </div>
+           </button>
+         )
+       })}
+     </div>
+   </aside>
  )
 }
 
-// ── Main JudgePortal ──────────────────────────────────────────────────────
-
-export default function JudgePortal() {
- return <JudgePortalContent />
-}
 
 function JudgePortalContent() {
   const { isDark } = useTheme();
@@ -522,43 +654,11 @@ function JudgePortalContent() {
  const { setToken } = useAuth()
  const [selectedTeam, setSelectedTeam] = useState(null)
  const [submittedIds, setSubmittedIds] = useState([])
+ const [aiRubric, setAiRubric] = useState(null)
+ const [aiRubricError, setAiRubricError] = useState('')
+ 
 
- const [rubricLoading, setRubricLoading] = useState(false)
-
- useEffect(() => {
- let active = true
- if (!selectedTeam) {
- return
- }
- setTimeout(() => {
- if (active) {
- setRubricLoading(true)
- }
- }, 0)
- const criteriaWeights = Object.fromEntries(
- CRITERIA.map(c => [c.label, c.weight])
- )
- aiApi.rubric({
- challenge_area: 'WiSE@TI Hackathon Project',
- criteria: criteriaWeights,
- event_name: 'WiSE@TI Hackathon',
- })
- .then(async (res) => {
- for (let i = 0; i < 20; i++) {
- await new Promise(r => setTimeout(r, 2500))
- const s = await solverApi.taskStatus(res.task_id)
- if (s.status === 'success') {
- setRubricLoading(false)
- return
- }
- if (s.status === 'failed') break
- }
- setRubricLoading(false)
- })
- .catch(() => setRubricLoading(false))
- // eslint-disable-next-line react-hooks/exhaustive-deps
- }, [selectedTeam?.team_id])
-
+ const [showScoringGuide, setShowScoringGuide] = useState(false)
  // Extract token from URL on mount
  const rawUrlToken = useMemo(() => {
  return new URLSearchParams(window.location.search).get('token')
@@ -575,6 +675,50 @@ function JudgePortalContent() {
  : null
  }, [rawUrlToken, evaluatorPortalTokenKey])
 
+ const rubricMutation = useMutation({
+  mutationFn: async () => {
+    if (!selectedTeam) {
+      throw new Error('Select a team before generating the scoring guide.')
+    }
+
+    const criteriaWeights = Object.fromEntries(
+      CRITERIA.map((c) => [c.label, c.weight])
+    )
+
+    const enqueue = await evaluationsApi.aiRubric({
+      challenge_area: 'Hackathon project evaluation',
+      criteria: criteriaWeights,
+      event_name: 'WiSE@TI Hackathon',
+      team_context: {
+        team_id: selectedTeam.team_id,
+        team_name: selectedTeam.team_name,
+      },
+    }, urlToken)
+
+    for (let i = 0; i < 30; i += 1) {
+      await new Promise((resolve) => setTimeout(resolve, 2000))
+
+      try {
+        const result = await evaluationsApi.aiRubricResult(enqueue.task_id, urlToken)
+        return result
+      } catch (err) {
+        if (!err.message?.includes('still generating')) {
+          throw err
+        }
+      }
+    }
+
+    throw new Error('AI scoring guide generation timed out. Please try again.')
+  },
+  onSuccess: (result) => {
+    setAiRubric(result)
+    setAiRubricError('')
+  },
+  onError: (err) => {
+    setAiRubricError(err.message || 'Failed to generate AI scoring guide.')
+  },
+ })
+
  useEffect(() => {
  if (!rawUrlToken || !evaluatorPortalTokenKey) return
  sessionStorage.setItem(evaluatorPortalTokenKey, rawUrlToken)
@@ -589,10 +733,12 @@ function JudgePortalContent() {
  staleTime: 5 * 60 * 1000,
  })
 
+ 
+
  // ── Render guards ────────────────────────────────────────────────────────
 
  if (!urlToken) {
- return (
+return (
  <FullPageMessage
  icon={AlertTriangle}
  title="No access token"
@@ -603,7 +749,7 @@ function JudgePortalContent() {
 
  if (isLoading) {
  return (
- <div className={isDark ? "min-h-screen flex items-center justify-center bg-[#0b0f14]" : "min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 via-blue-50/30 to-white"}>
+ <div className={isDark ? "h-screen overflow-hidden flex items-center justify-center bg-[#0b0f14]" : "h-screen overflow-hidden flex items-center justify-center bg-gradient-to-br from-slate-50 via-blue-50/30 to-white"}>
  <div className="text-center">
  <Loader2 size={32} className="text-red-500 animate-spin mx-auto mb-3" />
  <p className={isDark ? "text-sm font-medium text-slate-400" : "text-sm font-medium text-slate-500"}>Loading your evaluation portal…</p>
@@ -641,6 +787,8 @@ function JudgePortalContent() {
 
  function handleTeamSelect(team) {
  setSelectedTeam(team)
+ setAiRubric(null)
+ setAiRubricError('')
  window.scrollTo({ top: 0, behavior: 'smooth' })
  }
 
@@ -651,6 +799,14 @@ function JudgePortalContent() {
  (t) => !allSubmitted.includes(t.team_id) && !t.already_graded
  )
  setSelectedTeam(nextTeam ?? null)
+ }
+
+ function handleOpenScoringGuide() {
+  setShowScoringGuide(true)
+
+  if (!aiRubric && !rubricMutation.isPending) {
+    rubricMutation.mutate()
+  }
  }
 
  // ── Main layout ──────────────────────────────────────────────────────────
@@ -664,7 +820,7 @@ function JudgePortalContent() {
 
  <PortalNavbar evaluatorName={evaluatorName} />
 
- <div className="flex w-full">
+ <div className="flex h-[calc(100vh-72px)] overflow-hidden">
  <TeamQueueSidebar
  teams={teams}
  selectedId={selectedTeam?.team_id}
@@ -675,7 +831,7 @@ function JudgePortalContent() {
  onSelect={handleTeamSelect}
  />
 
- <main className="flex-1 px-4 py-8 md:px-8 max-w-4xl mx-auto z-10 relative">
+ <main data-judge-scroll="true" className="flex-1 min-w-0 px-4 py-8 md:px-8 w-full max-w-none z-10 relative h-full overflow-y-auto">
 
  {/* Empty State */}
  {!selectedTeam && (
@@ -696,7 +852,7 @@ function JudgePortalContent() {
  <c.icon size={20} />
  </div>
  <span className={isDark ? "text-sm font-bold text-slate-100 shrink-0" : "text-sm font-bold text-slate-950 shrink-0"}>{c.label}</span>
- <div className="flex-1 border-b border-dashed border-slate-200-1"></div>
+ <div className="flex-1 min-w-0 border-b border-dashed border-slate-200-1"></div>
  <span className={`text-sm font-black shrink-0 ${themeColors[c.theme].text}`}>{(c.weight * 100).toFixed(0)}%</span>
  </div>
  ))}
@@ -708,7 +864,17 @@ function JudgePortalContent() {
  {/* Selected Team Content */}
  {selectedTeam && (
  <div className="flex flex-col gap-4 animate-in fade-in slide-in-from-bottom-4 duration-500">
- <ScoringGuideCard rubricLoading={rubricLoading} />
+ <ScoringGuideCard
+     onOpen={handleOpenScoringGuide}
+     loading={rubricMutation.isPending}
+     />
+     <ScoringGuideModal
+     open={showScoringGuide}
+     onClose={() => setShowScoringGuide(false)}
+     loading={rubricMutation.isPending}
+     error={aiRubricError}
+     rubric={aiRubric}
+     />
  <TeamSubmissionSection teamId={selectedTeam.team_id} token={urlToken} />
 
  <ScoringForm
@@ -729,3 +895,8 @@ function JudgePortalContent() {
  </div>
  )
 }
+
+export default function JudgePortal() {
+ return <JudgePortalContent />
+}
+

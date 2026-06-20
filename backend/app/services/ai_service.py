@@ -67,7 +67,9 @@ def _call_llm(system_prompt: str, user_prompt: str) -> str:
         if system_prompt == COMMUNICATION_SYSTEM:
             return '{"subject": "[MOCK] AI Generated Subject", "body": "[MOCK] This is a mock email body generated because the Google API key is invalid or missing."}'
         elif system_prompt == RUBRIC_SYSTEM:
-            return '{"criteria": [{"name": "Mock Criterion", "weight": 1.0, "description": "Mock description", "what_to_look_for": ["Item 1"], "scoring_guide": {"9-10": "Excellent", "7-8": "Good", "4-6": "Average", "0-3": "Poor"}}]}'
+            raise RuntimeError(
+                "AI rubric generation failed. Check GOOGLE_API_KEY/GEMINI_MODEL in backend and celery_worker environment."
+            )
         elif system_prompt == MENTOR_SUMMARY_SYSTEM:
             return '{"summary": "[MOCK] Team is progressing well.", "recommended_focus": "Keep working", "committee_note": "No intervention needed.", "tone": "stable"}'
         return f"[MOCK] AI response due to API error: {e}"
@@ -134,29 +136,38 @@ Return ONLY valid JSON in this exact shape:
 """
 
 RUBRIC_SYSTEM = """\
-You are an expert at writing evaluation rubrics for competitive events.
+You are a hackathon judge assistant.
 
-Given a challenge area and the grading criteria with their weights, produce a
-structured rubric that helps judges score consistently and fairly.
+Create an ultra-compact scoring guide for the given criteria and weights.
 
-For each criterion, provide:
-  - description: one sentence explaining what this criterion measures
-  - what_to_look_for: 3-4 specific things judges should observe
-  - scoring_guide: what scores at different bands mean
+Rules:
+- Use every criterion exactly as provided.
+- Preserve each criterion weight exactly.
+- Do not collapse criteria.
+- Keep output very short.
+- Return ONLY valid JSON. No markdown. No extra text.
+
+For each criterion:
+- description must be under 7 words.
+- what_to_look_for must contain exactly 1 short checkpoint under 6 words.
+- scoring_guide must contain bands: 9-10, 7-8, 4-6, 0-3.
+- each band must be a short phrase under 5 words.
 
 Return ONLY valid JSON in this exact shape:
 {
   "criteria": [
     {
-      "name":        "criterion name as given",
-      "weight":      0.25,
-      "description": "...",
-      "what_to_look_for": ["...", "...", "..."],
+      "name": "criterion name as given",
+      "weight": 0.25,
+      "description": "Short description.",
+      "what_to_look_for": [
+        "Checkpoint"
+      ],
       "scoring_guide": {
-        "9-10": "Exemplary work that ...",
-        "7-8":  "Strong work that ...",
-        "4-6":  "Adequate work that ...",
-        "0-3":  "Weak work that ..."
+        "9-10": "Excellent.",
+        "7-8": "Good.",
+        "4-6": "Average.",
+        "0-3": "Weak."
       }
     }
   ]

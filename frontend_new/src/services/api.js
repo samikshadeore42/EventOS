@@ -446,6 +446,16 @@ export const evaluationsApi = {
       params: token ? { token } : undefined,
     }),
 
+  aiRubric: (body, token) =>
+    api.post(portalEventPath('/evaluations/ai-rubric', token), body, {
+      params: token ? { token } : undefined,
+    }),
+
+  aiRubricResult: (taskId, token) =>
+    api.get(portalEventPath(`/evaluations/ai-rubric/${taskId}`, token), {
+      params: token ? { token } : undefined,
+    }),
+
   teamScores: (teamId) =>
     api.get(eventPath(`/evaluations/team/${teamId}`)),
 
