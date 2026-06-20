@@ -3950,24 +3950,25 @@ function CreateEventTab() {
 
   return (
     <div className="grid grid-cols-1 xl:grid-cols-[minmax(0,1fr)_320px] gap-6 items-start">
-      <div className="app-card bg-white/95 dark:bg-white/[0.06] rounded-[24px] p-7 shadow-[0_18px_45px_rgba(15,23,42,0.08)] border border-slate-200/70 dark:border-white/10">
-        <div className="flex items-start justify-between gap-4 mb-8">
+      <div className="bg-white border border-slate-200/80 rounded-[22px] shadow-[0_18px_45px_rgba(15,23,42,0.06)] p-8">
+        <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4 mb-8">
           <div>
-            <h2 className="text-2xl font-bold text-red-600 dark:text-red-500">Create Event</h2>
-            <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">
+            <h2 className="text-2xl font-bold text-red-600">Create Event</h2>
+            <p className="text-sm text-slate-600 mt-1">
               Create from a system template. The event receives a copied template config and its own active capabilities.
             </p>
           </div>
-          <button type="button" className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 shadow-sm hover:bg-slate-50 dark:border-white/10 dark:bg-white/5 dark:text-slate-200 dark:hover:bg-white/10 shrink-0 transition-colors">
+          <button type="button" className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 shadow-sm hover:bg-slate-50 shrink-0 transition-colors">
+            <LayoutTemplate className="h-4 w-4" />
             Template marketplace
           </button>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 mb-5">
           <div>
-            <label className="block text-sm font-semibold text-slate-900 dark:text-slate-200 mb-2">Event name</label>
-            <div className="relative">
-              <div className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 flex h-9 w-9 items-center justify-center rounded-lg bg-green-100 text-green-600 dark:bg-green-500/15 dark:text-green-300">
+            <label className="block text-sm font-semibold text-slate-700 mb-2">Event name</label>
+            <div className="relative opacity-100">
+              <div className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 flex h-9 w-9 items-center justify-center rounded-lg bg-green-100 text-green-600">
                 <Calendar className="h-4 w-4" />
               </div>
               <input
@@ -3978,40 +3979,40 @@ function CreateEventTab() {
                   slug: f.slug || slugifyEventName(e.target.value),
                 }))}
                 placeholder="Smart India Hackathon Demo"
-                className="soft-input h-12 w-full rounded-xl pl-14 pr-4 text-sm text-slate-900 placeholder:text-slate-400 dark:text-white dark:placeholder:text-slate-500 bg-slate-50 dark:bg-white/5 border-slate-200 dark:border-white/10 focus:border-red-500 focus:ring-1 focus:ring-red-500 transition-colors"
+                className="w-full h-14 rounded-xl border border-slate-200 bg-white pl-14 pr-4 text-sm font-medium text-slate-900 placeholder:text-slate-400 outline-none transition focus:border-blue-300 focus:ring-4 focus:ring-blue-100/70"
               />
             </div>
           </div>
           <div>
-            <label className="block text-sm font-semibold text-slate-900 dark:text-slate-200 mb-2">Slug</label>
-            <div className="relative">
-              <div className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 flex h-9 w-9 items-center justify-center rounded-lg bg-blue-100 text-blue-600 dark:bg-blue-500/15 dark:text-blue-300">
+            <label className="block text-sm font-semibold text-slate-700 mb-2">Slug</label>
+            <div className="relative opacity-100">
+              <div className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 flex h-9 w-9 items-center justify-center rounded-lg bg-blue-100 text-blue-600">
                 <Link className="h-4 w-4" />
               </div>
               <input
                 value={form.slug}
                 onChange={(e) => setForm((f) => ({ ...f, slug: slugifyEventName(e.target.value) }))}
                 placeholder="smart-india-hackathon-demo"
-                className="soft-input h-12 w-full rounded-xl pl-14 pr-4 text-sm text-slate-900 placeholder:text-slate-400 dark:text-white dark:placeholder:text-slate-500 bg-slate-50 dark:bg-white/5 border-slate-200 dark:border-white/10 focus:border-red-500 focus:ring-1 focus:ring-red-500 transition-colors"
+                className="w-full h-14 rounded-xl border border-slate-200 bg-white pl-14 pr-4 text-sm font-medium text-slate-900 placeholder:text-slate-400 outline-none transition focus:border-blue-300 focus:ring-4 focus:ring-blue-100/70"
               />
             </div>
           </div>
         </div>
 
         <div className="mb-5">
-          <label className="block text-sm font-semibold text-slate-900 dark:text-slate-200 mb-2">Template</label>
-          <div className="relative">
-            <div className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 flex h-9 w-9 items-center justify-center rounded-lg bg-orange-100 text-orange-600 dark:bg-orange-500/15 dark:text-orange-300">
+          <label className="block text-sm font-semibold text-slate-700 mb-2">Template</label>
+          <div className="relative opacity-100">
+            <div className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 flex h-9 w-9 items-center justify-center rounded-lg bg-orange-100 text-orange-600">
               <LayoutTemplate className="h-4 w-4" />
             </div>
             <select
               value={form.template_id}
               onChange={(e) => setForm((f) => ({ ...f, template_id: e.target.value }))}
-              className="soft-select h-12 w-full rounded-xl pl-14 pr-10 text-sm text-slate-900 dark:text-white bg-slate-50 dark:bg-white/5 border-slate-200 dark:border-white/10 focus:border-red-500 focus:ring-1 focus:ring-red-500 transition-colors appearance-none"
+              className="w-full h-14 rounded-xl border border-slate-200 bg-white pl-14 pr-10 text-sm font-medium text-slate-900 outline-none transition focus:border-blue-300 focus:ring-4 focus:ring-blue-100/70 appearance-none"
             >
-              <option value="">{isLoading ? 'Loading templates...' : 'Choose a template'}</option>
+              <option value="" className="text-slate-400">{isLoading ? 'Loading templates...' : 'Choose a template'}</option>
               {templates.map((template) => (
-                <option key={template.id} value={template.id}>
+                <option key={template.id} value={template.id} className="text-slate-900">
                   {template.name}
                 </option>
               ))}
@@ -4023,9 +4024,9 @@ function CreateEventTab() {
         </div>
 
         {selectedTemplate && (
-          <div className="rounded-xl bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 p-4 mb-5">
-            <p className="text-sm font-bold text-slate-900 dark:text-white">{selectedTemplate.name}</p>
-            <p className="text-xs text-slate-600 dark:text-slate-400 mt-1">{selectedTemplate.description}</p>
+          <div className="rounded-xl bg-slate-50 border border-slate-200 p-4 mb-5">
+            <p className="text-sm font-bold text-slate-900">{selectedTemplate.name}</p>
+            <p className="text-xs text-slate-600 mt-1">{selectedTemplate.description}</p>
             <div className="flex gap-2 flex-wrap mt-3">
               {(selectedTemplate.default_capabilities || []).map((cap) => (
                 <Badge key={cap} colour="teal">{cap}</Badge>
@@ -4034,47 +4035,49 @@ function CreateEventTab() {
           </div>
         )}
 
-        <div className="mb-8">
-          <label className="block text-sm font-semibold text-slate-900 dark:text-slate-200 mb-2">Description</label>
+        <div className="mb-8 opacity-100">
+          <label className="block text-sm font-semibold text-slate-700 mb-2">Description (Optional)</label>
           <div className="relative">
-            <div className="pointer-events-none absolute left-3 top-3 flex h-9 w-9 items-center justify-center rounded-lg bg-purple-100 text-purple-600 dark:bg-purple-500/15 dark:text-purple-300">
+            <div className="pointer-events-none absolute left-3 top-3 flex h-9 w-9 items-center justify-center rounded-lg bg-purple-100 text-purple-600">
               <ClipboardList className="h-4 w-4" />
             </div>
             <textarea
               value={form.description}
               onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))}
-              rows={4}
               placeholder="Optional internal description for this event..."
-              className="soft-input min-h-[150px] w-full rounded-xl py-3.5 pl-14 pr-4 text-sm text-slate-900 placeholder:text-slate-400 dark:text-white dark:placeholder:text-slate-500 bg-slate-50 dark:bg-white/5 border-slate-200 dark:border-white/10 focus:border-red-500 focus:ring-1 focus:ring-red-500 transition-colors resize-none"
+              className="w-full min-h-[150px] rounded-xl border border-slate-200 bg-white pl-14 pr-4 py-4 text-sm font-medium text-slate-900 placeholder:text-slate-400 outline-none resize-none transition focus:border-blue-300 focus:ring-4 focus:ring-blue-100/70"
             />
           </div>
         </div>
 
+        {createMutation.isError && (
+          <div className="bg-red-50 border border-red-100 text-red-600 rounded-xl p-3 mb-5 text-sm font-medium">
+            {createMutation.error?.message}
+          </div>
+        )}
+
         <button
           onClick={() => createMutation.mutate()}
           disabled={createMutation.isPending || !form.name.trim() || !form.template_id}
-          className="inline-flex h-12 items-center justify-center gap-2 rounded-xl bg-red-600 px-6 text-sm font-bold text-white shadow-[0_12px_24px_rgba(239,68,68,0.25)] transition hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-60 w-full sm:w-auto"
+          className="inline-flex h-12 items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-red-500 to-red-600 px-6 text-sm font-bold text-white shadow-[0_12px_24px_rgba(239,68,68,0.25)] transition hover:from-red-600 hover:to-red-700 disabled:cursor-not-allowed disabled:opacity-60"
         >
           <FileText className="h-4 w-4" />
           {createMutation.isPending ? 'Creating...' : 'Create from template'}
         </button>
-        {createMutation.isError && (
-          <p className="text-sm font-medium text-red-500 mt-3">{createMutation.error?.message}</p>
-        )}
       </div>
 
-      <aside className="app-card rounded-[24px] bg-white/95 p-7 shadow-[0_18px_45px_rgba(15,23,42,0.08)] border border-slate-200/70 dark:border-white/10 dark:bg-white/[0.06]">
-        <div className="mb-5 flex h-12 w-12 items-center justify-center rounded-2xl bg-orange-100 text-orange-500 dark:bg-orange-500/15 dark:text-orange-300">
+      <aside className="bg-white border border-slate-200/80 rounded-[22px] shadow-[0_18px_45px_rgba(15,23,42,0.06)] p-8">
+        <div className="mb-5 flex h-12 w-12 items-center justify-center rounded-2xl bg-orange-50 text-orange-500">
           <Lightbulb className="h-7 w-7" />
         </div>
-        <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-2">Need AI help?</h3>
-        <p className="text-sm text-slate-600 dark:text-slate-400 mb-6 leading-relaxed">
+        <h3 className="text-xl font-bold text-slate-900 mb-2">Need AI help?</h3>
+        <p className="text-sm text-slate-600 mb-6 leading-relaxed">
           Use the AI event builder when you do not know the template, stages, team size, or scoring structure yet.
         </p>
         <button
           type="button"
           onClick={() => navigate('/configure')}
-          className="inline-flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-orange-500 to-red-600 text-sm font-bold text-white shadow-[0_14px_28px_rgba(239,68,68,0.28)] transition hover:from-orange-600 hover:to-red-700"
+          className="inline-flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-orange-500 to-red-500 text-sm font-bold text-white shadow-[0_14px_28px_rgba(239,68,68,0.28)] transition hover:from-orange-600 hover:to-red-600"
         >
           <Sparkles className="h-4 w-4" />
           Create with AI
