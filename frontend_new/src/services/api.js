@@ -585,6 +585,9 @@ export const demoAdminApi = {
 
   reset: (confirm, preserveAdmins = true) =>
     api.post('/demo-admin/reset', { confirm, preserve_admins: preserveAdmins }),
+
+  deleteUser: (email, confirm) =>
+    api.post('/demo-admin/delete-user', { email, confirm }),
 }
 
 // ── Event State (Hackathon stage) ─────────────────────────────────────────

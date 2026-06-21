@@ -1889,7 +1889,6 @@ function LeaderboardTab() {
   })
 
 
-
   return (
     <div>
       {/* Anomaly flags */}
@@ -3662,6 +3661,12 @@ function DemoControlsTab() {
   const [auditError, setAuditError] = useState('');
   const [isAuditing, setIsAuditing] = useState(false);
 
+  // Delete User state
+  const [deleteUserEmail, setDeleteUserEmail] = useState('')
+  const [deleteUserConfirm, setDeleteUserConfirm] = useState('')
+  const [deleteUserError, setDeleteUserError] = useState('')
+  const [deleteUserSuccess, setDeleteUserSuccess] = useState('')
+
   const runSecurityAudit = async () => {
     setIsAuditing(true);
     setAuditError('');
@@ -3798,8 +3803,22 @@ function DemoControlsTab() {
     })
   }
 
-
-
+  const deleteUserMutation = useMutation({
+    mutationFn: () => demoAdminApi.deleteUser(deleteUserEmail.trim(), deleteUserConfirm.trim()),
+    onMutate: () => {
+      setDeleteUserError('')
+      setDeleteUserSuccess('')
+    },
+    onSuccess: (res) => {
+      setDeleteUserSuccess(res.message || `User ${deleteUserEmail} deleted.`)
+      setDeleteUserEmail('')
+      setDeleteUserConfirm('')
+      refetchStatus()
+    },
+    onError: (err) => {
+      setDeleteUserError(err?.message || 'Failed to delete user.')
+    },
+  })
 
   return (
   <div data-demo-controls-safe-zone>
@@ -4033,6 +4052,70 @@ function DemoControlsTab() {
           </div>
         </div>
       )}
+
+      {/* Delete User / Org Owner Card */}
+      <div className="app-card rounded-[22px] p-6 lg:p-8 mb-8">
+        <div className="flex items-center gap-2 mb-4 text-purple-500">
+          <User size={20} />
+          <h3 className="text-lg font-extrabold">Delete User / Org Owner</h3>
+        </div>
+        <p className="text-sm font-medium text-muted mb-6 max-w-3xl">
+          Permanently delete a user account by email so the same email can be re-used for registration testing. If the user is the sole member of an organization, that organization is also removed.
+        </p>
+        <div className="flex flex-col md:flex-row gap-4 items-center mb-4">
+          <input
+            type="email"
+            value={deleteUserEmail}
+            onChange={(e) => {
+              setDeleteUserEmail(e.target.value)
+              setDeleteUserError('')
+              setDeleteUserSuccess('')
+            }}
+            placeholder="user@example.com"
+            className="w-full app-input h-11 px-4 text-sm font-medium text-muted placeholder:text-slate-400 focus:outline-none focus:border-blue-300 focus:ring-2 focus:ring-blue-100 transition-all"
+          />
+          <input
+            type="text"
+            value={deleteUserConfirm}
+            onChange={(e) => {
+              setDeleteUserConfirm(e.target.value)
+              setDeleteUserError('')
+              setDeleteUserSuccess('')
+            }}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') {
+                e.preventDefault()
+                if (deleteUserEmail.trim() && deleteUserConfirm.trim() === 'DELETE_USER' && !deleteUserMutation.isPending) {
+                  deleteUserMutation.mutate()
+                }
+              }
+            }}
+            placeholder="Type DELETE_USER"
+            className="w-full app-input h-11 px-4 text-sm font-medium text-muted placeholder:text-slate-400 focus:outline-none focus:border-blue-300 focus:ring-2 focus:ring-blue-100 transition-all"
+          />
+          <button
+            type="button"
+            onClick={() => deleteUserMutation.mutate()}
+            disabled={!deleteUserEmail.trim() || deleteUserConfirm.trim() !== 'DELETE_USER' || deleteUserMutation.isPending}
+            className="w-full md:w-auto shrink-0 px-6 h-11 bg-purple-500 hover:bg-purple-600 text-white text-sm font-extrabold rounded-xl transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+          >
+            {deleteUserMutation.isPending ? <Loader2 size={16} className="animate-spin" /> : <Trash2 size={16} />}
+            Delete User
+          </button>
+        </div>
+
+        {deleteUserError && (
+          <div className="mt-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-bold text-red-700">
+            {deleteUserError}
+          </div>
+        )}
+
+        {deleteUserSuccess && (
+          <div className="mt-4 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-bold text-emerald-700">
+            {deleteUserSuccess}
+          </div>
+        )}
+      </div>
 
       {/* Security & Integrity Section */}
       <h3 className="text-[20px] font-extrabold text-foreground mb-6">Security & Integrity</h3>
