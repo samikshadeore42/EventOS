@@ -58,7 +58,7 @@ export default function PortalNotificationBell({
     queryKey: countKey,
     queryFn: () => api.notificationCount(token),
     enabled,
-    refetchInterval: 15000,
+    refetchInterval: 3000,
     staleTime: 10000,
   })
 
@@ -66,7 +66,9 @@ export default function PortalNotificationBell({
     queryKey: listKey,
     queryFn: () => api.notifications(token),
     enabled: enabled && open,
-    staleTime: 5000,
+    staleTime: 1000,
+    refetchInterval: open ? 3000 : false,
+    refetchOnWindowFocus: true,
   })
 
   const invalidateNotifications = () => {

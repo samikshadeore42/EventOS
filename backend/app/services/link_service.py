@@ -275,15 +275,19 @@ class LinkService:
         run_by_stage = {run.stage_definition_id: run for run in runs}
 
         active_stage = None
+        latest_reached_stage = None
         timeline = []
+
         for stage_def in stage_defs:
             run = run_by_stage.get(stage_def.id)
 
             if run and run.status in ("completed", "skipped"):
                 status = "completed"
+                latest_reached_stage = stage_def
             elif run and run.status == "active":
                 status = "active"
                 active_stage = stage_def
+                latest_reached_stage = stage_def
             else:
                 status = "pending"
 
@@ -292,8 +296,21 @@ class LinkService:
                 "status": status,
             })
 
+        all_stages_completed = bool(stage_defs) and all(
+            run_by_stage.get(stage_def.id)
+            and run_by_stage[stage_def.id].status in ("completed", "skipped")
+            for stage_def in stage_defs
+        )
+
+        if active_stage:
+            current_stage = active_stage.key
+        elif all_stages_completed and latest_reached_stage:
+            current_stage = latest_reached_stage.key
+        else:
+            current_stage = "not_started"
+
         return {
-            "current_stage": active_stage.key if active_stage else "not_started",
+            "current_stage": current_stage,
             "timeline": timeline,
         }
 

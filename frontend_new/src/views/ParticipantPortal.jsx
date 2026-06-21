@@ -837,10 +837,11 @@ export default function ParticipantPortal() {
   const { data, isLoading, error } = useQuery({
     queryKey:  ['portal-access', eventId, urlToken],
     queryFn:   () => portalApi.access(urlToken),
-    enabled:   !!urlToken ,
+    enabled:   !!urlToken,
     retry:     false,
     staleTime: 0,
-    refetchInterval: 15000,
+    refetchInterval: 3000,
+    refetchOnWindowFocus: true,
   })
 
   const { data: mentorData } = useQuery({
@@ -914,6 +915,14 @@ export default function ParticipantPortal() {
     progression_confirmed = null,
   } = data ?? {}
 
+  const stageKey = String(stage || '').toLowerCase()
+  const resultsStageReached =
+    stageKey === 'results' ||
+    timeline.some((phase) =>
+      String(phase.phase || '').toLowerCase() === 'results' &&
+      phase.status === 'completed'
+    )
+
   const supportEmail = import.meta.env.VITE_SUPPORT_EMAIL || 'events@ti.com'
 
   return (
@@ -950,7 +959,7 @@ export default function ParticipantPortal() {
               stage={stage}
               timeline={timeline}
             />
-            {participant_id && stage === 'results' && typeof data?.rank === 'number' && data.rank >= 1 && data.rank <= 3 && (
+            {participant_id && resultsStageReached && typeof data?.rank === 'number' && data.rank >= 1 && data.rank <= 3 && (
               <ProgressionInvitationSection participantId={participant_id} currentStatus={progression_confirmed} />
             )}
           </div>
@@ -963,14 +972,14 @@ export default function ParticipantPortal() {
         </div>
 
         {/* Second Row: Project Submission */}
-        {team_assigned && (stage === 'development') && (
+        {team_assigned && stageKey === 'development' && (
           <div className="mb-6">
             <ProjectSubmissionSection token={urlToken} />
           </div>
         )}
-        {stage === 'results' && (
+        {resultsStageReached && (
           <div className="mb-6">
-             <ResultsSection data={data} />
+            <ResultsSection data={data} />
           </div>
         )}
 
