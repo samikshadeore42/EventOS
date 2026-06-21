@@ -469,6 +469,18 @@ export const evaluationsApi = {
 
   auditIntegrity: () =>
     api.get(eventPath('/evaluations/audit-integrity')),
+
+  notifications: (token) =>
+    api.get(portalEventPath('/evaluations/portal/notifications', token), { params: token ? { token } : undefined }),
+
+  notificationCount: (token) =>
+    api.get(portalEventPath('/evaluations/portal/notifications/unread-count', token), { params: token ? { token } : undefined }),
+
+  markNotificationRead: (id, token) =>
+    api.post(portalEventPath(`/evaluations/portal/notifications/${id}/read`, token), null, { params: token ? { token } : undefined }),
+
+  markAllNotificationsRead: (token) =>
+    api.post(portalEventPath('/evaluations/portal/notifications/read-all', token), null, { params: token ? { token } : undefined }),
 }
 
 // ── Leaderboard ───────────────────────────────────────────────────────────
@@ -497,6 +509,18 @@ export const portalApi = {
     api.post(eventPath('/portal/generate-links'), null, {
       params: { role, stage, send_emails: sendEmails },
     }),
+  
+  notifications: (token) =>
+    api.get(portalEventPath('/participant-portal/notifications', token), { params: token ? { token } : undefined }),
+
+  notificationCount: (token) =>
+    api.get(portalEventPath('/participant-portal/notifications/unread-count', token), { params: token ? { token } : undefined }),
+
+  markNotificationRead: (id, token) =>
+    api.post(portalEventPath(`/participant-portal/notifications/${id}/read`, token), null, { params: token ? { token } : undefined }),
+
+  markAllNotificationsRead: (token) =>
+    api.post(portalEventPath('/participant-portal/notifications/read-all', token), null, { params: token ? { token } : undefined }),
 }
 
 export const dailyUpdateApi = {

@@ -11,6 +11,8 @@ import {
 import TeamChatPanel from '../components/TeamChatPanel'
 import { portalApi, mentorApi, submissionsApi, dailyUpdateApi, eventStorage } from '../services/api'
 import { useAuth } from '../context/AuthContext'
+import Navbar from '../components/Navbar'
+import PortalNotificationBell from '../components/PortalNotificationBell'
 
 // ── Daily Update Form (Phase 10) ───────────────────────────────────────────
 function DailyUpdateForm({ token }) {
@@ -912,7 +914,27 @@ export default function ParticipantPortal() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-[#f8fbff] via-[#eef6fb] to-[#f7fbff] text-slate-950 font-sans pb-20">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 py-10 space-y-6">
+     <Navbar
+      title="WISE@TI EventOS"
+      subtitle="Participant Portal"
+      userName={name}
+      hasMobileMenu
+      mobileBreakpoint="never"
+      customActions={
+        <>
+          <PortalNotificationBell
+            token={urlToken}
+            api={portalApi}
+            queryKeyPrefix="participant-notifications"
+          />
+          <div className="w-8 h-8 rounded-full bg-orange-500 text-white flex items-center justify-center font-bold text-xs">
+            {initials(name) || 'P'}
+          </div>
+        </>
+      }
+     />
+
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 py-10 space-y-6">
 
         {/* Top Row: Event Status, Phase, Notifications */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
