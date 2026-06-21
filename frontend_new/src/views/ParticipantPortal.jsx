@@ -896,6 +896,7 @@ export default function ParticipantPortal() {
     participant_id,
     name           = 'Participant',
     email          = '',
+    event_name     = '',
     stage          = 'evaluation',
     team_assigned  = false,
     team_id,
@@ -918,7 +919,7 @@ export default function ParticipantPortal() {
             <PortalHeader
               name={name}
               email={email}
-              eventName="AI Hackathon"
+              eventName={event_name || 'EventOS'}
               stage={stage}
               timeline={timeline}
             />
