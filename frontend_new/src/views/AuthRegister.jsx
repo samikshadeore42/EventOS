@@ -1,8 +1,88 @@
-import { useState } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
-import { Loader2, Mail, Lock, User, Building2, Link as LinkIcon, Eye, EyeOff } from 'lucide-react';
+import { Loader2, Mail, Lock, User, Building2, Link as LinkIcon, Eye, EyeOff, RefreshCw, CheckCircle } from 'lucide-react';
 import EventOSLogo from '../components/EventOSLogo';
 import { authApi } from '../services/api';
+
+const RESEND_COOLDOWN = 60; // seconds
+
+function RegistrationSuccess({ email }) {
+  const [resending, setResending] = useState(false);
+  const [resendMsg, setResendMsg] = useState(null);
+  const [resendError, setResendError] = useState(null);
+  const [cooldown, setCooldown] = useState(0);
+
+  useEffect(() => {
+    if (cooldown <= 0) return;
+    const timer = setTimeout(() => setCooldown((c) => c - 1), 1000);
+    return () => clearTimeout(timer);
+  }, [cooldown]);
+
+  const handleResend = useCallback(async () => {
+    if (resending || cooldown > 0) return;
+    setResending(true);
+    setResendMsg(null);
+    setResendError(null);
+    try {
+      await authApi.resendVerification({ email });
+      setResendMsg('Verification email sent! Check your inbox.');
+      setCooldown(RESEND_COOLDOWN);
+    } catch (err) {
+      setResendError(
+        err?.response?.data?.detail || err?.message || 'Failed to resend. Please try again.'
+      );
+    } finally {
+      setResending(false);
+    }
+  }, [email, resending, cooldown]);
+
+  return (
+    <div className="text-center py-4">
+      <div className="mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-emerald-50 text-emerald-500 mb-6">
+        <Mail className="h-8 w-8" />
+      </div>
+      <h3 className="text-xl font-black text-slate-950 mb-2">Check your email</h3>
+      <p className="text-sm font-medium text-slate-500 mb-6 max-w-sm mx-auto">
+        We&apos;ve sent a verification link to <strong className="text-slate-950">{email}</strong>.
+        Please verify your email address before signing in.
+      </p>
+
+      {resendMsg && (
+        <div className="flex items-center justify-center gap-2 bg-emerald-50 border border-emerald-200 text-emerald-700 rounded-xl px-4 py-2.5 text-sm font-medium mb-4 max-w-sm mx-auto">
+          <CheckCircle className="h-4 w-4 shrink-0" />
+          {resendMsg}
+        </div>
+      )}
+      {resendError && (
+        <div className="bg-red-50 border border-red-200 text-red-600 rounded-xl px-4 py-2.5 text-sm font-medium mb-4 max-w-sm mx-auto">
+          {resendError}
+        </div>
+      )}
+
+      <button
+        type="button"
+        onClick={handleResend}
+        disabled={resending || cooldown > 0}
+        className="inline-flex items-center gap-2 text-sm font-bold text-slate-600 hover:text-red-500 transition-colors disabled:opacity-50 disabled:cursor-not-allowed mb-6"
+      >
+        {resending ? (
+          <Loader2 className="h-4 w-4 animate-spin" />
+        ) : (
+          <RefreshCw className="h-4 w-4" />
+        )}
+        {cooldown > 0
+          ? `Resend in ${cooldown}s`
+          : 'Resend verification email'}
+      </button>
+
+      <div className="block">
+        <Link to="/auth/login" className="font-bold text-red-500 hover:text-red-600 transition-colors">
+          Go to sign in
+        </Link>
+      </div>
+    </div>
+  );
+}
 
 export default function AuthRegister() {
   const [formData, setFormData] = useState({
@@ -63,19 +143,7 @@ export default function AuthRegister() {
       <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-xl z-10 relative">
         <div className="bg-white/90 border border-slate-200/80 rounded-[20px] shadow-[0_18px_45px_rgba(15,23,42,0.08)] backdrop-blur p-8">
           {registered ? (
-            <div className="text-center py-4">
-              <div className="mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-emerald-50 text-emerald-500 mb-6">
-                <Mail className="h-8 w-8" />
-              </div>
-              <h3 className="text-xl font-black text-slate-950 mb-2">Check your email</h3>
-              <p className="text-sm font-medium text-slate-500 mb-8 max-w-sm mx-auto">
-                We've sent a verification link to <strong className="text-slate-950">{formData.email}</strong>.
-                Please verify your email address before signing in.
-              </p>
-              <Link to="/auth/login" className="font-bold text-red-500 hover:text-red-600 transition-colors">
-                Go to sign in
-              </Link>
-            </div>
+            <RegistrationSuccess email={formData.email} />
           ) : (
           <form className="space-y-5" onSubmit={handleRegister}>
             {error && (
