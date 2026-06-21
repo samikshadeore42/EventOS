@@ -565,7 +565,10 @@ export default function StageTimelinePanel({ eventStatus }) {
             if (runStatus === 'completed') {
               badgeBg = 'bg-emerald-50 dark:bg-emerald-500/10'
               badgeText = 'text-emerald-600 dark:text-emerald-400'
-            } else if (runStatus === 'awaiting_approval' || runStatus === 'active') {
+            } else if (runStatus === 'active') {
+              badgeBg = 'bg-emerald-50 dark:bg-emerald-500/10'
+              badgeText = 'text-emerald-600 dark:text-emerald-400'
+            } else if (runStatus === 'awaiting_approval') {
               badgeBg = 'bg-orange-50 dark:bg-orange-500/10'
               badgeText = 'text-orange-600 dark:text-orange-400'
             }
@@ -629,7 +632,9 @@ function Field({ label, children }) {
 function StatusPill({ status }) {
   if (status === 'completed') {
     return <span className="inline-flex items-center justify-center px-3 py-1 rounded-[10px] bg-emerald-50 text-emerald-600 border border-emerald-100 dark:bg-emerald-500/10 dark:text-emerald-400 dark:border-emerald-500/25 text-xs font-extrabold capitalize">Completed</span>
-  } else if (status === 'awaiting_approval' || status === 'active') {
+  } else if (status === 'active') {
+    return <span className="inline-flex items-center justify-center px-3 py-1 rounded-[10px] bg-emerald-50 text-emerald-600 border border-emerald-100 dark:bg-emerald-500/10 dark:text-emerald-400 dark:border-emerald-500/25 text-xs font-extrabold capitalize">Running</span>
+  } else if (status === 'awaiting_approval') {
     return <span className="inline-flex items-center justify-center px-3 py-1 rounded-[10px] bg-orange-50 text-orange-500 border border-orange-100 dark:bg-orange-500/10 dark:text-orange-400 dark:border-orange-500/25 text-xs font-extrabold capitalize">Awaiting approval</span>
   } else {
     return <span className="inline-flex items-center justify-center px-3 py-1 rounded-[10px] bg-blue-50 text-blue-600 border border-blue-100 dark:bg-blue-500/10 dark:text-blue-400 dark:border-blue-500/25 text-xs font-extrabold capitalize">Pending</span>
