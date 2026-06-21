@@ -2632,9 +2632,9 @@ function MentorOpsTab() {
         {/* Bulk Import */}
         <div className="px-6 py-4 bg-cardSoft/50 border-b border-border flex flex-col xl:flex-row xl:items-center gap-4">
           <div className="flex items-center gap-3 flex-wrap flex-1">
-            <button className="flex items-center gap-2 app-btn-secondary">
+            <button className="relative flex items-center gap-2 app-btn-secondary">
                <UploadCloud size={16} /> Choose File
-               <input type="file" accept=".csv" onChange={(e) => setImportFile(e.target.files[0])} className="absolute inset-0 w-full h-full opacity-0 cursor-pointer pointer-events-none" />
+               <input type="file" accept=".csv" onChange={(e) => setImportFile(e.target.files[0])} className="absolute inset-0 w-full h-full opacity-0 cursor-pointer" />
             </button>
             <span className="text-sm font-semibold text-muted truncate max-w-[200px]">
               {importFile ? importFile.name : 'No file chosen'}
