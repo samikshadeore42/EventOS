@@ -11,6 +11,8 @@ import {
 import TeamChatPanel from '../components/TeamChatPanel'
 import { portalApi, mentorApi, submissionsApi, dailyUpdateApi, eventStorage } from '../services/api'
 import { useAuth } from '../context/AuthContext'
+import Navbar from '../components/Navbar'
+import PortalNotificationBell from '../components/PortalNotificationBell'
 
 // ── Daily Update Form (Phase 10) ───────────────────────────────────────────
 function DailyUpdateForm({ token }) {
@@ -705,6 +707,7 @@ function ResultsSection({ data }) {
 
 function ProgressionInvitationSection({ participantId, currentStatus }) {
   const queryClient = useQueryClient()
+  const [inviteAccepted, setInviteAccepted] = useState(false)
 
   const mutation = useMutation({
     mutationFn: async (confirmed) => {
@@ -720,11 +723,11 @@ function ProgressionInvitationSection({ participantId, currentStatus }) {
     onError: () => alert('Something went wrong. Please check your network connection.')
   })
 
-  if (currentStatus === true || (mutation.isSuccess && mutation.variables === true)) {
+  if (inviteAccepted || currentStatus === true || (mutation.isSuccess && mutation.variables === true)) {
     return (
       <div className="bg-emerald-50 border border-emerald-200 rounded-[22px] p-6 text-center mt-6">
         <p className="text-sm font-bold text-emerald-700 flex items-center justify-center gap-2">
-          <CheckCircle size={18} /> Your attendance for the Grand Finale is locked in!
+          <CheckCircle size={18} /> Congratulations invitation accepted.
         </p>
       </div>
     )
@@ -754,9 +757,12 @@ function ProgressionInvitationSection({ participantId, currentStatus }) {
         <div className="flex gap-2 w-full sm:w-auto shrink-0">
           <button
             disabled={mutation.isPending}
-            onClick={() => mutation.mutate(true)}
+            onClick={() => {
+              setInviteAccepted(true)
+              mutation.mutate(true)
+            }}
             className="bg-orange-500 hover:bg-orange-600 text-white text-sm font-bold px-4 py-2.5 rounded-xl transition-colors disabled:opacity-50"
-          >
+            >
             {mutation.isPending && mutation.variables === true ? 'Saving...' : 'Accept Invite'}
           </button>
           <button
@@ -831,10 +837,11 @@ export default function ParticipantPortal() {
   const { data, isLoading, error } = useQuery({
     queryKey:  ['portal-access', eventId, urlToken],
     queryFn:   () => portalApi.access(urlToken),
-    enabled:   !!urlToken ,
+    enabled:   !!urlToken,
     retry:     false,
     staleTime: 0,
-    refetchInterval: 15000,
+    refetchInterval: 3000,
+    refetchOnWindowFocus: true,
   })
 
   const { data: mentorData } = useQuery({
@@ -908,11 +915,39 @@ export default function ParticipantPortal() {
     progression_confirmed = null,
   } = data ?? {}
 
+  const stageKey = String(stage || '').toLowerCase()
+  const resultsStageReached =
+    stageKey === 'results' ||
+    timeline.some((phase) =>
+      String(phase.phase || '').toLowerCase() === 'results' &&
+      phase.status === 'completed'
+    )
+
   const supportEmail = import.meta.env.VITE_SUPPORT_EMAIL || 'events@ti.com'
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-[#f8fbff] via-[#eef6fb] to-[#f7fbff] text-slate-950 font-sans pb-20">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 py-10 space-y-6">
+     <Navbar
+      title="WISE@TI EventOS"
+      subtitle="Participant Portal"
+      userName={name}
+      hasMobileMenu
+      mobileBreakpoint="never"
+      customActions={
+        <>
+          <PortalNotificationBell
+            token={urlToken}
+            api={portalApi}
+            queryKeyPrefix="participant-notifications"
+          />
+          <div className="w-8 h-8 rounded-full bg-orange-500 text-white flex items-center justify-center font-bold text-xs">
+            {initials(name) || 'P'}
+          </div>
+        </>
+      }
+     />
+
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 py-10 space-y-6">
 
         {/* Top Row: Event Status, Phase, Notifications */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -924,7 +959,7 @@ export default function ParticipantPortal() {
               stage={stage}
               timeline={timeline}
             />
-            {participant_id && stage === 'results' && typeof data?.rank === 'number' && data.rank >= 1 && data.rank <= 3 && (
+            {participant_id && resultsStageReached && typeof data?.rank === 'number' && data.rank >= 1 && data.rank <= 3 && (
               <ProgressionInvitationSection participantId={participant_id} currentStatus={progression_confirmed} />
             )}
           </div>
@@ -937,14 +972,14 @@ export default function ParticipantPortal() {
         </div>
 
         {/* Second Row: Project Submission */}
-        {team_assigned && (stage === 'evaluation' || stage === 'results' || stage === 'development') && (
+        {team_assigned && stageKey === 'development' && (
           <div className="mb-6">
             <ProjectSubmissionSection token={urlToken} />
           </div>
         )}
-        {stage === 'results' && (
+        {resultsStageReached && (
           <div className="mb-6">
-             <ResultsSection data={data} />
+            <ResultsSection data={data} />
           </div>
         )}
 

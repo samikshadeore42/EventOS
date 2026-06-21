@@ -44,6 +44,7 @@ class NotificationService:
                 NotificationOutbox.idempotency_key == idempotency_key,
             ).first()
             if existing:
+                self._materialize_inapp_immediately(existing)
                 return existing
 
         row = NotificationOutbox(
@@ -62,13 +63,30 @@ class NotificationService:
             try:
                 self.db.commit()
                 self.db.refresh(row)
+                self._materialize_inapp_immediately(row)
             except IntegrityError:
                 self.db.rollback()
-                return self.db.query(NotificationOutbox).filter(
+                existing = self.db.query(NotificationOutbox).filter(
                     NotificationOutbox.event_id == self.event_id,
                     NotificationOutbox.idempotency_key == idempotency_key,
                 ).first()
+                if existing:
+                    self._materialize_inapp_immediately(existing)
+                return existing
         return row
+
+    def _materialize_inapp_immediately(self, outbox: NotificationOutbox) -> None:
+        """Create in-app notification rows immediately.
+
+        The outbox still remains for email delivery, but the UI should not wait
+        for Celery beat to show in-app notifications.
+        """
+        try:
+            recipients = self.resolve_recipients(outbox)
+            for recipient in recipients:
+                self.create_inapp_idempotent(outbox, recipient, commit=True)
+        except Exception:
+            self.db.rollback()
 
     # ── delivery helpers (used by the Celery outbox processor) ────────────────
 

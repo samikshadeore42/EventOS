@@ -21,6 +21,13 @@ from app.schemas.evaluation_schemas import (
 from app.schemas.ai_schemas import AITaskEnqueueResponse, RubricRequest, RubricResult, CriterionRubric
 from app.services.task_tracker import TaskTracker
 from app.tasks.ai_tasks import generate_rubric_task
+from app.services.portal_notification_service import (
+    list_for_evaluator,
+    unread_count_for_evaluator,
+    mark_read_by_role,
+    mark_all_read_by_role,
+    evaluator_role_key,
+)
 
 # 1. Update Prefix
 router = APIRouter(prefix="/events/{event_id}/evaluations", tags=["Evaluations"])
@@ -192,6 +199,64 @@ def get_evaluator_ai_rubric_result(
 
     return RubricResult(criteria=[CriterionRubric(**c) for c in result["criteria"]])
 
+@router.get("/portal/notifications", summary="Evaluator: list own notifications")
+def evaluator_portal_notifications(
+    unread_only: bool = False,
+    token: str = Query(...),
+    scope: ScopedEventService = Depends(get_event_scope),
+):
+    evaluator = _require_evaluator_portal_access(token, scope)
+    rows = list_for_evaluator(scope.db, scope.event_id, evaluator.id, unread_only=unread_only)
+
+    return {
+        "notifications": [
+            {
+                "id": str(row.id),
+                "title": row.title,
+                "message": row.message,
+                "notification_type": row.notification_type,
+                "read": row.read_at is not None,
+                "created_at": row.created_at.isoformat() if row.created_at else None,
+            }
+            for row in rows
+        ]
+    }
+
+
+@router.get("/portal/notifications/unread-count", summary="Evaluator: unread notification count")
+def evaluator_portal_notification_count(
+    token: str = Query(...),
+    scope: ScopedEventService = Depends(get_event_scope),
+):
+    evaluator = _require_evaluator_portal_access(token, scope)
+    return {"unread": unread_count_for_evaluator(scope.db, scope.event_id, evaluator.id)}
+
+
+@router.post("/portal/notifications/{notification_id}/read", summary="Evaluator: mark notification read")
+def evaluator_portal_mark_notification_read(
+    notification_id: UUID,
+    token: str = Query(...),
+    scope: ScopedEventService = Depends(get_event_scope),
+):
+    evaluator = _require_evaluator_portal_access(token, scope)
+    roles = [evaluator_role_key(evaluator.id), "evaluator", "all"]
+
+    row = mark_read_by_role(scope.db, scope.event_id, roles, notification_id)
+    if not row:
+        raise HTTPException(status_code=404, detail="Notification not found.")
+
+    return {"id": str(row.id), "read": row.read_at is not None}
+
+
+@router.post("/portal/notifications/read-all", summary="Evaluator: mark all notifications read")
+def evaluator_portal_mark_all_notifications_read(
+    token: str = Query(...),
+    scope: ScopedEventService = Depends(get_event_scope),
+):
+    evaluator = _require_evaluator_portal_access(token, scope)
+    roles = [evaluator_role_key(evaluator.id), "evaluator", "all"]
+
+    return {"marked_read": mark_all_read_by_role(scope.db, scope.event_id, roles)}
 
 @router.patch(
     "/{evaluation_id}",

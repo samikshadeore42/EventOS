@@ -7,7 +7,10 @@ from tests.conftest import TEST_EVENT_ID
 
 @pytest.fixture(autouse=True)
 def mock_session_local(db_session):
-    with patch("app.core.database.SessionLocal", return_value=db_session):
+    with patch("app.core.database.SessionLocal", return_value=db_session), \
+         patch("app.services.email_service.EMAIL_DELIVERY_MODE", "mock"), \
+         patch("app.services.email_service.SENDGRID_API_KEY", None), \
+         patch("app.services.email_service.EMAIL_SENDGRID_FALLBACK_TO_MOCK", True):
         yield
 
 def test_idempotency_key_skips_resending(db_session):
@@ -23,7 +26,10 @@ def test_idempotency_key_skips_resending(db_session):
 def test_failed_retry_updates_same_row(db_session):
     key = f"test_fail_idem_key_{uuid.uuid4()}"
     email = "fail_test@example.com"
-    with patch("app.services.email_service.EMAIL_DELIVERY_MODE", "sendgrid"), patch("app.services.email_service.SENDGRID_API_KEY", "ci-test-key"), patch("app.services.email_service.SendGridAPIClient") as mock_sg:
+    with patch("app.services.email_service.EMAIL_DELIVERY_MODE", "sendgrid"), \
+         patch("app.services.email_service.SENDGRID_API_KEY", "ci-test-key"), \
+         patch("app.services.email_service.EMAIL_SENDGRID_FALLBACK_TO_MOCK", False), \
+         patch("app.services.email_service.SendGridAPIClient") as mock_sg:
         mock_sg.side_effect = Exception("Simulated send failure")
         r1 = EmailService.send_email(event_id=TEST_EVENT_ID, to_email=email, subject="Fail Test", html_content="<p>Fail</p>", idempotency_key=key)
         assert r1.get("success") is False

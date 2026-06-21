@@ -3,13 +3,14 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import {
  Users, Calendar, MessageSquare, AlertTriangle, Loader2,
  Send, Plus, ChevronDown, ChevronRight,
- Target, Bell, Menu, LayoutGrid, CalendarDays, Sun, Moon, ClipboardList, CheckCircle, XCircle, ExternalLink
+ Target, Menu, LayoutGrid, CalendarDays, Sun, Moon, ClipboardList, CheckCircle, XCircle, ExternalLink
 } from 'lucide-react'
 import { mentorApi, portalApi, eventStorage } from '../services/api'
 import TeamChatPanel from '../components/TeamChatPanel'
 import { useAuth } from '../context/AuthContext'
 import { useParams } from 'react-router-dom'
 import { useTheme } from '../hooks/useTheme'
+import PortalNotificationBell from '../components/PortalNotificationBell'
 
 
 // ── Helpers ────────────────────────────────────────────────────────────────
@@ -101,220 +102,6 @@ function PortalThemeToggle() {
 }
 
 
-function NotificationDropdown({ token }) {
- const { isDark } = useTheme()
- const qc = useQueryClient()
- const [open, setOpen] = useState(false)
-
- const storageKey = `mentor-notifications-read-v3:${token || 'anonymous'}`
- const [readDerivedIds, setReadDerivedIds] = useState(() => {
-   try {
-     return JSON.parse(window.localStorage.getItem(storageKey) || '[]')
-   } catch {
-     return []
-   }
- })
-
- const saveReadDerived = (ids) => {
-   const unique = Array.from(new Set(ids))
-   setReadDerivedIds(unique)
-   try {
-     window.localStorage.setItem(storageKey, JSON.stringify(unique))
-   } catch {
-     // ignore
-   }
- }
-
- const countQuery = useQuery({
-   queryKey: ['mentor-notifications-count', token],
-   queryFn: () => mentorApi.notificationCount(token),
-   enabled: !!token,
-   refetchInterval: 15000,
- })
-
- const listQuery = useQuery({
-   queryKey: ['mentor-notifications', token],
-   queryFn: () => mentorApi.notifications(token),
-   enabled: !!token && open,
-   refetchInterval: open ? 15000 : false,
- })
-
- const updatesQuery = useQuery({
-   queryKey: ['mentor-notification-updates-fallback-v3', token],
-   queryFn: () => mentorApi.updates(token),
-   enabled: !!token,
-   refetchInterval: 15000,
- })
-
- const markOne = useMutation({
-   mutationFn: (id) => mentorApi.markNotificationRead(id, token),
-   onSuccess: () => {
-     qc.invalidateQueries({ queryKey: ['mentor-notifications-count', token] })
-     qc.invalidateQueries({ queryKey: ['mentor-notifications', token] })
-   },
- })
-
- const markAll = useMutation({
-   mutationFn: () => mentorApi.markAllNotificationsRead(token),
-   onSuccess: () => {
-     qc.invalidateQueries({ queryKey: ['mentor-notifications-count', token] })
-     qc.invalidateQueries({ queryKey: ['mentor-notifications', token] })
-   },
- })
-
- const backendItems = (listQuery.data?.data?.notifications ?? []).map(item => ({
-   id: item.id,
-   readKey: `backend:${item.id}`,
-   source: 'backend',
-   title: item.title,
-   message: item.message,
-   created_at: item.created_at,
-   read: Boolean(item.read),
-   notification_type: item.notification_type,
- }))
-
- const updateItems = (updatesQuery.data?.data?.updates ?? []).map(update => {
-   const details = update.details || {}
-   const built = details.what_i_built || details.summary || details.progress || ''
-   const readKey = `update:${update.id}`
-
-   return {
-     id: `derived-update:${update.id}`,
-     readKey,
-     source: 'derived-update',
-     title: `${update.team_name || 'Team'} submitted an update`,
-     message: `${update.participant_name || 'Participant'} submitted a daily update${built ? `: ${built}` : '.'}`,
-     created_at: update.submitted_at || update.created_at || update.update_date,
-     read: readDerivedIds.includes(readKey),
-     notification_type: 'mentor_daily_update_submitted',
-   }
- })
-
- const byKey = new Map()
-
- for (const item of [...backendItems, ...updateItems]) {
-   const uniqueKey =
-     item.notification_type === 'mentor_daily_update_submitted'
-       ? `${item.title}:${item.message}`
-       : item.readKey
-
-   if (!byKey.has(uniqueKey)) {
-     byKey.set(uniqueKey, item)
-   }
- }
-
- const items = Array.from(byKey.values()).sort((a, b) => {
-   const at = a.created_at ? new Date(a.created_at).getTime() : 0
-   const bt = b.created_at ? new Date(b.created_at).getTime() : 0
-   return bt - at
- })
-
- const backendUnread = countQuery.data?.data?.unread ?? backendItems.filter(item => !item.read).length
- const derivedUnread = updateItems.filter(item => !item.read).length
- const unread = backendUnread + derivedUnread
-
- const handleItemClick = (item) => {
-   if (item.source === 'derived-update') {
-     saveReadDerived([...readDerivedIds, item.readKey])
-     return
-   }
-
-   if (!item.read) {
-     markOne.mutate(item.id)
-   }
- }
-
- const handleMarkAllRead = () => {
-   saveReadDerived(updateItems.map(item => item.readKey))
-
-   if (backendUnread > 0) {
-     markAll.mutate()
-   }
- }
-
- return (
-   <div className="relative">
-     <button
-       type="button"
-       onClick={() => setOpen(value => !value)}
-       className={isDark ? "relative p-2 rounded-xl border border-white/10 bg-slate-900/80 hover:bg-slate-800 transition-colors" : "relative p-2 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 shadow-sm transition-colors"}
-       title="Notifications"
-     >
-       <Bell size={20} className={isDark ? "text-slate-300" : "text-slate-500"} />
-       {unread > 0 && (
-         <span className="absolute -top-1 -right-1 min-w-4 h-4 px-1 bg-red-500 rounded-full border-2 border-white flex items-center justify-center text-[9px] font-black text-white">
-           {unread > 9 ? '9+' : unread}
-         </span>
-       )}
-     </button>
-
-     {open && (
-       <div className={isDark ? "absolute right-0 mt-3 w-[400px] max-w-[calc(100vw-2rem)] rounded-2xl border border-white/10 bg-slate-950 shadow-2xl z-50 overflow-hidden" : "absolute right-0 mt-3 w-[400px] max-w-[calc(100vw-2rem)] rounded-2xl border border-slate-200 bg-white shadow-2xl z-50 overflow-hidden"}>
-         <div className={isDark ? "px-4 py-3 border-b border-white/10 flex items-center justify-between" : "px-4 py-3 border-b border-slate-100 flex items-center justify-between"}>
-           <div>
-             <p className={isDark ? "text-sm font-black text-slate-100" : "text-sm font-black text-slate-950"}>Notifications</p>
-             <p className={isDark ? "text-[11px] font-semibold text-slate-400" : "text-[11px] font-semibold text-slate-500"}>{unread} unread</p>
-           </div>
-
-           <button
-             type="button"
-             onClick={handleMarkAllRead}
-             disabled={!unread || markAll.isPending}
-             className="text-[11px] font-black text-blue-600 disabled:text-slate-300"
-           >
-             Mark all read
-           </button>
-         </div>
-
-         <div className="max-h-[420px] overflow-y-auto">
-           {(listQuery.isLoading || updatesQuery.isLoading) && items.length === 0 ? (
-             <div className="p-6 text-center">
-               <Loader2 size={20} className="animate-spin mx-auto mb-2 text-red-500" />
-               <p className="text-xs font-bold text-slate-500">Loading notifications…</p>
-             </div>
-           ) : items.length === 0 ? (
-             <div className="p-6 text-center">
-               <Bell size={24} className="mx-auto mb-2 text-slate-300" />
-               <p className={isDark ? "text-sm font-bold text-slate-200" : "text-sm font-bold text-slate-700"}>No notifications yet</p>
-               <p className={isDark ? "text-xs font-medium text-slate-400 mt-1" : "text-xs font-medium text-slate-500 mt-1"}>
-                 Meeting reminders, chat, stage changes, and team updates will appear here.
-               </p>
-             </div>
-           ) : (
-             items.map(item => (
-               <button
-                 key={item.readKey}
-                 type="button"
-                 onClick={() => handleItemClick(item)}
-                 className={isDark ? "w-full text-left px-4 py-3 border-b border-white/10 hover:bg-slate-900 transition-colors" : "w-full text-left px-4 py-3 border-b border-slate-100 hover:bg-slate-50 transition-colors"}
-               >
-                 <div className="flex items-start gap-3">
-                   <span className={`mt-1 w-2 h-2 rounded-full shrink-0 ${item.read ? 'bg-slate-300' : 'bg-red-500'}`} />
-                   <div className="min-w-0">
-                     <p className={isDark ? "text-xs font-black text-slate-100" : "text-xs font-black text-slate-950"}>
-                       {item.title}
-                     </p>
-                     <p className={isDark ? "text-xs font-medium text-slate-400 mt-1 leading-relaxed" : "text-xs font-medium text-slate-600 mt-1 leading-relaxed"}>
-                       {item.message}
-                     </p>
-                     {item.created_at && (
-                       <p className="text-[10px] font-bold text-slate-400 mt-2">
-                         {new Date(item.created_at).toLocaleString()}
-                       </p>
-                     )}
-                   </div>
-                 </div>
-               </button>
-             ))
-           )}
-         </div>
-       </div>
-     )}
-   </div>
- )
-}
-
-
 function PortalNavbar({ mentorName, token }) {
  const { isDark } = useTheme();
  return (
@@ -327,7 +114,7 @@ function PortalNavbar({ mentorName, token }) {
  <LayoutGrid size={24} />
  </div>
  <div>
- <h1 className={isDark ? "tracking-widest uppercase leading-tight font-black text-slate-100" : "text-sm font-black text-slate-950 leading-tight uppercase tracking-widest"}>WISE@TI HACKATHON</h1>
+ <h1 className={isDark ? "tracking-widest uppercase leading-tight font-black text-slate-100" : "text-sm font-black text-slate-950 leading-tight uppercase tracking-widest"}>EVENTOS PLATFORM</h1>
  <p className={isDark ? "tracking-widest uppercase font-bold text-slate-400" : "text-[10px] font-bold text-slate-500 uppercase tracking-widest"}>Mentor Portal</p>
  </div>
  </div>
@@ -338,7 +125,11 @@ function PortalNavbar({ mentorName, token }) {
  <span className={isDark ? "tracking-widest uppercase font-bold text-slate-300" : "text-[10px] font-bold text-slate-700 uppercase tracking-widest"}>System Live</span>
  </div>
  <div className="hidden sm:block"><PortalThemeToggle /></div>
- <NotificationDropdown token={token} />
+ <PortalNotificationBell
+  token={token}
+  api={mentorApi}
+  queryKeyPrefix="mentor-notifications"
+/>
  <div className="flex items-center gap-2">
  <div className="w-8 h-8 rounded-full bg-orange-500 text-white font-bold flex items-center justify-center text-sm">
  {initials(mentorName)[0] || 'M'}

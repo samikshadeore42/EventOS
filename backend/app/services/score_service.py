@@ -373,6 +373,34 @@ class ScoreService:
             if not entry.has_flags:
                 entry.rank = rank
                 rank += 1
+        
+        try:
+            from app.models.event import Event
+            from app.models.assignment import EvaluatorTeamAssignment
+            from app.models.participant import Participant
+            from app.services.notification_service import NotificationService
+
+            event = db.query(Event).filter(Event.id == event_id).first()
+            event_name = event.name if event else "the event"
+
+            total_assignments = db.query(EvaluatorTeamAssignment).filter(
+                EvaluatorTeamAssignment.event_id == event_id,
+            ).count()
+
+            submitted = db.query(Evaluation).filter(
+                Evaluation.event_id == event_id,
+            ).count()
+
+            if total_assignments > 0 and submitted >= total_assignments:
+                NotificationService(db, event_id).enqueue(
+                    "results_announced",
+                    f"Results announced for {event_name}",
+                    f"The results for {event_name} have been announced. Check the results tab.",
+                    role="participant",
+                    idempotency_key=f"results-announced:{event_id}",
+                )
+        except Exception:
+            db.rollback()
 
         return {
             "teams_processed":   len(leaderboard),

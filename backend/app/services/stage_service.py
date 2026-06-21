@@ -428,6 +428,42 @@ class StageService:
             )
         except Exception:  # noqa: BLE001 — notifications are non-critical
             self.db.rollback()  # drop only the failed enqueue, keep prior commit
+    
+    def _notify_roles(
+        self,
+        roles: list[str],
+        *,
+        title: str,
+        message: str,
+        notification_type: str,
+        key_suffix: str,
+    ) -> None:
+        role_map = {
+            "admins": ["owner", "admin"],
+            "admin": ["owner", "admin"],
+            "participants": ["participant"],
+            "participant": ["participant"],
+            "mentors": ["mentor"],
+            "mentor": ["mentor"],
+            "judges": ["evaluator"],
+            "judge": ["evaluator"],
+            "evaluators": ["evaluator"],
+            "evaluator": ["evaluator"],
+            "all": ["owner", "admin", "participant", "mentor", "evaluator"],
+        }
+
+        final_roles = []
+        for role in roles or []:
+            final_roles.extend(role_map.get(str(role).lower(), [str(role).lower()]))
+
+        for role in sorted(set(final_roles)):
+            self._safe_notify(
+                role=role,
+                title=title,
+                message=message,
+                notification_type=notification_type,
+                idempotency_key=f"{self.event_id}:{notification_type}:{role}:{key_suffix}",
+            )
 
     def hold_stage_for_approval(self, stage_id: uuid.UUID) -> StageRun:
         """Park a stage that has reached its start time but whose transition_policy
@@ -450,11 +486,12 @@ class StageService:
             note="reached start time; awaiting committee approval (manual policy)",
         )
         self.db.commit()
-        self._safe_notify(
-            role="owner",
+        self._notify_roles(
+            ["admins"],
             title="Stage awaiting approval",
-            message=f"Stage '{stage_def.name}' has reached its start time and needs approval to begin.",
+            message=f"{stage_def.name} awaits to start. Please approve to start the stage.",
             notification_type="stage_awaiting_approval",
+            key_suffix=f"{stage_def.id}:awaiting",
         )
         return run
 
@@ -474,11 +511,23 @@ class StageService:
         # force=True: the engine already sequenced this stage; approval is the gate.
         activated = self.advance_stage(stage_id, actor_user_id=actor_user_id, force=True)
         stage_def = self.get_stage_definition(stage_id)
-        self._safe_notify(
-            role="participant",
+        policy = stage_def.reminder_policy or {}
+        roles = policy.get("notify_roles") or ["participants", "mentors", "judges"]
+
+        self._notify_roles(
+            ["admins"],
             title="Stage started",
-            message=f"Stage '{stage_def.name}' is now active.",
+            message=f"{stage_def.name} has began.",
+            notification_type="stage_started_admin",
+            key_suffix=f"{stage_def.id}:manual-started-admin",
+        )
+
+        self._notify_roles(
+            roles,
+            title="Stage started",
+            message=f"{stage_def.name} has began.",
             notification_type="stage_started",
+            key_suffix=f"{stage_def.id}:manual-started",
         )
         return activated
 
@@ -517,7 +566,11 @@ class StageService:
             ("stage_start", start_at, {}),
             ("stage_end", effective_end, {"grace_minutes": grace} if grace else {}),
         ]
-        # reminder_policy = {"warn_before_minutes": [60, 360, 1440]}
+        # reminder_policy = {
+        #   "notify_roles": ["participants", "mentors"],
+        #   "warn_before_minutes": [1440, 360, 60],
+        #   "notify_on_start": true
+        # }
         for minutes in (stage_def.reminder_policy or {}).get("warn_before_minutes", []):
             try:
                 warn_at = end_at - timedelta(minutes=int(minutes))

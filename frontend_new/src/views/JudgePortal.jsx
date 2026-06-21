@@ -10,6 +10,7 @@ import { useAuth } from '../context/AuthContext'
 import { useParams } from 'react-router-dom'
 import { useTheme } from '../hooks/useTheme'
 import EventOSLogo from '../components/EventOSLogo'
+import PortalNotificationBell from '../components/PortalNotificationBell'
 
 
 // ── Grading criteria — mirrors backend GRADING_CRITERIA constant ───────────
@@ -84,7 +85,7 @@ function PortalThemeToggle() {
  );
 }
 
-function PortalNavbar({ evaluatorName }) {
+function PortalNavbar({ evaluatorName, token }) {
   const { isDark } = useTheme();
  const initial = evaluatorName ? evaluatorName.charAt(0).toUpperCase() : 'A'
 
@@ -92,9 +93,16 @@ function PortalNavbar({ evaluatorName }) {
  <nav className={isDark ? "bg-slate-950/90 border-b border-white/10 backdrop-blur sticky top-0 z-50 h-[72px] flex items-center shrink-0" : "bg-white/95 border-b border-slate-200 backdrop-blur sticky top-0 z-50 h-[72px] flex items-center shrink-0"}>
  <div className="w-full flex items-center justify-between px-6">
  <div className="flex items-center gap-4">
- <button className={isDark ? "text-slate-300 hover:text-slate-100 transition-colors hidden sm:block" : "text-slate-600 hover:text-slate-900 transition-colors hidden sm:block"}>
- <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line></svg>
- </button>
+ <button
+  type="button"
+  className={isDark ? "text-slate-300 hover:text-slate-100 transition-colors hidden sm:block" : "text-slate-600 hover:text-slate-900 transition-colors hidden sm:block"}
+>
+  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <line x1="3" y1="12" x2="21" y2="12"></line>
+    <line x1="3" y1="6" x2="21" y2="6"></line>
+    <line x1="3" y1="18" x2="21" y2="18"></line>
+  </svg>
+</button>
  <div className="flex items-center gap-3">
  <EventOSLogo className="text-red-500" size={32} />
  <div>
@@ -114,9 +122,15 @@ function PortalNavbar({ evaluatorName }) {
 
  <div className="hidden sm:block"><PortalThemeToggle /></div>
 
- <div className="w-9 h-9 rounded-full bg-red-500 text-white flex items-center justify-center font-bold text-sm shadow-sm border-2 border-white">
+<PortalNotificationBell
+  token={token}
+  api={evaluationsApi}
+  queryKeyPrefix="evaluator-notifications"
+/>
+
+<div className="w-9 h-9 rounded-full bg-red-500 text-white flex items-center justify-center font-bold text-sm shadow-sm border-2 border-white">
  {initial}
- </div>
+</div>
  </div>
  </div>
  </nav>
@@ -789,14 +803,20 @@ return (
 }
 
 const currentStage = portalData?.stage
-const evaluationStageOpen = !currentStage || currentStage === 'evaluation'
+const currentStageKey = String(currentStage || '').toLowerCase()
+const evaluationStageOpen = !currentStageKey || currentStageKey === 'evaluation'
+const evaluationStageCompleted = ['results', 'result', 'completed'].includes(currentStageKey)
 
 if (!evaluationStageOpen) {
  return (
  <FullPageMessage
  icon={AlertTriangle}
- title="Evaluation stage has not started yet"
- message={`You are authorized, but evaluations are locked until the event reaches the Evaluation stage. Current stage: ${formatStageLabel(currentStage)}.`}
+ title={evaluationStageCompleted ? "Evaluation stage has been completed" : "Evaluation stage has not started yet"}
+ message={
+   evaluationStageCompleted
+     ? `You are authorized, but evaluations are closed because the event has moved to ${formatStageLabel(currentStage)}.`
+     : `You are authorized, but evaluations are locked until the event reaches the Evaluation stage. Current stage: ${formatStageLabel(currentStage)}.`
+ }
  />
  )
 }
@@ -837,7 +857,7 @@ const evaluatorName = portalData?.name ?? 'Evaluator'
  <div className="pointer-events-none absolute left-24 top-24 h-36 w-28 opacity-25 [background-image:radial-gradient(#bfdbfe_1.5px,transparent_1.5px)] [background-size:16px_16px]" />
  <div className="pointer-events-none absolute right-20 bottom-28 h-36 w-28 opacity-25 [background-image:radial-gradient(#bbf7d0_1.5px,transparent_1.5px)] [background-size:16px_16px]" />
 
- <PortalNavbar evaluatorName={evaluatorName} />
+ <PortalNavbar evaluatorName={evaluatorName} token={urlToken} />
 
  <div className="flex h-[calc(100vh-72px)] overflow-hidden">
  <TeamQueueSidebar

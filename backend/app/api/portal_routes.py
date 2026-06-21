@@ -2,11 +2,25 @@
 
 import os
 from fastapi import APIRouter, Depends, Query, HTTPException
-from app.core.security import create_access_token
+from app.core.security import (
+    create_access_token,
+    decode_access_token,
+    get_token_subject,
+    parse_uuid_subject,
+    verify_token_role,
+)
 from app.services.event_scope import ScopedEventService, get_event_scope  # <-- 1. Import Bouncer
 from app.services.link_service import LinkService
 from app.core.auth_deps import RequireOrganizationRole
 from datetime import timedelta
+from uuid import UUID
+from app.services.portal_notification_service import (
+    list_for_participant,
+    unread_count_for_participant,
+    mark_read_by_role,
+    mark_all_read_by_role,
+    participant_role_key,
+)
 
 # FIXED: Added prefix back to lock down this router!
 router = APIRouter(prefix="/events/{event_id}/portal", tags=["Portal"])
@@ -35,6 +49,89 @@ def portal_access(
         payload["event_name"] = scope.event.name
 
     return payload
+
+@router.get("/participant-portal/notifications")
+def participant_portal_notifications(
+    unread_only: bool = False,
+    token: str = Query(...),
+    scope: ScopedEventService = Depends(get_event_scope),
+):
+    payload = decode_access_token(token)
+    verify_token_role(payload, "participant")
+
+    if str(payload.get("event_id")) != str(scope.event_id):
+        raise HTTPException(status_code=403, detail="Token mismatch.")
+
+    participant_id = parse_uuid_subject(get_token_subject(payload), "participant ID")
+    rows = list_for_participant(scope.db, scope.event_id, participant_id, unread_only=unread_only)
+
+    return {
+        "notifications": [
+            {
+                "id": str(row.id),
+                "title": row.title,
+                "message": row.message,
+                "notification_type": row.notification_type,
+                "read": row.read_at is not None,
+                "created_at": row.created_at.isoformat() if row.created_at else None,
+            }
+            for row in rows
+        ]
+    }
+
+
+@router.get("/participant-portal/notifications/unread-count")
+def participant_portal_notification_count(
+    token: str = Query(...),
+    scope: ScopedEventService = Depends(get_event_scope),
+):
+    payload = decode_access_token(token)
+    verify_token_role(payload, "participant")
+
+    if str(payload.get("event_id")) != str(scope.event_id):
+        raise HTTPException(status_code=403, detail="Token mismatch.")
+
+    participant_id = parse_uuid_subject(get_token_subject(payload), "participant ID")
+    return {"unread": unread_count_for_participant(scope.db, scope.event_id, participant_id)}
+
+
+@router.post("/participant-portal/notifications/{notification_id}/read")
+def participant_portal_mark_notification_read(
+    notification_id: UUID,
+    token: str = Query(...),
+    scope: ScopedEventService = Depends(get_event_scope),
+):
+    payload = decode_access_token(token)
+    verify_token_role(payload, "participant")
+
+    if str(payload.get("event_id")) != str(scope.event_id):
+        raise HTTPException(status_code=403, detail="Token mismatch.")
+
+    participant_id = parse_uuid_subject(get_token_subject(payload), "participant ID")
+    roles = [participant_role_key(participant_id), "participant", "all"]
+    row = mark_read_by_role(scope.db, scope.event_id, roles, notification_id)
+
+    if not row:
+        raise HTTPException(status_code=404, detail="Notification not found.")
+
+    return {"id": str(row.id), "read": row.read_at is not None}
+
+
+@router.post("/participant-portal/notifications/read-all")
+def participant_portal_mark_all_notifications_read(
+    token: str = Query(...),
+    scope: ScopedEventService = Depends(get_event_scope),
+):
+    payload = decode_access_token(token)
+    verify_token_role(payload, "participant")
+
+    if str(payload.get("event_id")) != str(scope.event_id):
+        raise HTTPException(status_code=403, detail="Token mismatch.")
+
+    participant_id = parse_uuid_subject(get_token_subject(payload), "participant ID")
+    roles = [participant_role_key(participant_id), "participant", "all"]
+
+    return {"marked_read": mark_all_read_by_role(scope.db, scope.event_id, roles)}
 
 
 @router.post(

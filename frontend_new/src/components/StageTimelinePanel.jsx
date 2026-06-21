@@ -26,6 +26,23 @@ const CAPABILITY_OPTIONS = [
   { key: 'elimination', label: 'Elimination' },
 ]
 
+const NOTIFICATION_ROLE_OPTIONS = [
+  { key: 'participants', label: 'Participants' },
+  { key: 'mentors', label: 'Mentors' },
+  { key: 'judges', label: 'Judges' },
+  { key: 'all', label: 'All' },
+]
+
+const REMINDER_TIME_OPTIONS = [
+  { key: 'start', label: 'When the stage starts', minutes: null },
+  { key: '1440', label: '1 day before ending time', minutes: 1440 },
+  { key: '360', label: '6 hours before ending time', minutes: 360 },
+  { key: '60', label: '1 hour before ending time', minutes: 60 },
+  { key: '30', label: '30 mins before ending time', minutes: 30 },
+  { key: '10', label: '10 mins before ending time', minutes: 10 },
+  { key: '5', label: '5 mins before ending time', minutes: 5 },
+]
+
 function toDatetimeLocal(value) {
   if (!value) return ''
   const d = new Date(value)
@@ -54,7 +71,8 @@ function defaultStageForm(position = 1) {
     timezone: DEFAULT_TZ,
     transition_policy: 'manual',
     required_capabilities: '',
-    reminder_policy: '{}',
+    notify_roles: [],
+    reminder_times: [],
     is_active: true,
   }
 }
@@ -71,17 +89,25 @@ function stageToForm(stage) {
     timezone: stage.timezone || DEFAULT_TZ,
     transition_policy: stage.transition_policy || 'manual',
     required_capabilities: (stage.required_capabilities || []).join(', '),
-    reminder_policy: JSON.stringify(stage.reminder_policy || {}, null, 2),
+    notify_roles: stage.reminder_policy?.notify_roles || [],
+    reminder_times: [
+      ...(stage.reminder_policy?.notify_on_start ? ['start'] : []),
+      ...((stage.reminder_policy?.warn_before_minutes || []).map(String)),
+    ],
     is_active: stage.is_active !== false,
   }
 }
 
 function buildPayload(form) {
-  let reminderPolicy
-  try {
-    reminderPolicy = form.reminder_policy.trim() ? JSON.parse(form.reminder_policy) : {}
-  } catch {
-    throw new Error('Reminder policy must be valid JSON.')
+  const warnMinutes = form.reminder_times
+    .filter((value) => value !== 'start')
+    .map((value) => Number(value))
+    .filter((value) => Number.isFinite(value))
+
+  const reminderPolicy = {
+    notify_roles: form.notify_roles || [],
+    warn_before_minutes: warnMinutes,
+    notify_on_start: form.reminder_times.includes('start'),
   }
 
   const startAt = fromDatetimeLocal(form.start_at)
@@ -120,61 +146,13 @@ function selectedCapabilities(value) {
   )
 }
 
-function toggleCapability(value, capability) {
-  const selected = selectedCapabilities(value)
-  if (selected.has(capability)) selected.delete(capability)
-  else selected.add(capability)
-  return [...selected].join(', ')
-}
 
-function reminderPolicyFromEnglish(text) {
-  const normalized = text.toLowerCase()
-  const beforeStartMinutes = []
-  const beforeEndMinutes = []
-  const notifyRoles = []
-
-  const addRole = (role) => {
-    if (!notifyRoles.includes(role)) notifyRoles.push(role)
-  }
-
-  if (normalized.includes('admin')) addRole('admin')
-  if (normalized.includes('mentor')) addRole('mentor')
-  if (normalized.includes('judge') || normalized.includes('evaluator')) addRole('evaluator')
-  if (normalized.includes('participant')) addRole('participant')
-
-  const durationRegex = /(\d+)\s*(day|days|hour|hours|hr|hrs|minute|minutes|min|mins)/g
-  let match
-  while ((match = durationRegex.exec(normalized)) !== null) {
-    const amount = Number(match[1])
-    const unit = match[2]
-    let minutes = amount
-    if (unit.startsWith('day')) minutes = amount * 24 * 60
-    else if (unit.startsWith('hour') || unit.startsWith('hr')) minutes = amount * 60
-
-    if (
-      normalized.includes('before start') ||
-      normalized.includes('before the stage starts') ||
-      normalized.includes('before stage starts')
-    ) {
-      beforeStartMinutes.push(minutes)
-    } else {
-      beforeEndMinutes.push(minutes)
-    }
-  }
-
-  return {
-    ...(notifyRoles.length ? { notify_roles: notifyRoles } : {}),
-    ...(beforeStartMinutes.length ? { before_start_minutes: [...new Set(beforeStartMinutes)] } : {}),
-    ...(beforeEndMinutes.length ? { before_end_minutes: [...new Set(beforeEndMinutes)] } : {}),
-  }
-}
 
 export default function StageTimelinePanel({ eventStatus }) {
   const qc = useQueryClient()
   const [formOpen, setFormOpen] = useState(false)
   const [form, setForm] = useState(defaultStageForm())
   const [formError, setFormError] = useState('')
-  const [reminderPrompt, setReminderPrompt] = useState('')
 
   const { data: events = [] } = useQuery({
     queryKey: ['events', 'list'],
@@ -212,6 +190,7 @@ export default function StageTimelinePanel({ eventStatus }) {
   const invalidate = () => {
     qc.invalidateQueries({ queryKey: ['stages'] })
     qc.invalidateQueries({ queryKey: ['events', 'list'] })
+    qc.invalidateQueries({ queryKey: ['notifications', activeEventId] })
   }
 
   const publish = useMutation({
@@ -265,13 +244,11 @@ export default function StageTimelinePanel({ eventStatus }) {
   function startCreate() {
     setForm(defaultStageForm(nextPosition))
     setFormError('')
-    setReminderPrompt('')
     setFormOpen(true)
   }
   function startEdit(stage) {
     setForm(stageToForm(stage))
     setFormError('')
-    setReminderPrompt('')
     setFormOpen(true)
   }
   function moveStage(index, direction) {
@@ -283,10 +260,23 @@ export default function StageTimelinePanel({ eventStatus }) {
     reorder.mutate(reordered.map((s) => s.id))
   }
 
-  function generateReminderJson() {
-    const policy = reminderPolicyFromEnglish(reminderPrompt)
-    setForm((f) => ({ ...f, reminder_policy: JSON.stringify(policy, null, 2) }))
+  function toggleArrayValue(values = [], value) {
+    return values.includes(value)
+      ? values.filter((item) => item !== value)
+      : [...values, value]
   }
+
+  function toggleCapability(capability) {
+    setForm((f) => ({
+      ...f,
+      required_capabilities: toggleArrayValue(
+        f.required_capabilities?.split(',').map((c) => c.trim()).filter(Boolean),
+        capability
+      ).join(', '),
+    }))
+  }
+
+
 
 
   return (
@@ -484,32 +474,43 @@ export default function StageTimelinePanel({ eventStatus }) {
                 />
               </Field>
 
-              <Field label="Reminder policy JSON">
-                <div className="space-y-2">
-                  <textarea
-                    value={reminderPrompt}
-                    onChange={(e) => setReminderPrompt(e.target.value)}
-                    rows={2}
-                    className={`${INPUT_CLASS} resize-none`}
-                    placeholder="Example: remind mentors and admins 1 day and 1 hour before end"
-                  />
-                  <button
-                    type="button"
-                    onClick={generateReminderJson}
-                    disabled={!reminderPrompt.trim()}
-                    className="app-btn-secondary !text-xs !px-3 !py-1.5"
-                  >
-                    Generate editable JSON
-                  </button>
-                  <textarea
-                    value={form.reminder_policy}
-                    onChange={(e) => setForm((f) => ({ ...f, reminder_policy: e.target.value }))}
-                    rows={4}
-                    className={`${INPUT_CLASS} font-mono text-xs resize-none`}
-                  />
-                  <p className="text-[11px] text-slate-600 dark:text-slate-400">
-                    You can edit this JSON before saving. Use {} if no reminders are needed.
-                  </p>
+              <Field label="Notification recipients">
+                <div className="bg-slate-50 dark:bg-[#1e293b] border border-slate-200 dark:border-white/10 rounded-xl p-3">
+                  <div className="grid sm:grid-cols-2 gap-2">
+                    {NOTIFICATION_ROLE_OPTIONS.map((option) => (
+                      <label key={option.key} className="flex items-center gap-2 text-xs text-slate-950 dark:text-slate-100">
+                        <input
+                          type="checkbox"
+                          checked={(form.notify_roles || []).includes(option.key)}
+                          onChange={() => setForm((f) => ({
+                            ...f,
+                            notify_roles: toggleArrayValue(f.notify_roles || [], option.key),
+                          }))}
+                        />
+                        <span>{option.label}</span>
+                      </label>
+                    ))}
+                  </div>
+                </div>
+              </Field>
+
+              <Field label="Notification timing">
+                <div className="bg-slate-50 dark:bg-[#1e293b] border border-slate-200 dark:border-white/10 rounded-xl p-3">
+                  <div className="grid sm:grid-cols-2 gap-2">
+                    {REMINDER_TIME_OPTIONS.map((option) => (
+                      <label key={option.key} className="flex items-center gap-2 text-xs text-slate-950 dark:text-slate-100">
+                        <input
+                          type="checkbox"
+                          checked={(form.reminder_times || []).includes(option.key)}
+                          onChange={() => setForm((f) => ({
+                            ...f,
+                            reminder_times: toggleArrayValue(f.reminder_times || [], option.key),
+                          }))}
+                        />
+                        <span>{option.label}</span>
+                      </label>
+                    ))}
+                  </div>
                 </div>
               </Field>
             </div>
