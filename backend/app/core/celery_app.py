@@ -76,7 +76,7 @@ celery_app.conf.beat_schedule = {
     # Process scheduled stage actions — every minute
     "process-scheduled-actions": {
         "task":     "app.tasks.stages.process_scheduled_actions",
-        "schedule": crontab(minute="*/1"),
+        "schedule": 5.0,
     },
     
     # Process the notification outbox — runs every minute

@@ -15,6 +15,7 @@ from app.core.celery_app import celery_app
 from app.core.database import SessionLocal
 from app.models.scheduled_action import ScheduledAction
 from app.models.stage_definition import StageDefinition
+from app.models.stage_run import StageRun
 from app.services.stage_service import StageService
 
 logger = logging.getLogger(__name__)
@@ -79,10 +80,6 @@ def _execute_action(db, action: ScheduledAction) -> None:
     svc = StageService(db, action.event_id)
 
     if action.action_type == "stage_start":
-        # Phase 6: respect the creator's transition_policy. 'automatic' stages
-        # activate themselves; 'manual' stages park in awaiting_approval until a
-        # committee member approves. The schedule itself is the ordering authority,
-        # so automatic advance uses force=True.
         stage_def = (
             db.query(StageDefinition)
             .filter(
@@ -91,32 +88,76 @@ def _execute_action(db, action: ScheduledAction) -> None:
             )
             .first()
         )
+
+        run = (
+            db.query(StageRun)
+            .filter(
+                StageRun.event_id == action.event_id,
+                StageRun.stage_definition_id == action.stage_definition_id,
+            )
+            .first()
+        )
+
+        if not stage_def or not run:
+            return
+
+        # Important: skip stale scheduled starts.
+        # If admin already advanced past this stage, do not send old notifications.
+        if run.status != "pending":
+            logger.info(
+                "Skipping stale stage_start action for event=%s stage=%s because run status is %s",
+                action.event_id,
+                action.stage_definition_id,
+                run.status,
+            )
+            return
+
         policy = getattr(stage_def, "transition_policy", "automatic")
+
         if policy == "manual":
             svc.hold_stage_for_approval(action.stage_definition_id)
         else:
             svc.advance_stage(action.stage_definition_id, force=True)
-            policy = getattr(stage_def, "reminder_policy", None) or {}
-            roles = policy.get("notify_roles") or ["participants", "mentors", "judges"]
+
+            reminder_policy = getattr(stage_def, "reminder_policy", None) or {}
+            roles = reminder_policy.get("notify_roles") or ["participants", "mentors", "judges"]
 
             svc._notify_roles(
                 ["admins"],
                 title="Stage started",
                 message=f"{getattr(stage_def, 'name', 'stage')} has began.",
                 notification_type="stage_started_admin",
-                key_suffix=f"{stage_def.id}:automatic-started-admin",
+                key_suffix=f"{run.id}:automatic-started-admin",
             )
 
-            if policy.get("notify_on_start", True):
+            if reminder_policy.get("notify_on_start", True):
                 svc._notify_roles(
                     roles,
                     title="Stage started",
                     message=f"{getattr(stage_def, 'name', 'stage')} has began.",
                     notification_type="stage_started",
-                    key_suffix=f"{stage_def.id}:automatic-started",
+                    key_suffix=f"{run.id}:automatic-started",
                 )
 
     elif action.action_type == "stage_end":
+        run = (
+            db.query(StageRun)
+            .filter(
+                StageRun.event_id == action.event_id,
+                StageRun.stage_definition_id == action.stage_definition_id,
+            )
+            .first()
+        )
+
+        if not run or run.status != "active":
+            logger.info(
+                "Skipping stale stage_end action for event=%s stage=%s because run status is %s",
+                action.event_id,
+                action.stage_definition_id,
+                getattr(run, "status", None),
+            )
+            return
+
         svc.complete_stage_run(action.stage_definition_id)
 
     elif action.action_type == "stage_warning":
@@ -129,7 +170,22 @@ def _execute_action(db, action: ScheduledAction) -> None:
             .first()
         )
 
-        if not stage_def:
+        run = (
+            db.query(StageRun)
+            .filter(
+                StageRun.event_id == action.event_id,
+                StageRun.stage_definition_id == action.stage_definition_id,
+            )
+            .first()
+        )
+
+        if not stage_def or not run or run.status != "active":
+            logger.info(
+                "Skipping stale stage_warning action for event=%s stage=%s because run status is %s",
+                action.event_id,
+                action.stage_definition_id,
+                getattr(run, "status", None),
+            )
             return
 
         policy = stage_def.reminder_policy or {}
