@@ -96,21 +96,59 @@ def _execute_action(db, action: ScheduledAction) -> None:
             svc.hold_stage_for_approval(action.stage_definition_id)
         else:
             svc.advance_stage(action.stage_definition_id, force=True)
-            svc._safe_notify(
-                role="participant",
+            policy = getattr(stage_def, "reminder_policy", None) or {}
+            roles = policy.get("notify_roles") or ["participants", "mentors", "judges"]
+
+            svc._notify_roles(
+                ["admins"],
                 title="Stage started",
-                message=f"Stage '{getattr(stage_def, 'name', 'stage')}' is now active.",
-                notification_type="stage_started",
+                message=f"{getattr(stage_def, 'name', 'stage')} has began.",
+                notification_type="stage_started_admin",
+                key_suffix=f"{stage_def.id}:automatic-started-admin",
             )
+
+            if policy.get("notify_on_start", True):
+                svc._notify_roles(
+                    roles,
+                    title="Stage started",
+                    message=f"{getattr(stage_def, 'name', 'stage')} has began.",
+                    notification_type="stage_started",
+                    key_suffix=f"{stage_def.id}:automatic-started",
+                )
 
     elif action.action_type == "stage_end":
         svc.complete_stage_run(action.stage_definition_id)
 
     elif action.action_type == "stage_warning":
-        # Notification delivery lands in Phase 7 (outbox). For now, record intent.
-        logger.info(
-            "Stage warning for event=%s stage=%s payload=%s",
-            action.event_id, action.stage_definition_id, action.payload,
+        stage_def = (
+            db.query(StageDefinition)
+            .filter(
+                StageDefinition.event_id == action.event_id,
+                StageDefinition.id == action.stage_definition_id,
+            )
+            .first()
+        )
+
+        if not stage_def:
+            return
+
+        policy = stage_def.reminder_policy or {}
+        roles = policy.get("notify_roles") or ["participants", "mentors", "judges"]
+        minutes = int((action.payload or {}).get("warn_before_minutes", 0) or 0)
+
+        if minutes >= 1440:
+            label = f"{minutes // 1440} day"
+        elif minutes >= 60:
+            label = f"{minutes // 60} hour"
+        else:
+            label = f"{minutes} minutes"
+
+        svc._notify_roles(
+            roles,
+            title=f"{stage_def.name} ending soon",
+            message=f"{stage_def.name} ends in {label}.",
+            notification_type="stage_reminder",
+            key_suffix=f"{stage_def.id}:warning:{minutes}",
         )
 
     elif action.action_type == "finalization_email":
