@@ -519,4 +519,64 @@ describe('EventOS Stage-1 Regression Tests', () => {
     expect(screen.getByText(/10 mins before ending time/i)).toBeInTheDocument();
     expect(screen.getByText(/5 mins before ending time/i)).toBeInTheDocument();
   });
+
+    it('24. Mentor portal shows mentor chat only and hides team chat', async () => {
+    window.history.pushState({}, 'Mentor portal', `/mentor?token=${PORTAL_TOKEN}`);
+
+    axios.get.mockImplementation((url) => {
+      const path = String(url);
+
+      if (path.includes('/portal/access')) {
+        return Promise.resolve({
+          role: 'mentor',
+          mentor_id: 'm1',
+          name: 'Mentor One',
+          email: 'mentor@test.com',
+          organization: 'EventOS Labs',
+          expertise_areas: ['AI'],
+          assigned_teams_count: 1,
+          meetings_scheduled: 0,
+          updates_today: 0,
+          pending_updates_count: 0,
+        });
+      }
+
+      if (path.includes('/mentor-portal/teams')) {
+        return Promise.resolve({
+          teams: [
+            {
+              team_id: 't1',
+              team_name: 'Assigned Team 1',
+              member_count: 3,
+              feedback_count: 0,
+              latest_progress_score: null,
+              members: [],
+            },
+          ],
+        });
+      }
+
+      if (path.includes('/mentor-portal/updates/team')) {
+        return Promise.resolve({ updates: [] });
+      }
+
+      if (path.includes('/mentor-portal/notifications/unread-count')) {
+        return Promise.resolve({ unread: 0 });
+      }
+
+      return Promise.resolve({});
+    });
+
+    renderWithProviders(<MentorPortal />);
+
+    await waitFor(() => {
+      expect(screen.getByText(/Assigned Team 1/i)).toBeInTheDocument();
+    });
+
+    fireEvent.click(screen.getAllByRole('button', { name: /Manage Team/i })[0]);
+
+    expect(screen.queryByRole('button', { name: /^Team Chat$/i })).not.toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /^Mentor Chat$/i })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /^Event Support$/i })).toBeInTheDocument();
+  });
 });
