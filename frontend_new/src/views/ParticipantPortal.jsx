@@ -828,7 +828,7 @@ export default function ParticipantPortal() {
   }, [rawUrlToken, participantPortalTokenKey, setToken])
 
   const { data, isLoading, error } = useQuery({
-    queryKey:  ['portal-access', urlToken],
+    queryKey:  ['portal-access', eventId, urlToken],
     queryFn:   () => portalApi.access(urlToken),
     enabled:   !!urlToken ,
     retry:     false,
@@ -919,7 +919,7 @@ export default function ParticipantPortal() {
             <PortalHeader
               name={name}
               email={email}
-              eventName={event_name || 'EventOS'}
+              eventName={event_name || 'Event'}
               stage={stage}
               timeline={timeline}
             />
