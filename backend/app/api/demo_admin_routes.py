@@ -82,12 +82,19 @@ def delete_user_endpoint(req: DeleteUserRequest, db: Session = Depends(get_db)):
             org = db.query(Organization).filter(Organization.id == org_id).first()
             if org:
                 deleted_orgs.append(org.name)
+                # Delete Audit logs for the org
+                from app.models.audit import AuditLog
+                db.query(AuditLog).filter(AuditLog.organization_id == org_id).delete(synchronize_session=False)
                 # Delete invitations associated with the org
                 from app.models.auth_tokens import AdminInvitation
                 db.query(AdminInvitation).filter(
                     AdminInvitation.organization_id == org_id
                 ).delete(synchronize_session=False)
                 db.delete(org)
+
+    # Delete Audit logs for the user
+    from app.models.audit import AuditLog
+    db.query(AuditLog).filter(AuditLog.actor_user_id == user.id).delete(synchronize_session=False)
 
     # The User model has cascade="all, delete-orphan" on memberships,
     # sessions, email_verification_tokens, and password_reset_tokens,
