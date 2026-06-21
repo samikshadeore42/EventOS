@@ -5,7 +5,10 @@ echo "Running database migrations..."
 alembic upgrade head
 
 echo "Starting Celery worker inside free Render web service..."
-celery -A app.core.celery_app worker --concurrency=1 --loglevel=info &
+celery -A app.core.celery_app worker \
+  --loglevel=info \
+  --queues=notifications,algorithms,default,celery \
+  --concurrency=1 &
 
 echo "Starting Celery beat inside free Render web service..."
 celery -A app.core.celery_app beat --loglevel=info &
