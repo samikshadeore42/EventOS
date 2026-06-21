@@ -103,6 +103,29 @@ export default function PortalNotificationBell({
   const unread = unreadValue(countQuery.data)
   const notifications = notificationItems(listQuery.data)
 
+  const notificationStagePriority = (item) => {
+    const text = `${item.title || ''} ${item.message || ''} ${item.notification_type || ''}`.toLowerCase()
+
+    if (text.includes('completed')) return 0
+    if (text.includes('active') || text.includes('started') || text.includes('began')) return 1
+
+    return 2
+  }
+
+  const orderedNotifications = [...notifications].sort((a, b) => {
+    const at = a.created_at ? new Date(a.created_at).getTime() : 0
+    const bt = b.created_at ? new Date(b.created_at).getTime() : 0
+
+    const sameTransitionWindow = Math.abs(bt - at) <= 60_000
+
+    if (sameTransitionWindow) {
+      const priorityDiff = notificationStagePriority(a) - notificationStagePriority(b)
+      if (priorityDiff !== 0) return priorityDiff
+    }
+
+    return bt - at
+  })
+
   return (
     <div className="relative" ref={panelRef}>
       <button
@@ -154,7 +177,7 @@ export default function PortalNotificationBell({
                 <Loader2 className="h-4 w-4 animate-spin" />
                 Loading notifications...
               </div>
-            ) : notifications.length === 0 ? (
+            ) : orderedNotifications.length === 0 ? (
               <div className="px-6 py-10 text-center">
                 <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-slate-50 text-slate-400 dark:bg-white/5">
                   <Bell className="h-5 w-5" />
@@ -168,7 +191,7 @@ export default function PortalNotificationBell({
               </div>
             ) : (
               <div className="divide-y divide-slate-100 dark:divide-white/10">
-                {notifications.map((item) => {
+                {orderedNotifications.map((item) => {
                   const isUnread = !item.read && !item.read_at
 
                   return (

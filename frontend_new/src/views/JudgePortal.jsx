@@ -803,14 +803,20 @@ return (
 }
 
 const currentStage = portalData?.stage
-const evaluationStageOpen = !currentStage || currentStage === 'evaluation'
+const currentStageKey = String(currentStage || '').toLowerCase()
+const evaluationStageOpen = !currentStageKey || currentStageKey === 'evaluation'
+const evaluationStageCompleted = ['results', 'result', 'completed'].includes(currentStageKey)
 
 if (!evaluationStageOpen) {
  return (
  <FullPageMessage
  icon={AlertTriangle}
- title="Evaluation stage has not started yet"
- message={`You are authorized, but evaluations are locked until the event reaches the Evaluation stage. Current stage: ${formatStageLabel(currentStage)}.`}
+ title={evaluationStageCompleted ? "Evaluation stage has been completed" : "Evaluation stage has not started yet"}
+ message={
+   evaluationStageCompleted
+     ? `You are authorized, but evaluations are closed because the event has moved to ${formatStageLabel(currentStage)}.`
+     : `You are authorized, but evaluations are locked until the event reaches the Evaluation stage. Current stage: ${formatStageLabel(currentStage)}.`
+ }
  />
  )
 }

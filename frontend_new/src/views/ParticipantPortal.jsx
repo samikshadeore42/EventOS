@@ -707,6 +707,7 @@ function ResultsSection({ data }) {
 
 function ProgressionInvitationSection({ participantId, currentStatus }) {
   const queryClient = useQueryClient()
+  const [inviteAccepted, setInviteAccepted] = useState(false)
 
   const mutation = useMutation({
     mutationFn: async (confirmed) => {
@@ -722,11 +723,11 @@ function ProgressionInvitationSection({ participantId, currentStatus }) {
     onError: () => alert('Something went wrong. Please check your network connection.')
   })
 
-  if (currentStatus === true || (mutation.isSuccess && mutation.variables === true)) {
+  if (inviteAccepted || currentStatus === true || (mutation.isSuccess && mutation.variables === true)) {
     return (
       <div className="bg-emerald-50 border border-emerald-200 rounded-[22px] p-6 text-center mt-6">
         <p className="text-sm font-bold text-emerald-700 flex items-center justify-center gap-2">
-          <CheckCircle size={18} /> Your attendance for the Grand Finale is locked in!
+          <CheckCircle size={18} /> Congratulations invitation accepted.
         </p>
       </div>
     )
@@ -756,9 +757,12 @@ function ProgressionInvitationSection({ participantId, currentStatus }) {
         <div className="flex gap-2 w-full sm:w-auto shrink-0">
           <button
             disabled={mutation.isPending}
-            onClick={() => mutation.mutate(true)}
+            onClick={() => {
+              setInviteAccepted(true)
+              mutation.mutate(true)
+            }}
             className="bg-orange-500 hover:bg-orange-600 text-white text-sm font-bold px-4 py-2.5 rounded-xl transition-colors disabled:opacity-50"
-          >
+            >
             {mutation.isPending && mutation.variables === true ? 'Saving...' : 'Accept Invite'}
           </button>
           <button
@@ -959,7 +963,7 @@ export default function ParticipantPortal() {
         </div>
 
         {/* Second Row: Project Submission */}
-        {team_assigned && (stage === 'evaluation' || stage === 'results' || stage === 'development') && (
+        {team_assigned && (stage === 'development') && (
           <div className="mb-6">
             <ProjectSubmissionSection token={urlToken} />
           </div>

@@ -511,16 +511,24 @@ export const portalApi = {
     }),
   
   notifications: (token) =>
-    api.get(portalEventPath('/participant-portal/notifications', token), { params: token ? { token } : undefined }),
+    api.get(portalEventPath('/portal/participant-portal/notifications', token), {
+      params: token ? { token } : undefined,
+    }),
 
   notificationCount: (token) =>
-    api.get(portalEventPath('/participant-portal/notifications/unread-count', token), { params: token ? { token } : undefined }),
+    api.get(portalEventPath('/portal/participant-portal/notifications/unread-count', token), {
+      params: token ? { token } : undefined,
+    }),
 
   markNotificationRead: (id, token) =>
-    api.post(portalEventPath(`/participant-portal/notifications/${id}/read`, token), null, { params: token ? { token } : undefined }),
+    api.post(portalEventPath(`/portal/participant-portal/notifications/${id}/read`, token), null, {
+      params: token ? { token } : undefined,
+    }),
 
   markAllNotificationsRead: (token) =>
-    api.post(portalEventPath('/participant-portal/notifications/read-all', token), null, { params: token ? { token } : undefined }),
+    api.post(portalEventPath('/portal/participant-portal/notifications/read-all', token), null, {
+      params: token ? { token } : undefined,
+    }),
 }
 
 export const dailyUpdateApi = {
@@ -756,18 +764,18 @@ export const submissionsApi = {
 
   /** Get submission metadata for a team (judge) */
   getTeamSubmission: (teamId, token) =>
-    api.get(portalEventPath(`/submissions/team/${teamId}`, token), { params: token ? { token } : undefined }),
+    api.get(portalEventPath(`/submissions/team/${teamId}`, token), {
+      params: token ? { token } : undefined,
+    }),
 
   /** Download team ZIP (judge) — GET /submissions/team/{team_id}/download
    *  Returns a raw Axios response (not unwrapped) so caller can access the blob.
    */
-  downloadTeamZip: (teamId, explicitToken) => {
-    const token = explicitToken || sessionStorage.getItem(SESSION_KEY)
-    return axios.get(`${BASE_URL}${portalEventPath(`/submissions/team/${teamId}/download`, token)}`, {
-      params: { token },
+  downloadTeamZip: (teamId, token) =>
+    api.get(portalEventPath(`/submissions/team/${teamId}/download`, token), {
+      params: token ? { token } : undefined,
       responseType: 'blob',
-    })
-  },
+    }),
 }
 
 // ── LangGraph Event Configuration (Phase 5) ───────────────────────────────
