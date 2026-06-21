@@ -828,7 +828,7 @@ export default function ParticipantPortal() {
   }, [rawUrlToken, participantPortalTokenKey, setToken])
 
   const { data, isLoading, error } = useQuery({
-    queryKey:  ['portal-access', urlToken],
+    queryKey:  ['portal-access', eventId, urlToken],
     queryFn:   () => portalApi.access(urlToken),
     enabled:   !!urlToken ,
     retry:     false,
@@ -896,6 +896,7 @@ export default function ParticipantPortal() {
     participant_id,
     name           = 'Participant',
     email          = '',
+    event_name     = '',
     stage          = 'evaluation',
     team_assigned  = false,
     team_id,
@@ -918,7 +919,7 @@ export default function ParticipantPortal() {
             <PortalHeader
               name={name}
               email={email}
-              eventName="AI Hackathon"
+              eventName={event_name || 'Event'}
               stage={stage}
               timeline={timeline}
             />

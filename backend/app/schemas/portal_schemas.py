@@ -13,6 +13,7 @@ class ParticipantPortalResponse(BaseModel):
     participant_id:   str
     name:             str
     email:            str
+    event_name:       Optional[str] = None
     institution:      str
     stage:            str
     team_assigned:    bool

@@ -90,6 +90,58 @@ class TestEvaluatorAssignment:
         resp = client.get(f"/events/{TEST_EVENT_ID}/evaluators/{evaluator.id}/assignments", headers={"X-Event-Id": str(TEST_EVENT_ID)})
         assert resp.status_code == 200
 
+class TestParticipantPortalEventName:
+    @patch("app.services.link_service.decode_access_token")
+    def test_participant_portal_returns_current_event_name(self, mock_decode, client, db_session):
+        team = make_approved_team(db_session, name="Team Event Name")
+        participant = make_participant_in_team(
+            db_session,
+            team,
+            email=f"eventname_{uuid.uuid4().hex[:8]}@test.com"
+        )
+
+        mock_decode.return_value = {
+            "sub": str(participant.id),
+            "role": "participant",
+            "event_id": str(TEST_EVENT_ID),
+            "stage": "registration",
+        }
+
+        resp = client.get(
+            f"/events/{TEST_EVENT_ID}/portal/access",
+            params={"token": "mock-token"},
+            headers={"X-Event-Id": str(TEST_EVENT_ID)},
+        )
+
+        assert resp.status_code == 200
+        assert resp.json()["event_name"] == "Test Event"
+
+class TestParticipantPortalEventName:
+    @patch("app.services.link_service.decode_access_token")
+    def test_participant_portal_returns_current_event_name(self, mock_decode, client, db_session):
+        team = make_approved_team(db_session, name="Team Event Name")
+        participant = make_participant_in_team(
+            db_session,
+            team,
+            email=f"eventname_{uuid.uuid4().hex[:8]}@test.com"
+        )
+
+        mock_decode.return_value = {
+            "sub": str(participant.id),
+            "role": "participant",
+            "event_id": str(TEST_EVENT_ID),
+            "stage": "team_formation",
+        }
+
+        resp = client.get(
+            f"/events/{TEST_EVENT_ID}/portal/access",
+            params={"token": "mock-token"},
+            headers={"X-Event-Id": str(TEST_EVENT_ID)},
+        )
+
+        assert resp.status_code == 200
+        assert resp.json()["event_name"] == "Test Event"
+
 class TestJudgePortalAssignment:
     @patch("app.services.link_service.decode_access_token")
     def test_evaluator_portal_returns_only_assigned_teams(self, mock_decode, client, db_session):

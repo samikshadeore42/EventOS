@@ -27,8 +27,14 @@ def portal_access(
     token: str     = Query(..., description="Signed JWT from email link"),
     scope: ScopedEventService = Depends(get_event_scope)  # <-- 3. Inject Scope
 ):
-    # Pass event_id down to ensure the token actually belongs to this specific event
-    return LinkService.resolve_portal_access(scope.event_id, token=token, db=scope.db)
+    # Pass event_id down to ensure the token actually belongs to this specific event.
+    # Then attach the actual scoped event name resolved from /events/{event_id}.
+    payload = LinkService.resolve_portal_access(scope.event_id, token=token, db=scope.db)
+
+    if payload.get("participant_id"):
+        payload["event_name"] = scope.event.name
+
+    return payload
 
 
 @router.post(

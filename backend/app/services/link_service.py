@@ -8,6 +8,7 @@ from fastapi import HTTPException
 
 from app.core.security import create_access_token, decode_access_token, get_token_subject, parse_uuid_subject
 from app.models.participant import Participant, Team
+from app.models.event import Event
 from app.models.evaluation import Evaluator, Evaluation
 from app.models.mentor import Mentor, MentorAssignment
 from app.schemas.portal_schemas import (
@@ -331,6 +332,9 @@ class LinkService:
         if not participant:
             raise HTTPException(status_code=404, detail="Participant not found.")
 
+        event = db.query(Event).filter(Event.id == event_id).first()
+        event_name = event.name if event else "EventOS Hackathon"
+
         team      = None
         teammates = []
         if participant.team_id:
@@ -363,6 +367,7 @@ class LinkService:
             participant_id = str(participant.id),
             name           = f"{participant.first_name} {participant.last_name}",
             email          = participant.email,
+            event_name     = event_name,
             institution    = participant.institution,
             stage          = current_stage,
             team_assigned  = participant.team_id is not None,
