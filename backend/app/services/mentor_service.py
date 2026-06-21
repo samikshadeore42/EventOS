@@ -280,6 +280,37 @@ class MentorService:
         db.add(session)
         db.commit()
         db.refresh(session)
+        from app.models.participant import Participant
+        from app.services.portal_notification_service import notify_participant
+
+        mentor = db.query(Mentor).filter(
+            Mentor.id == mentor_id,
+            Mentor.event_id == event_id,
+        ).first()
+
+        team = db.query(Team).filter(
+            Team.id == data.team_id,
+            Team.event_id == event_id,
+        ).first()
+
+        mentor_name = f"{mentor.first_name} {mentor.last_name}" if mentor else "Your mentor"
+        team_name = team.team_name if team else "your team"
+
+        members = db.query(Participant).filter(
+            Participant.event_id == event_id,
+            Participant.team_id == data.team_id,
+        ).all()
+
+        for member in members:
+            notify_participant(
+                db,
+                event_id=event_id,
+                participant_id=member.id,
+                notification_type="participant_meeting_scheduled",
+                title="Mentor meeting scheduled",
+                message=f"Your mentor {mentor_name} has scheduled a meet for {team_name} at {session.scheduled_at}.",
+                dedupe_key=f"participant-meeting-scheduled:{event_id}:{member.id}:{session.id}",
+            )
         return session
 
     @staticmethod
@@ -364,6 +395,41 @@ class MentorService:
         db.add(feedback)
         db.commit()
         db.refresh(feedback)
+        if feedback.visible_to_participant:
+            from app.services.portal_notification_service import notify_participant
+
+            mentor = db.query(Mentor).filter(
+                Mentor.id == mentor_id,
+                Mentor.event_id == event_id,
+            ).first()
+            mentor_name = f"{mentor.first_name} {mentor.last_name}" if mentor else "Your mentor"
+
+            if feedback.participant_id:
+                notify_participant(
+                    db,
+                    event_id=event_id,
+                    participant_id=feedback.participant_id,
+                    notification_type="participant_feedback_received",
+                    title="Mentor feedback received",
+                    message=f"Mentor {mentor_name} has sent a feedback for you.",
+                    dedupe_key=f"participant-feedback:{event_id}:{feedback.participant_id}:{feedback.id}",
+                )
+            else:
+                members = db.query(Participant).filter(
+                    Participant.event_id == event_id,
+                    Participant.team_id == feedback.team_id,
+                ).all()
+
+                for member in members:
+                    notify_participant(
+                        db,
+                        event_id=event_id,
+                        participant_id=member.id,
+                        notification_type="participant_feedback_received",
+                        title="Team feedback received",
+                        message=f"Mentor {mentor_name} has sent a feedback for your team.",
+                        dedupe_key=f"participant-team-feedback:{event_id}:{member.id}:{feedback.id}",
+                    )
         return feedback
 
     @staticmethod

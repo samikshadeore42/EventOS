@@ -7,9 +7,11 @@ from app.core.database import get_db
 from app.core.capabilities import require_capability
 from app.services.event_scope import ScopedEventService
 from app.core.security import decode_access_token, get_token_subject, parse_uuid_subject
-from app.models.participant import Participant
+from app.models.participant import Participant, Team
 from app.models.evaluation import Evaluator
 from app.services.project_submission_service import ProjectSubmissionService
+from app.models.assignment import EvaluatorTeamAssignment
+from app.services.portal_notification_service import notify_evaluator
 
 # 1. Update Prefix
 router = APIRouter(prefix="/events/{event_id}/submissions", tags=["Submissions"])
@@ -52,6 +54,28 @@ def submit_project(
         
     # Pass event_id to service layer
     submission = ProjectSubmissionService.save_team_submission(scope.event_id, scope.db, participant, upload_file)
+    assignments = scope.db.query(EvaluatorTeamAssignment).filter(
+        EvaluatorTeamAssignment.event_id == scope.event_id,
+        EvaluatorTeamAssignment.team_id == participant.team_id,
+    ).all()
+
+    team = scope.db.query(Team).filter(
+        Team.event_id == scope.event_id,
+        Team.id == participant.team_id,
+    ).first()
+
+    team_name = team.team_name if team else "Team"
+
+    for assignment in assignments:
+        notify_evaluator(
+            scope.db,
+            event_id=scope.event_id,
+            evaluator_id=assignment.evaluator_id,
+            notification_type="evaluator_team_submission",
+            title="Final project submitted",
+            message=f"Team {team_name} submitted their final project.",
+            dedupe_key=f"evaluator-submission:{scope.event_id}:{assignment.evaluator_id}:{submission.id}",
+        )
     
     return {
         "success": True,

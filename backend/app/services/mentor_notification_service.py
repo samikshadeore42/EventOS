@@ -763,6 +763,9 @@ def _mn_create_no_update_notifications(db: Session, event_id, mentor_id) -> int:
 
     today = date.today()
     created = 0
+    now = datetime.now(timezone.utc)
+    if now.hour < 17:
+        return 0
 
     for team_id in team_ids:
         team = db.query(Team).filter(
@@ -814,9 +817,8 @@ def _mn_create_meeting_notifications(db: Session, event_id, mentor_id) -> int:
     ).all()
 
     thresholds = [
-        (30, "30 minutes"),
+        (60, "1 hour"),
         (10, "10 minutes"),
-        (5, "5 minutes"),
         (0, "now"),
     ]
 
