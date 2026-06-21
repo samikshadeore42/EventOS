@@ -371,4 +371,152 @@ describe('EventOS Stage-1 Regression Tests', () => {
       `/events/${TEST_EVENT_ID}/evaluations/audit-integrity`
     );
   });
+
+    it('19. Participant portal renders navbar and notification bell', async () => {
+    window.history.pushState({}, 'Participant portal', `/participant?token=${PORTAL_TOKEN}`);
+
+    axios.get.mockImplementation((url) => {
+      const path = String(url);
+
+      if (path.includes('/portal/access')) {
+        return Promise.resolve({
+          participant_id: 'p1',
+          name: 'Bhavika Badhe',
+          email: 'bhavikabadhe3@gmail.com',
+          event_name: 'ML Hackathon',
+          stage: 'registration',
+          team_assigned: false,
+          timeline: [],
+        });
+      }
+
+      if (path.includes('/participant-portal/notifications/unread-count')) {
+        return Promise.resolve({ unread: 0 });
+      }
+
+      if (path.includes('/participant-portal/notifications')) {
+        return Promise.resolve({ notifications: [] });
+      }
+
+      if (path.includes('/participant-mentor-info')) {
+        return Promise.resolve({});
+      }
+
+      return Promise.resolve({});
+    });
+
+    renderWithProviders(<ParticipantPortal />);
+
+    await waitFor(() => {
+      expect(screen.getByText(/WISE@TI EventOS/i)).toBeInTheDocument();
+    });
+
+    expect(screen.getByText(/Participant Portal/i)).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /notifications/i })).toBeInTheDocument();
+  });
+
+  it('20. Evaluator portal renders notification bell', async () => {
+    window.history.pushState({}, 'Evaluator portal', `/judge?token=${PORTAL_TOKEN}`);
+
+    axios.get.mockImplementation((url) => {
+      const path = String(url);
+
+      if (path.includes('/portal/access')) {
+        return Promise.resolve({
+          role: 'evaluator',
+          evaluator_id: 'e1',
+          name: 'Judge One',
+          stage: 'evaluation',
+          assigned_teams: [],
+        });
+      }
+
+      if (path.includes('/evaluations/portal/notifications/unread-count')) {
+        return Promise.resolve({ unread: 0 });
+      }
+
+      if (path.includes('/evaluations/portal/notifications')) {
+        return Promise.resolve({ notifications: [] });
+      }
+
+      return Promise.resolve({});
+    });
+
+    renderWithProviders(<JudgePortal />);
+
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: /notifications/i })).toBeInTheDocument();
+    });
+  });
+
+  it('21. Stage timeline no longer renders Reminder policy JSON', async () => {
+    axios.get.mockImplementation((url) => {
+      const path = String(url);
+
+      if (path.endsWith('/stages')) return Promise.resolve([]);
+      if (path.endsWith('/stages/runs')) return Promise.resolve([]);
+      if (path.endsWith('/stages/validation')) {
+        return Promise.resolve({ is_valid: true, violations: [] });
+      }
+
+      return Promise.resolve({});
+    });
+
+    renderWithProviders(<StageTimelinePanel eventStatus="draft" />);
+
+    fireEvent.click(await screen.findByRole('button', { name: /add stage/i }));
+
+    expect(screen.queryByText(/Reminder policy JSON/i)).not.toBeInTheDocument();
+  });
+
+  it('22. Stage timeline renders Notification recipients controls', async () => {
+    axios.get.mockImplementation((url) => {
+      const path = String(url);
+
+      if (path.endsWith('/stages')) return Promise.resolve([]);
+      if (path.endsWith('/stages/runs')) return Promise.resolve([]);
+      if (path.endsWith('/stages/validation')) {
+        return Promise.resolve({ is_valid: true, violations: [] });
+      }
+
+      return Promise.resolve({});
+    });
+
+    renderWithProviders(<StageTimelinePanel eventStatus="draft" />);
+
+    fireEvent.click(await screen.findByRole('button', { name: /add stage/i }));
+
+    expect(screen.getByText(/Notification recipients/i)).toBeInTheDocument();
+    expect(screen.getByText(/Participants/i)).toBeInTheDocument();
+    expect(screen.getAllByText(/^Mentors$/i).length).toBeGreaterThan(0);
+    expect(screen.getAllByText(/^Judges$/i).length).toBeGreaterThan(0);
+    expect(screen.getAllByText(/^All$/i).length).toBeGreaterThan(0);
+  });
+
+  it('23. Stage timeline renders Notification timing controls', async () => {
+    axios.get.mockImplementation((url) => {
+      const path = String(url);
+
+      if (path.endsWith('/stages')) return Promise.resolve([]);
+      if (path.endsWith('/stages/runs')) return Promise.resolve([]);
+      if (path.endsWith('/stages/validation')) {
+        return Promise.resolve({ is_valid: true, violations: [] });
+      }
+
+      return Promise.resolve({});
+    });
+
+    renderWithProviders(<StageTimelinePanel eventStatus="draft" />);
+
+    fireEvent.click(await screen.findByRole('button', { name: /add stage/i }));
+
+    expect(screen.getByText(/Notification timing/i)).toBeInTheDocument();
+    expect(screen.getByText(/When the stage starts/i)).toBeInTheDocument();
+    expect(screen.getByText(/1 day before ending time/i)).toBeInTheDocument();
+    expect(screen.getByText(/6 hours before ending time/i)).toBeInTheDocument();
+    expect(screen.getByText(/1 hour before ending time/i)).toBeInTheDocument();
+    expect(screen.getByText(/30 mins before ending time/i)).toBeInTheDocument();
+    expect(screen.getByText(/10 mins before ending time/i)).toBeInTheDocument();
+    expect(screen.getByText(/5 mins before ending time/i)).toBeInTheDocument();
+  });
 });
