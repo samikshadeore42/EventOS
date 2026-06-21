@@ -4,7 +4,7 @@ import ThemeToggle from './ThemeToggle'
 
 export default function Navbar({
   title = "EventOS Platform",
-  subtitle = "Hackathon Operating System",
+  subtitle = "Event Orchestration System.",
   userName = "User",
   customActions = null,
   mobileMenuOpen,
