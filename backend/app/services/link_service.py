@@ -274,33 +274,16 @@ class LinkService:
         runs = db.query(StageRun).filter(StageRun.event_id == event_id).all()
         run_by_stage = {run.stage_definition_id: run for run in runs}
 
-        active_index = 0
-        for index, stage_def in enumerate(stage_defs):
-            run = run_by_stage.get(stage_def.id)
-            if run and run.status in ("active", "awaiting_approval"):
-                active_index = index
-                break
-        else:
-            for index, stage_def in enumerate(stage_defs):
-                run = run_by_stage.get(stage_def.id)
-                if not run or run.status not in ("completed", "skipped"):
-                    active_index = index
-                    break
-            else:
-                active_index = len(stage_defs) - 1
-
+        active_stage = None
         timeline = []
-        for index, stage_def in enumerate(stage_defs):
+        for stage_def in stage_defs:
             run = run_by_stage.get(stage_def.id)
 
             if run and run.status in ("completed", "skipped"):
                 status = "completed"
-            elif run and run.status in ("active", "awaiting_approval"):
+            elif run and run.status == "active":
                 status = "active"
-            elif index < active_index:
-                status = "completed"
-            elif index == active_index:
-                status = "active"
+                active_stage = stage_def
             else:
                 status = "pending"
 
@@ -310,7 +293,7 @@ class LinkService:
             })
 
         return {
-            "current_stage": stage_defs[active_index].key,
+            "current_stage": active_stage.key if active_stage else "not_started",
             "timeline": timeline,
         }
 

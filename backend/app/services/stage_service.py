@@ -308,6 +308,29 @@ class StageService:
             self.db.commit()
         return created
 
+    def generate_stage_runs_and_actions(self) -> dict:
+        """Admin-safe idempotent action for the Timeline button.
+
+        Existing live events can already be published/active before the creator
+        edits the schedule. In that case, generating runs must also enqueue the
+        scheduled start/end actions; otherwise the first stage waits forever
+        until the admin manually clicks Advance Stage.
+        """
+        event = self._get_event()
+        runs_created = self.generate_stage_runs(commit=False)
+
+        actions_scheduled = 0
+        if event.status in (EventStatus.PUBLISHED, EventStatus.ACTIVE):
+            for stage_def in self.list_stage_definitions(active_only=True):
+                actions_scheduled += self._enqueue_actions_for_stage(stage_def, commit=False)
+
+        self._commit_or_422()
+        return {
+            "message": "Stage runs generated.",
+            "runs_created": runs_created,
+            "actions_scheduled": actions_scheduled,
+        }
+
     def advance_stage(
         self,
         stage_id: uuid.UUID,
