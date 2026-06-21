@@ -26,7 +26,7 @@ export default function NotificationBell() {
     queryKey: ['notifications', activeEvent?.id, 'unread-count'],
     queryFn: () => notificationsApi.unreadCount(),
     enabled: !!activeEvent?.id,
-    refetchInterval: 30_000,      // poll every 30s
+    refetchInterval: 3000,
     refetchOnWindowFocus: true,
   })
   const unread = countData?.unread ?? 0
@@ -34,7 +34,9 @@ export default function NotificationBell() {
   const { data: items = [], isLoading } = useQuery({
     queryKey: ['notifications', activeEvent?.id, 'list'],
     queryFn: () => notificationsApi.list(),
-    enabled: open && !!activeEvent?.id,                // only fetch the list when the dropdown is open
+    enabled: open && !!activeEvent?.id,
+    refetchInterval: open ? 3000 : false,
+    refetchOnWindowFocus: true,
   })
 
   const invalidate = () => {

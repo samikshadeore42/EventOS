@@ -169,6 +169,7 @@ export default function PipelineStepper({ showAdvanceButton = false, className =
       qc.invalidateQueries({ queryKey: ['stages', 'runs', activeEventId] })
       qc.invalidateQueries({ queryKey: ['stages', 'list', activeEventId] })
       qc.invalidateQueries({ queryKey: ['event-state', activeEventId] })
+      qc.invalidateQueries({ queryKey: ['notifications', activeEventId] })
     },
 })
 

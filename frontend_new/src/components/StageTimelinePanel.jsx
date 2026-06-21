@@ -190,6 +190,7 @@ export default function StageTimelinePanel({ eventStatus }) {
   const invalidate = () => {
     qc.invalidateQueries({ queryKey: ['stages'] })
     qc.invalidateQueries({ queryKey: ['events', 'list'] })
+    qc.invalidateQueries({ queryKey: ['notifications', activeEventId] })
   }
 
   const publish = useMutation({
