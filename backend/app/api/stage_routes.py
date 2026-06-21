@@ -71,14 +71,15 @@ def list_stage_runs(scope: ScopedEventService = Depends(get_event_scope)):
 
 @router.post("/runs/generate")
 def generate_stage_runs(scope: ScopedEventService = Depends(get_event_scope)):
-    created = _svc(scope).generate_stage_runs()
-    return {"message": "Stage runs generated", "runs_created": created}
+    return _svc(scope).generate_stage_runs_and_actions()
 
+@router.post("/runs/advance")
 @router.post("/runs/advance")
 def advance_stage_run(
     scope: ScopedEventService = Depends(get_event_scope),
 ):
     db = scope.db
+    svc = _svc(scope)
 
     runs = (
         db.query(StageRun)
@@ -94,53 +95,55 @@ def advance_stage_run(
             detail="Generate stage runs before advancing stages.",
         )
 
+    def activate(run: StageRun) -> StageRun:
+        if run.status == "awaiting_approval":
+            return svc.approve_stage(run.stage_definition_id)
+        return svc.advance_stage(run.stage_definition_id, force=True)
+
     active_index = next(
         (index for index, run in enumerate(runs) if run.status == "active"),
         None,
     )
 
     if active_index is None:
-        first_pending = next((run for run in runs if run.status == "pending"), None)
-        if not first_pending:
+        next_run = next(
+            (run for run in runs if run.status in ("awaiting_approval", "pending")),
+            None,
+        )
+        if not next_run:
             raise HTTPException(
                 status_code=400,
-                detail="No pending stage is available to start.",
+                detail="No pending or awaiting stage is available to start.",
             )
 
-        first_pending.status = "active"
-        first_pending.started_at = datetime.now(timezone.utc)
-        db.commit()
-        db.refresh(first_pending)
+        activated = activate(next_run)
         return {
             "message": "Stage started.",
-            "active_stage_run_id": str(first_pending.id),
-            "status": first_pending.status,
+            "active_stage_run_id": str(activated.id),
+            "status": activated.status,
+        }
+
+    next_run = next(
+        (run for run in runs[active_index + 1:] if run.status in ("awaiting_approval", "pending")),
+        None,
+    )
+
+    if next_run:
+        activated = activate(next_run)
+        return {
+            "message": "Advanced to next stage.",
+            "active_stage_run_id": str(activated.id),
+            "status": activated.status,
         }
 
     current_run = runs[active_index]
     current_run.status = "completed"
     current_run.ended_at = datetime.now(timezone.utc)
-
-    next_run = None
-    for run in runs[active_index + 1:]:
-        if run.status == "pending":
-            next_run = run
-            break
-
-    if next_run:
-        next_run.status = "active"
-        next_run.started_at = datetime.now(timezone.utc)
-        message = "Advanced to next stage."
-        active_stage_run_id = str(next_run.id)
-    else:
-        message = "All stages are completed."
-        active_stage_run_id = None
-
     db.commit()
 
     return {
-        "message": message,
-        "active_stage_run_id": active_stage_run_id,
+        "message": "All stages are completed.",
+        "active_stage_run_id": None,
     }
 
 # ── single stage ─────────────────────────────────────────────────────────────

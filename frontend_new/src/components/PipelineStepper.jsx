@@ -145,14 +145,23 @@ export default function PipelineStepper({ showAdvanceButton = false, className =
     return map
   }, [runs])
 
-  const activeIndex = useMemo(() => {
-    const byRun = sortedStages.findIndex((stage) => runByStage[stage.id]?.status === 'active')
-    if (byRun >= 0) return byRun
-    const firstPending = sortedStages.findIndex((stage) => runByStage[stage.id]?.status !== 'completed')
-    return firstPending >= 0 ? firstPending : Math.max(sortedStages.length - 1, 0)
+    const activeIndex = useMemo(
+    () => sortedStages.findIndex((stage) => runByStage[stage.id]?.status === 'active'),
+    [runByStage, sortedStages]
+  )
+
+  const activeStage = activeIndex >= 0 ? sortedStages[activeIndex] : null
+
+  const nextActionIndex = useMemo(() => {
+    const awaitingIndex = sortedStages.findIndex((stage) => runByStage[stage.id]?.status === 'awaiting_approval')
+    if (awaitingIndex >= 0) return awaitingIndex
+    return sortedStages.findIndex((stage) => {
+      const runStatus = runByStage[stage.id]?.status
+      return !runStatus || runStatus === 'pending'
+    })
   }, [runByStage, sortedStages])
 
-  const activeStage = sortedStages[activeIndex]
+  const canAdvance = activeStage || nextActionIndex >= 0
 
   const advanceMutation = useMutation({
     mutationFn: () => stagesApi.advanceRun(),
@@ -195,14 +204,18 @@ export default function PipelineStepper({ showAdvanceButton = false, className =
             {isFetching && <RefreshCw size={12} className="animate-spin shrink-0" style={{ color: 'var(--text-muted)' }} />}
           </div>
           <p className="text-xs mt-0.5" style={{ color: 'var(--text-muted)' }}>
-            Stage {activeIndex + 1} of {sortedStages.length} —{' '}
-            <span style={{ color: '#ef4444', fontWeight: 500 }}>
-              {activeStage?.name || 'Not started'}
-            </span>
+            {activeStage ? (
+              <>
+                Stage {activeIndex + 1} of {sortedStages.length} —{' '}
+                <span style={{ color: '#ef4444', fontWeight: 500 }}>{activeStage.name}</span>
+              </>
+            ) : (
+              <span style={{ color: 'var(--text-muted)', fontWeight: 500 }}>All stages pending — Not started</span>
+            )}
           </p>
         </div>
 
-        {showAdvanceButton && activeStage && (
+        {showAdvanceButton && canAdvance && (
           <button
             onClick={() => advanceMutation.mutate()}
             disabled={advanceMutation.isPending}
@@ -219,9 +232,8 @@ export default function PipelineStepper({ showAdvanceButton = false, className =
         {sortedStages.map((stage, index) => {
           const runStatus = runByStage[stage.id]?.status
           let status = 'pending'
-          if (runStatus === 'completed') status = 'completed'
-          else if (runStatus === 'active' || index === activeIndex) status = 'active'
-          else if (index < activeIndex) status = 'completed'
+          if (runStatus === 'completed' || runStatus === 'skipped') status = 'completed'
+          else if (runStatus === 'active') status = 'active'
 
           return (
             <StageNode

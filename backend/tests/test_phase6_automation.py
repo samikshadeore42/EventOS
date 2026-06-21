@@ -74,6 +74,69 @@ def test_automatic_stage_auto_activates(client, db_session, monkeypatch, past_no
     run = db_session.query(StageRun).filter(StageRun.event_id == eid).first()
     assert run.status == "active"
 
+def test_generate_runs_for_live_event_schedules_due_automatic_stage(client, db_session, monkeypatch, past_now):
+    start, end = past_now
+    eid = _make_event(db_session, status=EventStatus.ACTIVE)
+    _create(client, eid, "s1", 1, start, end, policy="automatic")
+
+    r = client.post(f"/events/{eid}/stages/runs/generate", headers=_hdr(eid))
+    assert r.status_code == 200, r.text
+    assert r.json()["runs_created"] == 1
+    assert r.json()["actions_scheduled"] >= 2
+
+    _run_engine(monkeypatch, db_session)
+
+    db_session.expire_all()
+    run = db_session.query(StageRun).filter(StageRun.event_id == eid).first()
+    assert run.status == "active"
+
+
+def test_advance_run_endpoint_releases_awaiting_manual_stage(client, db_session, monkeypatch, past_now):
+    start, end = past_now
+    eid = _make_event(db_session)
+    _create(client, eid, "s1", 1, start, end, policy="manual")
+    assert client.post(f"/events/{eid}/publish", headers=_hdr(eid)).status_code == 200
+
+    _run_engine(monkeypatch, db_session)
+
+    db_session.expire_all()
+    run = db_session.query(StageRun).filter(StageRun.event_id == eid).first()
+    assert run.status == "awaiting_approval"
+
+    r = client.post(f"/events/{eid}/stages/runs/advance", headers=_hdr(eid))
+    assert r.status_code == 200, r.text
+    assert r.json()["status"] == "active"
+
+    db_session.expire_all()
+    run = db_session.query(StageRun).filter(StageRun.event_id == eid).first()
+    assert run.status == "active"
+
+
+def test_stage_snapshot_keeps_all_stages_pending_before_start(client, db_session):
+    from app.services.link_service import LinkService
+    from app.services.stage_service import StageService
+
+    now = datetime.now(timezone.utc)
+    eid = _make_event(db_session, status=EventStatus.ACTIVE)
+    _create(
+        client,
+        eid,
+        "registration",
+        1,
+        now + timedelta(hours=1),
+        now + timedelta(hours=2),
+        policy="automatic",
+    )
+
+    StageService(db_session, eid).generate_stage_runs()
+
+    snapshot = LinkService._stage_snapshot(eid, db_session)
+
+    assert snapshot["current_stage"] == "not_started"
+    assert snapshot["timeline"] == [
+        {"phase": "Registration", "status": "pending"}
+    ]
+
 
 def test_manual_stage_holds_for_approval(client, db_session, monkeypatch, past_now):
     start, end = past_now

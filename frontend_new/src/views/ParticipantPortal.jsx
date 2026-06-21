@@ -124,6 +124,7 @@ function initials(name = '') {
 }
 
 const STAGE_LABELS = {
+  not_started:    'Not Started',
   registration:   'Registration',
   team_formation: 'Team Formation',
   evaluation:     'Evaluation',
