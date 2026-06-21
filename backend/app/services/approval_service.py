@@ -197,13 +197,16 @@ class ApprovalService:
         # 3. Securely scope the current teams
         current_teams = db.query(Team).filter(
             Team.event_id == event_id,
-            Team.approval_status.in_(["pending", "approved", "rejected"])
+            Team.approval_status.in_(["pending", "approved", "rejected", "published"])
         ).all()
 
         if not current_teams:
             return {"success": False, "message": "No active team formation found."}
 
-        unapproved = [t for t in current_teams if t.approval_status != "approved"]
+        unapproved = [
+            t for t in current_teams
+            if t.approval_status not in ("approved", "published")
+        ]
         if unapproved:
             return {
                 "success": False,
@@ -228,6 +231,9 @@ class ApprovalService:
             team.approval_status = "published"
             members = ApprovalService.get_team_members(event_id, team.id, db)
             for m in members:
+                if m.team_link_sent:
+                    continue
+
                 all_email_recipients.append({
                     "email":        m.email,
                     "name":         f"{m.first_name} {m.last_name}",
@@ -251,7 +257,8 @@ class ApprovalService:
             send_batch_emails.delay(
                 recipient_list=all_email_recipients,
                 template="team_assignment",
-                event_name=event_name  # <-- 5. Dynamic Email Titles
+                event_name=event_name,
+                event_id=str(event_id),
             )
 
         return {

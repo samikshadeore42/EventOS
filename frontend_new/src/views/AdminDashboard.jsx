@@ -4510,7 +4510,7 @@ export default function AdminDashboard() {
   return (
     <AppLayout
       title="EventOS Platform"
-      subtitle="Hackathon Operating System"
+      subtitle="Event Orchestration System."
       customActions={
         <>
           <NotificationBell />
