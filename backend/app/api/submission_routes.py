@@ -12,6 +12,10 @@ from app.models.evaluation import Evaluator
 from app.services.project_submission_service import ProjectSubmissionService
 from app.models.assignment import EvaluatorTeamAssignment
 from app.services.portal_notification_service import notify_evaluator
+from app.models.stage_definition import StageDefinition
+from app.models.stage_run import StageRun
+from app.models.assignment import EvaluatorTeamAssignment
+from app.models.project_submission import ProjectSubmission
 
 # 1. Update Prefix
 router = APIRouter(prefix="/events/{event_id}/submissions", tags=["Submissions"])
@@ -51,6 +55,26 @@ def submit_project(
     
     if not participant:
         raise HTTPException(status_code=404, detail="Participant not found in this event.")
+
+    active_stage = (
+        scope.db.query(StageDefinition)
+        .join(
+            StageRun,
+            (StageRun.stage_definition_id == StageDefinition.id)
+            & (StageRun.event_id == StageDefinition.event_id),
+        )
+        .filter(
+            StageDefinition.event_id == scope.event_id,
+            StageRun.status == "active",
+        )
+        .first()
+    )
+
+    if active_stage and active_stage.key != "development":
+        raise HTTPException(
+            status_code=403,
+            detail="Project submission is allowed only during the Development stage.",
+        )
         
     # Pass event_id to service layer
     submission = ProjectSubmissionService.save_team_submission(scope.event_id, scope.db, participant, upload_file)
@@ -138,69 +162,87 @@ def get_participant_project(token: str, scope: ScopedEventService = Depends(requ
     }
 
 @router.get("/team/{team_id}")
-def get_team_submission_judge(team_id: UUID, token: str, scope: ScopedEventService = Depends(require_capability("submissions"))):
+def get_team_submission_for_evaluator(
+    team_id: int,
+    token: str,
+    scope: ScopedEventService = Depends(require_capability("submissions")),
+):
     payload = decode_access_token(token)
-    role = payload.get("role")
-    token_event_id = payload.get("event_id")
 
-    if str(token_event_id) != str(scope.event_id):
+    if payload.get("role") != "evaluator":
+        raise HTTPException(status_code=403, detail="Only evaluators can view team submissions.")
+
+    if str(payload.get("event_id")) != str(scope.event_id):
         raise HTTPException(status_code=403, detail="Token mismatch.")
 
-    if role != "evaluator":
-        raise HTTPException(status_code=403, detail="Only evaluators can access this.")
-        
     evaluator_id = parse_uuid_subject(get_token_subject(payload), "evaluator ID")
-    evaluator = scope.db.query(Evaluator).filter(
-        Evaluator.id == evaluator_id,
-        Evaluator.event_id == scope.event_id
+
+    assignment = scope.db.query(EvaluatorTeamAssignment).filter(
+        EvaluatorTeamAssignment.event_id == scope.event_id,
+        EvaluatorTeamAssignment.evaluator_id == evaluator_id,
+        EvaluatorTeamAssignment.team_id == team_id,
     ).first()
-    if not evaluator:
-        raise HTTPException(status_code=404, detail="Evaluator not found.")
-    
-    submission = ProjectSubmissionService.get_download_file_for_evaluator(scope.event_id, scope.db, evaluator, team_id)
-    
-    uploader = scope.db.query(Participant).filter(
-        Participant.id == submission.uploaded_by_participant_id,
-        Participant.event_id == scope.event_id
-    ).first()
-    uploader_name = f"{uploader.first_name} {uploader.last_name}" if uploader else "Unknown"
-    
+
+    if not assignment:
+        raise HTTPException(status_code=403, detail="You are not assigned to this team.")
+
+    submission = scope.db.query(ProjectSubmission).filter(
+        ProjectSubmission.event_id == scope.event_id,
+        ProjectSubmission.team_id == team_id,
+    ).order_by(ProjectSubmission.updated_at.desc(), ProjectSubmission.created_at.desc()).first()
+
+    if not submission:
+        return {
+            "submission": None,
+            "message": "No project ZIP submitted yet.",
+        }
+
     return {
         "submission": {
             "id": str(submission.id),
-            "team_id": str(submission.team_id),
+            "team_id": submission.team_id,
             "original_filename": submission.original_filename,
             "file_size_bytes": submission.file_size_bytes,
-            "uploaded_by": uploader_name,
             "created_at": submission.created_at.isoformat() if submission.created_at else None,
             "updated_at": submission.updated_at.isoformat() if submission.updated_at else None,
         }
     }
 
 @router.get("/team/{team_id}/download")
-def download_team_submission(team_id: UUID, token: str, scope: ScopedEventService = Depends(require_capability("submissions"))):
+def download_team_submission_for_evaluator(
+    team_id: int,
+    token: str,
+    scope: ScopedEventService = Depends(require_capability("submissions")),
+):
     payload = decode_access_token(token)
-    role = payload.get("role")
-    token_event_id = payload.get("event_id")
 
-    if str(token_event_id) != str(scope.event_id):
+    if payload.get("role") != "evaluator":
+        raise HTTPException(status_code=403, detail="Only evaluators can download team submissions.")
+
+    if str(payload.get("event_id")) != str(scope.event_id):
         raise HTTPException(status_code=403, detail="Token mismatch.")
 
-    if role != "evaluator":
-        raise HTTPException(status_code=403, detail="Only evaluators can download this.")
-        
     evaluator_id = parse_uuid_subject(get_token_subject(payload), "evaluator ID")
-    evaluator = scope.db.query(Evaluator).filter(
-        Evaluator.id == evaluator_id,
-        Evaluator.event_id == scope.event_id
+
+    assignment = scope.db.query(EvaluatorTeamAssignment).filter(
+        EvaluatorTeamAssignment.event_id == scope.event_id,
+        EvaluatorTeamAssignment.evaluator_id == evaluator_id,
+        EvaluatorTeamAssignment.team_id == team_id,
     ).first()
-    if not evaluator:
-        raise HTTPException(status_code=404, detail="Evaluator not found.")
-    
-    submission = ProjectSubmissionService.get_download_file_for_evaluator(scope.event_id, scope.db, evaluator, team_id)
-    
+
+    if not assignment:
+        raise HTTPException(status_code=403, detail="You are not assigned to this team.")
+
+    submission = scope.db.query(ProjectSubmission).filter(
+        ProjectSubmission.event_id == scope.event_id,
+        ProjectSubmission.team_id == team_id,
+    ).order_by(ProjectSubmission.updated_at.desc(), ProjectSubmission.created_at.desc()).first()
+
+    if not submission:
+        raise HTTPException(status_code=404, detail="No project ZIP submitted yet.")
+
     return FileResponse(
-        path=submission.file_path,
-        filename=submission.original_filename,
-        media_type=submission.content_type or "application/zip"
+        submission.file_path,
+        media_type="application/zip",
+        filename=submission.original_filename or f"team_{team_id}_submission.zip",
     )
