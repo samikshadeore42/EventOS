@@ -59,7 +59,8 @@ def delete_user_endpoint(req: DeleteUserRequest, db: Session = Depends(get_db)):
             detail="Type DELETE_USER to confirm user deletion."
         )
 
-    user = db.query(User).filter(User.email == req.email).first()
+    from app.services.auth_service import AuthService
+    user = AuthService.get_user_by_email(db, req.email)
     if not user:
         raise HTTPException(status_code=404, detail=f"No user found with email {req.email}")
 
