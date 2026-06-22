@@ -764,15 +764,12 @@ export const submissionsApi = {
 
   /** Get submission metadata for a team (judge) */
   getTeamSubmission: (teamId, token) =>
-    api.get(portalEventPath(`/submissions/team/${teamId}`, token), {
+    api.get(portalEventPath(`/submissions/team/${encodeURIComponent(String(teamId))}`, token), {
       params: token ? { token } : undefined,
     }),
 
-  /** Download team ZIP (judge) — GET /submissions/team/{team_id}/download
-   *  Returns a raw Axios response (not unwrapped) so caller can access the blob.
-   */
   downloadTeamZip: (teamId, token) =>
-    api.get(portalEventPath(`/submissions/team/${teamId}/download`, token), {
+    api.get(portalEventPath(`/submissions/team/${encodeURIComponent(String(teamId))}/download`, token), {
       params: token ? { token } : undefined,
       responseType: 'blob',
     }),

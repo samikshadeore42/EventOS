@@ -14,11 +14,16 @@ from app.models.assignment import EvaluatorTeamAssignment
 from app.services.portal_notification_service import notify_evaluator
 from app.models.stage_definition import StageDefinition
 from app.models.stage_run import StageRun
-from app.models.assignment import EvaluatorTeamAssignment
 from app.models.project_submission import ProjectSubmission
 
 # 1. Update Prefix
 router = APIRouter(prefix="/events/{event_id}/submissions", tags=["Submissions"])
+
+def _parse_team_uuid(team_id: str) -> UUID:
+    try:
+        return UUID(str(team_id))
+    except (TypeError, ValueError):
+        raise HTTPException(status_code=422, detail="Invalid team id.")
 
 @router.post("/participant/project")
 def submit_project(
@@ -163,10 +168,11 @@ def get_participant_project(token: str, scope: ScopedEventService = Depends(requ
 
 @router.get("/team/{team_id}")
 def get_team_submission_for_evaluator(
-    team_id: int,
+    team_id: str,
     token: str,
     scope: ScopedEventService = Depends(require_capability("submissions")),
 ):
+    team_uuid = _parse_team_uuid(team_id)
     payload = decode_access_token(token)
 
     if payload.get("role") != "evaluator":
@@ -180,7 +186,7 @@ def get_team_submission_for_evaluator(
     assignment = scope.db.query(EvaluatorTeamAssignment).filter(
         EvaluatorTeamAssignment.event_id == scope.event_id,
         EvaluatorTeamAssignment.evaluator_id == evaluator_id,
-        EvaluatorTeamAssignment.team_id == team_id,
+        EvaluatorTeamAssignment.team_id == team_uuid,
     ).first()
 
     if not assignment:
@@ -188,7 +194,7 @@ def get_team_submission_for_evaluator(
 
     submission = scope.db.query(ProjectSubmission).filter(
         ProjectSubmission.event_id == scope.event_id,
-        ProjectSubmission.team_id == team_id,
+        ProjectSubmission.team_id == team_uuid,
     ).order_by(ProjectSubmission.updated_at.desc(), ProjectSubmission.created_at.desc()).first()
 
     if not submission:
@@ -200,7 +206,7 @@ def get_team_submission_for_evaluator(
     return {
         "submission": {
             "id": str(submission.id),
-            "team_id": submission.team_id,
+            "team_id": str(submission.team_id),
             "original_filename": submission.original_filename,
             "file_size_bytes": submission.file_size_bytes,
             "created_at": submission.created_at.isoformat() if submission.created_at else None,
@@ -210,10 +216,11 @@ def get_team_submission_for_evaluator(
 
 @router.get("/team/{team_id}/download")
 def download_team_submission_for_evaluator(
-    team_id: int,
+    team_id: str,
     token: str,
     scope: ScopedEventService = Depends(require_capability("submissions")),
 ):
+    team_uuid = _parse_team_uuid(team_id)
     payload = decode_access_token(token)
 
     if payload.get("role") != "evaluator":
@@ -227,7 +234,7 @@ def download_team_submission_for_evaluator(
     assignment = scope.db.query(EvaluatorTeamAssignment).filter(
         EvaluatorTeamAssignment.event_id == scope.event_id,
         EvaluatorTeamAssignment.evaluator_id == evaluator_id,
-        EvaluatorTeamAssignment.team_id == team_id,
+        EvaluatorTeamAssignment.team_id == team_uuid,
     ).first()
 
     if not assignment:
@@ -235,7 +242,7 @@ def download_team_submission_for_evaluator(
 
     submission = scope.db.query(ProjectSubmission).filter(
         ProjectSubmission.event_id == scope.event_id,
-        ProjectSubmission.team_id == team_id,
+        ProjectSubmission.team_id == team_uuid,
     ).order_by(ProjectSubmission.updated_at.desc(), ProjectSubmission.created_at.desc()).first()
 
     if not submission:
@@ -244,5 +251,5 @@ def download_team_submission_for_evaluator(
     return FileResponse(
         submission.file_path,
         media_type="application/zip",
-        filename=submission.original_filename or f"team_{team_id}_submission.zip",
+        filename=submission.original_filename or f"team_{team_uuid}_submission.zip",
     )
