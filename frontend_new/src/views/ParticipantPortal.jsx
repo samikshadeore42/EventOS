@@ -972,7 +972,7 @@ export default function ParticipantPortal() {
         </div>
 
         {/* Second Row: Project Submission */}
-        {team_assigned && stageKey === 'development' && (
+        {team_assigned && (data?.can_submit_project || stageKey === 'development') && (
           <div className="mb-6">
             <ProjectSubmissionSection token={urlToken} />
           </div>

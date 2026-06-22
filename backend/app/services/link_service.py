@@ -309,9 +309,17 @@ class LinkService:
         else:
             current_stage = "not_started"
 
+        development_active = any(
+            stage_def.key == "development"
+            and run_by_stage.get(stage_def.id)
+            and run_by_stage[stage_def.id].status == "active"
+            for stage_def in stage_defs
+        )
+
         return {
             "current_stage": current_stage,
             "timeline": timeline,
+            "can_submit_project": development_active,
         }
 
     @staticmethod
@@ -376,6 +384,7 @@ class LinkService:
             team_rationale = team.rationale if team else None,
             teammates      = teammates,
             timeline       = stage_snapshot["timeline"],
+            can_submit_project    = stage_snapshot.get("can_submit_project", False),
             rank                  = rank,
             total_score           = total_score,
             progression_confirmed = participant.progression_confirmed,
