@@ -1,5 +1,6 @@
 # File: backend/app/api/submission_routes.py
 from uuid import UUID
+from pathlib import Path
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, File
 from fastapi.responses import FileResponse
 from sqlalchemy.orm import Session
@@ -248,8 +249,19 @@ def download_team_submission_for_evaluator(
     if not submission:
         raise HTTPException(status_code=404, detail="No project ZIP submitted yet.")
 
+        file_path = Path(submission.file_path)
+
+    if not file_path.is_absolute():
+        file_path = Path.cwd() / file_path
+
+    if not file_path.exists() or not file_path.is_file():
+        raise HTTPException(
+            status_code=404,
+            detail="Submitted project file is missing on the server. Please ask the participant to upload the ZIP again.",
+        )
+
     return FileResponse(
-        submission.file_path,
+        path=str(file_path),
         media_type="application/zip",
         filename=submission.original_filename or f"team_{team_uuid}_submission.zip",
     )
