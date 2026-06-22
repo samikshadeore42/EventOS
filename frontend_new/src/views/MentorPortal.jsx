@@ -585,7 +585,7 @@ function TeamCard({ team, token, eventId, mentorId }) {
  const { isDark } = useTheme();
  const [expanded, setExpanded] = useState(false)
  const [activeModal, setActiveModal] = useState(null)
- const [chatTab, setChatTab] = useState('team')
+ const [chatTab, setChatTab] = useState('mentor')
 
  const closeModal = () => setActiveModal(null)
 
@@ -654,18 +654,17 @@ function TeamCard({ team, token, eventId, mentorId }) {
  {/* Right Column: Chat */}
  <div className={isDark ? "min-h-[520px] flex-col flex bg-slate-50/40 lg:border-l lg:border-t-0 border-t border-white/10 border-white/10" : "border-t lg:border-t-0 lg:border-l border-slate-200 bg-slate-50/40 flex flex-col min-h-[520px]"}>
  <div className={isDark ? "shrink-0 border-b overflow-x-auto gap-2 pt-2 px-4 flex border-white/10 border-white/10 bg-slate-900/80" : "flex px-4 pt-2 gap-2 overflow-x-auto border-b border-slate-200 bg-white shrink-0"}>
- <button onClick={() => setChatTab('team')} className={`px-4 py-3 text-sm font-bold border-b-2 whitespace-nowrap transition-colors ${chatTab === 'team' ? 'border-blue-600 text-blue-600' : 'border-transparent text-slate-500 hover:text-slate-800'}`}>Team Chat</button>
  <button onClick={() => setChatTab('mentor')} className={`px-4 py-3 text-sm font-bold border-b-2 whitespace-nowrap transition-colors ${chatTab === 'mentor' ? 'border-blue-600 text-blue-600' : 'border-transparent text-slate-500 hover:text-slate-800'}`}>Mentor Chat</button>
  <button onClick={() => setChatTab('support')} className={`px-4 py-3 text-sm font-bold border-b-2 whitespace-nowrap transition-colors ${chatTab === 'support' ? 'border-blue-600 text-blue-600' : 'border-transparent text-slate-500 hover:text-slate-800'}`}>Event Support</button>
  </div>
  <div className={isDark ? "min-h-[400px] flex-col flex relative to-white from-slate-50/40 bg-gradient-to-b flex-1 text-slate-300" : "flex-1 bg-gradient-to-b from-slate-50/40 to-white text-slate-700 relative flex flex-col min-h-[400px]"}>
- {chatTab === 'team' && eventId && mentorId ? (
+ {chatTab === 'mentor' && eventId && mentorId ? (
  <TeamChatPanel
  eventId={eventId}
  teamId={team.team_id}
  token={token}
  kind="mentor"
- title="Team Chat"
+ title="Mentor Chat"
  currentSenderId={mentorId}
  currentSenderRole="mentor"
  inline={true}
@@ -673,14 +672,14 @@ function TeamCard({ team, token, eventId, mentorId }) {
  ) : (
  <div className="flex-1 flex flex-col items-center justify-center text-center p-8 text-slate-400">
  <MessageSquare size={32} className="mb-4 text-slate-300" />
- <h4 className={isDark ? "mb-1 font-bold text-slate-100" : "text-sm font-bold text-slate-950 mb-1"}>No messages yet</h4>
- <p className={isDark ? "font-medium text-slate-400" : "text-xs font-medium text-slate-500"}>Start the conversation with your team.</p>
+ <h4 className={isDark ? "mb-1 font-bold text-slate-100" : "text-sm font-bold text-slate-950 mb-1"}>Event support</h4>
+ <p className={isDark ? "font-medium text-slate-400" : "text-xs font-medium text-slate-500"}>Event support chat is not available yet.</p>
  </div>
  )}
- {(!eventId || !mentorId || chatTab !== 'team') && (
+ {(!eventId || !mentorId || chatTab === 'support') && (
  <div className={isDark ? "shrink-0 p-4 border-t bg-slate-900/80 border-white/10 border-white/10" : "bg-white border-t border-slate-200 p-4 shrink-0"}>
  <div className="relative flex items-center">
- <input placeholder="Type a message..." disabled className={isDark ? "transition-all focus:border-blue-300 focus:ring-blue-100/70 focus:ring-4 focus:outline-none pr-12 py-2.5 px-4 rounded-full placeholder:text-slate-400 border bg-slate-100/80 w-full border-white/10 text-slate-200" : "w-full bg-slate-100/80 border border-slate-200 text-slate-800 placeholder:text-slate-400 rounded-full px-4 py-2.5 pr-12 text-sm focus:outline-none focus:ring-4 focus:ring-blue-100/70 focus:border-blue-300 transition-all"} />
+ <input placeholder="Event support is not available yet" disabled className={isDark ? "transition-all focus:border-blue-300 focus:ring-blue-100/70 focus:ring-4 focus:outline-none pr-12 py-2.5 px-4 rounded-full placeholder:text-slate-400 border bg-slate-100/80 w-full border-white/10 text-slate-200" : "w-full bg-slate-100/80 border border-slate-200 text-slate-800 placeholder:text-slate-400 rounded-full px-4 py-2.5 pr-12 text-sm focus:outline-none focus:ring-4 focus:ring-blue-100/70 focus:border-blue-300 transition-all"} />
  <button disabled className="absolute right-1 top-1 bottom-1 w-8 h-8 rounded-full bg-blue-600 text-white flex items-center justify-center shrink-0 opacity-50"><Send size={14} className="-ml-0.5 mt-0.5" /></button>
  </div>
  </div>
