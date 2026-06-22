@@ -519,4 +519,63 @@ describe('EventOS Stage-1 Regression Tests', () => {
     expect(screen.getByText(/10 mins before ending time/i)).toBeInTheDocument();
     expect(screen.getByText(/5 mins before ending time/i)).toBeInTheDocument();
   });
+
+    it('25. Evaluator portal refreshes submitted project ZIP for selected team', async () => {
+    window.history.pushState({}, 'Evaluator portal', `/judge?token=${PORTAL_TOKEN}`);
+
+    axios.get.mockImplementation((url) => {
+      const path = String(url);
+
+      if (path.includes('/portal/access')) {
+        return Promise.resolve({
+          role: 'evaluator',
+          evaluator_id: 'e1',
+          name: 'Judge One',
+          stage: 'evaluation',
+          assigned_teams: [
+            {
+              team_id: 1,
+              team_name: 'Team A',
+              is_approved: true,
+              already_graded: false,
+            },
+          ],
+          grading_criteria: [],
+          submitted_count: 0,
+          total_assigned: 1,
+        });
+      }
+
+      if (path.includes('/submissions/team/1')) {
+        return Promise.resolve({
+          submission: {
+            id: 's1',
+            team_id: 1,
+            original_filename: 'team-a-final.zip',
+            file_size_bytes: 1024,
+            created_at: '2026-06-22T04:18:00',
+          },
+        });
+      }
+
+      if (path.includes('/evaluations/portal/notifications/unread-count')) {
+        return Promise.resolve({ unread: 0 });
+      }
+
+      if (path.includes('/evaluations/portal/notifications')) {
+        return Promise.resolve({ notifications: [] });
+      }
+
+      return Promise.resolve({});
+    });
+
+    renderWithProviders(<JudgePortal />);
+
+    const teamButton = await screen.findByRole('button', { name: /Team A/i });
+    fireEvent.click(teamButton);
+
+    await waitFor(() => {
+      expect(screen.getByText(/team-a-final.zip/i)).toBeInTheDocument();
+    });
+  });
 });

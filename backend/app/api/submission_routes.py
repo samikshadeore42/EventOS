@@ -14,7 +14,6 @@ from app.models.assignment import EvaluatorTeamAssignment
 from app.services.portal_notification_service import notify_evaluator
 from app.models.stage_definition import StageDefinition
 from app.models.stage_run import StageRun
-from app.models.assignment import EvaluatorTeamAssignment
 from app.models.project_submission import ProjectSubmission
 
 # 1. Update Prefix

@@ -395,73 +395,93 @@ function ScoringForm({ team, onSubmitted, alreadySubmitted, token }) {
 // ── Team submission download section ───────────────────────────────────────
 
 function TeamSubmissionSection({ teamId, token }) {
-  const { isDark } = useTheme();
- const urlToken = token
- const [downloading, setDownloading] = useState(false)
+  const { isDark } = useTheme()
+  const urlToken = token
+  const [downloading, setDownloading] = useState(false)
 
- const { data, isLoading, error } = useQuery({
- queryKey: ['team-submission', teamId, urlToken],
- queryFn: () => submissionsApi.getTeamSubmission(teamId, urlToken),
- enabled: !!teamId && !!urlToken,
- retry: false,
- })
+  const submissionQuery = useQuery({
+    queryKey: ['team-submission', teamId, urlToken],
+    queryFn: () => submissionsApi.getTeamSubmission(teamId, urlToken),
+    enabled: Boolean(teamId && urlToken),
+    retry: false,
+    staleTime: 0,
+    refetchInterval: 3000,
+    refetchOnWindowFocus: true,
+  })
 
- async function handleDownload() {
- setDownloading(true)
- try {
- const response = await submissionsApi.downloadTeamZip(teamId, urlToken)
- const blob = new Blob([response.data], { type: 'application/zip' })
- const url = window.URL.createObjectURL(blob)
- const a = document.createElement('a')
- a.href = url
- a.download = data?.submission?.original_filename || `team_${teamId}.zip`
- document.body.appendChild(a)
- a.click()
- a.remove()
- window.URL.revokeObjectURL(url)
- } catch (err) {
- alert('Download failed: ' + (err.response?.data?.detail || err.message))
- } finally {
- setDownloading(false)
- }
- }
+  const submissionPayload = submissionQuery.data?.data ?? submissionQuery.data ?? {}
+  const sub = submissionPayload.submission ?? null
 
- const sub = data?.submission
+  async function handleDownload() {
+    setDownloading(true)
 
- return (
- <div className={isDark ? "bg-slate-900/80 border border-white/10 rounded-[16px] p-4 shadow-none flex items-center justify-between cursor-pointer hover:border-white/20 transition-colors" : "bg-white/95 border border-slate-200 rounded-[16px] p-4 shadow-[0_12px_30px_rgba(15,23,42,0.04)] flex items-center justify-between cursor-pointer hover:border-slate-300 transition-colors"}>
- <div className="flex items-center gap-4">
- <div className="w-10 h-10 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center shrink-0">
- <FileText size={20} />
- </div>
- <div>
- <h3 className={isDark ? "text-sm font-black text-slate-100" : "text-sm font-black text-slate-950"}>Submissions</h3>
- {isLoading ? (
- <p className={isDark ? "text-xs font-medium text-slate-400 flex items-center gap-1" : "text-xs font-medium text-slate-500 flex items-center gap-1"}>
- <Loader2 size={10} className="animate-spin text-blue-500" /> Loading...
- </p>
- ) : error || !sub ? (
- <p className={isDark ? "text-xs font-medium text-slate-400" : "text-xs font-medium text-slate-500"}>No project ZIP submitted yet.</p>
- ) : (
- <p className={isDark ? "text-xs font-medium text-slate-400" : "text-xs font-medium text-slate-500"}>
- {sub.original_filename} · {sub.file_size_bytes ? `${(sub.file_size_bytes / 1024 / 1024).toFixed(1)} MB` : ''}
- </p>
- )}
- </div>
- </div>
- {sub ? (
- <button
- onClick={handleDownload}
- disabled={downloading}
- className="p-2 rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-100 transition-colors disabled:opacity-50"
- >
- {downloading ? <Loader2 size={16} className="animate-spin" /> : <Download size={16} />}
- </button>
- ) : (
- <ChevronRight size={16} className="text-slate-400" />
- )}
- </div>
- )
+    try {
+      const response = await submissionsApi.downloadTeamZip(teamId, urlToken)
+      const rawBlob = response?.data ?? response
+      const blob = rawBlob instanceof Blob
+        ? rawBlob
+        : new Blob([rawBlob], { type: 'application/zip' })
+
+      const url = window.URL.createObjectURL(blob)
+
+      const link = document.createElement('a')
+      link.href = url
+      link.download = sub?.original_filename || `team-${teamId}-submission.zip`
+      document.body.appendChild(link)
+      link.click()
+      link.remove()
+
+      window.URL.revokeObjectURL(url)
+    } catch (err) {
+      alert('Download failed: ' + (err.response?.data?.detail || err.message))
+    } finally {
+      setDownloading(false)
+    }
+  }
+
+  return (
+    <div className={isDark ? "bg-slate-900/80 border border-white/10 rounded-[16px] p-4 shadow-none flex items-center justify-between cursor-pointer hover:border-white/20 transition-colors" : "bg-white/95 border border-slate-200 rounded-[16px] p-4 shadow-[0_12px_30px_rgba(15,23,42,0.04)] flex items-center justify-between cursor-pointer hover:border-slate-300 transition-colors"}>
+      <div className="flex items-center gap-4">
+        <div className="w-10 h-10 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center shrink-0">
+          <FileText size={20} />
+        </div>
+
+        <div>
+          <h3 className={isDark ? "text-sm font-black text-slate-100" : "text-sm font-black text-slate-950"}>
+            Submissions
+          </h3>
+
+          {submissionQuery.isLoading ? (
+            <p className={isDark ? "text-xs font-medium text-slate-400 flex items-center gap-1" : "text-xs font-medium text-slate-500 flex items-center gap-1"}>
+              <Loader2 size={10} className="animate-spin text-blue-500" /> Loading...
+            </p>
+          ) : submissionQuery.error || !sub ? (
+            <p className={isDark ? "text-xs font-medium text-slate-400" : "text-xs font-medium text-slate-500"}>
+              No project ZIP submitted yet.
+            </p>
+          ) : (
+            <p className={isDark ? "text-xs font-medium text-slate-400" : "text-xs font-medium text-slate-500"}>
+              {sub.original_filename} · {sub.file_size_bytes ? `${(sub.file_size_bytes / 1024 / 1024).toFixed(1)} MB` : ''}
+            </p>
+          )}
+        </div>
+      </div>
+
+      {sub ? (
+        <button
+          type="button"
+          onClick={handleDownload}
+          disabled={downloading}
+          className="p-2 rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-100 transition-colors disabled:opacity-50"
+          title="Download submission"
+        >
+          {downloading ? <Loader2 size={16} className="animate-spin" /> : <Download size={16} />}
+        </button>
+      ) : (
+        <ChevronRight size={16} className="text-slate-400" />
+      )}
+    </div>
+  )
 }
 
 function ScoringGuideCard({ onOpen, loading }) {
