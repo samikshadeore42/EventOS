@@ -580,7 +580,7 @@ describe('EventOS Stage-1 Regression Tests', () => {
     expect(screen.getByRole('button', { name: /^Event Support$/i })).toBeInTheDocument();
   });
 
-  it('25. Evaluator portal refreshes submitted project ZIP for selected team', async () => {
+    it('25. Evaluator portal refreshes submitted project ZIP for selected team', async () => {
     window.history.pushState({}, 'Evaluator portal', `/judge?token=${PORTAL_TOKEN}`);
 
     axios.get.mockImplementation((url) => {
@@ -637,6 +637,5 @@ describe('EventOS Stage-1 Regression Tests', () => {
     await waitFor(() => {
       expect(screen.getByText(/team-a-final.zip/i)).toBeInTheDocument();
     });
-  });
   });
 });
