@@ -22,6 +22,7 @@ class ParticipantPortalResponse(BaseModel):
     team_rationale:   Optional[str]         = None
     teammates:        List[TeamMemberPortalView] = []
     timeline:         List[dict]            = []
+    can_submit_project: bool = False
     rank:             Optional[int]         = None
     total_score:      Optional[float]       = None
     progression_confirmed: Optional[bool]   = None
